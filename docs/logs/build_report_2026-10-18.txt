@@ -1,0 +1,24 @@
+P5-IS34 bring-up v3 - target build report
+Date: 2026-10-18
+Toolchain: arm-none-eabi-gcc (15:13.2.rel1-2) 13.2.1 20231009
+Pico SDK: 2.1.1 (git bddd20f), board pico_w, cmake + ninja
+Warnings in project sources (-Wall -Wextra): 0
+
+Static RAM = __bss_end__ - 0x20000000 (data + bss, excludes stack/heap). NFR9 limit 200 KB of 264 KB.
+  encoder_test             8440 bytes
+  imu_test                 8388 bytes
+  ir_test                 10448 bytes
+  notify_test              8416 bytes
+  parts_check              8592 bytes
+  ultrasonic_test          8572 bytes
+  wifi_mqtt_test          59288 bytes
+
+arm-none-eabi-size:
+   text	   data	    bss	    dec	    hex	filename
+  36972	      0	   4504	  41476	   a204	encoder/encoder_test.elf
+  37516	      0	   4436	  41952	   a3e0	imu/imu_test.elf
+  35508	      0	   6512	  42020	   a424	ir/ir_test.elf
+  36108	      0	   4480	  40588	   9e8c	notify/notify_test.elf
+  42668	      0	   4512	  47180	   b84c	parts_check/parts_check.elf
+  37508	      0	   4636	  42144	   a4a0	ultrasonic/ultrasonic_test.elf
+ 347496	      0	  55080	 402576	  62490	wifi_mqtt/wifi_mqtt_test.elf

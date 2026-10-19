@@ -1,0 +1,5 @@
+add_executable(ultrasonic_test ultrasonic_test.c)
+target_link_libraries(ultrasonic_test pico_stdlib hardware_pwm)
+pico_enable_stdio_usb(ultrasonic_test 1)
+pico_enable_stdio_uart(ultrasonic_test 0)
+pico_add_extra_outputs(ultrasonic_test)

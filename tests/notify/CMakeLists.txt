@@ -1,0 +1,7 @@
+add_executable(notify_test notify_test.c ${CMAKE_CURRENT_LIST_DIR}/../common/notify_hw.c)
+pico_generate_pio_header(notify_test ${CMAKE_CURRENT_LIST_DIR}/../common/ws2812.pio)
+target_include_directories(notify_test PRIVATE ${CMAKE_CURRENT_LIST_DIR}/../common)
+target_link_libraries(notify_test pico_stdlib hardware_pio hardware_pwm hardware_clocks)
+pico_enable_stdio_usb(notify_test 1)
+pico_enable_stdio_uart(notify_test 0)
+pico_add_extra_outputs(notify_test)

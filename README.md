@@ -1,4 +1,4 @@
-# P5-IS34 hardware bring-up tests (v3)
+# P5-IS34 hardware bring-up tests
 
 Seven small standalone programs. Each runs on the robot with the plain
 Pico SDK (no RTOS yet) and prints real numbers over USB serial. They back

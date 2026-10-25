@@ -1,0 +1,173 @@
+[2026-10-25 17:21:03.499] [ 3630] VALID                        width=  4354 us  dist=  758.2 mm  trig->rise= 201 us
+[2026-10-25 17:21:03.502] [ 3635] VALID                        width=  4355 us  dist=  758.4 mm  trig->rise= 200 us
+[2026-10-25 17:21:03.502] [ 3640] VALID                        width=  4310 us  dist=  750.5 mm  trig->rise= 201 us
+[2026-10-25 17:21:03.502] [ 3645] VALID                        width=  4455 us  dist=  775.8 mm  trig->rise= 201 us
+[2026-10-25 17:21:03.502] [ 3650] VALID                        width=  4310 us  dist=  750.5 mm  trig->rise= 201 us
+[2026-10-25 17:21:03.502] [ 3655] VALID                        width=  4309 us  dist=  750.3 mm  trig->rise= 202 us
+[2026-10-25 17:21:03.502] [ 3660] VALID                        width=  4260 us  dist=  741.8 mm  trig->rise= 201 us
+[2026-10-25 17:21:03.502] [ 3665] VALID                        width=  4260 us  dist=  741.8 mm  trig->rise= 200 us
+[2026-10-25 17:21:03.502] [ 3670] VALID                        width=  4334 us  dist=  754.7 mm  trig->rise= 200 us
+[2026-10-25 17:21:03.502] [ 3675] VALID                        width=  4435 us  dist=  772.3 mm  trig->rise= 201 us
+[2026-10-25 17:21:03.513] [ 3680] VALID                        width=  4284 us  dist=  746.0 mm  trig->rise= 202 us
+[2026-10-25 17:21:03.513] [ 3685] VALID                        width=  4283 us  dist=  745.8 mm  trig->rise= 202 us
+[2026-10-25 17:21:03.513] [ 3690] VALID                        width=  4358 us  dist=  758.9 mm  trig->rise= 202 us
+[2026-10-25 17:21:03.513] [ 3695] VALID                        width=  4359 us  dist=  759.1 mm  trig->rise= 202 us
+[2026-10-25 17:21:03.513] [ 3700] VALID                        width=  4285 us  dist=  746.2 mm  trig->rise= 200 us
+[2026-10-25 17:21:03.513] [ 3705] VALID                        width=  4309 us  dist=  750.3 mm  trig->rise= 202 us
+[2026-10-25 17:21:03.513] [ 3710] VALID                        width=  4309 us  dist=  750.3 mm  trig->rise= 200 us
+[2026-10-25 17:21:03.513] [ 3715] VALID                        width=  4309 us  dist=  750.3 mm  trig->rise= 201 us
+[2026-10-25 17:21:03.526] [ 3720] VALID                        width=  4409 us  dist=  767.8 mm  trig->rise= 202 us
+[2026-10-25 17:21:03.526] [ 3725] VALID                        width=  4284 us  dist=  746.0 mm  trig->rise= 200 us
+[2026-10-25 17:21:03.526] [ 3730] VALID                        width=  4389 us  dist=  764.3 mm  trig->rise= 201 us
+[2026-10-25 17:21:03.526] [ 3735] VALID                        width=  4310 us  dist=  750.5 mm  trig->rise= 201 us
+[2026-10-25 17:21:03.526] [ 3740] VALID                        width=  4284 us  dist=  746.0 mm  trig->rise= 202 us
+[2026-10-25 17:21:03.526] [ 3745] VALID                        width=  4384 us  dist=  763.4 mm  trig->rise= 202 us
+[2026-10-25 17:21:03.526] [ 3750] VALID                        width=  4309 us  dist=  750.3 mm  trig->rise= 201 us
+[2026-10-25 17:21:03.526] [ 3755] VALID                        width=  4354 us  dist=  758.2 mm  trig->rise= 202 us
+[2026-10-25 17:21:03.539] [ 3760] VALID                        width=  4395 us  dist=  765.3 mm  trig->rise= 201 us
+[2026-10-25 17:21:03.539] [ 3765] VALID                        width=  4350 us  dist=  757.5 mm  trig->rise= 201 us
+[2026-10-25 17:21:03.539] [ 3770] VALID                        width=  4440 us  dist=  773.2 mm  trig->rise= 202 us
+[2026-10-25 17:21:03.539] [ 3775] VALID                        width=  4464 us  dist=  777.3 mm  trig->rise= 201 us
+[2026-10-25 17:21:03.539] [ 3780] VALID                        width=  4444 us  dist=  773.9 mm  trig->rise= 202 us
+[2026-10-25 17:21:03.539] [ 3785] VALID                        width=  4469 us  dist=  778.2 mm  trig->rise= 202 us
+[2026-10-25 17:21:03.539] [ 3790] VALID                        width=  4369 us  dist=  760.8 mm  trig->rise= 202 us
+[2026-10-25 17:21:03.539] [ 3795] VALID                        width=  4419 us  dist=  769.5 mm  trig->rise= 202 us
+[2026-10-25 17:21:03.554] [ 3800] VALID                        width=  4851 us  dist=  844.7 mm  trig->rise= 201 us
+[2026-10-25 17:21:03.554] [ 3805] VALID                        width=  4494 us  dist=  782.6 mm  trig->rise= 202 us
+[2026-10-25 17:21:03.554] [ 3810] VALID                        width=  4394 us  dist=  765.1 mm  trig->rise= 202 us
+[2026-10-25 17:21:03.554] [ 3815] VALID                        width=  4369 us  dist=  760.8 mm  trig->rise= 202 us
+[2026-10-25 17:21:03.554] [ 3820] VALID                        width=  4369 us  dist=  760.8 mm  trig->rise= 201 us
+[2026-10-25 17:21:03.554] [ 3825] VALID                        width=  4489 us  dist=  781.7 mm  trig->rise= 202 us
+[2026-10-25 17:21:03.554] [ 3830] VALID                        width=  4444 us  dist=  773.9 mm  trig->rise= 202 us
+[2026-10-25 17:21:03.554] [ 3835] VALID                        width=  4856 us  dist=  845.6 mm  trig->rise= 201 us
+[2026-10-25 17:21:03.554] [ 3840] VALID                        width=  4404 us  dist=  766.9 mm  trig->rise= 202 us
+[2026-10-25 17:21:03.573] [ 3845] VALID                        width=  4410 us  dist=  767.9 mm  trig->rise= 200 us
+[2026-10-25 17:21:03.573] [ 3850] VALID                        width=  4434 us  dist=  772.1 mm  trig->rise= 202 us
+[2026-10-25 17:21:03.709] [ 3855] VALID                        width=  4535 us  dist=  789.7 mm  trig->rise= 201 us
+[2026-10-25 17:21:04.008] [ 3860] VALID                        width=  4364 us  dist=  759.9 mm  trig->rise= 202 us
+[2026-10-25 17:21:04.309] [ 3865] VALID                        width=  4404 us  dist=  766.9 mm  trig->rise= 202 us
+[2026-10-25 17:21:04.609] [ 3870] VALID                        width=  4509 us  dist=  785.2 mm  trig->rise= 202 us
+[2026-10-25 17:21:04.909] [ 3875] VALID                        width=  4385 us  dist=  763.6 mm  trig->rise= 201 us
+[2026-10-25 17:21:05.209] [ 3880] VALID                        width=  4364 us  dist=  759.9 mm  trig->rise= 201 us
+[2026-10-25 17:21:05.509] [ 3885] VALID                        width=  4745 us  dist=  826.3 mm  trig->rise= 201 us
+[2026-10-25 17:21:05.810] [ 3890] VALID                        width=  4239 us  dist=  738.2 mm  trig->rise= 201 us
+[2026-10-25 17:21:06.106] [ 3895] VALID                        width=  1430 us  dist=  249.0 mm  trig->rise= 202 us
+[2026-10-25 17:21:06.406] [ 3900] VALID                        width=  1109 us  dist=  193.1 mm  trig->rise= 202 us
+[2026-10-25 17:21:06.706] [ 3905] VALID                        width=   898 us  dist=  156.4 mm  trig->rise= 201 us
+[2026-10-25 17:21:07.005] [ 3910] VALID                        width=   738 us  dist=  128.5 mm  trig->rise= 202 us
+[2026-10-25 17:21:07.305] [ 3915] VALID                        width=   743 us  dist=  129.4 mm  trig->rise= 201 us
+[2026-10-25 17:21:07.606] [ 3920] VALID                        width=   738 us  dist=  128.5 mm  trig->rise= 201 us
+[2026-10-25 17:21:07.906] [ 3925] VALID                        width=   743 us  dist=  129.4 mm  trig->rise= 202 us
+[2026-10-25 17:21:08.205] [ 3930] VALID                        width=   738 us  dist=  128.5 mm  trig->rise= 202 us
+[2026-10-25 17:21:08.505] [ 3935] VALID                        width=   748 us  dist=  130.3 mm  trig->rise= 200 us
+[2026-10-25 17:21:08.806] [ 3940] VALID                        width=   707 us  dist=  123.1 mm  trig->rise= 201 us
+[2026-10-25 17:21:09.105] [ 3945] VALID                        width=   733 us  dist=  127.6 mm  trig->rise= 201 us
+[2026-10-25 17:21:09.405] [ 3950] VALID                        width=   768 us  dist=  133.7 mm  trig->rise= 201 us
+[2026-10-25 17:21:09.706] [ 3955] VALID                        width=   833 us  dist=  145.1 mm  trig->rise= 202 us
+[2026-10-25 17:21:10.006] [ 3960] VALID                        width=   944 us  dist=  164.4 mm  trig->rise= 200 us
+[2026-10-25 17:21:10.306] [ 3965] VALID                        width=  1094 us  dist=  190.5 mm  trig->rise= 202 us
+[2026-10-25 17:21:10.606] [ 3970] VALID                        width=  1199 us  dist=  208.8 mm  trig->rise= 202 us
+[2026-10-25 17:21:10.906] [ 3975] VALID                        width=  1375 us  dist=  239.4 mm  trig->rise= 202 us
+[2026-10-25 17:21:11.207] [ 3980] VALID                        width=  1591 us  dist=  277.0 mm  trig->rise= 201 us
+[2026-10-25 17:21:11.507] [ 3985] VALID                        width=  1761 us  dist=  306.6 mm  trig->rise= 201 us
+[2026-10-25 17:21:11.807] [ 3990] VALID                        width=  1976 us  dist=  344.1 mm  trig->rise= 202 us
+[2026-10-25 17:21:12.107] [ 3995] VALID                        width=  2148 us  dist=  374.0 mm  trig->rise= 201 us
+[2026-10-25 17:21:12.407] [ 4000] VALID                        width=  2358 us  dist=  410.6 mm  trig->rise= 200 us
+[2026-10-25 17:21:12.707] [ 4005] VALID                        width=  2588 us  dist=  450.7 mm  trig->rise= 201 us
+[2026-10-25 17:21:13.009] [ 4010] VALID                        width=  2829 us  dist=  492.6 mm  trig->rise= 202 us
+[2026-10-25 17:21:13.307] [ 4015] VALID                        width=  2985 us  dist=  519.8 mm  trig->rise= 202 us
+[2026-10-25 17:21:13.608] [ 4020] VALID                        width=  3130 us  dist=  545.0 mm  trig->rise= 202 us
+[2026-10-25 17:21:13.908] [ 4025] VALID                        width=  3336 us  dist=  580.9 mm  trig->rise= 202 us
+[2026-10-25 17:21:14.208] [ 4030] VALID                        width=  3481 us  dist=  606.2 mm  trig->rise= 201 us
+[2026-10-25 17:21:14.509] [ 4035] VALID                        width=  3681 us  dist=  641.0 mm  trig->rise= 201 us
+[2026-10-25 17:21:14.808] [ 4040] VALID                        width=  3807 us  dist=  662.9 mm  trig->rise= 201 us
+[2026-10-25 17:21:15.109] [ 4045] VALID                        width=  4024 us  dist=  700.7 mm  trig->rise= 201 us
+[2026-10-25 17:21:15.409] [ 4050] VALID                        width=  4219 us  dist=  734.7 mm  trig->rise= 201 us
+[2026-10-25 17:21:15.708] [ 4055] VALID                        width=  4364 us  dist=  759.9 mm  trig->rise= 201 us
+[2026-10-25 17:21:16.010] [ 4060] VALID                        width=  4374 us  dist=  761.7 mm  trig->rise= 201 us
+[2026-10-25 17:21:16.309] [ 4065] VALID                        width=  4514 us  dist=  786.0 mm  trig->rise= 201 us
+[2026-10-25 17:21:16.610] [ 4070] VALID                        width=  4636 us  dist=  807.3 mm  trig->rise= 201 us
+[2026-10-25 17:21:16.910] [ 4075] VALID                        width=  4795 us  dist=  835.0 mm  trig->rise= 202 us
+[2026-10-25 17:21:17.210] [ 4080] VALID                        width=  4976 us  dist=  866.5 mm  trig->rise= 201 us
+[2026-10-25 17:21:17.510] [ 4085] VALID                        width=  5146 us  dist=  896.1 mm  trig->rise= 202 us
+[2026-10-25 17:21:17.810] [ 4090] VALID                        width=  5207 us  dist=  906.7 mm  trig->rise= 201 us
+[2026-10-25 17:21:18.110] [ 4095] VALID                        width=  5508 us  dist=  959.1 mm  trig->rise= 201 us
+[2026-10-25 17:21:18.410] [ 4100] VALID                        width=  5182 us  dist=  902.4 mm  trig->rise= 201 us
+[2026-10-25 17:21:18.710] [ 4105] VALID                        width=  5257 us  dist=  915.4 mm  trig->rise= 201 us
+[2026-10-25 17:21:19.010] [ 4110] VALID                        width=  5934 us  dist= 1033.3 mm  trig->rise= 201 us
+[2026-10-25 17:21:19.310] [ 4115] VALID                        width=  5283 us  dist=  919.9 mm  trig->rise= 201 us
+[2026-10-25 17:21:19.611] [ 4120] VALID                        width=  6281 us  dist= 1093.7 mm  trig->rise= 201 us
+[2026-10-25 17:21:19.912] [ 4125] VALID                        width=  6450 us  dist= 1123.2 mm  trig->rise= 202 us
+[2026-10-25 17:21:20.211] [ 4130] VALID                        width=  6551 us  dist= 1140.8 mm  trig->rise= 202 us
+[2026-10-25 17:21:20.512] [ 4135] VALID                        width=  6692 us  dist= 1165.3 mm  trig->rise= 202 us
+[2026-10-25 17:21:20.812] [ 4140] VALID                        width=  6913 us  dist= 1203.8 mm  trig->rise= 201 us
+[2026-10-25 17:21:21.112] [ 4145] VALID                        width=  7037 us  dist= 1225.4 mm  trig->rise= 202 us
+[2026-10-25 17:21:21.412] [ 4150] VALID                        width=  7254 us  dist= 1263.2 mm  trig->rise= 202 us
+[2026-10-25 17:21:21.713] [ 4155] VALID                        width=  7479 us  dist= 1302.3 mm  trig->rise= 201 us
+[2026-10-25 17:21:22.012] [ 4160] VALID                        width=  7634 us  dist= 1329.3 mm  trig->rise= 201 us
+[2026-10-25 17:21:22.313] [ 4165] VALID                        width=  7735 us  dist= 1346.9 mm  trig->rise= 201 us
+[2026-10-25 17:21:22.613] [ 4170] VALID                        width=  7946 us  dist= 1383.7 mm  trig->rise= 201 us
+[2026-10-25 17:21:22.913] [ 4175] VALID                        width=  8261 us  dist= 1438.5 mm  trig->rise= 201 us
+[2026-10-25 17:21:23.214] [ 4180] VALID                        width=  8758 us  dist= 1525.1 mm  trig->rise= 201 us
+[2026-10-25 17:21:23.545] [ 4185] NO_FALL (timeout high)       width= 40000 us  dist=    0.0 mm  trig->rise= 202 us
+[2026-10-25 17:21:23.845] [ 4190] NO_FALL (timeout high)       width= 40000 us  dist=    0.0 mm  trig->rise= 201 us
+[2026-10-25 17:21:24.145] [ 4195] NO_FALL (timeout high)       width= 40000 us  dist=    0.0 mm  trig->rise= 201 us
+[2026-10-25 17:21:24.414] [ 4200] VALID                        width=  8834 us  dist= 1538.3 mm  trig->rise= 202 us
+[2026-10-25 17:21:24.714] [ 4205] VALID                        width=  8823 us  dist= 1536.4 mm  trig->rise= 201 us
+[2026-10-25 17:21:25.014] [ 4210] VALID                        width=  8828 us  dist= 1537.3 mm  trig->rise= 200 us
+[2026-10-25 17:21:25.314] [ 4215] VALID                        width=  8914 us  dist= 1552.2 mm  trig->rise= 202 us
+[2026-10-25 17:21:25.645] [ 4220] NO_FALL (timeout high)       width= 40000 us  dist=    0.0 mm  trig->rise= 200 us
+[2026-10-25 17:21:25.910] [ 4225] VALID                        width=  4786 us  dist=  833.4 mm  trig->rise= 201 us
+[2026-10-25 17:21:26.245] [ 4230] NO_FALL (timeout high)       width= 40000 us  dist=    0.0 mm  trig->rise= 201 us
+[2026-10-25 17:21:26.545] [ 4235] NO_FALL (timeout high)       width= 40000 us  dist=    0.0 mm  trig->rise= 202 us
+[2026-10-25 17:21:26.810] [ 4240] VALID                        width=  4886 us  dist=  850.8 mm  trig->rise= 202 us
+[2026-10-25 17:21:27.110] [ 4245] VALID                        width=  4736 us  dist=  824.7 mm  trig->rise= 201 us
+[2026-10-25 17:21:27.445] [ 4250] NO_FALL (timeout high)       width= 40000 us  dist=    0.0 mm  trig->rise= 202 us
+[2026-10-25 17:21:27.710] [ 4255] VALID                        width=  4811 us  dist=  837.8 mm  trig->rise= 202 us
+[2026-10-25 17:21:28.009] [ 4260] VALID                        width=  4737 us  dist=  824.9 mm  trig->rise= 201 us
+[2026-10-25 17:21:28.345] [ 4265] NO_FALL (timeout high)       width= 40000 us  dist=    0.0 mm  trig->rise= 202 us
+[2026-10-25 17:21:28.645] [ 4270] NO_FALL (timeout high)       width= 40000 us  dist=    0.0 mm  trig->rise= 201 us
+[2026-10-25 17:21:28.911] [ 4275] VALID                        width=  5263 us  dist=  916.5 mm  trig->rise= 200 us
+[2026-10-25 17:21:29.245] [ 4280] NO_FALL (timeout high)       width= 40000 us  dist=    0.0 mm  trig->rise= 202 us
+[2026-10-25 17:21:29.545] [ 4285] NO_FALL (timeout high)       width= 40000 us  dist=    0.0 mm  trig->rise= 202 us
+[2026-10-25 17:21:29.845] [ 4290] NO_FALL (timeout high)       width= 40000 us  dist=    0.0 mm  trig->rise= 202 us
+[2026-10-25 17:21:30.145] [ 4295] NO_FALL (timeout high)       width= 40000 us  dist=    0.0 mm  trig->rise= 202 us
+[2026-10-25 17:21:30.446] [ 4300] NO_FALL (timeout high)       width= 40000 us  dist=    0.0 mm  trig->rise= 201 us
+[2026-10-25 17:21:30.746] [ 4305] NO_FALL (timeout high)       width= 40000 us  dist=    0.0 mm  trig->rise= 202 us
+[2026-10-25 17:21:31.045] [ 4310] NO_FALL (timeout high)       width= 40000 us  dist=    0.0 mm  trig->rise= 202 us
+[2026-10-25 17:21:31.345] [ 4315] NO_FALL (timeout high)       width= 40000 us  dist=    0.0 mm  trig->rise= 202 us
+[2026-10-25 17:21:31.645] [ 4320] NO_FALL (timeout high)       width= 40000 us  dist=    0.0 mm  trig->rise= 201 us
+[2026-10-25 17:21:31.945] [ 4325] NO_FALL (timeout high)       width= 40000 us  dist=    0.0 mm  trig->rise= 202 us
+[2026-10-25 17:21:32.245] [ 4330] NO_FALL (timeout high)       width= 40000 us  dist=    0.0 mm  trig->rise= 200 us
+[2026-10-25 17:21:32.545] [ 4335] NO_FALL (timeout high)       width= 40000 us  dist=    0.0 mm  trig->rise= 201 us
+[2026-10-25 17:21:32.846] [ 4340] NO_FALL (timeout high)       width= 40000 us  dist=    0.0 mm  trig->rise= 202 us
+[2026-10-25 17:21:33.145] [ 4345] NO_FALL (timeout high)       width= 40000 us  dist=    0.0 mm  trig->rise= 201 us
+[2026-10-25 17:21:33.445] [ 4350] NO_FALL (timeout high)       width= 40000 us  dist=    0.0 mm  trig->rise= 202 us
+[2026-10-25 17:21:33.714] [ 4355] VALID                        width=  9561 us  dist= 1664.9 mm  trig->rise= 202 us
+[2026-10-25 17:21:34.015] [ 4360] VALID                        width=  9215 us  dist= 1604.6 mm  trig->rise= 202 us
+[2026-10-25 17:21:34.315] [ 4365] VALID                        width=  9145 us  dist= 1592.5 mm  trig->rise= 202 us
+[2026-10-25 17:21:34.614] [ 4370] VALID                        width=  9019 us  dist= 1570.5 mm  trig->rise= 201 us
+[2026-10-25 17:21:34.914] [ 4375] VALID                        width=  8945 us  dist= 1557.6 mm  trig->rise= 201 us
+[2026-10-25 17:21:35.215] [ 4380] VALID                        width=  9592 us  dist= 1670.3 mm  trig->rise= 201 us
+[2026-10-25 17:21:35.545] [ 4385] NO_FALL (timeout high)       width= 40000 us  dist=    0.0 mm  trig->rise= 201 us
+[2026-10-25 17:21:35.815] [ 4390] VALID                        width=  9270 us  dist= 1614.2 mm  trig->rise= 202 us
+[2026-10-25 17:21:36.115] [ 4395] VALID                        width=  9364 us  dist= 1630.6 mm  trig->rise= 201 us
+[2026-10-25 17:21:36.415] [ 4400] VALID                        width=  9667 us  dist= 1683.4 mm  trig->rise= 202 us
+[2026-10-25 17:21:36.715] [ 4405] VALID                        width=  9803 us  dist= 1707.0 mm  trig->rise= 202 us
+[2026-10-25 17:21:37.016] [ 4410] VALID                        width= 10149 us  dist= 1767.3 mm  trig->rise= 201 us
+[2026-10-25 17:21:37.345] [ 4415] NO_FALL (timeout high)       width= 40000 us  dist=    0.0 mm  trig->rise= 202 us
+[2026-10-25 17:21:37.645] [ 4420] NO_FALL (timeout high)       width= 40000 us  dist=    0.0 mm  trig->rise= 202 us
+[2026-10-25 17:21:37.945] [ 4425] NO_FALL (timeout high)       width= 40000 us  dist=    0.0 mm  trig->rise= 202 us
+[2026-10-25 17:21:38.216] [ 4430] VALID                        width= 10985 us  dist= 1912.9 mm  trig->rise= 202 us
+[2026-10-25 17:21:38.546] [ 4435] NO_FALL (timeout high)       width= 40000 us  dist=    0.0 mm  trig->rise= 201 us
+[2026-10-25 17:21:38.846] [ 4440] NO_FALL (timeout high)       width= 40000 us  dist=    0.0 mm  trig->rise= 202 us
+[2026-10-25 17:21:39.145] [ 4445] NO_FALL (timeout high)       width= 40000 us  dist=    0.0 mm  trig->rise= 201 us
+[2026-10-25 17:21:39.446] [ 4450] NO_FALL (timeout high)       width= 40000 us  dist=    0.0 mm  trig->rise= 202 us
+[2026-10-25 17:21:39.745] [ 4455] NO_FALL (timeout high)       width= 40000 us  dist=    0.0 mm  trig->rise= 202 us
+[2026-10-25 17:21:40.045] [ 4460] NO_FALL (timeout high)       width= 40000 us  dist=    0.0 mm  trig->rise= 201 us
+[2026-10-25 17:21:40.345] [ 4465] NO_FALL (timeout high)       width= 40000 us  dist=    0.0 mm  trig->rise= 201 us
+[2026-10-25 17:21:40.645] [ 4470] NO_FALL (timeout high)       width= 40000 us  dist=    0.0 mm  trig->rise= 201 us
+[2026-10-25 17:21:40.945] [ 4475] NO_FALL (timeout high)       width= 40000 us  dist=    0.0 mm  trig->rise= 202 us
+[2026-10-25 17:21:41.245] [ 4480] NO_FALL (timeout high)       width= 40000 us  dist=    0.0 mm  trig->rise= 202 us
+[2026-10-25 17:21:41.530] [ 4485] VALID                        width= 24047 us  dist= 4187.4 mm  trig->rise= 202 us
+[2026-10-25 17:21:41.846] [ 4490] NO_FALL (timeout high)       width= 40000 us  dist=    0.0 mm  trig->rise= 202 us

@@ -1,8 +1,8 @@
 # Bring-up results (fill in, commit, link in the Tribunal template)
 
-Date / place / board used: 22 Oct 2026 (IMU + parts_check), 25 Oct 2026 (IR, encoders by hand): Pico W on Cytron Robo Pico; IMU board marked GY-511 (chip is an LSM303D)
+Date / place / board used: 22 Oct 2026 (IMU + parts_check), 25 Oct 2026 (IR, encoders by hand, ultrasonic): Pico W on Cytron Robo Pico; IMU board marked GY-511 (chip is an LSM303D)
 Power arrangement used: laptop USB only
-Firmware: the 22 Oct IMU and parts_check results above were taken with bring-up v3.1 (images reproduced byte-for-byte, docs/logs/repro_check_2026-10-25.txt). From 25 Oct use bring-up v3.2 (review fixes); write the version next to every new result. 25 Oct IR and encoder results: parts_check, ir_test and encoder_test from the v3.2 image bundle (ir_test byte-identical to the 18 Oct image). Commit link: bring-up v3.2 is commit 20f97c1 on branch bringup-v3.2-ir
+Firmware: the 22 Oct IMU and parts_check results above were taken with bring-up v3.1 (images reproduced byte-for-byte, docs/logs/repro_check_2026-10-25.txt). From 25 Oct use bring-up v3.2 (review fixes); write the version next to every new result. 25 Oct IR, encoder and ultrasonic results: parts_check, ir_test, encoder_test and ultrasonic_test from the v3.2 image bundle (ir_test byte-identical to the 18 Oct image). Commit link: bring-up v3.2 is commit 20f97c1 on branch bringup-v3.2-ir
 
 For each value, write the measured number, how many trials, and the log
 file or video name. "Not measured" is an honest answer; leave the reason.
@@ -26,7 +26,7 @@ accepted requirement.
 | Part | Expected | Result (OK / CHECK / FAIL / what you saw) | Notes |
 |---|---|---|---|
 | IMU (0x19, 0x1E "H43", ~1 g) | OK | OK (22 Oct): LSM303D at 0x1D, \|a\| 0.882 g | v3 failed (looked only at 0x19/0x1E); v3.1 detects LSM303D. \|a\| is before Z-offset correction (parts_check does not correct) |
-| Ultrasonic (5 pings at a wall) | OK | FAIL (22 Oct): not wired yet | - |
+| Ultrasonic (5 pings at a wall) | OK | OK (25 Oct, v3.2): 353 / 356 / 356 / 356 / 356 mm at 3.3 V | FAIL on 22 Oct was "not wired yet". parts_check_2026-10-25_sonar.txt |
 | Servo left / right / centre | moves both ways | | |
 | NeoPixels red / green / blue | both LEDs, right colours | | |
 | Buzzer two beeps | audible | | |
@@ -127,13 +127,13 @@ accepted requirement.
 
 | Item | Design value | Measured | Trials | Log / video |
 |---|---|---|---|---|
-| Module variant / supply | 3.3 V first | | | |
-| Mean / sd at 50, 100, 150, 300, 500 mm (servo held, 20 readings each) | - | | | |
-| Outcome counts: too short / long pulse / no fall / no rise / stuck high | - | | | |
-| Valid readings out of 20 at each distance | - | | | |
-| Trigger -> echo rise latency | - | | | |
-| No-target behaviour | - | | | |
-| Missing echoes with angled target | - | | | |
+| Module variant / supply | 3.3 V first | HC-SR04 (5 V variant, not the P version) running from the Grove 5 3.3 V supply: works on the bench, so the 5 V supply + ECHO divider change is not needed for now. TRIG GP6 (Grove 5 white), ECHO GP7 (Grove 7 white) | 2 sessions | ultrasonic_test_2026-10-25_*.txt |
+| Mean / sd at 50, 100, 150, 300, 500 mm (servo held, 20 readings each) | - | NOT SHOWN: tape distances not recorded and the target moved during batches 2-5 (readings rise steadily inside each batch). Steady batches only: 59.1 mm sd 2.2 and 499.1 mm sd 7.4. Accuracy against A5 (<= 10 mm error) not measured | 6 batches | ultrasonic_test_2026-10-25_batches.txt |
+| Outcome counts: too short / long pulse / no fall / no rise / stuck high | - | in all 5 reported batches (about 50-500 mm): 0 / 0 / 0 / 0 / 0. Outside batches: NO_FALL below about 40 mm and, intermittently, beyond about 1.5 m | 5 batches + sweeps | both logs |
+| Valid readings out of 20 at each distance | - | 20/20 in every reported batch (about 59, 147, 230, 344, 499 mm means; distances not tape-measured) | 5 batches | ultrasonic_test_2026-10-25_batches.txt |
+| Trigger -> echo rise latency | - | 200-202 us at the 300 ms print rate, 205-213 us inside 60 ms batches | every reading | both logs |
+| No-target behaviour | - | not tested on purpose. Moving the target out: every reading VALID up to about 1.5 m, then mixed, then mostly NO_FALL (40 ms timeout); one VALID at 4.19 m. No echo is reported as NO_FALL (unknown), never as a range | sweep | ultrasonic_test_2026-10-25_sweep.txt |
+| Missing echoes with angled target | - | not measured | - | - |
 | Coarse scan time (start -> centred), 2 pings/ray | <= 1200 ms (NFR3) | | | |
 | Fine scan time (start -> centred), 2 pings/ray | <= 2000 ms (NFR3) | | | |
 | Unconfirmed rays per scan; settle ms/deg used | 0 | | | |
@@ -144,3 +144,4 @@ accepted requirement.
 
 - IR (25 Oct): a badly tuned LM393 module oscillates at every black/white edge (hundreds of edges per transition, 1-2 ms bursts) and floods the GPIO interrupt. Re-tuning the pot fixed it on the bench. The line and barcode code must survive a burst (merge edges inside a short window, bound the interrupt rate) and the pots need a tuning check before every run. Owner: B3 (B5 for the shared GPIO dispatcher).
 - Encoders (25 Oct): about 2,540 counts/rev and 0.080 mm/count. A Barcode field of the low 16 bits (Version C) wraps every 65,536 counts = about 5.3 m, so bar widths are safe; an 8-bit delta would not fit (large-barcode wide bar 21 mm = about 261 counts, 20 mm quiet zone = about 249). 1 m is about 12,400 counts. At 250 mm/s about 3,100 counts/s per wheel (about 6,200/s both), below the v3 PIO threshold of about 10,000 edges/s; recheck at top speed in the motor runs. Left counts down for forward. Owner: B2 (field ranges for the field table), B3 (barcode widths).
+- Ultrasonic (25 Oct): the 5 V HC-SR04 works at 3.3 V from about 50 mm to about 1.5 m on the bench, so no 5 V supply or ECHO divider for now; recheck under motor load. Range accuracy (A5) still unmeasured. ultrasonic_test batch bug: a GP20 press during a batch's last reading starts a new batch before the finished one prints, so its summary shows 0/20 (seen once in the log). Workaround: wait for the [batch] mean line before pressing again. Owner: B5.

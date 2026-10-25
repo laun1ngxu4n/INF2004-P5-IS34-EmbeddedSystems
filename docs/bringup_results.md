@@ -1,8 +1,8 @@
 # Bring-up results (fill in, commit, link in the Tribunal template)
 
-Date / place / board used: 22 Oct 2026 (IMU + parts_check so far): Pico W on Cytron Robo Pico; IMU board marked GY-511 (chip is an LSM303D)
+Date / place / board used: 22 Oct 2026 (IMU + parts_check), 25 Oct 2026 (IR): Pico W on Cytron Robo Pico; IMU board marked GY-511 (chip is an LSM303D)
 Power arrangement used: laptop USB only
-Firmware: the 22 Oct IMU and parts_check results above were taken with bring-up v3.1 (images reproduced byte-for-byte, docs/logs/repro_check_2026-10-25.txt). From 25 Oct use bring-up v3.2 (review fixes); write the version next to every new result. Commit link: fill in after pushing
+Firmware: the 22 Oct IMU and parts_check results above were taken with bring-up v3.1 (images reproduced byte-for-byte, docs/logs/repro_check_2026-10-25.txt). From 25 Oct use bring-up v3.2 (review fixes); write the version next to every new result. 25 Oct IR results: parts_check v3.2 and ir_test from the v3.2 image bundle (byte-identical to the 18 Oct image). Commit link: bring-up v3.2 is commit 20f97c1 on branch bringup-v3.2-ir
 
 For each value, write the measured number, how many trials, and the log
 file or video name. "Not measured" is an honest answer; leave the reason.
@@ -35,7 +35,7 @@ accepted requirement.
 | Left motor fwd(A=PWM): which encoder, sign, wheel direction | own encoder only | | |
 | Right motor fwd(A=PWM): which encoder, sign, wheel direction | own encoder only | | |
 | Hand turn forward: L and R count direction | - | | |
-| IR L / C / B flip on black/white | yes | | |
+| IR L / C / B flip on black/white | yes | yes (25 Oct, v3.2): each sensor flips only its own pin, L = GP0, C = GP1, B = GP2 | confirms the Grove rule on Grove 1 (white GP0, yellow GP1) and Grove 2 (white GP2). Output pasted in chat, not saved as a log |
 | Buttons GP20 / GP21 read DOWN when pressed | yes | | |
 
 ## Buddy 1 - wifi_mqtt_test (A1, A10, NFR5, NFR5b, NFR9)
@@ -97,12 +97,12 @@ accepted requirement.
 
 | Item | Design value | Measured | Trials | Log / video |
 |---|---|---|---|---|
-| Level on black / white (each sensor) | - | | | |
-| Mounted height | - | | | |
-| Pot margin (reliable range) | - | | | |
-| Chatter pulses at a line edge | - | | | |
-| Ambiguous edges / edges lost during a capture | 0 (else discard that capture) | | | |
-| Narrow / wide bar time at steady drag | ratio >= 1.8 | | | |
+| Level on black / white (each sensor) | - | all three: 0 at rest over white, 1 over black (from the logged levels; module LED state not recorded) | 3 sessions | ir_test_2026-10-25_*.txt |
+| Mounted height | - | not measured (sensors hand-held, about 3 mm intended) | - | - |
+| Pot margin (reliable range) | - | not measured. All three pots were re-tuned; that removed the chatter below | - | - |
+| Chatter pulses at a line edge | - | after re-tune: 0 on L, C and B (L 32, C 54, B 46 printed edges; shortest pulse in the session 7.9 / 9.6 / 21.6 ms, far above the 500 us chatter limit). Before re-tune: L about 750 chatter pulses in one session, min pulse 2 us; C 0 | 4 runs after re-tune | ir_test_2026-10-25_3_after_retune.txt; before: _1_ and _2_before_retune.txt |
+| Ambiguous edges / edges lost during a capture | 0 (else discard that capture) | after re-tune: 0 / 0. Before re-tune the barcode output buzzed at every edge: bursts of about 170-240 flips lasting 1-2 ms (once 9.5 ms), 18,085 of 18,105 barcode events AMBIGUOUS, 601,742 edges dropped (counter since boot), so no usable widths | 4 runs before, 4 after | same files |
+| Narrow / wide bar time at steady drag | ratio >= 1.8 | not measured: the clean hand drags gave 8 and 14 barcode edges instead of the 30 a full *A* pass gives. Skipped; redo at controlled speed with the motors. Course barcodes: small 3.5 / 10.5 mm, medium 5.17 / 15.5 mm (P5-IS34_Course_Barcodes_A4.pdf) | - | ir_test_2026-10-25_3_after_retune.txt |
 
 ## Buddy 4 - imu_test (A4, A14 collision, NFR2)
 
@@ -141,3 +141,5 @@ accepted requirement.
 ## What changes because of these results
 
 (One line per finding that contradicts the design, and who owns the fix.)
+
+- IR (25 Oct): a badly tuned LM393 module oscillates at every black/white edge (hundreds of edges per transition, 1-2 ms bursts) and floods the GPIO interrupt. Re-tuning the pot fixed it on the bench. The line and barcode code must survive a burst (merge edges inside a short window, bound the interrupt rate) and the pots need a tuning check before every run. Owner: B3 (B5 for the shared GPIO dispatcher).

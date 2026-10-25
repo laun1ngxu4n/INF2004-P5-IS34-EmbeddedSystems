@@ -1,8 +1,8 @@
 # Bring-up results (fill in, commit, link in the Tribunal template)
 
-Date / place / board used: 22 Oct 2026 (IMU + parts_check), 25 Oct 2026 (IR): Pico W on Cytron Robo Pico; IMU board marked GY-511 (chip is an LSM303D)
+Date / place / board used: 22 Oct 2026 (IMU + parts_check), 25 Oct 2026 (IR, encoders by hand): Pico W on Cytron Robo Pico; IMU board marked GY-511 (chip is an LSM303D)
 Power arrangement used: laptop USB only
-Firmware: the 22 Oct IMU and parts_check results above were taken with bring-up v3.1 (images reproduced byte-for-byte, docs/logs/repro_check_2026-10-25.txt). From 25 Oct use bring-up v3.2 (review fixes); write the version next to every new result. 25 Oct IR results: parts_check v3.2 and ir_test from the v3.2 image bundle (byte-identical to the 18 Oct image). Commit link: bring-up v3.2 is commit 20f97c1 on branch bringup-v3.2-ir
+Firmware: the 22 Oct IMU and parts_check results above were taken with bring-up v3.1 (images reproduced byte-for-byte, docs/logs/repro_check_2026-10-25.txt). From 25 Oct use bring-up v3.2 (review fixes); write the version next to every new result. 25 Oct IR and encoder results: parts_check, ir_test and encoder_test from the v3.2 image bundle (ir_test byte-identical to the 18 Oct image). Commit link: bring-up v3.2 is commit 20f97c1 on branch bringup-v3.2-ir
 
 For each value, write the measured number, how many trials, and the log
 file or video name. "Not measured" is an honest answer; leave the reason.
@@ -34,7 +34,7 @@ accepted requirement.
 | GP28 lowest under one motor (sag) | - | | |
 | Left motor fwd(A=PWM): which encoder, sign, wheel direction | own encoder only | | |
 | Right motor fwd(A=PWM): which encoder, sign, wheel direction | own encoder only | | |
-| Hand turn forward: L and R count direction | - | | |
+| Hand turn forward: L and R count direction | - | L counts DOWN, R counts UP for forward (25 Oct, v3.2); each wheel moves only its own count, invalid 0 | confirms Grove 3 (white GP4 = A, yellow GP5 = B) and Grove 4 (white GP16 = A, yellow GP17 = B). parts_check_2026-10-25_encoders.txt |
 | IR L / C / B flip on black/white | yes | yes (25 Oct, v3.2): each sensor flips only its own pin, L = GP0, C = GP1, B = GP2 | confirms the Grove rule on Grove 1 (white GP0, yellow GP1) and Grove 2 (white GP2). Output pasted in chat, not saved as a log |
 | Buttons GP20 / GP21 read DOWN when pressed | yes | | |
 
@@ -78,10 +78,10 @@ accepted requirement.
 
 | Item | Design value | Measured | Trials | Log / video |
 |---|---|---|---|---|
-| Wheel diameter | - | | | |
-| Counts per rev (L / R) | - | | | |
-| mm per count | <= ~1 mm (A11) | | | |
-| Both channels working (L / R) | yes | | | |
+| Wheel diameter | - | 65 mm (ruler; about +/-1-2 %), circumference pi x 65 = 204 mm (calculated, not rolled) | 1 | - |
+| Counts per rev (L / R) | - | L 2,538 / R 2,540 (4x decoded; total over 4 forward turns 10,150 / 10,160). Per turn L 2,524 / 2,551 / 2,495 / 2,580, R 2,526 / 2,574 / 2,522 / 2,538 (hand alignment about +/-2 %). 1 turn back: L 2,490, R 2,497 | 4 forward + 1 back per wheel | encoder_test_2026-10-25_hand.txt |
+| mm per count | <= ~1 mm (A11) | 0.080 mm (calculated: 204 mm / 2,540); about 12x finer than A11 needs. Narrow 3.5 mm bar about 44 counts, wide 10.5 mm about 130 | - | same |
+| Both channels working (L / R) | yes | yes / yes: A and B edges rise together (L 6,336 / 6,335, R 6,334 / 6,340) | same session | same |
 | Steady counts/s at 30/40/50/70/100 % | - | | | |
 | Lowest duty that turns the wheel | - | | | |
 | L/R mismatch at 50 % | - | | | |
@@ -90,8 +90,8 @@ accepted requirement.
 | Longest natural gap between count changes at 40 % / 100 % | well below 200 ms | | | |
 | Stall detection: no-change time at detection, wheel held | 200 ms rule; A14 wants <= 200 ms in 10/10 | | | |
 | Any START-UP false stall at 40 % | none | | | |
-| Do L and R count the same sign for forward? | - | | | |
-| Invalid transitions | 0 | | | |
+| Do L and R count the same sign for forward? | - | no: L negative, R positive for forward (mirrored motors); flip the left sign in software | 4 turns each | same |
+| Invalid transitions | 0 | 0 / 0 (hand turning only; motor speeds not tested yet) | whole session | same |
 
 ## Buddy 3 - ir_test (A3, A7, A11)
 
@@ -143,3 +143,4 @@ accepted requirement.
 (One line per finding that contradicts the design, and who owns the fix.)
 
 - IR (25 Oct): a badly tuned LM393 module oscillates at every black/white edge (hundreds of edges per transition, 1-2 ms bursts) and floods the GPIO interrupt. Re-tuning the pot fixed it on the bench. The line and barcode code must survive a burst (merge edges inside a short window, bound the interrupt rate) and the pots need a tuning check before every run. Owner: B3 (B5 for the shared GPIO dispatcher).
+- Encoders (25 Oct): about 2,540 counts/rev and 0.080 mm/count. A Barcode field of the low 16 bits (Version C) wraps every 65,536 counts = about 5.3 m, so bar widths are safe; an 8-bit delta would not fit (large-barcode wide bar 21 mm = about 261 counts, 20 mm quiet zone = about 249). 1 m is about 12,400 counts. At 250 mm/s about 3,100 counts/s per wheel (about 6,200/s both), below the v3 PIO threshold of about 10,000 edges/s; recheck at top speed in the motor runs. Left counts down for forward. Owner: B2 (field ranges for the field table), B3 (barcode widths).

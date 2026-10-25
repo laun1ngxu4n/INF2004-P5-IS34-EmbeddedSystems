@@ -18,6 +18,7 @@ add_subdirectory(tests/notify)
 add_subdirectory(tests/encoder)
 add_subdirectory(tests/ir)
 add_subdirectory(tests/imu)
+add_subdirectory(tests/i2c_diag)
 add_subdirectory(tests/ultrasonic)
 
 # WiFi: the prompt version always builds; the compiled-in version only

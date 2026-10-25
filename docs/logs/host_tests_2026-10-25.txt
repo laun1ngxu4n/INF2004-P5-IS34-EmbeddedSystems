@@ -1,0 +1,62 @@
+== cmd_json ==
+-- valid inputs (must be accepted) --
+PASS {"seq":1}                                        parse=ok
+PASS {"seq" :1}                                       parse=ok
+PASS  {"seq":1}                                       parse=ok
+PASS {"seq"
+:1}                                       parse=ok
+PASS { "boot_id" : 5 , "seq" : 0 , "cmd" : "ping" }
+ parse=ok
+PASS {"seq":4294967295}                               parse=ok
+-- malformed inputs (must be rejected) --
+PASS {"seq":-1}                                       parse=rejected
+PASS {"seq":1.5}                                      parse=rejected
+PASS {"seq":1e3}                                      parse=rejected
+PASS {"seq":4294967296}                               parse=rejected
+PASS {"seq":7garbage}                                 parse=rejected
+PASS {"seq":1                                         parse=rejected
+PASS {"seq":01}                                       parse=rejected
+PASS {"seq":1,}                                       parse=rejected
+PASS {"nested":{"seq":5}}                             parse=rejected
+PASS {"a":[1]}                                        parse=rejected
+PASS {"a":true}                                       parse=rejected
+PASS {"seq":1,"seq":2}                                parse=rejected
+PASS {"seq":1} x                                      parse=rejected
+PASS {"cmd":"pi\"ng"}                                 parse=rejected
+PASS {seq:1}                                          parse=rejected
+PASS                                                  parse=rejected
+-- field lookups --
+PASS cmd string compare / missing key / wrong type
+cmd_json: all passed (0 failures)
+== wifi command queue ==
+-- verdict order --
+PASS ack 0: {"ack":"accepted","seq":1,"seq_known":true,"handle_us":0,"t_ms":1000}
+PASS ack 1: {"ack":"rejected_duplicate","seq":1,"seq_known":true,"handle_us":0,"t_ms":1000}
+PASS ack 2: {"ack":"rejected_old_boot","seq":2,"seq_known":true,"handle_us":0,"t_ms":1000}
+PASS ack 3: {"ack":"rejected_unknown_cmd","seq":2,"seq_known":true,"handle_us":0,"t_ms":1000}
+PASS ack 0: {"ack":"rejected_malformed","seq":0,"seq_known":false,"handle_us":0,"t_ms":1000}
+PASS ack 1: {"ack":"rejected_malformed","seq":0,"seq_known":false,"handle_us":0,"t_ms":1000}
+PASS ack 2: {"ack":"rejected_oversize","seq":0,"seq_known":false,"handle_us":0,"t_ms":1000}
+PASS ack 3: {"ack":"accepted","seq":2,"seq_known":true,"handle_us":0,"t_ms":1000}
+-- burst of 6 before the main loop runs (queue = 4) --
+PASS queued 4, dropped 2 (want 4 queued, 2 dropped and counted)
+PASS ack 0: {"ack":"accepted","seq":10,"seq_known":true,"handle_us":0,"t_ms":1000}
+PASS ack 1: {"ack":"accepted","seq":11,"seq_known":true,"handle_us":0,"t_ms":1000}
+PASS ack 2: {"ack":"accepted","seq":12,"seq_known":true,"handle_us":0,"t_ms":1000}
+PASS ack 3: {"ack":"accepted","seq":13,"seq_known":true,"handle_us":0,"t_ms":1000}
+-- queue usable again after a drop --
+PASS ack 0: {"ack":"accepted","seq":20,"seq_known":true,"handle_us":0,"t_ms":1000}
+wifi cmd queue: all passed (0 failures)
+== IR overflow marker (no width may span 25,600 -> 25,800 us) ==
+[edge]      25500 us  BARCODE 0->1  previous level lasted      100 us  <- CHATTER
+[edge]      25600 us  BARCODE 1->0  previous level lasted      100 us  <- CHATTER
+[edge]      25800 us  EDGES LOST before this point (ring overflow) - pulse history restarted, discard this capture
+[edge]      25800 us  BARCODE 1->0  previous level lasted        0 us
+IR gap: PASS
+== motor STOP sequence (parts_check, finding 03) ==
+motor_seq: all passed (7 checks, 0 failures)
+== encoder timing (encoder_test, findings 04 and 14) ==
+enc_timing: all passed (12 checks, 0 failures)
+== sonar classifier, IMU calibration, chip ID (findings 13, 16, 20) ==
+sonar/imu_cal/chip_id: all passed (20 checks, 0 failures)
+HOST TESTS: ALL PASSED

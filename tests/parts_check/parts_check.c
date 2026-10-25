@@ -6,7 +6,8 @@
  * meet the requirement". Use the per-buddy tests for numbers.
  *
  * At start-up (and again on a GP21 press) it checks, in order:
- *   1. IMU on I2C1 (GP26/27): accel 0x19, mag 0x1E "H43", |a| ~ 1 g flat
+ *   1. IMU on I2C1 (GP26/27): LSM303D (0x1D, ID 0x49) or LSM303DLHC
+ *      (0x19 + 0x1E "H43"), |a| ~ 1 g flat
  *   2. Ultrasonic (TRIG GP6, ECHO GP7): 5 pings; point it at a wall
  *   3. Servo (GP14): left 45, right 45, centre             -> LOOK
  *   4. NeoPixels (GP18): red, green, blue, off             -> LOOK
@@ -20,7 +21,11 @@
  * at 50 % forward then reverse; it reports which encoder moved and with
  * which sign (catches swapped motors, swapped encoders, reversed
  * polarity), and the lowest battery reading under load (sag, A12).
- * Holding GP21 during the motor check stops the motors at once.
+ * Any GP21 press during the motor check (held, or a short press in a gap
+ * between steps) stops the motors and aborts the whole check; it is latched
+ * in the GPIO interrupt and checked before every drive (v3.2, review 03).
+ * The sonar check uses the same echo-width classifier as ultrasonic_test
+ * (v3.2, review 13).
  *
  * All GPIO interrupts (encoders, IR, echo) go through ONE dispatcher, as
  * the integrated firmware must (the SDK allows one callback per core).
@@ -42,6 +47,8 @@
 #include "hardware/sync.h"
 
 #include "notify_hw.h"
+#include "../common/motor_seq.h"
+#include "../common/sonar_class.h"
 
 /* ---- Pins (Week 6 pin table) --------------------------------------- */
 #define IR_LEFT_PIN     0u
@@ -111,6 +118,7 @@ static volatile uint32_t g_echo_rise_us;
 static volatile uint32_t g_echo_fall_us;
 static volatile bool     g_echo_rise_seen;
 static volatile bool     g_echo_fall_seen;
+static volatile bool     g_stop_latched;      /* GP21 pressed since the motor check began */
 
 static uint32_t now_ms(void)
 {
@@ -159,6 +167,12 @@ static void gpio_dispatch(uint gpio, uint32_t events)
         case IR_CENTER_PIN:
         case IR_BARCODE_PIN:
             g_ir_edges[gpio]++;   /* pins 0..2 map to index 0..2 */
+            break;
+        case BTN_STOP_PIN:
+            if ((events & GPIO_IRQ_EDGE_FALL) != 0u)
+            {
+                g_stop_latched = true;   /* active low: falling edge = press */
+            }
             break;
         case US_ECHO_PIN:
             if ((events & GPIO_IRQ_EDGE_RISE) != 0u)
@@ -223,6 +237,7 @@ static void hw_init(void)
     gpio_set_irq_enabled(IR_CENTER_PIN, both, true);
     gpio_set_irq_enabled(IR_BARCODE_PIN, both, true);
     gpio_set_irq_enabled(US_ECHO_PIN, both, true);
+    gpio_set_irq_enabled(BTN_STOP_PIN, GPIO_IRQ_EDGE_FALL, true);
 
     /* Motors: both pins of each motor on PWM, all low = stopped. */
     gpio_set_function(MOTOR_L_A_PIN, GPIO_FUNC_PWM);
@@ -308,34 +323,79 @@ static bool reg_read(uint8_t addr, uint8_t reg, uint8_t *p_buf, uint32_t len)
     return i2c_read_timeout_us(IMU_I2C, addr, p_buf, len, false, 2000u) == (int)len;
 }
 
+/* Two chips are sold as "GY-511": LSM303DLHC (accel 0x19 + mag 0x1E, mag
+ * ID "H43") and LSM303D (accel + mag at 0x1D or 0x1E, WHO_AM_I 0x49). Our
+ * board (measured 22 Oct 2026) is an LSM303D at 0x1D. */
 static result_t check_imu(void)
 {
+    static const uint8_t d_addrs[2] = {0x1Du, 0x1Eu};
     uint8_t id[3] = {0u, 0u, 0u};
     uint8_t raw[6];
+    uint8_t who = 0u;
+    uint8_t acc_addr = ACC_ADDR;
+    bool is_d = false;
     bool acc_ok;
-    bool mag_ok;
+    bool mag_ok = false;
+    float scale = 0.002f;     /* DLHC +/-4 g, 12-bit */
     float sum_g = 0.0f;
+    float mean_g;
     uint32_t n = 0u;
     uint32_t i;
 
-    acc_ok = reg_write(ACC_ADDR, 0x20u, 0x57u) && reg_write(ACC_ADDR, 0x23u, 0x98u);
-    mag_ok = reg_read(MAG_ADDR, 0x0Au, id, 3u);
-    printf("[imu] accel 0x19: %s | mag 0x1E: %s, ID '%c%c%c' (expect 'H43')\n",
-           acc_ok ? "responds" : "NO ANSWER", mag_ok ? "responds" : "NO ANSWER",
-           mag_ok ? id[0] : '?', mag_ok ? id[1] : '?', mag_ok ? id[2] : '?');
+    for (i = 0u; (i < 2u) && !is_d; i++)
+    {
+        if (reg_read(d_addrs[i], 0x0Fu, &who, 1u) && (who == 0x49u))
+        {
+            is_d = true;
+            acc_addr = d_addrs[i];
+        }
+    }
+
+    if (is_d)
+    {
+        /* CTRL1 100 Hz BDU XYZ; CTRL2 +/-4 g; CTRL5 mag 50 Hz; CTRL6 +/-4 gauss; CTRL7 mag on */
+        acc_ok = reg_write(acc_addr, 0x20u, 0x6Fu) && reg_write(acc_addr, 0x21u, 0x08u) &&
+                 reg_write(acc_addr, 0x24u, 0x70u) && reg_write(acc_addr, 0x25u, 0x20u) &&
+                 reg_write(acc_addr, 0x26u, 0x00u);
+        mag_ok = acc_ok;
+        scale = 0.000122f;    /* LSM303D +/-4 g, 16-bit */
+        printf("[imu] LSM303D at 0x%02X (WHO_AM_I 0x49), accel + mag on one address: %s\n",
+               acc_addr, acc_ok ? "configured" : "CONFIG FAILED");
+    }
+    else
+    {
+        acc_ok = reg_write(ACC_ADDR, 0x20u, 0x57u) && reg_write(ACC_ADDR, 0x23u, 0x98u);
+        mag_ok = reg_read(MAG_ADDR, 0x0Au, id, 3u);
+        printf("[imu] LSM303DLHC? accel 0x19: %s | mag 0x1E: %s, ID '%c%c%c' (expect 'H43')\n",
+               acc_ok ? "responds" : "NO ANSWER", mag_ok ? "responds" : "NO ANSWER",
+               mag_ok ? id[0] : '?', mag_ok ? id[1] : '?', mag_ok ? id[2] : '?');
+        mag_ok = mag_ok && (id[0] == 'H') && (id[1] == '4') && (id[2] == '3');
+    }
     if (!acc_ok)
     {
-        printf("[imu] check GP26 SDA / GP27 SCL, 3V3, GND (and Grove 5 is not also used)\n");
+        printf("[imu] no LSM303D (0x1D/0x1E) or LSM303DLHC (0x19): check GP26 SDA / GP27 SCL, VIN, GND\n");
         return R_FAIL;
     }
     sleep_ms(50u);
     for (i = 0u; i < 20u; i++)
     {
-        if (reg_read(ACC_ADDR, 0x28u | 0x80u, raw, 6u))
+        if (reg_read(acc_addr, 0x28u | 0x80u, raw, 6u))
         {
-            float ax = (float)((int16_t)((uint16_t)raw[1] << 8 | raw[0]) >> 4) * 0.002f;
-            float ay = (float)((int16_t)((uint16_t)raw[3] << 8 | raw[2]) >> 4) * 0.002f;
-            float az = (float)((int16_t)((uint16_t)raw[5] << 8 | raw[4]) >> 4) * 0.002f;
+            int16_t xr = (int16_t)((uint16_t)raw[1] << 8 | raw[0]);
+            int16_t yr = (int16_t)((uint16_t)raw[3] << 8 | raw[2]);
+            int16_t zr = (int16_t)((uint16_t)raw[5] << 8 | raw[4]);
+            float ax;
+            float ay;
+            float az;
+            if (!is_d)
+            {
+                xr = (int16_t)(xr / 16);   /* DLHC 12-bit left-justified */
+                yr = (int16_t)(yr / 16);
+                zr = (int16_t)(zr / 16);
+            }
+            ax = (float)xr * scale;
+            ay = (float)yr * scale;
+            az = (float)zr * scale;
             sum_g += sqrtf(ax * ax + ay * ay + az * az);
             n++;
         }
@@ -346,10 +406,10 @@ static result_t check_imu(void)
         printf("[imu] accel data reads all failed\n");
         return R_FAIL;
     }
+    mean_g = sum_g / (float)n;
     printf("[imu] |a| = %.3f g over %lu reads (expect ~1.0 g when still)\n",
-           (double)(sum_g / (float)n), (unsigned long)n);
-    if ((sum_g / (float)n < 0.85f) || (sum_g / (float)n > 1.15f) || !mag_ok ||
-        (id[0] != 'H') || (id[1] != '4') || (id[2] != '3'))
+           (double)mean_g, (unsigned long)n);
+    if ((mean_g < 0.85f) || (mean_g > 1.15f) || !mag_ok)
     {
         return R_CHECK;
     }
@@ -384,13 +444,26 @@ static int ping_once(float *p_mm)
             return -3;  /* no fall */
         }
     }
-    *p_mm = (float)(g_echo_fall_us - g_echo_rise_us) * 0.3483f / 2.0f;
-    return ((g_echo_fall_us - g_echo_rise_us) < 100u) ? -4 : 0;
+    {
+        uint32_t width_us = g_echo_fall_us - g_echo_rise_us;
+        sonar_width_t cls = sonar_classify_width(width_us);
+        *p_mm = (float)width_us * 0.3483f / 2.0f;
+        if (cls == SONAR_WIDTH_TOO_SHORT)
+        {
+            return -4;
+        }
+        if (cls == SONAR_WIDTH_LONG)
+        {
+            return -5;
+        }
+    }
+    return 0;
 }
 
 static result_t check_ultrasonic(void)
 {
-    static const char *const why[] = {"", "stuck high", "no rise", "no fall", "too short"};
+    static const char *const why[] = {"", "stuck high", "no rise", "no fall", "too short",
+                                      "long pulse (no target in range)"};
     uint32_t valid = 0u;
     uint32_t i;
 
@@ -516,32 +589,43 @@ static void run_part_checks(void)
     printf("GP20 = motor check (LIFT THE WHEELS), GP21 = repeat part checks.\n\n");
 }
 
-/* Returns false if aborted by GP21. */
-static bool motor_step(uint32_t wheel, bool forward, int32_t delta[2], float *p_vmin)
+static bool stop_requested(void)
+{
+    return g_stop_latched || !gpio_get(BTN_STOP_PIN);
+}
+
+static float g_vmin;
+
+static void motor_tick(void)
+{
+    float v = vbat_pin_volts();
+    if (v < g_vmin)
+    {
+        g_vmin = v;
+    }
+}
+
+static void motor_sleep_ms(uint32_t ms)
+{
+    sleep_ms(ms);
+}
+
+static const motor_hal_t g_motor_hal =
+{
+    motor_drive, motors_off, stop_requested, now_ms, motor_sleep_ms, motor_tick
+};
+
+/* Returns false if aborted by GP21 (motors are off). */
+static bool motor_step(uint32_t wheel, bool forward, int32_t delta[2])
 {
     int32_t c0[2];
     int32_t c1[2];
-    uint32_t t0;
 
     enc_snapshot(c0);
-    motor_drive(wheel, forward, MOTOR_TEST_DUTY);
-    t0 = now_ms();
-    while ((now_ms() - t0) < MOTOR_TEST_MS)
+    if (!motor_run_step(&g_motor_hal, wheel, forward, MOTOR_TEST_DUTY, MOTOR_TEST_MS, 400u))
     {
-        float v = vbat_pin_volts();
-        if (v < *p_vmin)
-        {
-            *p_vmin = v;
-        }
-        if (!gpio_get(BTN_STOP_PIN))
-        {
-            motors_off();
-            return false;
-        }
-        sleep_ms(1u);
+        return false;
     }
-    motors_off();
-    sleep_ms(400u);     /* let it spin down before the next step */
     enc_snapshot(c1);
     delta[WHEEL_L] = c1[WHEEL_L] - c0[WHEEL_L];
     delta[WHEEL_R] = c1[WHEEL_R] - c0[WHEEL_R];
@@ -552,14 +636,24 @@ static void run_motor_check(void)
 {
     static const char *const wname[2] = {"LEFT ", "RIGHT"};
     float v_idle = 0.0f;
-    float v_min = 10.0f;
     int32_t fwd_sign[2] = {0, 0};
     uint32_t wheel;
 
-    printf("\n---- motor check: %u %% duty, %u ms per step. GP21 held = stop ----\n",
+    printf("\n---- motor check: %u %% duty, %u ms per step. Any GP21 press = stop ----\n",
            MOTOR_TEST_DUTY, MOTOR_TEST_MS);
+    if (!gpio_get(BTN_STOP_PIN))
+    {
+        printf("[motor] GP21 is held - release it and press GP20 again (nothing driven)\n");
+        return;
+    }
+    g_stop_latched = false;
+    g_vmin = 10.0f;
     (void)check_battery(&v_idle);
-    sleep_ms(1000u);
+    if (!motor_wait_or_stop(&g_motor_hal, 1000u))
+    {
+        printf("[motor] ABORTED by GP21 before the first step - nothing driven\n");
+        return;
+    }
 
     for (wheel = 0u; wheel < 2u; wheel++)
     {
@@ -569,7 +663,7 @@ static void run_motor_check(void)
             int32_t delta[2];
             bool forward = (d == 0u);
             uint32_t other = 1u - wheel;
-            if (!motor_step(wheel, forward, delta, &v_min))
+            if (!motor_step(wheel, forward, delta))
             {
                 printf("[motor] ABORTED by GP21 - motors off\n");
                 return;
@@ -602,7 +696,7 @@ static void run_motor_check(void)
            (fwd_sign[WHEEL_L] > 0) ? "up" : ((fwd_sign[WHEEL_L] < 0) ? "down" : "?"),
            (fwd_sign[WHEEL_R] > 0) ? "up" : ((fwd_sign[WHEEL_R] < 0) ? "down" : "?"));
     printf("[vbat] GP28 pin idle %.3f V, lowest under one motor %.3f V (sag %.3f V at pin)%s\n",
-           (double)v_idle, (double)v_min, (double)(v_idle - v_min),
+           (double)v_idle, (double)g_vmin, (double)(v_idle - g_vmin),
            (VBAT_DIVIDER > 0.0f) ? "" : " - scale by the divider once known");
 }
 

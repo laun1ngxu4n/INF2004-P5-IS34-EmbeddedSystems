@@ -1,9 +1,14 @@
 /*
  * P5-IS34 bring-up test: GY-511 IMU (Buddy 4)
  *
+ * Chip: boards sold as "GY-511" carry either the LSM303DLHC (accel 0x19 +
+ * mag 0x1E, mag ID "H43") or the LSM303D (accel + mag at one address,
+ * 0x1D or 0x1E, WHO_AM_I 0x0F = 0x49). Our board, measured 22 Oct 2026, is
+ * an LSM303D at 0x1D. The test detects which one is fitted and configures
+ * it the same way: accel 100 Hz, +/-4 g, block data update.
+ *
  * What it measures:
  *   - I2C scan of I2C1 (GP26 SDA, GP27 SCL): which chip is really fitted
- *     (LSM303DLHC = accel 0x19 + mag 0x1E, mag ID bytes "H43")
  *   - Real accelerometer sample rate against the 100 Hz setting, and
  *     overruns (samples lost because they were read too late)
  *   - Time for one status + 6-byte accel read at 100 kHz and 400 kHz
@@ -29,7 +34,11 @@
  * Buttons (Robo Pico onboard, active low):
  *   GP20  toggle I2C speed 100 kHz <-> 400 kHz
  *   GP21  keep the robot flat and still, press: 200-sample calibration
- *         (sets the pitch zero) and resets the peak
+ *         (sets the pitch zero and the Z zero-g offset) and resets the peak.
+ *         Our LSM303D reads Z about 0.12-0.15 g high (bench 22 Oct 2026:
+ *         0.88 g one way up, 1.14 g the other); without the correction a
+ *         5 deg tilt reads about 5.7 or 4.4 deg (depending on which way up
+ *         the sensor is mounted), so hump height is about 15 % off.
  */
 
 #include <stdio.h>
@@ -39,6 +48,7 @@
 
 #include "pico/stdlib.h"
 #include "hardware/i2c.h"
+#include "../common/imu_cal.h"
 
 #define IMU_I2C             i2c1
 #define IMU_SDA_PIN         26u
@@ -50,7 +60,7 @@
 #define I2C_FAST_HZ         400000u
 #define I2C_TIMEOUT_US      2000u
 
-/* LSM303DLHC registers */
+/* LSM303DLHC registers (separate accel and mag addresses) */
 #define ACC_ADDR_DEFAULT    0x19u
 #define ACC_ADDR_ALT        0x18u
 #define MAG_ADDR            0x1Eu
@@ -71,12 +81,37 @@
 #define MAG_CFG_75HZ        0x18u
 #define MAG_CFG_1_3GAUSS    0x20u
 #define MAG_CONTINUOUS      0x00u
-#define ACC_MG_PER_LSB      2.0f     /* +/-4 g, high resolution, 12-bit */
+#define DLHC_MG_PER_LSB     2.0f     /* +/-4 g, high resolution, 12-bit */
+#define DLHC_RAW_LIMIT      2047     /* 12-bit full scale */
+
+/* LSM303D registers (accel and mag share one address) */
+#define D_ADDR_HIGH         0x1Du    /* SA0 high (our board) */
+#define D_ADDR_LOW          0x1Eu    /* SA0 low */
+#define D_WHO_AM_I          0x0Fu
+#define D_WHO_AM_I_VALUE    0x49u
+#define D_STATUS_M          0x07u
+#define D_OUT_X_L_M         0x08u
+#define D_CTRL1             0x20u
+#define D_CTRL2             0x21u
+#define D_CTRL5             0x24u
+#define D_CTRL6             0x25u
+#define D_CTRL7             0x26u
+#define D_CFG_CTRL1         0x6Fu    /* AODR 100 Hz, BDU on, XYZ on */
+#define D_CFG_CTRL2         0x08u    /* anti-alias 773 Hz, +/-4 g (design range) */
+#define D_CFG_CTRL5         0x70u    /* temp off, M_RES 11 high resolution, M_ODR 100 = 50 Hz */
+#define D_CFG_CTRL6         0x20u    /* mag +/-4 gauss */
+#define D_CFG_CTRL7         0x00u    /* accel normal filter, mag continuous */
+#define D_MG_PER_LSB        0.122f   /* +/-4 g, 16-bit */
+#define D_RAW_LIMIT         32767    /* 16-bit full scale */
 
 /* Measure the axle-to-front-support distance and set it (0 = unknown). */
 #define WHEELBASE_MM        0.0f
 
 #define CAL_SAMPLES         200u
+#define Z_OFFSET_MAX_G      0.30f    /* larger = sensor not flat/still, reject */
+#define CAL_SETTLE_MS       1000u    /* hands off after the GP21 press */
+#define CAL_MAX_SD_DEG      0.30f    /* pitch sd above this = moved, reject */
+#define CAL_MAX_TILT_DEG    10.0f    /* X/Y tilt above this = not flat, reject (v3.2) */
 #define PRINT_PERIOD_MS     100u
 #define STATS_PERIOD_MS     2000u
 #define BTN_DEBOUNCE_MS     50u
@@ -84,9 +119,12 @@
 
 #define SHOCK_G             2.0f     /* design collision threshold */
 #define SHOCK_HOLDOFF_MS    200u     /* design hold-off */
-#define ACC_RAW_LIMIT       2047     /* 12-bit full scale */
 
 static uint8_t g_acc_addr = ACC_ADDR_DEFAULT;
+static uint8_t g_mag_addr = MAG_ADDR;
+static bool    g_is_lsm303d = false;
+static float   g_mg_per_lsb = DLHC_MG_PER_LSB;
+static int16_t g_raw_limit = DLHC_RAW_LIMIT;
 
 static uint32_t now_ms(void)
 {
@@ -136,10 +174,48 @@ static bool i2c_scan(void)
     return acc_found;
 }
 
+/* LSM303D: one address for accel + mag, identified by WHO_AM_I = 0x49. */
+static bool detect_lsm303d(void)
+{
+    static const uint8_t addrs[2] = {D_ADDR_HIGH, D_ADDR_LOW};
+    uint32_t i;
+    uint8_t reg = D_WHO_AM_I;
+    uint8_t who = 0u;
+
+    for (i = 0u; i < 2u; i++)
+    {
+        if ((i2c_write_timeout_us(IMU_I2C, addrs[i], &reg, 1u, true, I2C_TIMEOUT_US) == 1) &&
+            (i2c_read_timeout_us(IMU_I2C, addrs[i], &who, 1u, false, I2C_TIMEOUT_US) == 1) &&
+            (who == D_WHO_AM_I_VALUE))
+        {
+            g_is_lsm303d = true;
+            g_acc_addr = addrs[i];
+            g_mag_addr = addrs[i];
+            g_mg_per_lsb = D_MG_PER_LSB;
+            g_raw_limit = D_RAW_LIMIT;
+            printf("[scan] LSM303D at 0x%02X (WHO_AM_I 0x%02X): accel + mag on one address\n", addrs[i], who);
+            return true;
+        }
+    }
+    return false;
+}
+
 static void imu_init(void)
 {
     uint8_t id[3] = {0u, 0u, 0u};
     bool ok = true;
+
+    if (g_is_lsm303d)
+    {
+        ok = reg_write(g_acc_addr, D_CTRL1, D_CFG_CTRL1) &&
+             reg_write(g_acc_addr, D_CTRL2, D_CFG_CTRL2) &&
+             reg_write(g_acc_addr, D_CTRL5, D_CFG_CTRL5) &&
+             reg_write(g_acc_addr, D_CTRL6, D_CFG_CTRL6) &&
+             reg_write(g_acc_addr, D_CTRL7, D_CFG_CTRL7);
+        printf("[init] LSM303D at 0x%02X configured (accel 100 Hz +/-4 g, mag 50 Hz +/-4 gauss): %s\n",
+               g_acc_addr, ok ? "OK" : "FAILED");
+        return;
+    }
 
     ok = ok && reg_write(g_acc_addr, ACC_CTRL_REG1, ACC_CFG_100HZ_XYZ);
     ok = ok && reg_write(g_acc_addr, ACC_CTRL_REG4, ACC_CFG_BDU_HR_4G);
@@ -192,7 +268,14 @@ int main(void)
     float heading = 0.0f;
     float pitch_zero = 0.0f;
     float peak_pitch = 0.0f;
-    float cal_sum = 0.0f;
+    float cal_ax = 0.0f;
+    float cal_ay = 0.0f;
+    float cal_az = 0.0f;
+    float z_off = 0.0f;      /* Z zero-g offset (g), set by GP21 calibration */
+    float cal_p = 0.0f;
+    float cal_p2 = 0.0f;
+    bool cal_pending = false;
+    uint32_t cal_start_ms = 0u;
     uint32_t cal_left = 0u;
     uint32_t last_read_us = 0u;
     /* stats window */
@@ -239,9 +322,9 @@ int main(void)
     sleep_ms(3000u);
     printf("\n=== P5-IS34 IMU bring-up test (v3) ===\n");
 
-    if (!i2c_scan())
+    if (!i2c_scan() && !detect_lsm303d())
     {
-        printf("[scan] no accelerometer at 0x18/0x19 - check wiring (GP26/GP27, 3V3, GND).\n");
+        printf("[scan] no LSM303DLHC (0x18/0x19) or LSM303D (0x1D/0x1E) - check wiring (GP26/GP27, VIN, GND).\n");
     }
     imu_init();
     printf("Keep it flat and still, press GP21 to calibrate. GP20 toggles 100/400 kHz.\n");
@@ -253,6 +336,18 @@ int main(void)
         uint8_t status = 0u;
         uint8_t raw[6];
         uint64_t t_start = time_us_64();
+
+        if (cal_pending && ((int32_t)(t - cal_start_ms) >= 0))
+        {
+            cal_pending = false;
+            cal_ax = 0.0f;
+            cal_ay = 0.0f;
+            cal_az = 0.0f;
+            cal_p = 0.0f;
+            cal_p2 = 0.0f;
+            cal_left = CAL_SAMPLES;
+            printf("[cal] collecting %u samples, keep still...\n", CAL_SAMPLES);
+        }
 
         /* ---- Accelerometer: only read when new data is ready ------- */
         if (!reg_read(g_acc_addr, ACC_STATUS_REG, &status, 1u))
@@ -267,12 +362,31 @@ int main(void)
             }
             if (reg_read(g_acc_addr, (uint8_t)(ACC_OUT_X_L | ACC_AUTO_INC), raw, 6u))
             {
-                int16_t ax_raw = (int16_t)((uint16_t)raw[1] << 8 | raw[0]) >> 4;
-                int16_t ay_raw = (int16_t)((uint16_t)raw[3] << 8 | raw[2]) >> 4;
-                int16_t az_raw = (int16_t)((uint16_t)raw[5] << 8 | raw[4]) >> 4;
-                float ax = (float)ax_raw * ACC_MG_PER_LSB / 1000.0f;
-                float ay = (float)ay_raw * ACC_MG_PER_LSB / 1000.0f;
-                float az = (float)az_raw * ACC_MG_PER_LSB / 1000.0f;
+                int16_t ax_raw = (int16_t)((uint16_t)raw[1] << 8 | raw[0]);
+                int16_t ay_raw = (int16_t)((uint16_t)raw[3] << 8 | raw[2]);
+                int16_t az_raw = (int16_t)((uint16_t)raw[5] << 8 | raw[4]);
+                float ax;
+                float ay;
+                float az;
+                if (!g_is_lsm303d)
+                {
+                    /* DLHC: 12-bit left-justified; divide keeps the sign
+                     * without shifting signed data (Barr C 5.3b). */
+                    ax_raw = (int16_t)(ax_raw / 16);
+                    ay_raw = (int16_t)(ay_raw / 16);
+                    az_raw = (int16_t)(az_raw / 16);
+                }
+                ax = (float)ax_raw * g_mg_per_lsb / 1000.0f;
+                ay = (float)ay_raw * g_mg_per_lsb / 1000.0f;
+                az = (float)az_raw * g_mg_per_lsb / 1000.0f;
+                if (cal_left > 0u)
+                {
+                    /* uncorrected values for the offset estimate */
+                    cal_ax += ax;
+                    cal_ay += ay;
+                    cal_az += az;
+                }
+                az -= z_off;
                 float rel;
 
                 last_read_us = (uint32_t)(time_us_64() - t_start);
@@ -288,9 +402,9 @@ int main(void)
                 pitch_filt += 0.2f * (pitch - pitch_filt);
 
                 /* Collision rule inputs. */
-                if ((ax_raw >= ACC_RAW_LIMIT) || (ax_raw <= -ACC_RAW_LIMIT) ||
-                    (ay_raw >= ACC_RAW_LIMIT) || (ay_raw <= -ACC_RAW_LIMIT) ||
-                    (az_raw >= ACC_RAW_LIMIT) || (az_raw <= -ACC_RAW_LIMIT))
+                if ((ax_raw >= g_raw_limit) || (ax_raw <= -g_raw_limit) ||
+                    (ay_raw >= g_raw_limit) || (ay_raw <= -g_raw_limit) ||
+                    (az_raw >= g_raw_limit) || (az_raw <= -g_raw_limit))
                 {
                     saturated++;
                 }
@@ -331,13 +445,42 @@ int main(void)
 
                 if (cal_left > 0u)
                 {
-                    cal_sum += pitch;
+                    cal_p += pitch;
+                    cal_p2 += pitch * pitch;
                     cal_left--;
                     if (cal_left == 0u)
                     {
-                        pitch_zero = cal_sum / (float)CAL_SAMPLES;
-                        peak_pitch = 0.0f;
-                        printf("[cal] pitch zero = %.2f deg, peak reset\n", (double)pitch_zero);
+                        /* v3.2 (review finding 16): compute and check the whole
+                         * candidate first; commit every field only if it passes,
+                         * otherwise keep the previous calibration untouched. */
+                        float mx = cal_ax / (float)CAL_SAMPLES;
+                        float my = cal_ay / (float)CAL_SAMPLES;
+                        float mz = cal_az / (float)CAL_SAMPLES;
+                        float p_mean = cal_p / (float)CAL_SAMPLES;
+                        float p_var = (cal_p2 / (float)CAL_SAMPLES) - (p_mean * p_mean);
+                        float p_sd = sqrtf((p_var > 0.0f) ? p_var : 0.0f);
+                        imu_cal_t cand;
+                        imu_cal_status_t cs = imu_cal_compute(mx, my, mz, p_sd, CAL_SAMPLES,
+                                                              CAL_MAX_SD_DEG, CAL_MAX_TILT_DEG,
+                                                              Z_OFFSET_MAX_G, &cand);
+                        if (cs != IMU_CAL_OK)
+                        {
+                            printf("[cal] REJECTED: %s (pitch sd %.2f deg, mean a = %.3f %.3f %.3f g) - "
+                                   "previous calibration kept, press GP21 again\n",
+                                   imu_cal_reason(cs), (double)p_sd, (double)mx, (double)my, (double)mz);
+                        }
+                        else
+                        {
+                            z_off = cand.z_off_g;
+                            pitch_zero = cand.pitch_zero_deg;
+                            pitch_filt = pitch_zero;
+                            peak_pitch = 0.0f;
+                            printf("[cal] Z offset = %+.3f g (|a| raw %.3f -> corrected %.3f g), pitch zero = %.2f deg "
+                                   "(sd %.2f), peak reset\n",
+                                   (double)z_off, (double)sqrtf((mx * mx) + (my * my) + (mz * mz)),
+                                   (double)sqrtf((mx * mx) + (my * my) + ((mz - z_off) * (mz - z_off))),
+                                   (double)pitch_zero, (double)p_sd);
+                        }
                     }
                 }
 
@@ -353,21 +496,27 @@ int main(void)
             }
         }
 
-        /* ---- Magnetometer (75 Hz) --------------------------------- */
-        if (!reg_read(MAG_ADDR, MAG_SR_REG, &status, 1u))
+        /* ---- Magnetometer (DLHC 75 Hz / LSM303D 50 Hz) ------------- */
+        if (!reg_read(g_mag_addr, g_is_lsm303d ? D_STATUS_M : MAG_SR_REG, &status, 1u))
         {
             mag_fail++;
         }
-        else if ((status & 0x01u) != 0u)
+        else if ((status & (g_is_lsm303d ? 0x08u : 0x01u)) != 0u)
         {
-            if (!reg_read(MAG_ADDR, MAG_OUT_X_H, raw, 6u))
+            bool mag_ok = g_is_lsm303d ?
+                          reg_read(g_mag_addr, (uint8_t)(D_OUT_X_L_M | ACC_AUTO_INC), raw, 6u) :
+                          reg_read(g_mag_addr, MAG_OUT_X_H, raw, 6u);
+            if (!mag_ok)
             {
                 mag_fail++;
             }
             else
             {
-                int16_t mx = (int16_t)((uint16_t)raw[0] << 8 | raw[1]);
-                int16_t my = (int16_t)((uint16_t)raw[4] << 8 | raw[5]);
+                /* DLHC: X_H X_L Z_H Z_L Y_H Y_L; LSM303D: X_L X_H Y_L Y_H Z_L Z_H */
+                int16_t mx = g_is_lsm303d ? (int16_t)((uint16_t)raw[1] << 8 | raw[0]) :
+                                            (int16_t)((uint16_t)raw[0] << 8 | raw[1]);
+                int16_t my = g_is_lsm303d ? (int16_t)((uint16_t)raw[3] << 8 | raw[2]) :
+                                            (int16_t)((uint16_t)raw[4] << 8 | raw[5]);
                 heading = atan2f((float)my, (float)mx) * RAD_TO_DEG;
                 if (heading < 0.0f)
                 {
@@ -468,9 +617,9 @@ int main(void)
         }
         if (button_pressed(BTN_CAL_PIN, &cal_down, &cal_last))
         {
-            cal_sum = 0.0f;
-            cal_left = CAL_SAMPLES;
-            printf("[cal] collecting %u samples, keep still...\n", CAL_SAMPLES);
+            cal_pending = true;
+            cal_start_ms = now_ms() + CAL_SETTLE_MS;
+            printf("[cal] hands off - starts in %u ms\n", CAL_SETTLE_MS);
         }
 
         sleep_us(500u);

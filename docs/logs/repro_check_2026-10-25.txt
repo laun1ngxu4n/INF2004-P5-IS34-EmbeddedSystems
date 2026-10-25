@@ -1,0 +1,22 @@
+P5-IS34 bring-up - image reproducibility check
+Date: 2026-10-25. Same toolchain as the original builds: arm-none-eabi-gcc (15:13.2.rel1-2) 13.2.1 20231009,
+Pico SDK 2.1.1 (git bddd20f), board pico_w.
+
+Method: build the v3.1 source (P5-IS34_bringup_tests_v3.1.zip, unchanged) with SOURCE_DATE_EPOCH set to
+the original build day, so the compiler's __DATE__ string matches, and compare every .uf2 byte for byte
+with the prebuilt images that were flashed and tested. Without the date setting the only difference is
+that date string (1-2 bytes per image).
+
+Result: all 8 prebuilt images are byte-identical to a fresh build of the v3.1 source:
+  encoder_test             built as 2026-10-18  IDENTICAL  sha256 2fdadcdeb0e4ebe414a371fc0fdcbf900035062cec450ae40229118b7e580bac
+  ir_test                  built as 2026-10-18  IDENTICAL  sha256 ad8e2b05c15efabb155ffa3b87850f4cc599b915bc5552c8d47edea039d01576
+  notify_test              built as 2026-10-18  IDENTICAL  sha256 58eebc66d93baf8c70f0ae00dadbdff507edd93bb4529b2529c0e3255aec9b2e
+  ultrasonic_test          built as 2026-10-18  IDENTICAL  sha256 9860e19a6002573ba538edeeb823004c9fbdef63f3524881bfb831ebd4c3e29e
+  wifi_mqtt_test_prompt    built as 2026-10-18  IDENTICAL  sha256 d9fb8d3dd032f95d28ad6abd7206c3da12da4f99223a85606897987d951cf948
+  imu_test                 built as 2026-10-22  IDENTICAL  sha256 0ceedac48fe677c6f990c86840e3ec83a99209a824988a6c68283461db5d19d0
+  parts_check              built as 2026-10-22  IDENTICAL  sha256 3e6e3ece4447da75d6a31f6a9c0716237c1b51ccc0027fa9278330adf8c1bb1a
+  i2c_diag                 built as 2026-10-22  IDENTICAL  sha256 77ffabbb1d900bf8b411c813f905d7cb3ad022a6483e2700d96a42e4fc2f548a
+
+So the Buddy 1 (18 Oct) and IMU (22 Oct) results were produced by images built from exactly this source.
+After the v3.2 fixes, ir_test, notify_test and wifi_mqtt_test_prompt still build byte-identical to their
+18 Oct images; only the five fixed programs changed.

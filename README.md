@@ -1,6 +1,6 @@
-# P5-IS34 hardware bring-up tests
+# P5-IS34 hardware bring-up tests (v3.2)
 
-Seven small standalone programs. Each runs on the robot with the plain
+Eight small standalone programs. Each runs on the robot with the plain
 Pico SDK (no RTOS yet) and prints real numbers over USB serial. They back
 up, or contradict, the numbers in the submitted Week 6 design. A result
 that contradicts the design is still good evidence: write it down and say
@@ -11,9 +11,10 @@ what changes.
 | `parts_check` | all | every part alive, wiring and direction | per-part OK/CHECK/FAIL, motor/encoder mapping, GP28 sag |
 | `wifi_mqtt_test` | Buddy 1 | A1, A10, NFR5, NFR5b, NFR9 payload | join/DHCP, MQTT connect, poll and activation time, heartbeat jitter, RSSI, payload capacity, command verdicts, recovery time |
 | `notify_test` | Buddy 1 | A15 | 10 ms loop jitter with LED/buzzer quiet, at design rate and stressed; cost per LED/buzzer write |
-| `encoder_test` | Buddy 2 (+3) | A2, A11, A14 stall, A21 (v3 proposal) | counts/rev, mm/count, counts/s per duty, L/R mismatch, longest natural edge gap, stall detection time |
+| `encoder_test` | Buddy 2 (+3) | A2, A11, A14 stall, A21 (v3 proposal) | counts/rev (4x decoded), mm/count, counts/s per duty, L/R mismatch, longest completed interval between counts, stall detection time |
 | `ir_test` | Buddy 3 | A3, A7, A11 | polarity, line/floor separation, bar widths in us, chatter |
 | `imu_test` | Buddy 4 | A4, A14 collision, NFR2 | real sample rate, read and loop time, pitch sd, tilt-block height, shock peaks |
+| `i2c_diag` | any | wiring | Grove line levels, slow I2C scan of every Grove port in both wire orders, chip ID |
 | `ultrasonic_test` | Buddy 5 | A5, NFR3 | 3.3 V works?, mean/sd at 50-500 mm, outcome counts, coarse/fine scan time |
 
 What these are not: not the robot firmware and not NFR acceptance tests.
@@ -26,6 +27,72 @@ these tests can and cannot show.
 
 Debug output is USB only. GP0/GP1 are the IR sensors, so UART0 is off in
 every test (Week 6 reviewer point).
+
+## What changed in v3.2 (25 Oct 2026, fixes from the 25 Oct code review)
+
+All confirmed in the code, fixed, host-tested, and built with the original
+toolchain (SDK 2.1.1, GCC 13.2.rel1-2), 0 warnings. Not yet run on the robot.
+
+- `parts_check` motor check (finding 03): any GP21 press is latched in the
+  GPIO interrupt and checked before every drive and in every wait (start
+  delay, run, 400 ms spin-down), so the motors never start while STOP is
+  held and a short press between steps is not forgotten. Logic in
+  `tests/common/motor_seq.h`.
+- `encoder_test` stall rule (finding 04): both last-edge times and then the
+  timer are read in one interrupts-off section, and a negative age is
+  clamped to 0, so an edge between two reads can no longer look like a
+  4,295 s stall. Longest gap (finding 14): the ISR now records the longest
+  completed interval between count changes; the result line shows it next to
+  the 1 ms sampled open gap, and the margin uses the worse of the two.
+  Logic in `tests/common/enc_timing.h`.
+- `ultrasonic_test` timed scans (finding 12): the servo is first moved to
+  centre from where it really is (not timed), so the first ray gets its full
+  settle time after manual stepping.
+- `parts_check` and `ultrasonic_test` share one echo-width classifier
+  (finding 13, `tests/common/sonar_class.h`): parts_check now reports pulses
+  over 25,000 us as "long pulse" instead of a valid range.
+- `imu_test` calibration (finding 16): the whole result is checked first
+  (moved, not flat over 10 deg, offset out of range, no samples) and only
+  then committed; a rejected calibration leaves offset, pitch zero, filter
+  and peak untouched (`tests/common/imu_cal.h`).
+- `i2c_diag` (finding 20): the verdict names the chip actually found (our
+  LSM303D at 0x1D, and whether the wires are the design way round), and a
+  clock line that never rises marks that port's results unreliable
+  (`tests/common/chip_id.h`).
+- `host_tests/run_host_tests.sh` (finding 15): every test runs once into a
+  log and its exit status is checked before any filtering; the runner exits
+  1 on any failure. New host tests: `test_motor_seq.c`,
+  `test_enc_timing.c`, `test_sonar_imu_chip.c` (each was checked to fail
+  when the old v3.1 behaviour is put back).
+- Unchanged: `ir_test`, `notify_test`, `wifi_mqtt_test_prompt` (they build
+  byte-identical to the 18 Oct images). Not changed on purpose: finding 11
+  (command seq rule) belongs in the new binary wire spec, not the bench test.
+- Reproducibility: all eight v3.1 images rebuild byte-for-byte from the v3.1
+  source with this toolchain (`docs/logs/repro_check_2026-10-25.txt`).
+  Build with `SOURCE_DATE_EPOCH` set to repeat a build exactly.
+
+## Added 25 Oct 2026 (before v3.2)
+
+- `tools/outage_test.py`: reconnect trials timed on the laptop clock (see
+  wifi_mqtt_test step 6). No firmware change; all .uf2 images unchanged.
+- `docs/P5-IS34_Buddy1_Test_Results.md`: evidence review added; hotspot
+  name and IP addresses removed.
+
+## What changed in v3.1 (22 Oct 2026, IMU bring-up)
+
+- Our "GY-511" board carries an **LSM303D** (one address, 0x1D, WHO_AM_I
+  0x49), not the LSM303DLHC the design assumed (0x19 + 0x1E "H43").
+  `imu_test` and `parts_check` now detect either chip and configure both
+  the same way (accel 100 Hz, +/-4 g).
+- `imu_test` GP21 calibration now also measures and removes the Z zero-g
+  offset (our board: about +0.12 g), waits 1 s after the press (hands
+  off) and rejects the calibration if the board moved (pitch sd > 0.3 deg).
+- DLHC path no longer right-shifts signed data (Barr C 5.3b): divide by 16.
+- New `i2c_diag`: finds an I2C device on any Grove port in either wire
+  order and identifies common accel/mag chips. Use it when a sensor says
+  NO ANSWER.
+- Results so far: `docs/bringup_results.md` (Buddy 4 table), logs in
+  `docs/logs/imu_test_2026-10-22.txt`.
 
 ## What changed in v3
 
@@ -158,11 +225,19 @@ not work), laptop on the same hotspot running mosquitto with
    at a time. Each must give the expected ack; record the round-trip of
    `p`. Then `r` (burst of 8): record accepted count and any
    `cmd_dropped` event. Summary at `q` shows unmatched counts.
-6. Reconnect (A1), at least 5 trials, 20 if there is time:
-   press GP21, switch the hotspot (or mosquitto) OFF; wait for `LOST`;
-   switch it back ON and press GP21 again; record `RECOVERY`.
-   Pass: <= 20 000 ms every time. Also record the detection time. Do some
-   trials with the hotspot and some with mosquitto (they fail differently).
+6. Reconnect (A1): use `tools/outage_test.py` (added 25 Oct), not the
+   GP21 marks. Broker mode runs Mosquitto itself, stops it for a random
+   5-25 s and times the robot's return on the laptop clock:
+   `python tools/outage_test.py --trials 5 --serial COM5` (stop any
+   Mosquitto service and close Tera Term first; `pip install paho-mqtt
+   pyserial`). Hotspot mode: run Mosquitto yourself, then
+   `python tools/outage_test.py --mode hotspot --trials 5 --serial COM5`
+   and press Enter BEFORE you switch the hotspot off, and again BEFORE you
+   switch it on (marks first, so times are upper bounds). Add `--phase sweep`
+   in broker mode to restart at planned points of the retry cycle. Pass: <= 20 000 ms
+   every time. Outputs go to `docs/logs/outage_*`. Do not time outages with
+   `mqtt_watch.py`: it drops and reconnects with the broker. The GP21 marks
+   still work but include reaction time.
 7. A10 (optional): carry the robot around the course area; the CSV has
    RSSI per heartbeat. Pass in the design: no heartbeat gap over 5 s.
 
@@ -207,13 +282,22 @@ not work), laptop on the same hotspot running mosquitto with
 
 ### imu_test (Buddy 4)
 
-1. Record the I2C scan line and mag ID bytes (expect 0x19, 0x1E, "H43").
-2. Flat and still, press GP21. Record the `[stats]` line: sample rate
+Wiring: Grove 6, red to the GY-511 **VIN** (not its 3V3 pin: the SDA/SCL
+pull-ups on the board run from VIN), black GND, white = SDA (GP26),
+yellow = SCL (GP27). On every Grove port white is the lower-numbered GPIO.
+
+1. Record the I2C scan and chip lines (our board: 0x1D, LSM303D). If it
+   says no chip found, run `i2c_diag`.
+2. Flat and still, press GP21 and take your hands off; check the `[cal]`
+   line does not say REJECTED and |a| reads about 1.00 g afterwards. GP21
+   means "this is flat": never press it with the robot tilted. Calibration
+   is lost on reset. Record the `[stats]` line: sample rate
    (~100 Hz expected), pitch sd, read time, loop work max. Press GP20 and
    repeat at the other I2C speed.
 3. Tilt the robot onto blocks of known height (10, 20, 30 mm) under one
-   end. Record peak pitch; with `WHEELBASE_MM` set, compare `h_est` to the
-   real height (target +/- 5 mm).
+   end. Read `rel` (tilt from the calibrated flat); return to flat between
+   blocks and check `rel` goes back to about 0. With `WHEELBASE_MM` set,
+   compare `h_est` to the real height (target +/- 5 mm).
 4. Push the robot back and forth on a flat table: how far does pitch
    move with no tilt at all? That is the acceleration error.
 5. Collision (A14): bump the robot into a box at low speed by hand 10

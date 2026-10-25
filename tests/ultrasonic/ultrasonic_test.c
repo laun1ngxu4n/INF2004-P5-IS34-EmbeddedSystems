@@ -1,6 +1,11 @@
 /*
  * P5-IS34 bring-up test: HC-SR04 ultrasonic + scan servo (Buddy 5)
  *
+ * v3.2 (25 Oct): the timed scans first move the servo to centre from where
+ * it really is (review finding 12; this move is not part of the timed scan),
+ * and the echo-width limits come from common/sonar_class.h, shared with
+ * parts_check (finding 13).
+ *
  * WIRING: TRIG -> GP6, ECHO -> GP7 with jumper wires, NOT Grove
  * (Grove 5 shares GP26 IMU SDA, Grove 7 shares GP28 battery sense).
  * Start with VCC = 3.3 V. If you power the module from 5 V, ECHO MUST go
@@ -44,6 +49,7 @@
 #include "hardware/gpio.h"
 #include "hardware/pwm.h"
 #include "hardware/clocks.h"
+#include "../common/sonar_class.h"
 
 #define US_TRIG_PIN         6u
 #define US_ECHO_PIN         7u
@@ -55,8 +61,8 @@
 #define TRIG_PULSE_US       10u
 #define RISE_TIMEOUT_US     5000u
 #define HIGH_TIMEOUT_US     40000u
-#define MIN_VALID_US        100u     /* < ~17 mm: below the module's 20 mm minimum */
-#define LONG_PULSE_US       25000u   /* > ~4.3 m: completed but beyond useful range */
+#define MIN_VALID_US        SONAR_MIN_VALID_US    /* shared with parts_check */
+#define LONG_PULSE_US       SONAR_LONG_PULSE_US
 #define BATCH_SIZE          20u
 #define BTN_DEBOUNCE_MS     50u
 
@@ -171,11 +177,15 @@ static us_class_t us_measure(uint32_t *p_width_us, uint32_t *p_latency_us)
         }
     }
     *p_width_us = g_fall_us - g_rise_us;
-    if (*p_width_us < MIN_VALID_US)
+    switch (sonar_classify_width(*p_width_us))
     {
-        return US_TOO_SHORT;   /* includes rise and fall reported in one event */
+        case SONAR_WIDTH_TOO_SHORT:
+            return US_TOO_SHORT;   /* includes rise and fall reported in one event */
+        case SONAR_WIDTH_LONG:
+            return US_LONG_PULSE;
+        default:
+            return US_VALID;
     }
-    return (*p_width_us > LONG_PULSE_US) ? US_LONG_PULSE : US_VALID;
 }
 
 static void servo_init(void)
@@ -188,11 +198,14 @@ static void servo_init(void)
     pwm_set_enabled(slice, true);
 }
 
+static int32_t g_servo_deg = CENTRE_DEG;   /* last commanded angle */
+
 /* 90 deg = straight ahead. Sign of left/right is not calibrated. */
 static void servo_set_angle(int32_t deg)
 {
     float us = (float)SERVO_CENTRE_US + ((float)(deg - CENTRE_DEG) * SERVO_US_PER_DEG);
     pwm_set_gpio_level(SERVO_PIN, (uint16_t)(us + 0.5f));
+    g_servo_deg = deg;
 }
 
 static uint32_t settle_ms(int32_t from_deg, int32_t to_deg)
@@ -216,12 +229,25 @@ typedef struct
 static void run_scan(const char *p_name, const int32_t *p_deg, uint32_t n, uint32_t limit_ms)
 {
     static ray_t rays[11];
-    uint64_t t0 = time_us_64();
+    uint64_t t0;
     uint32_t total_ms;
-    int32_t cur = CENTRE_DEG;
+    int32_t cur;
     uint32_t unknown = 0u;
     uint32_t i;
     uint32_t k;
+
+    /* Precondition, not timed: start from centre, settled from where the
+     * servo really is (a manual step can leave it at 45 or 135 deg). */
+    if (g_servo_deg != CENTRE_DEG)
+    {
+        int32_t from = g_servo_deg;
+        servo_set_angle(CENTRE_DEG);
+        sleep_ms(settle_ms(from, CENTRE_DEG));
+        printf("[scan] servo was at %ld deg: centred first (%lu ms, not timed)\n", (long)from,
+               (unsigned long)settle_ms(from, CENTRE_DEG));
+    }
+    cur = CENTRE_DEG;
+    t0 = time_us_64();
 
     for (i = 0u; i < n; i++)
     {
@@ -290,7 +316,7 @@ static void button_init(uint32_t pin)
 
 int main(void)
 {
-    static const int32_t servo_offsets_us[] = {0, -(int32_t)SERVO_45_DEG_US, (int32_t)SERVO_45_DEG_US};
+    static const int32_t servo_offsets_deg[] = {0, -45, 45};   /* same pulses as before: 1500/1000/2000 us */
     const char *const servo_names[] = {"centre", "left 45", "right 45"};
     uint32_t servo_idx = 0u;
     uint32_t batch_left = 0u;
@@ -422,8 +448,7 @@ int main(void)
                 else
                 {
                     servo_idx = (servo_idx + 1u) % 3u;
-                    pwm_set_gpio_level(SERVO_PIN,
-                                       (uint16_t)((int32_t)SERVO_CENTRE_US + servo_offsets_us[servo_idx]));
+                    servo_set_angle(CENTRE_DEG + servo_offsets_deg[servo_idx]);
                     printf("[servo] %s (nominal pulse; physical angle not calibrated)\n",
                            servo_names[servo_idx]);
                 }

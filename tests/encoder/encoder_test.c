@@ -23,6 +23,15 @@
  *   GP21  stop the motors now (holding it also blocks any start);
  *         when stopped, a press zeros the counts
  *
+ * v3.2 (25 Oct, review findings 04 and 14): the stall check reads both
+ * last-edge times and then the timer in one interrupts-off section, so an
+ * edge between the reads can no longer look like a ~4,295 s stall; and the
+ * ISR records the longest completed interval between count changes, which
+ * the 1 ms sampled check could miss.
+ *
+ * Counts per revolution are 4x decoded (every A and B edge counts): do not
+ * multiply by 4 again.
+ *
  * Not NFR10 evidence: this is a polled stop with no independent safe-off.
  *
  * SAFETY: lift the wheels off the table before pressing GP20.
@@ -36,6 +45,7 @@
 #include "pico/stdlib.h"
 #include "hardware/gpio.h"
 #include "hardware/pwm.h"
+#include "../common/enc_timing.h"
 #include "hardware/sync.h"
 
 /* ---- Pins (design pin table) --------------------------------------- */
@@ -92,6 +102,8 @@ static volatile uint32_t g_invalid[2];
 static volatile uint32_t g_isr_max_us;
 static volatile uint32_t g_isr_total_us;
 static volatile uint32_t g_last_edge_us[2];   /* time of the last valid count change */
+static volatile uint32_t g_max_iv_us[2];      /* longest completed interval while armed */
+static volatile bool     g_iv_armed;          /* true during the steady part of a run */
 static uint8_t g_prev_ab[2];
 
 static uint32_t now_ms(void)
@@ -146,6 +158,8 @@ static void gpio_isr(uint gpio, uint32_t events)
     else if (step != 0)
     {
         g_count[wheel] += step;
+        g_max_iv_us[wheel] = enc_interval_note(g_max_iv_us[wheel], g_last_edge_us[wheel], t_start,
+                                               g_iv_armed);
         g_last_edge_us[wheel] = t_start;
     }
     g_prev_ab[wheel] = ab;
@@ -357,6 +371,9 @@ int main(void)
                 uint32_t irq = save_and_disable_interrupts();
                 g_last_edge_us[WHEEL_L] = timer_hw->timerawl;
                 g_last_edge_us[WHEEL_R] = g_last_edge_us[WHEEL_L];
+                g_max_iv_us[WHEEL_L] = 0u;
+                g_max_iv_us[WHEEL_R] = 0u;
+                g_iv_armed = false;
                 restore_interrupts(irq);
             }
             running = true;
@@ -370,17 +387,31 @@ int main(void)
 
         if (running)
         {
-            /* ---- Stall rule, checked every loop pass (~1 ms) ---------- */
-            uint32_t now_us = timer_hw->timerawl;
+            /* ---- Stall rule, checked every loop pass (~1 ms) ----------
+             * Read both last-edge times, THEN the timer, with interrupts off:
+             * now can never be older than a last edge (review finding 04). */
+            uint32_t last_us[2];
+            uint32_t now_us;
             uint32_t w;
+            {
+                uint32_t irq = save_and_disable_interrupts();
+                last_us[WHEEL_L] = g_last_edge_us[WHEEL_L];
+                last_us[WHEEL_R] = g_last_edge_us[WHEEL_R];
+                now_us = timer_hw->timerawl;
+                restore_interrupts(irq);
+            }
+            if ((t - t_run) >= STEADY_FROM_MS)
+            {
+                g_iv_armed = true;   /* ISR now records completed intervals */
+            }
             for (w = 0u; w < 2u; w++)
             {
-                uint32_t gap_us = now_us - g_last_edge_us[w];
+                uint32_t gap_us = enc_edge_age_us(now_us, last_us[w]);
                 if (((t - t_run) >= STEADY_FROM_MS) && (gap_us > max_gap_us[w]))
                 {
-                    max_gap_us[w] = gap_us;   /* natural gap, steady part only */
+                    max_gap_us[w] = gap_us;   /* longest open gap seen by this 1 ms check */
                 }
-                if (running && (duty > STALL_MIN_DUTY) && (gap_us >= (STALL_NO_EDGE_MS * 1000u)))
+                if (running && enc_stall_tripped(duty, STALL_MIN_DUTY, gap_us, STALL_NO_EDGE_MS))
                 {
                     motor_set_duty(0u);
                     running = false;
@@ -462,15 +493,31 @@ int main(void)
                        (unsigned long)g_invalid[WHEEL_L], (unsigned long)g_invalid[WHEEL_R]);
                 printf("[result] steady window %lu ms, late samples %lu\n",
                        (unsigned long)steady_ms, (unsigned long)late_samples);
-                printf("[result] longest gap between count changes (steady part) L=%lu us R=%lu us "
-                       "-> stall rule margin vs %u ms: L x%lu R x%lu%s\n",
-                       (unsigned long)max_gap_us[WHEEL_L], (unsigned long)max_gap_us[WHEEL_R],
-                       STALL_NO_EDGE_MS,
-                       (unsigned long)((max_gap_us[WHEEL_L] == 0u) ? 0u
-                                       : (STALL_NO_EDGE_MS * 1000u / max_gap_us[WHEEL_L])),
-                       (unsigned long)((max_gap_us[WHEEL_R] == 0u) ? 0u
-                                       : (STALL_NO_EDGE_MS * 1000u / max_gap_us[WHEEL_R])),
-                       (duty > STALL_MIN_DUTY) ? "" : "  (stall rule inactive at this duty)");
+                {
+                    /* Longest gap = the larger of the longest completed interval
+                     * (ISR) and the longest open gap seen by the 1 ms check. */
+                    uint32_t iv[2];
+                    uint32_t worst[2];
+                    uint32_t irq;
+                    g_iv_armed = false;
+                    irq = save_and_disable_interrupts();
+                    iv[WHEEL_L] = g_max_iv_us[WHEEL_L];
+                    iv[WHEEL_R] = g_max_iv_us[WHEEL_R];
+                    restore_interrupts(irq);
+                    worst[WHEEL_L] = (iv[WHEEL_L] > max_gap_us[WHEEL_L]) ? iv[WHEEL_L] : max_gap_us[WHEEL_L];
+                    worst[WHEEL_R] = (iv[WHEEL_R] > max_gap_us[WHEEL_R]) ? iv[WHEEL_R] : max_gap_us[WHEEL_R];
+                    printf("[result] longest gap between count changes (steady part): completed "
+                           "interval L=%lu us R=%lu us, open gap at the 1 ms check L=%lu us R=%lu us\n",
+                           (unsigned long)iv[WHEEL_L], (unsigned long)iv[WHEEL_R],
+                           (unsigned long)max_gap_us[WHEEL_L], (unsigned long)max_gap_us[WHEEL_R]);
+                    printf("[result] stall rule margin vs %u ms (worst of the two): L x%lu R x%lu%s\n",
+                           STALL_NO_EDGE_MS,
+                           (unsigned long)((worst[WHEEL_L] == 0u) ? 0u
+                                           : (STALL_NO_EDGE_MS * 1000u / worst[WHEEL_L])),
+                           (unsigned long)((worst[WHEEL_R] == 0u) ? 0u
+                                           : (STALL_NO_EDGE_MS * 1000u / worst[WHEEL_R])),
+                           (duty > STALL_MIN_DUTY) ? "" : "  (stall rule inactive at this duty)");
+                }
                 printf("[result] callback-body time: worst %lu us, load %.2f %% of CPU "
                        "(excludes IRQ entry and SDK dispatch)\n",
                        (unsigned long)g_isr_max_us, (double)isr_pct);

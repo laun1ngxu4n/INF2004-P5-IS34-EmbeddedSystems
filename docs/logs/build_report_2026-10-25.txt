@@ -1,0 +1,43 @@
+P5-IS34 bring-up v3.2 - target build report
+Date: 2026-10-25
+Toolchain: arm-none-eabi-gcc (15:13.2.rel1-2) 13.2.1 20231009
+Pico SDK: 2.1.1 (git bddd20f), board pico_w, cmake + ninja
+Build date stamp: SOURCE_DATE_EPOCH = 2026-10-25 06:00 UTC (the compiler's __DATE__ is fixed, so the
+build can be repeated byte for byte)
+Warnings in project sources (-Wall -Wextra): 0 (SDK sources: 0)
+
+Images changed in v3.2 (review fixes 03, 04, 12, 13, 14, 16, 20):
+  parts_check, encoder_test, ultrasonic_test, imu_test, i2c_diag
+Images unchanged (built byte-identical to the 18 Oct images, see repro_check_2026-10-25.txt):
+  ir_test, notify_test, wifi_mqtt_test_prompt
+
+Static RAM = __bss_end__ - 0x20000000 (data + bss, excludes stack/heap). NFR9 limit 200 KB of 264 KB.
+  encoder_test               8448 bytes
+  i2c_diag                   8392 bytes
+  imu_test                   8388 bytes
+  ir_test                   10448 bytes
+  notify_test                8416 bytes
+  parts_check                8596 bytes
+  ultrasonic_test            8572 bytes
+  wifi_mqtt_test_prompt     59404 bytes
+
+arm-none-eabi-size:
+   text	   data	    bss	    dec	    hex	filename
+  37252	      0	   4512	  41764	   a324	encoder/encoder_test.elf
+  40468	      0	   4440	  44908	   af6c	i2c_diag/i2c_diag.elf
+  39236	      0	   4436	  43672	   aa98	imu/imu_test.elf
+  35508	      0	   6512	  42020	   a424	ir/ir_test.elf
+  36108	      0	   4480	  40588	   9e8c	notify/notify_test.elf
+  44412	      0	   4516	  48928	   bf20	parts_check/parts_check.elf
+  37884	      0	   4636	  42520	   a618	ultrasonic/ultrasonic_test.elf
+ 349176	      0	  55196	 404372	  62b94	wifi_mqtt/wifi_mqtt_test_prompt.elf
+
+SHA-256 of the images in P5-IS34_bringup_v3.2_prebuilt_uf2.zip:
+  ccd8b947aa246f89a87dd69d2aad2e771e77a5b3d1038393046e7c2948c41dbf  encoder_test.uf2 (v3.2)
+  92022d45cb24cb3b74b5333db1f47b56f6aa3bcce37851a9d1609800cce47598  i2c_diag.uf2 (v3.2)
+  2c9d82f8d454e1e6491552df114504986997024ddbdfff48afd06aa0d91d4869  imu_test.uf2 (v3.2)
+  2cdfb65bba49bf22aab438356f813fc41042d996f9a92784666c5173b5f213f3  parts_check.uf2 (v3.2)
+  804dc97940464b6eda2acdab6a6f08418fab1f5220a84ce563b4d40234565407  ultrasonic_test.uf2 (v3.2)
+  ad8e2b05c15efabb155ffa3b87850f4cc599b915bc5552c8d47edea039d01576  ir_test.uf2 (18 Oct, unchanged)
+  58eebc66d93baf8c70f0ae00dadbdff507edd93bb4529b2529c0e3255aec9b2e  notify_test.uf2 (18 Oct, unchanged)
+  d9fb8d3dd032f95d28ad6abd7206c3da12da4f99223a85606897987d951cf948  wifi_mqtt_test_prompt.uf2 (18 Oct, unchanged)

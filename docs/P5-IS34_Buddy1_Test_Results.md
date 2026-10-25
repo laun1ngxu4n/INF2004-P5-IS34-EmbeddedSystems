@@ -6,7 +6,7 @@ Status: standalone bench measurements, not NFR acceptance. Plain Pico SDK, no RT
 ## Test conditions
 
 - Board: Pico W on Cytron Robo Pico, powered from the laptop USB cable (no power bank).
-- Network: Android phone hotspot (SSID "MRBALLS", 2.4 GHz, WPA2), subnet 10.231.2.x. Robot IP 10.231.2.196, laptop/broker 10.231.2.225.
+- Network: Android phone hotspot (2.4 GHz, WPA2); robot and laptop/broker on the hotspot subnet.
 - Broker: Mosquitto on Windows, `tools/mosquitto.conf` (port 1883, anonymous, private hotspot only).
 - Laptop monitor: `tools/mqtt_watch.py` (paho-mqtt), heartbeat CSV `hb_2026-10-18.csv`.
 - Serial: Tera Term (also PuTTY earlier), USB CDC.
@@ -72,13 +72,13 @@ Status: standalone bench measurements, not NFR acceptance. Plain Pico SDK, no RT
 
 | Trial | Type | Detection | Recovery | Result |
 |---|---|---|---|---|
-| 1 | broker off (Ctrl+C) | 3,134 ms | <= 2.8 s (bounded: ON mark pressed 12.1 s late) | PASS |
-| 2 | broker off | not extracted (search log for "[outage] #2 LOST") | 1,800 ms from ON mark | PASS |
+| 1 | broker off (Ctrl+C) | 3,134 ms (from manual OFF mark) | not measured: robot reconnected 12.1 s before the ON mark. Estimate <= about 8 s (one 5 s retry cycle + 2.8 s connect); see evidence review | PASS (inferred) |
+| 2 | broker off | not extracted (search log for "[outage] #2 LOST") | 1,800 ms from manual ON mark (underestimate: excludes the delay between broker start and the press) | PASS |
 | 3 | incomplete (broker not restarted or laptop IP changed) | - | did not reconnect within 21 attempts | not counted |
 
 - Retry gaps 0.5 / 1 / 2 / 2 s: meets "retry gap <= 2 s". WiFi stayed up; only MQTT retried.
 - Each failed attempt timed out after 3 s instead of being refused at once: Windows silently drops connections to port 1883 while Mosquitto is stopped (firewall). Retry cycle = 3 s timeout + 2 s gap = 5 s.
-- Both successful reconnects took ~2.8 s to connect: the first SYN after the broker returned was lost and lwIP's ~3 s SYN retransmission got through. The 3 s MQTT connect timeout has only ~0.2 s margin over that retransmission.
+- Both successful reconnects took ~2.8 s to connect. Two explanations fit the logs: (a) the first SYN after the broker returned was lost and lwIP's ~3 s SYN retransmission got through, or (b) the attempt started while the broker was still down (Windows drops the SYN silently) and the retransmission arrived after it came back. The manual marks cannot tell them apart; (a) is unconfirmed. The 3 s MQTT connect timeout has only ~0.2 s margin over that retransmission.
 - Design's WIFI_FAULT point (10 reconnect failures) reached about 43 s after loss, as designed; the test keeps retrying.
 - Reconnect activation peak about 3.1 ms (connect + subscribe + first publish), just over 3 ms.
 - Earlier run (old mark logic): one outage needed 8-25 s to detect (multiple presses, start time unclear), one apparently 120 s with the hotspot still up - cause not established (likely Mosquitto not actually stopped). Treat as unexplained, not evidence.
@@ -97,11 +97,11 @@ Status: standalone bench measurements, not NFR acceptance. Plain Pico SDK, no RT
 5. A command burst can overflow the 4-slot queue (drops are counted and reported). STOP/RESET must not depend on this queue (FR14): give them their own latched path.
 6. A burst or reconnect pushes activation to 3.1-3.3 ms: cap commands handled per cycle or accept a longer activation after bursts.
 7. After a stall, Telemetry should skip missed heartbeats, not send a catch-up burst (the burst caused 32 publish errors in testing).
-8. Windows firewall makes a stopped broker look like a timeout, not a refusal; laptop IP may change when the hotspot restarts (subnet 10.231.2.x suggests a randomised range). For the demo, keep the broker address fixed (static IP or a hotspot that keeps its range).
+8. Windows firewall makes a stopped broker look like a timeout, not a refusal; laptop IP may change when the hotspot restarts (the hotspot appears to use a randomised range). For the demo, keep the broker address fixed (static IP or a hotspot that keeps its range).
 
 ## Open items (Buddy 1)
 
-- Hotspot-off reconnect trials (2+), and the rest of the 20 worst-phase trials NFR5 requires (2 valid so far = preliminary).
+- Hotspot-off and broker reconnect trials with tools/outage_test.py (bench). The two 18 Oct trials are observations, not NFR5 trials: NFR5 needs 20 new worst-phase trials under integrated load.
 - Trial 2 detection time (in the log).
 - WiFi power-save on/off comparison of laptop receive gaps.
 - notify_test A15 numbers.
@@ -117,3 +117,27 @@ Status: standalone bench measurements, not NFR acceptance. Plain Pico SDK, no RT
 ## Tribunal wording
 
 "Standalone WiFi/MQTT bring-up on the Pico W (no RTOS): connect 2.8-4.4 s + 61-81 ms within the 5 s / 3 s budgets; robot heartbeat jitter <= 4 ms; 97.6 % received within +/-100 ms with worst delivery gap 2.8 s; heartbeat holds with polling every 95 ms but fails from 245 ms; all command rejection rules correct and queue overflow reported; 2 broker-loss trials recovered in <= 2.8 s and 1.8 s (detection 3.1 s), retry gap <= 2 s. These are bench measurements, not NFR acceptance: 2 of 20 reconnect trials, no hotspot-loss trials yet, no integrated load."
+
+## Evidence review (added 25 Oct 2026, from the raw logs)
+
+Solid (keep; re-measure later only inside the RTOS firmware):
+- Command rejection rules, duplicate/boot checks and queue-overflow reporting: deterministic, each case repeated 2-3 times.
+- Robot-side poll cost, activation time and heartbeat send jitter: instrumented in firmware, many windows.
+- Laptop receive statistics: n = 493 intervals over about 8 min.
+- Starvation threshold: consistent with arithmetic (a heartbeat can only leave at a poll, so deviation can reach the poll period: 95 ms passes, 245 ms fails). Run on the image before the skip-missed-heartbeat fix, about 10-14 s per step; the conclusion does not depend on either.
+- Connect times: valid but only 3 boots.
+
+Weak (redo):
+- Reconnect timing. Only 2 trials, both broker-stop (a clean, easy failure); no hotspot loss. Both OFF and ON references were manual button presses. Trial 1 recovery was not actually measured (the earlier "<= 2.8 s" bound does not hold if the broker came back before the last attempt started). Trial 2's 1,800 ms excludes the reaction delay. Finding 1 (MQTT 3 s timeout too tight) rests on an unconfirmed explanation, see above.
+- Retest method: tools/outage_test.py (added 25 Oct). Broker mode runs Mosquitto itself, stops it for a random 5-25 s and times the robot's return on the laptop clock, with no human mark; with --serial it also measures detection and whether the successful attempt started before the broker came back. Hotspot mode keeps an Enter-key mark, flags trials with no real outage (INVALID) or a late mark (LATE_MARK), and reports recovery from the mark (conservative). Do about 5 broker + 5 hotspot trials now; the full 20 worst-phase trials NFR5 asks for belong on the integrated firmware under load.
+
+Heartbeat CSV check (hb_2026-10-18.csv, received 25 Oct; 1,747 heartbeats, 19:54-20:48):
+- Confirms the clean-run figure: the first four sessions give 482 of 494 intervals within +/-100 ms (97.6 %), worst 2,816 ms.
+- Starvation session (all poll periods): 78.9 % within +/-100 ms, as expected; one 7.2 s gap with consecutive seq numbers (20:23:21) is unexplained.
+- Outage gaps on the laptop: 140.0 s and 74.2 s in the last session, against robot-side total outages of 118.1 s and 67.7 s for trials 1 and 2. The extra time and the seq jumps (21 -> 43, 126 -> 133) are heartbeats the robot sent before mqtt_watch had reconnected: mqtt_watch goes through the same broker, so it drops with it and reconnects on its own back-off. Laptop-side gaps therefore cannot time broker-outage recovery; outage_test.py avoids this.
+
+Missing: A15 notify_test numbers; trial 2 detection time; the full Tera Term logs still need to be collected from the laptop into the repo (outage_test.py --serial saves the serial log itself from now on).
+
+Note: Version C (submitted) quotes "2 broker-off trials recovered in <= 2.8 s and 1.8 s, measured from manual button marks". Carry the trial 1 correction into later submissions.
+
+The tribunal wording above is kept as it was said on 19 Oct; use this section when quoting the reconnect numbers from now on.

@@ -78,6 +78,6 @@ Coverage levels:
 
 - No RTOS: task priorities, dispatch and kernel critical sections are absent, so CPU, jitter and poll numbers are best case.
 - One part at a time: the shared GPIO interrupt load (encoders + barcode + echo together) is only exercised for liveness in parts_check, not timed.
-- Reconnect timing uses a button mark, so it includes reaction time.
+- Reconnect timing: the 18 Oct trials used button marks, so they include reaction time and trial 1's recovery was not measured. From 25 Oct use tools/outage_test.py (laptop-clock timing in broker mode; marks pressed before each switch in hotspot mode, giving upper bounds).
 - Servo angles are nominal pulses (about 11.1 us per degree), not calibrated angles; scan timing depends on the assumed settle time.
-- 5 reconnect trials are preliminary; NFR5 needs 20.
+- Bench reconnect trials are preliminary; NFR5 needs 20 worst-phase trials under integrated load, and the 18 Oct trials do not count towards them.

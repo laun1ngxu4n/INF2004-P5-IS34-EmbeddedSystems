@@ -145,6 +145,13 @@ EXPORT INT usermain(void)
 	/* Test build (make TEST=1): run every subsystem's tests in turn,
 	   here in the initial task, while the system is running.  Tests may
 	   call tk_dly_tsk() to let the other tasks work for a while. */
+	/* Let start-up finish first: bringing up the WiFi radio pauses every
+	   task for about 120 ms at about 0.6 s (measured 26 Oct), which is
+	   not what the timing tests are meant to judge.  The timing table's
+	   "boot max" still records it. */
+	tm_printf((UB*)"[TEST] waiting %d ms for start-up to finish\n",
+		  APP_TEST_SETTLE_MS);
+	tk_dly_tsk(APP_TEST_SETTLE_MS);
 	tm_printf((UB*)"[TEST] === test run start ===\n");
 	subsystem1_test();
 	subsystem2_test();

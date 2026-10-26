@@ -91,6 +91,7 @@ IMPORT ER subsystem4_start(void);
 IMPORT ER subsystem5_start(void);
 
 #if APP_TEST
+#define APP_TEST_SETTLE_MS	3000	/* wait for WiFi start-up before testing */
 IMPORT void subsystem1_test(void);
 IMPORT void subsystem2_test(void);
 IMPORT void subsystem3_test(void);

@@ -59,7 +59,7 @@ make TEST=1 -j8     # test image    -> mtk3pico_smp0_usb_cdc_wifi_test.uf2
    onto RPI-RP2. The drive disappears and the Pico restarts.
 3. Open the Pico's COM port at 115200 baud. If you missed the start,
    unplug and replug USB (no BOOTSEL) with the terminal already open.
-4. Wait for `[TEST] === test run end ===` (about 20 s: each task is
+4. Wait for `[TEST] === test run end ===` (about 25 s: 3 s for start-up, then each task is
    watched for 2 s, then 3 s for INT-01).
 
 Expected:

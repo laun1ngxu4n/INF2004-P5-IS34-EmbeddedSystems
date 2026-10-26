@@ -55,7 +55,11 @@ EXPORT void app_timing_wake(INT slot, INT overruns)
 		iv = now - t->last_us;
 		if (iv < t->win_min_iv_us) t->win_min_iv_us = iv;
 		if (iv > t->win_max_iv_us) t->win_max_iv_us = iv;
-		if (iv > t->max_iv_us)     t->max_iv_us = iv;
+		if (iv > t->max_iv_us) {
+			t->max_iv_us = iv;
+			t->max_iv_at_us = now;
+		}
+		if (iv > t->test_max_iv_us) t->test_max_iv_us = iv;
 	}
 	if (overruns > 0) {
 		t->overruns += (UW)overruns;
@@ -81,6 +85,18 @@ EXPORT void app_timing_done(INT slot)
 	run = app_time_us() - t->run_start_us;
 	if (run > t->win_max_run_us) t->win_max_run_us = run;
 	if (run > t->max_run_us)     t->max_run_us = run;
+	APP_UNLOCK(s);
+}
+
+EXPORT void app_timing_test_start(INT slot)
+{
+	UINT	s;
+
+	if (slot < 0 || slot >= tmg_used) {
+		return;
+	}
+	APP_LOCK(s);
+	tmg[slot].test_max_iv_us = 0;
 	APP_UNLOCK(s);
 }
 
@@ -110,7 +126,7 @@ EXPORT void app_timing_report(void)
 	UINT		s;
 
 	tm_printf((UB*)"[tmg] t=%d ms | task pri period | wakes overruns | "
-		  "interval min-max ms (boot max) | run max us (boot max)\n",
+		  "interval min-max ms (boot max @ s) | run max us (boot max)\n",
 		  (INT)(app_time_us() / 1000));
 	for (i = 0; i < tmg_used; i++) {
 		/* Copy and start a new window in one locked step, print after */
@@ -132,6 +148,8 @@ EXPORT void app_timing_report(void)
 			print_ms(c.win_max_iv_us);
 			tm_printf((UB*)" (");
 			print_ms(c.max_iv_us);
+			tm_printf((UB*)" @ %d.%d", (INT)(c.max_iv_at_us / 1000000),
+				  (INT)((c.max_iv_at_us % 1000000) / 100000));
 			tm_printf((UB*)")");
 		}
 		tm_printf((UB*)" | %d (%d)\n", (INT)c.win_max_run_us, (INT)c.max_run_us);

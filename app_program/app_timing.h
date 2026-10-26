@@ -33,7 +33,10 @@ typedef struct {
 	UW		win_max_run_us;
 	/* Since boot */
 	UW		max_iv_us;
+	UW		max_iv_at_us;	/* when the longest interval ended */
 	UW		max_run_us;
+	/* Since app_timing_test_start (on-target tests only) */
+	UW		test_max_iv_us;
 } APP_TIMING;
 
 /* Microseconds since boot from the hardware timer (wraps after ~71 min) */
@@ -47,6 +50,9 @@ IMPORT void app_timing_wake(INT slot, INT overruns);
 
 /* Call when the cycle's work is finished */
 IMPORT void app_timing_done(INT slot);
+
+/* Start a test window: clears test_max_iv_us (tests only) */
+IMPORT void app_timing_test_start(INT slot);
 
 /* Copy one slot (for tests); returns E_OK or E_PAR */
 IMPORT ER app_timing_get(INT slot, APP_TIMING *p_copy);

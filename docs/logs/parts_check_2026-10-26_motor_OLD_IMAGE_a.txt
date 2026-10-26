@@ -1,0 +1,550 @@
+[2026-10-26 11:04:50.153] [live] IR L=0 C=0 B=0 (edges 2/2/2) | enc L=43 R=1 (invalid 0/0) | GP20=up GP21=up | GP28 0.012 V
+[2026-10-26 11:04:50.159] [live] IR L=0 C=0 B=0 (edges 2/2/2) | enc L=43 R=1 (invalid 0/0) | GP20=up GP21=up | GP28 0.010 V
+[2026-10-26 11:04:50.159] [live] IR L=0 C=0 B=0 (edges 2/2/2) | enc L=43 R=1 (invalid 0/0) | GP20=up GP21=up | GP28 0.009 V
+[2026-10-26 11:04:50.159] [live] IR L=0 C=0 B=0 (edges 2/2/2) | enc L=43 R=1 (invalid 0/0) | GP20=up GP21=up | GP28 0.008 V
+[2026-10-26 11:04:50.159] [live] IR L=0 C=0 B=0 (edges 2/2/2) | enc L=43 R=1 (invalid 0/0) | GP20=up GP21=up | GP28 0.009 V
+[2026-10-26 11:04:50.160] [live] IR L=0 C=0 B=0 (edges 2/2/2) | enc L=43 R=1 (invalid 0/0) | GP20=up GP21=up | GP28 0.006 V
+[2026-10-26 11:04:50.160] [live] IR L=0 C=0 B=0 (edges 2/2/2) | enc L=43 R=1 (invalid 0/0) | GP20=up GP21=up | GP28 0.008 V
+[2026-10-26 11:04:50.160] [live] IR L=0 C=0 B=0 (edges 2/2/2) | enc L=43 R=1 (invalid 0/0) | GP20=up GP21=up | GP28 0.006 V
+[2026-10-26 11:04:50.161] [live] IR L=0 C=0 B=0 (edges 2/2/2) | enc L=43 R=1 (invalid 0/0) | GP20=up GP21=up | GP28 0.008 V
+[2026-10-26 11:04:50.182] [live] IR L=0 C=0 B=0 (edges 2/2/2) | enc L=43 R=1 (invalid 0/0) | GP20=up GP21=up | GP28 0.015 V
+[2026-10-26 11:04:50.182] [live] IR L=0 C=0 B=0 (edges 2/2/2) | enc L=43 R=1 (invalid 0/0) | GP20=up GP21=up | GP28 0.006 V
+[2026-10-26 11:04:50.182] [live] IR L=0 C=0 B=0 (edges 2/2/2) | enc L=43 R=1 (invalid 0/0) | GP20=up GP21=up | GP28 0.007 V
+[2026-10-26 11:04:50.182] [live] IR L=0 C=0 B=0 (edges 2/2/2) | enc L=43 R=1 (invalid 0/0) | GP20=up GP21=up | GP28 0.005 V
+[2026-10-26 11:04:50.182] [live] IR L=0 C=0 B=0 (edges 2/2/2) | enc L=43 R=1 (invalid 0/0) | GP20=up GP21=up | GP28 0.007 V
+[2026-10-26 11:04:50.182] [live] IR L=0 C=0 B=0 (edges 2/2/2) | enc L=43 R=1 (invalid 0/0) | GP20=up GP21=up | GP28 0.006 V
+[2026-10-26 11:04:50.184] [live] IR L=0 C=0 B=0 (edges 2/2/2) | enc L=43 R=1 (invalid 0/0) | GP20=up GP21=up | GP28 0.006 V
+[2026-10-26 11:04:50.184] [live] IR L=0 C=0 B=0 (edges 2/2/2) | enc L=43 R=1 (invalid 0/0) | GP20=up GP21=up | GP28 0.002 V
+[2026-10-26 11:04:50.199] [live] IR L=0 C=0 B=0 (edges 2/2/2) | enc L=43 R=1 (invalid 0/0) | GP20=up GP21=up | GP28 0.003 V
+[2026-10-26 11:04:50.199] [live] IR L=0 C=0 B=0 (edges 2/2/2) | enc L=43 R=1 (invalid 0/0) | GP20=up GP21=up | GP28 0.003 V
+[2026-10-26 11:04:50.199] [live] IR L=0 C=0 B=0 (edges 2/2/2) | enc L=43 R=1 (invalid 0/0) | GP20=up GP21=up | GP28 0.000 V
+[2026-10-26 11:04:50.199] [live] IR L=0 C=0 B=0 (edges 2/2/2) | enc L=43 R=1 (invalid 0/0) | GP20=up GP21=up | GP28 0.000 V
+[2026-10-26 11:04:50.199] [live] IR L=0 C=0 B=0 (edges 2/2/2) | enc L=43 R=1 (invalid 0/0) | GP20=up GP21=up | GP28 0.001 V
+[2026-10-26 11:04:50.200] [live] IR L=0 C=0 B=0 (edges 2/2/2) | enc L=43 R=1 (invalid 0/0) | GP20=up GP21=up | GP28 0.001 V
+[2026-10-26 11:04:50.201] [live] IR L=0 C=0 B=0 (edges 2/2/2) | enc L=43 R=1 (invalid 0/0) | GP20=up GP21=up | GP28 0.000 V
+[2026-10-26 11:04:50.201] [live] IR L=0 C=0 B=0 (edges 2/2/2) | enc L=43 R=1 (invalid 0/0) | GP20=up GP21=up | GP28 0.000 V
+[2026-10-26 11:04:50.215] [live] IR L=0 C=0 B=0 (edges 2/2/2) | enc L=43 R=1 (invalid 0/0) | GP20=up GP21=up | GP28 0.002 V
+[2026-10-26 11:04:50.215] [live] IR L=0 C=0 B=0 (edges 2/2/2) | enc L=43 R=1 (invalid 0/0) | GP20=up GP21=up | GP28 0.009 V
+[2026-10-26 11:04:50.566] [live] IR L=0 C=0 B=0 (edges 2/2/2) | enc L=43 R=1 (invalid 0/0) | GP20=up GP21=up | GP28 0.001 V
+[2026-10-26 11:04:51.067] [live] IR L=0 C=0 B=0 (edges 2/2/2) | enc L=43 R=1 (invalid 0/0) | GP20=up GP21=up | GP28 0.000 V
+[2026-10-26 11:04:51.567] [live] IR L=0 C=0 B=0 (edges 2/2/2) | enc L=43 R=1 (invalid 0/0) | GP20=up GP21=up | GP28 0.000 V
+[2026-10-26 11:04:52.067] [live] IR L=0 C=0 B=0 (edges 2/2/2) | enc L=43 R=1 (invalid 0/0) | GP20=up GP21=up | GP28 0.000 V
+[2026-10-26 11:04:52.568] [live] IR L=0 C=0 B=0 (edges 2/2/2) | enc L=43 R=1 (invalid 0/0) | GP20=up GP21=up | GP28 0.000 V
+[2026-10-26 11:04:53.068] [live] IR L=0 C=0 B=0 (edges 2/2/2) | enc L=43 R=1 (invalid 0/0) | GP20=up GP21=up | GP28 0.000 V
+[2026-10-26 11:04:53.568] [live] IR L=0 C=0 B=0 (edges 2/2/2) | enc L=43 R=6 (invalid 0/0) | GP20=up GP21=up | GP28 0.000 V
+[2026-10-26 11:04:54.069] [live] IR L=0 C=0 B=0 (edges 2/2/2) | enc L=43 R=6 (invalid 0/0) | GP20=up GP21=up | GP28 0.005 V
+[2026-10-26 11:04:54.569] [live] IR L=1 C=1 B=1 (edges 3/3/3) | enc L=43 R=6 (invalid 0/0) | GP20=up GP21=up | GP28 0.009 V
+[2026-10-26 11:04:55.069] [live] IR L=0 C=1 B=1 (edges 4/3/3) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.013 V
+[2026-10-26 11:04:55.569] [live] IR L=0 C=0 B=1 (edges 4/4/3) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.010 V
+[2026-10-26 11:04:56.070] [live] IR L=0 C=0 B=0 (edges 4/4/4) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.002 V
+[2026-10-26 11:04:56.570] [live] IR L=0 C=0 B=0 (edges 4/4/4) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.005 V
+[2026-10-26 11:04:57.070] [live] IR L=0 C=0 B=0 (edges 4/4/4) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.002 V
+[2026-10-26 11:04:57.570] [live] IR L=0 C=0 B=0 (edges 4/4/4) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.000 V
+[2026-10-26 11:04:58.070] [live] IR L=0 C=0 B=0 (edges 4/4/4) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.001 V
+[2026-10-26 11:04:58.570] [live] IR L=0 C=0 B=0 (edges 4/4/4) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.000 V
+[2026-10-26 11:04:59.071] [live] IR L=0 C=0 B=0 (edges 4/4/4) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.000 V
+[2026-10-26 11:04:59.571] [live] IR L=0 C=0 B=0 (edges 4/4/4) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.000 V
+[2026-10-26 11:05:00.071] [live] IR L=0 C=0 B=0 (edges 4/4/4) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.000 V
+[2026-10-26 11:05:00.572] [live] IR L=0 C=0 B=0 (edges 4/4/4) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.000 V
+[2026-10-26 11:05:01.072] [live] IR L=0 C=0 B=0 (edges 4/4/4) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.000 V
+[2026-10-26 11:05:01.572] [live] IR L=0 C=0 B=0 (edges 4/4/4) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.000 V
+[2026-10-26 11:05:02.072] [live] IR L=0 C=0 B=0 (edges 4/4/4) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.000 V
+[2026-10-26 11:05:02.573] [live] IR L=0 C=0 B=0 (edges 4/4/4) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.000 V
+[2026-10-26 11:05:03.073] [live] IR L=0 C=0 B=0 (edges 4/4/4) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.000 V
+[2026-10-26 11:05:03.573] [live] IR L=0 C=0 B=0 (edges 4/4/4) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.000 V
+[2026-10-26 11:05:04.074] [live] IR L=0 C=0 B=0 (edges 4/4/4) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.000 V
+[2026-10-26 11:05:04.575] [live] IR L=0 C=0 B=0 (edges 4/4/4) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.000 V
+[2026-10-26 11:05:05.074] [live] IR L=0 C=0 B=0 (edges 4/4/4) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.000 V
+[2026-10-26 11:05:05.575] [live] IR L=0 C=0 B=0 (edges 4/4/4) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.000 V
+[2026-10-26 11:05:06.074] [live] IR L=0 C=0 B=0 (edges 4/4/4) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.000 V
+[2026-10-26 11:05:06.574] [live] IR L=0 C=0 B=0 (edges 4/4/4) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.000 V
+[2026-10-26 11:05:07.075] [live] IR L=0 C=0 B=0 (edges 4/4/4) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.000 V
+[2026-10-26 11:05:07.575] [live] IR L=0 C=0 B=0 (edges 4/4/4) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.000 V
+[2026-10-26 11:05:08.076] [live] IR L=0 C=0 B=0 (edges 4/4/4) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.000 V
+[2026-10-26 11:05:08.576] [live] IR L=0 C=0 B=0 (edges 4/4/4) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.000 V
+[2026-10-26 11:05:09.076] [live] IR L=0 C=0 B=0 (edges 4/4/4) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.000 V
+[2026-10-26 11:05:09.577] [live] IR L=0 C=0 B=0 (edges 4/4/4) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.000 V
+[2026-10-26 11:05:10.076] [live] IR L=0 C=0 B=0 (edges 4/4/4) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.000 V
+[2026-10-26 11:05:10.577] [live] IR L=0 C=0 B=0 (edges 4/4/4) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.000 V
+[2026-10-26 11:05:11.078] [live] IR L=0 C=0 B=0 (edges 4/4/4) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.000 V
+[2026-10-26 11:05:11.578] [live] IR L=0 C=0 B=0 (edges 4/4/4) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.000 V
+[2026-10-26 11:05:12.078] [live] IR L=0 C=0 B=0 (edges 4/4/4) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.000 V
+[2026-10-26 11:05:12.579] [live] IR L=0 C=0 B=1 (edges 4/4/5) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.005 V
+[2026-10-26 11:05:13.079] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.022 V
+[2026-10-26 11:05:13.579] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.023 V
+[2026-10-26 11:05:14.079] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.023 V
+[2026-10-26 11:05:14.580] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.022 V
+[2026-10-26 11:05:15.080] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.024 V
+[2026-10-26 11:05:15.580] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.026 V
+[2026-10-26 11:05:16.081] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.023 V
+[2026-10-26 11:05:16.581] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.022 V
+[2026-10-26 11:05:17.081] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.023 V
+[2026-10-26 11:05:17.581] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.030 V
+[2026-10-26 11:05:18.081] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.022 V
+[2026-10-26 11:05:18.582] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.024 V
+[2026-10-26 11:05:19.082] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=43 R=5 (invalid 0/0) | GP20=up GP21=up | GP28 0.027 V
+[2026-10-26 11:05:19.292] 
+[2026-10-26 11:05:19.292] ---- motor check: 50 % duty, 600 ms per step. GP21 held = stop ----
+[2026-10-26 11:05:19.298] [vbat] GP28 pin 0.051 V (sd 0.004). Divider ratio unknown: measure the battery with a meter and set VBAT_DIVIDER = V_batt / V_pin
+[2026-10-26 11:05:21.299] [motor] LEFT  fwd(A=PWM): encoder L -2960, R +0  OK
+[2026-10-26 11:05:22.300] [motor] LEFT  rev(B=PWM): encoder L +2978, R +0  OK
+[2026-10-26 11:05:23.299] [motor] RIGHT fwd(A=PWM): encoder L +0, R +3008  OK
+[2026-10-26 11:05:24.300] [motor] RIGHT rev(B=PWM): encoder L +0, R -3046  OK
+[2026-10-26 11:05:24.303] [motor] 'fwd(A=PWM)' counts L down R up. Look at the wheels: did fwd(A=PWM) drive the robot FORWARD on both sides? If not, swap that motor's A/B in software (note it for Buddy 2).
+[2026-10-26 11:05:24.303] [vbat] GP28 pin idle 0.051 V, lowest under one motor 0.000 V (sag 0.051 V at pin) - scale by the divider once known
+[2026-10-26 11:05:24.307] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=61 R=-33 (invalid 0/0) | GP20=up GP21=up | GP28 0.031 V
+[2026-10-26 11:05:24.805] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=61 R=-33 (invalid 0/0) | GP20=up GP21=up | GP28 0.033 V
+[2026-10-26 11:05:25.306] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=61 R=-33 (invalid 0/0) | GP20=up GP21=up | GP28 0.035 V
+[2026-10-26 11:05:25.806] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=61 R=-33 (invalid 0/0) | GP20=up GP21=up | GP28 0.036 V
+[2026-10-26 11:05:26.307] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=61 R=-33 (invalid 0/0) | GP20=up GP21=up | GP28 0.037 V
+[2026-10-26 11:05:26.807] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=61 R=-33 (invalid 0/0) | GP20=up GP21=up | GP28 0.034 V
+[2026-10-26 11:05:27.308] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=61 R=-33 (invalid 0/0) | GP20=up GP21=up | GP28 0.037 V
+[2026-10-26 11:05:27.807] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=61 R=-33 (invalid 0/0) | GP20=up GP21=up | GP28 0.037 V
+[2026-10-26 11:05:28.307] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=61 R=-33 (invalid 0/0) | GP20=up GP21=up | GP28 0.037 V
+[2026-10-26 11:05:28.812] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=61 R=-33 (invalid 0/0) | GP20=up GP21=up | GP28 0.042 V
+[2026-10-26 11:05:29.308] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=61 R=-33 (invalid 0/0) | GP20=up GP21=up | GP28 0.041 V
+[2026-10-26 11:05:29.808] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=61 R=-33 (invalid 0/0) | GP20=up GP21=up | GP28 0.039 V
+[2026-10-26 11:05:30.308] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=61 R=-33 (invalid 0/0) | GP20=up GP21=up | GP28 0.040 V
+[2026-10-26 11:05:30.809] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=61 R=-33 (invalid 0/0) | GP20=up GP21=up | GP28 0.042 V
+[2026-10-26 11:05:31.309] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=61 R=-33 (invalid 0/0) | GP20=up GP21=up | GP28 0.042 V
+[2026-10-26 11:05:31.810] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=61 R=-33 (invalid 0/0) | GP20=up GP21=up | GP28 0.043 V
+[2026-10-26 11:05:32.310] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=61 R=-33 (invalid 0/0) | GP20=up GP21=up | GP28 0.044 V
+[2026-10-26 11:05:32.810] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=61 R=-33 (invalid 0/0) | GP20=up GP21=up | GP28 0.046 V
+[2026-10-26 11:05:33.311] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=61 R=-33 (invalid 0/0) | GP20=up GP21=up | GP28 0.046 V
+[2026-10-26 11:05:33.811] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=61 R=-33 (invalid 0/0) | GP20=up GP21=up | GP28 0.047 V
+[2026-10-26 11:05:34.312] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=61 R=-33 (invalid 0/0) | GP20=up GP21=up | GP28 0.044 V
+[2026-10-26 11:05:34.611] 
+[2026-10-26 11:05:34.611] ---- motor check: 50 % duty, 600 ms per step. GP21 held = stop ----
+[2026-10-26 11:05:34.619] [vbat] GP28 pin 0.063 V (sd 0.007). Divider ratio unknown: measure the battery with a meter and set VBAT_DIVIDER = V_batt / V_pin
+[2026-10-26 11:05:36.618] [motor] LEFT  fwd(A=PWM): encoder L -2979, R +0  OK
+[2026-10-26 11:05:37.618] [motor] LEFT  rev(B=PWM): encoder L +2993, R +0  OK
+[2026-10-26 11:05:38.618] [motor] RIGHT fwd(A=PWM): encoder L +0, R +3020  OK
+[2026-10-26 11:05:39.618] [motor] RIGHT rev(B=PWM): encoder L +0, R -3051  OK
+[2026-10-26 11:05:39.619] [motor] 'fwd(A=PWM)' counts L down R up. Look at the wheels: did fwd(A=PWM) drive the robot FORWARD on both sides? If not, swap that motor's A/B in software (note it for Buddy 2).
+[2026-10-26 11:05:39.619] [vbat] GP28 pin idle 0.063 V, lowest under one motor 0.002 V (sag 0.060 V at pin) - scale by the divider once known
+[2026-10-26 11:05:39.624] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=75 R=-64 (invalid 0/0) | GP20=up GP21=up | GP28 0.028 V
+[2026-10-26 11:05:40.124] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=75 R=-64 (invalid 0/0) | GP20=up GP21=up | GP28 0.023 V
+[2026-10-26 11:05:40.625] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=75 R=-64 (invalid 0/0) | GP20=up GP21=up | GP28 0.019 V
+[2026-10-26 11:05:41.125] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=75 R=-64 (invalid 0/0) | GP20=up GP21=up | GP28 0.015 V
+[2026-10-26 11:05:41.625] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=75 R=-64 (invalid 0/0) | GP20=up GP21=up | GP28 0.021 V
+[2026-10-26 11:05:42.125] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=75 R=-64 (invalid 0/0) | GP20=up GP21=up | GP28 0.023 V
+[2026-10-26 11:05:42.626] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=75 R=-64 (invalid 0/0) | GP20=up GP21=up | GP28 0.020 V
+[2026-10-26 11:05:43.126] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=75 R=-64 (invalid 0/0) | GP20=up GP21=up | GP28 0.020 V
+[2026-10-26 11:05:43.626] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=75 R=-64 (invalid 0/0) | GP20=up GP21=up | GP28 0.020 V
+[2026-10-26 11:05:44.127] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=75 R=-64 (invalid 0/0) | GP20=up GP21=up | GP28 0.021 V
+[2026-10-26 11:05:44.626] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=75 R=-64 (invalid 0/0) | GP20=up GP21=up | GP28 0.018 V
+[2026-10-26 11:05:45.127] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=75 R=-64 (invalid 0/0) | GP20=up GP21=up | GP28 0.020 V
+[2026-10-26 11:05:45.627] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=75 R=-64 (invalid 0/0) | GP20=up GP21=up | GP28 0.023 V
+[2026-10-26 11:05:45.892] 
+[2026-10-26 11:05:45.893] ---- motor check: 50 % duty, 600 ms per step. GP21 held = stop ----
+[2026-10-26 11:05:45.899] [vbat] GP28 pin 0.062 V (sd 0.006). Divider ratio unknown: measure the battery with a meter and set VBAT_DIVIDER = V_batt / V_pin
+[2026-10-26 11:05:47.900] [motor] LEFT  fwd(A=PWM): encoder L -2990, R +0  OK
+[2026-10-26 11:05:48.900] [motor] LEFT  rev(B=PWM): encoder L +2987, R +0  OK
+[2026-10-26 11:05:49.899] [motor] RIGHT fwd(A=PWM): encoder L +0, R +3008  OK
+[2026-10-26 11:05:50.899] [motor] RIGHT rev(B=PWM): encoder L +0, R -3052  OK
+[2026-10-26 11:05:50.900] [motor] 'fwd(A=PWM)' counts L down R up. Look at the wheels: did fwd(A=PWM) drive the robot FORWARD on both sides? If not, swap that motor's A/B in software (note it for Buddy 2).
+[2026-10-26 11:05:50.900] [vbat] GP28 pin idle 0.062 V, lowest under one motor 0.000 V (sag 0.062 V at pin) - scale by the divider once known
+[2026-10-26 11:05:50.905] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=72 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.032 V
+[2026-10-26 11:05:51.405] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=72 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.036 V
+[2026-10-26 11:05:51.500] 
+[2026-10-26 11:05:51.500] ---- motor check: 50 % duty, 600 ms per step. GP21 held = stop ----
+[2026-10-26 11:05:51.508] [vbat] GP28 pin 0.051 V (sd 0.005). Divider ratio unknown: measure the battery with a meter and set VBAT_DIVIDER = V_batt / V_pin
+[2026-10-26 11:05:52.872] [motor] ABORTED by GP21 - motors off
+[2026-10-26 11:05:52.877] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-1558 R=-108 (invalid 0/0) | GP20=up GP21=DOWN | GP28 0.031 V
+[2026-10-26 11:05:53.378] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-1716 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.046 V
+[2026-10-26 11:05:53.878] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-1716 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.048 V
+[2026-10-26 11:05:54.379] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-1716 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.048 V
+[2026-10-26 11:05:54.879] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-1716 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.045 V
+[2026-10-26 11:05:55.379] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-1716 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.047 V
+[2026-10-26 11:05:55.879] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-1716 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.047 V
+[2026-10-26 11:05:56.380] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-1716 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.048 V
+[2026-10-26 11:05:56.880] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-1716 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.048 V
+[2026-10-26 11:05:57.381] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-1716 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.048 V
+[2026-10-26 11:05:57.745] 
+[2026-10-26 11:05:57.745] ---- motor check: 50 % duty, 600 ms per step. GP21 held = stop ----
+[2026-10-26 11:05:57.752] [vbat] GP28 pin 0.047 V (sd 0.002). Divider ratio unknown: measure the battery with a meter and set VBAT_DIVIDER = V_batt / V_pin
+[2026-10-26 11:05:57.752] [vbat] near 0 V or noisy: GP28 may not be connected to the battery on this board (check the jumper / Grove 7)
+[2026-10-26 11:05:59.102] [motor] ABORTED by GP21 - motors off
+[2026-10-26 11:05:59.107] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-3258 R=-108 (invalid 0/0) | GP20=up GP21=DOWN | GP28 0.022 V
+[2026-10-26 11:05:59.608] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-3415 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.039 V
+[2026-10-26 11:06:00.108] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-3415 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.039 V
+[2026-10-26 11:06:00.609] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-3415 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.039 V
+[2026-10-26 11:06:01.108] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-3415 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.037 V
+[2026-10-26 11:06:01.609] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-3415 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.035 V
+[2026-10-26 11:06:02.109] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-3415 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.035 V
+[2026-10-26 11:06:02.610] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-3415 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.035 V
+[2026-10-26 11:06:03.110] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-3415 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.035 V
+[2026-10-26 11:06:03.610] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-3415 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.035 V
+[2026-10-26 11:06:04.110] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-3415 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.032 V
+[2026-10-26 11:06:04.611] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-3415 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.035 V
+[2026-10-26 11:06:05.111] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-3415 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.034 V
+[2026-10-26 11:06:05.171] 
+[2026-10-26 11:06:05.171] ---- motor check: 50 % duty, 600 ms per step. GP21 held = stop ----
+[2026-10-26 11:06:05.178] [vbat] GP28 pin 0.040 V (sd 0.006). Divider ratio unknown: measure the battery with a meter and set VBAT_DIVIDER = V_batt / V_pin
+[2026-10-26 11:06:05.178] [vbat] near 0 V or noisy: GP28 may not be connected to the battery on this board (check the jumper / Grove 7)
+[2026-10-26 11:06:06.388] [motor] ABORTED by GP21 - motors off
+[2026-10-26 11:06:06.393] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-4254 R=-108 (invalid 0/0) | GP20=up GP21=DOWN | GP28 0.003 V
+[2026-10-26 11:06:06.894] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-4406 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.029 V
+[2026-10-26 11:06:07.393] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-4406 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.029 V
+[2026-10-26 11:06:07.894] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-4406 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.031 V
+[2026-10-26 11:06:08.395] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-4406 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.030 V
+[2026-10-26 11:06:08.895] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-4406 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.031 V
+[2026-10-26 11:06:09.395] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-4406 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.030 V
+[2026-10-26 11:06:09.895] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-4406 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.030 V
+[2026-10-26 11:06:10.015] 
+[2026-10-26 11:06:10.015] ---- motor check: 50 % duty, 600 ms per step. GP21 held = stop ----
+[2026-10-26 11:06:10.023] [vbat] GP28 pin 0.038 V (sd 0.011). Divider ratio unknown: measure the battery with a meter and set VBAT_DIVIDER = V_batt / V_pin
+[2026-10-26 11:06:10.023] [vbat] near 0 V or noisy: GP28 may not be connected to the battery on this board (check the jumper / Grove 7)
+[2026-10-26 11:06:11.241] [motor] ABORTED by GP21 - motors off
+[2026-10-26 11:06:11.246] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-5296 R=-108 (invalid 0/0) | GP20=up GP21=DOWN | GP28 0.071 V
+[2026-10-26 11:06:11.746] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-5452 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.050 V
+[2026-10-26 11:06:12.247] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-5452 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.049 V
+[2026-10-26 11:06:12.747] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-5452 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.048 V
+[2026-10-26 11:06:12.782] 
+[2026-10-26 11:06:12.783] ---- motor check: 50 % duty, 600 ms per step. GP21 held = stop ----
+[2026-10-26 11:06:12.789] [vbat] GP28 pin 0.059 V (sd 0.006). Divider ratio unknown: measure the battery with a meter and set VBAT_DIVIDER = V_batt / V_pin
+[2026-10-26 11:06:14.789] [motor] LEFT  fwd(A=PWM): encoder L -2981, R +0  OK
+[2026-10-26 11:06:14.856] [motor] ABORTED by GP21 - motors off
+[2026-10-26 11:06:14.861] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-8263 R=-108 (invalid 0/0) | GP20=up GP21=DOWN | GP28 0.010 V
+[2026-10-26 11:06:15.362] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-8159 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.027 V
+[2026-10-26 11:06:15.862] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-8159 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.031 V
+[2026-10-26 11:06:16.362] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-8159 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.035 V
+[2026-10-26 11:06:16.862] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-8159 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.039 V
+[2026-10-26 11:06:17.363] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-8159 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.035 V
+[2026-10-26 11:06:17.863] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-8159 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.037 V
+[2026-10-26 11:06:18.363] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-8159 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.039 V
+[2026-10-26 11:06:18.864] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-8159 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.043 V
+[2026-10-26 11:06:19.364] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-8159 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.044 V
+[2026-10-26 11:06:19.864] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-8159 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.042 V
+[2026-10-26 11:06:20.365] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-8159 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.044 V
+[2026-10-26 11:06:20.865] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-8159 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.041 V
+[2026-10-26 11:06:20.940] 
+[2026-10-26 11:06:20.941] ---- motor check: 50 % duty, 600 ms per step. GP21 held = stop ----
+[2026-10-26 11:06:20.947] [vbat] GP28 pin 0.045 V (sd 0.015). Divider ratio unknown: measure the battery with a meter and set VBAT_DIVIDER = V_batt / V_pin
+[2026-10-26 11:06:20.947] [vbat] near 0 V or noisy: GP28 may not be connected to the battery on this board (check the jumper / Grove 7)
+[2026-10-26 11:06:22.946] [motor] LEFT  fwd(A=PWM): encoder L -3000, R +0  OK
+[2026-10-26 11:06:22.947] [motor] ABORTED by GP21 - motors off
+[2026-10-26 11:06:22.952] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-108 (invalid 0/0) | GP20=up GP21=DOWN | GP28 0.056 V
+[2026-10-26 11:06:23.453] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.055 V
+[2026-10-26 11:06:23.908] 
+[2026-10-26 11:06:23.908] ---- motor check: 50 % duty, 600 ms per step. GP21 held = stop ----
+[2026-10-26 11:06:23.915] [vbat] GP28 pin 0.067 V (sd 0.010). Divider ratio unknown: measure the battery with a meter and set VBAT_DIVIDER = V_batt / V_pin
+[2026-10-26 11:06:24.915] [motor] ABORTED by GP21 - motors off
+[2026-10-26 11:06:24.919] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-108 (invalid 0/0) | GP20=up GP21=DOWN | GP28 0.029 V
+[2026-10-26 11:06:25.420] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.028 V
+[2026-10-26 11:06:25.921] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.028 V
+[2026-10-26 11:06:26.421] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.028 V
+[2026-10-26 11:06:26.921] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.027 V
+[2026-10-26 11:06:27.421] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.024 V
+[2026-10-26 11:06:27.922] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.020 V
+[2026-10-26 11:06:28.422] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.020 V
+[2026-10-26 11:06:28.922] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.015 V
+[2026-10-26 11:06:29.422] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.012 V
+[2026-10-26 11:06:29.923] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.010 V
+[2026-10-26 11:06:30.424] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.010 V
+[2026-10-26 11:06:30.924] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.009 V
+[2026-10-26 11:06:31.424] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.006 V
+[2026-10-26 11:06:31.924] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.004 V
+[2026-10-26 11:06:32.425] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.004 V
+[2026-10-26 11:06:32.925] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.004 V
+[2026-10-26 11:06:33.425] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.004 V
+[2026-10-26 11:06:33.570] 
+[2026-10-26 11:06:33.570] ---- motor check: 50 % duty, 600 ms per step. GP21 held = stop ----
+[2026-10-26 11:06:33.577] [vbat] GP28 pin 0.067 V (sd 0.011). Divider ratio unknown: measure the battery with a meter and set VBAT_DIVIDER = V_batt / V_pin
+[2026-10-26 11:06:34.577] [motor] ABORTED by GP21 - motors off
+[2026-10-26 11:06:34.582] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-108 (invalid 0/0) | GP20=up GP21=DOWN | GP28 0.032 V
+[2026-10-26 11:06:35.083] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.032 V
+[2026-10-26 11:06:35.583] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.030 V
+[2026-10-26 11:06:36.083] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.031 V
+[2026-10-26 11:06:36.584] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-108 (invalid 0/0) | GP20=up GP21=up | GP28 0.030 V
+[2026-10-26 11:06:36.904] 
+[2026-10-26 11:06:36.907] ---- motor check: 50 % duty, 600 ms per step. GP21 held = stop ----
+[2026-10-26 11:06:36.910] [vbat] GP28 pin 0.036 V (sd 0.008). Divider ratio unknown: measure the battery with a meter and set VBAT_DIVIDER = V_batt / V_pin
+[2026-10-26 11:06:36.911] [vbat] near 0 V or noisy: GP28 may not be connected to the battery on this board (check the jumper / Grove 7)
+[2026-10-26 11:06:38.911] [motor] LEFT  fwd(A=PWM): encoder L -2999, R +0  OK
+[2026-10-26 11:06:39.911] [motor] LEFT  rev(B=PWM): encoder L +2999, R +0  OK
+[2026-10-26 11:06:40.910] [motor] RIGHT fwd(A=PWM): encoder L +0, R +3011  OK
+[2026-10-26 11:06:41.910] [motor] RIGHT rev(B=PWM): encoder L +0, R -3059  OK
+[2026-10-26 11:06:41.914] [motor] 'fwd(A=PWM)' counts L down R up. Look at the wheels: did fwd(A=PWM) drive the robot FORWARD on both sides? If not, swap that motor's A/B in software (note it for Buddy 2).
+[2026-10-26 11:06:41.914] [vbat] GP28 pin idle 0.036 V, lowest under one motor 0.000 V (sag 0.036 V at pin) - scale by the divider once known
+[2026-10-26 11:06:41.918] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.046 V
+[2026-10-26 11:06:42.417] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.047 V
+[2026-10-26 11:06:42.917] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.048 V
+[2026-10-26 11:06:43.417] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.049 V
+[2026-10-26 11:06:43.917] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.049 V
+[2026-10-26 11:06:44.418] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.048 V
+[2026-10-26 11:06:44.918] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.048 V
+[2026-10-26 11:06:45.418] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.047 V
+[2026-10-26 11:06:45.919] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.047 V
+[2026-10-26 11:06:46.419] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.048 V
+[2026-10-26 11:06:46.919] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.049 V
+[2026-10-26 11:06:47.420] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.049 V
+[2026-10-26 11:06:47.920] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.050 V
+[2026-10-26 11:06:48.420] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.064 V
+[2026-10-26 11:06:48.921] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.073 V
+[2026-10-26 11:06:49.420] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.077 V
+[2026-10-26 11:06:49.921] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.072 V
+[2026-10-26 11:06:50.421] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.068 V
+[2026-10-26 11:06:50.922] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.076 V
+[2026-10-26 11:06:51.422] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.068 V
+[2026-10-26 11:06:51.922] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.060 V
+[2026-10-26 11:06:52.423] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.059 V
+[2026-10-26 11:06:52.923] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.055 V
+[2026-10-26 11:06:53.423] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.056 V
+[2026-10-26 11:06:53.923] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.052 V
+[2026-10-26 11:06:54.424] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.045 V
+[2026-10-26 11:06:54.923] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.042 V
+[2026-10-26 11:06:55.424] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.041 V
+[2026-10-26 11:06:55.925] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.036 V
+[2026-10-26 11:06:56.425] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.036 V
+[2026-10-26 11:06:56.925] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.034 V
+[2026-10-26 11:06:57.425] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.036 V
+[2026-10-26 11:06:57.926] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.033 V
+[2026-10-26 11:06:58.426] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.033 V
+[2026-10-26 11:06:58.926] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.031 V
+[2026-10-26 11:06:59.427] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.031 V
+[2026-10-26 11:06:59.927] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.031 V
+[2026-10-26 11:07:00.427] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.030 V
+[2026-10-26 11:07:00.927] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.034 V
+[2026-10-26 11:07:01.428] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.031 V
+[2026-10-26 11:07:01.928] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.033 V
+[2026-10-26 11:07:02.428] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.029 V
+[2026-10-26 11:07:02.929] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.030 V
+[2026-10-26 11:07:03.429] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.029 V
+[2026-10-26 11:07:03.929] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.029 V
+[2026-10-26 11:07:04.429] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.029 V
+[2026-10-26 11:07:04.930] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.032 V
+[2026-10-26 11:07:05.430] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.035 V
+[2026-10-26 11:07:05.930] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.030 V
+[2026-10-26 11:07:06.431] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.035 V
+[2026-10-26 11:07:06.931] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.035 V
+[2026-10-26 11:07:07.431] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.035 V
+[2026-10-26 11:07:07.931] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.036 V
+[2026-10-26 11:07:08.356] 
+[2026-10-26 11:07:08.356] ---- part checks ----
+[2026-10-26 11:07:08.359] [imu] LSM303D at 0x1E (WHO_AM_I 0x49), accel + mag on one address: configured
+[2026-10-26 11:07:08.608] [imu] accel data reads all failed
+[2026-10-26 11:07:08.648] [sonar] ping 1: no fall
+[2026-10-26 11:07:08.749] [sonar] ping 2: no fall
+[2026-10-26 11:07:08.849] [sonar] ping 3: no fall
+[2026-10-26 11:07:08.949] [sonar] ping 4: no fall
+[2026-10-26 11:07:09.050] [sonar] ping 5: no fall
+[2026-10-26 11:07:09.110] [sonar] no echoes: check jumper wiring (not Grove), supply, and point it at a wall
+[2026-10-26 11:07:09.111] [servo] left 45 ... right 45 ... centre (nominal pulses) - did it move both ways?
+[2026-10-26 11:07:10.710] [led] red ... green ... blue ... off - both LEDs, right colours?
+[2026-10-26 11:07:12.210] [buzzer] two beeps (silent? check the buzzer mute switch on the board)
+[2026-10-26 11:07:12.667] [vbat] GP28 pin 0.058 V (sd 0.005). Divider ratio unknown: measure the battery with a meter and set VBAT_DIVIDER = V_batt / V_pin
+[2026-10-26 11:07:12.668] ---- summary ----
+[2026-10-26 11:07:12.668]   IMU            FAIL
+[2026-10-26 11:07:12.673]   Ultrasonic     FAIL
+[2026-10-26 11:07:12.673]   Servo          LOOK/LISTEN
+[2026-10-26 11:07:12.673]   NeoPixels      LOOK/LISTEN
+[2026-10-26 11:07:12.673]   Buzzer         LOOK/LISTEN
+[2026-10-26 11:07:12.673]   Battery sense  OK
+[2026-10-26 11:07:12.673] Live view below. Hand-turn each wheel FORWARD, move each IR sensor over black/white.
+[2026-10-26 11:07:12.673] GP20 = motor check (LIFT THE WHEELS), GP21 = repeat part checks.
+[2026-10-26 11:07:12.673] 
+[2026-10-26 11:07:12.681] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=DOWN | GP28 0.034 V
+[2026-10-26 11:07:12.688] 
+[2026-10-26 11:07:12.690] ---- motor check: 50 % duty, 600 ms per step. GP21 held = stop ----
+[2026-10-26 11:07:12.695] [vbat] GP28 pin 0.049 V (sd 0.002). Divider ratio unknown: measure the battery with a meter and set VBAT_DIVIDER = V_batt / V_pin
+[2026-10-26 11:07:12.695] [vbat] near 0 V or noisy: GP28 may not be connected to the battery on this board (check the jumper / Grove 7)
+[2026-10-26 11:07:13.695] [motor] ABORTED by GP21 - motors off
+[2026-10-26 11:07:13.700] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=DOWN | GP28 0.041 V
+[2026-10-26 11:07:14.201] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=DOWN | GP28 0.041 V
+[2026-10-26 11:07:14.701] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=DOWN | GP28 0.041 V
+[2026-10-26 11:07:15.201] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=DOWN | GP28 0.040 V
+[2026-10-26 11:07:15.486] 
+[2026-10-26 11:07:15.486] ---- motor check: 50 % duty, 600 ms per step. GP21 held = stop ----
+[2026-10-26 11:07:15.493] [vbat] GP28 pin 0.056 V (sd 0.006). Divider ratio unknown: measure the battery with a meter and set VBAT_DIVIDER = V_batt / V_pin
+[2026-10-26 11:07:16.493] [motor] ABORTED by GP21 - motors off
+[2026-10-26 11:07:16.498] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=DOWN | GP28 0.027 V
+[2026-10-26 11:07:16.999] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=DOWN | GP28 0.027 V
+[2026-10-26 11:07:17.499] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=DOWN | GP28 0.027 V
+[2026-10-26 11:07:17.999] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=DOWN | GP28 0.027 V
+[2026-10-26 11:07:18.280] 
+[2026-10-26 11:07:18.280] ---- motor check: 50 % duty, 600 ms per step. GP21 held = stop ----
+[2026-10-26 11:07:18.286] [vbat] GP28 pin 0.053 V (sd 0.007). Divider ratio unknown: measure the battery with a meter and set VBAT_DIVIDER = V_batt / V_pin
+[2026-10-26 11:07:19.286] [motor] ABORTED by GP21 - motors off
+[2026-10-26 11:07:19.291] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=DOWN | GP28 0.042 V
+[2026-10-26 11:07:19.792] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=DOWN | GP28 0.041 V
+[2026-10-26 11:07:20.292] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=DOWN | GP28 0.041 V
+[2026-10-26 11:07:20.792] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=DOWN | GP28 0.040 V
+[2026-10-26 11:07:21.292] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=DOWN | GP28 0.039 V
+[2026-10-26 11:07:21.793] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=DOWN | GP28 0.039 V
+[2026-10-26 11:07:22.293] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=DOWN | GP28 0.039 V
+[2026-10-26 11:07:22.794] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=DOWN | GP28 0.039 V
+[2026-10-26 11:07:22.969] 
+[2026-10-26 11:07:22.969] ---- motor check: 50 % duty, 600 ms per step. GP21 held = stop ----
+[2026-10-26 11:07:22.976] [vbat] GP28 pin 0.058 V (sd 0.007). Divider ratio unknown: measure the battery with a meter and set VBAT_DIVIDER = V_batt / V_pin
+[2026-10-26 11:07:23.976] [motor] ABORTED by GP21 - motors off
+[2026-10-26 11:07:23.981] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=DOWN | GP28 0.027 V
+[2026-10-26 11:07:24.481] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=DOWN | GP28 0.026 V
+[2026-10-26 11:07:24.982] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=DOWN | GP28 0.027 V
+[2026-10-26 11:07:25.482] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=DOWN | GP28 0.027 V
+[2026-10-26 11:07:25.982] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=DOWN | GP28 0.027 V
+[2026-10-26 11:07:26.483] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.028 V
+[2026-10-26 11:07:26.983] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.027 V
+[2026-10-26 11:07:27.483] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.026 V
+[2026-10-26 11:07:27.983] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.027 V
+[2026-10-26 11:07:28.484] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.027 V
+[2026-10-26 11:07:28.984] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.027 V
+[2026-10-26 11:07:29.484] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.026 V
+[2026-10-26 11:07:29.985] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.024 V
+[2026-10-26 11:07:30.485] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.024 V
+[2026-10-26 11:07:30.985] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.024 V
+[2026-10-26 11:07:31.486] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.025 V
+[2026-10-26 11:07:31.986] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.023 V
+[2026-10-26 11:07:32.485] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.008 V
+[2026-10-26 11:07:32.985] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.013 V
+[2026-10-26 11:07:33.486] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.014 V
+[2026-10-26 11:07:33.987] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.017 V
+[2026-10-26 11:07:34.487] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.017 V
+[2026-10-26 11:07:34.988] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.019 V
+[2026-10-26 11:07:35.488] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.023 V
+[2026-10-26 11:07:35.987] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.019 V
+[2026-10-26 11:07:36.489] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.020 V
+[2026-10-26 11:07:36.988] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.024 V
+[2026-10-26 11:07:37.489] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.019 V
+[2026-10-26 11:07:37.989] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.020 V
+[2026-10-26 11:07:38.489] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.021 V
+[2026-10-26 11:07:38.990] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.023 V
+[2026-10-26 11:07:39.489] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.023 V
+[2026-10-26 11:07:39.990] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.026 V
+[2026-10-26 11:07:40.491] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.027 V
+[2026-10-26 11:07:40.991] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.027 V
+[2026-10-26 11:07:41.491] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.031 V
+[2026-10-26 11:07:41.992] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.033 V
+[2026-10-26 11:07:42.492] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-11159 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.035 V
+[2026-10-26 11:07:42.922] 
+[2026-10-26 11:07:42.922] ---- motor check: 50 % duty, 600 ms per step. GP21 held = stop ----
+[2026-10-26 11:07:42.929] [vbat] GP28 pin 0.046 V (sd 0.003). Divider ratio unknown: measure the battery with a meter and set VBAT_DIVIDER = V_batt / V_pin
+[2026-10-26 11:07:42.929] [vbat] near 0 V or noisy: GP28 may not be connected to the battery on this board (check the jumper / Grove 7)
+[2026-10-26 11:07:44.166] [motor] ABORTED by GP21 - motors off
+[2026-10-26 11:07:44.171] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-12144 R=-156 (invalid 0/0) | GP20=up GP21=DOWN | GP28 0.047 V
+[2026-10-26 11:07:44.672] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-12301 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.032 V
+[2026-10-26 11:07:45.172] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-12301 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.038 V
+[2026-10-26 11:07:45.672] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-12301 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.036 V
+[2026-10-26 11:07:46.173] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-12301 R=-156 (invalid 0/0) | GP20=up GP21=up | GP28 0.036 V
+[2026-10-26 11:07:46.358] 
+[2026-10-26 11:07:46.358] ---- motor check: 50 % duty, 600 ms per step. GP21 held = stop ----
+[2026-10-26 11:07:46.364] [vbat] GP28 pin 0.059 V (sd 0.007). Divider ratio unknown: measure the battery with a meter and set VBAT_DIVIDER = V_batt / V_pin
+[2026-10-26 11:07:48.365] [motor] LEFT  fwd(A=PWM): encoder L -2996, R +0  OK
+[2026-10-26 11:07:49.365] [motor] LEFT  rev(B=PWM): encoder L +2981, R +0  OK
+[2026-10-26 11:07:50.365] [motor] RIGHT fwd(A=PWM): encoder L +0, R +3030  OK
+[2026-10-26 11:07:51.365] [motor] RIGHT rev(B=PWM): encoder L +0, R -3056  OK
+[2026-10-26 11:07:51.370] [motor] 'fwd(A=PWM)' counts L down R up. Look at the wheels: did fwd(A=PWM) drive the robot FORWARD on both sides? If not, swap that motor's A/B in software (note it for Buddy 2).
+[2026-10-26 11:07:51.371] [vbat] GP28 pin idle 0.059 V, lowest under one motor 0.000 V (sag 0.059 V at pin) - scale by the divider once known
+[2026-10-26 11:07:51.375] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-12316 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.001 V
+[2026-10-26 11:07:51.872] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-12316 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.000 V
+[2026-10-26 11:07:52.372] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-12316 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.000 V
+[2026-10-26 11:07:52.873] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-12316 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.000 V
+[2026-10-26 11:07:53.372] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-12316 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.000 V
+[2026-10-26 11:07:53.873] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-12316 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.000 V
+[2026-10-26 11:07:54.373] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-12316 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.041 V
+[2026-10-26 11:07:54.779] 
+[2026-10-26 11:07:54.782] ---- motor check: 50 % duty, 600 ms per step. GP21 held = stop ----
+[2026-10-26 11:07:54.785] [vbat] GP28 pin 0.055 V (sd 0.006). Divider ratio unknown: measure the battery with a meter and set VBAT_DIVIDER = V_batt / V_pin
+[2026-10-26 11:07:56.786] [motor] LEFT  fwd(A=PWM): encoder L -2992, R +0  OK
+[2026-10-26 11:07:57.274] [motor] ABORTED by GP21 - motors off
+[2026-10-26 11:07:57.279] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-13045 R=-182 (invalid 0/0) | GP20=up GP21=DOWN | GP28 0.063 V
+[2026-10-26 11:07:57.780] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-12888 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.042 V
+[2026-10-26 11:07:58.280] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-12888 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.066 V
+[2026-10-26 11:07:58.780] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-12888 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.066 V
+[2026-10-26 11:07:59.280] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-12888 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.068 V
+[2026-10-26 11:07:59.780] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-12888 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.067 V
+[2026-10-26 11:08:00.281] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-12888 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.068 V
+[2026-10-26 11:08:00.781] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-12888 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.068 V
+[2026-10-26 11:08:01.282] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-12888 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.068 V
+[2026-10-26 11:08:01.781] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-12888 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.068 V
+[2026-10-26 11:08:02.282] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-12888 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.072 V
+[2026-10-26 11:08:02.783] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-12888 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.073 V
+[2026-10-26 11:08:03.283] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-12888 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.082 V
+[2026-10-26 11:08:03.783] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-12888 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.092 V
+[2026-10-26 11:08:04.284] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-12888 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.098 V
+[2026-10-26 11:08:04.784] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-12888 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.058 V
+[2026-10-26 11:08:05.284] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-12888 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.109 V
+[2026-10-26 11:08:05.649] 
+[2026-10-26 11:08:05.653] ---- motor check: 50 % duty, 600 ms per step. GP21 held = stop ----
+[2026-10-26 11:08:05.658] [vbat] GP28 pin 0.045 V (sd 0.005). Divider ratio unknown: measure the battery with a meter and set VBAT_DIVIDER = V_batt / V_pin
+[2026-10-26 11:08:05.658] [vbat] near 0 V or noisy: GP28 may not be connected to the battery on this board (check the jumper / Grove 7)
+[2026-10-26 11:08:07.656] [motor] LEFT  fwd(A=PWM): encoder L -3000, R +0  OK
+[2026-10-26 11:08:08.656] [motor] LEFT  rev(B=PWM): encoder L +2994, R +0  OK
+[2026-10-26 11:08:08.657] [motor] ABORTED by GP21 - motors off
+[2026-10-26 11:08:08.663] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-12894 R=-182 (invalid 0/0) | GP20=up GP21=DOWN | GP28 0.040 V
+[2026-10-26 11:08:08.857] 
+[2026-10-26 11:08:08.857] ---- part checks ----
+[2026-10-26 11:08:08.861] [imu] LSM303D at 0x1D (WHO_AM_I 0x49), accel + mag on one address: configured
+[2026-10-26 11:08:09.113] [imu] |a| = 0.947 g over 20 reads (expect ~1.0 g when still)
+[2026-10-26 11:08:09.153] [sonar] ping 1: no fall
+[2026-10-26 11:08:09.253] [sonar] ping 2: no fall
+[2026-10-26 11:08:09.353] [sonar] ping 3: no fall
+[2026-10-26 11:08:09.454] [sonar] ping 4: no fall
+[2026-10-26 11:08:09.554] [sonar] ping 5: no fall
+[2026-10-26 11:08:09.614] [sonar] no echoes: check jumper wiring (not Grove), supply, and point it at a wall
+[2026-10-26 11:08:09.615] [servo] left 45 ... right 45 ... centre (nominal pulses) - did it move both ways?
+[2026-10-26 11:08:11.214] [led] red ... green ... blue ... off - both LEDs, right colours?
+[2026-10-26 11:08:12.714] [buzzer] two beeps (silent? check the buzzer mute switch on the board)
+[2026-10-26 11:08:13.171] [vbat] GP28 pin 0.105 V (sd 0.040). Divider ratio unknown: measure the battery with a meter and set VBAT_DIVIDER = V_batt / V_pin
+[2026-10-26 11:08:13.172] ---- summary ----
+[2026-10-26 11:08:13.172]   IMU            OK
+[2026-10-26 11:08:13.176]   Ultrasonic     FAIL
+[2026-10-26 11:08:13.176]   Servo          LOOK/LISTEN
+[2026-10-26 11:08:13.176]   NeoPixels      LOOK/LISTEN
+[2026-10-26 11:08:13.176]   Buzzer         LOOK/LISTEN
+[2026-10-26 11:08:13.176]   Battery sense  OK
+[2026-10-26 11:08:13.176] Live view below. Hand-turn each wheel FORWARD, move each IR sensor over black/white.
+[2026-10-26 11:08:13.176] GP20 = motor check (LIFT THE WHEELS), GP21 = repeat part checks.
+[2026-10-26 11:08:13.176] 
+[2026-10-26 11:08:13.184] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-12894 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.013 V
+[2026-10-26 11:08:13.678] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-12894 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.014 V
+[2026-10-26 11:08:14.178] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-12894 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.014 V
+[2026-10-26 11:08:14.678] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-12894 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.015 V
+[2026-10-26 11:08:15.179] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-12894 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.014 V
+[2026-10-26 11:08:15.679] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-12894 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.015 V
+[2026-10-26 11:08:16.179] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-12894 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.016 V
+[2026-10-26 11:08:16.679] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-12894 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.014 V
+[2026-10-26 11:08:17.180] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-12894 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.014 V
+[2026-10-26 11:08:17.680] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-12894 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.035 V
+[2026-10-26 11:08:17.785] 
+[2026-10-26 11:08:17.785] ---- motor check: 50 % duty, 600 ms per step. GP21 held = stop ----
+[2026-10-26 11:08:17.792] [vbat] GP28 pin 0.057 V (sd 0.005). Divider ratio unknown: measure the battery with a meter and set VBAT_DIVIDER = V_batt / V_pin
+[2026-10-26 11:08:19.074] [motor] ABORTED by GP21 - motors off
+[2026-10-26 11:08:19.080] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-14110 R=-182 (invalid 0/0) | GP20=up GP21=DOWN | GP28 0.003 V
+[2026-10-26 11:08:19.580] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-14268 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.003 V
+[2026-10-26 11:08:20.080] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-14268 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.009 V
+[2026-10-26 11:08:20.580] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-14268 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.010 V
+[2026-10-26 11:08:21.080] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-14268 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.018 V
+[2026-10-26 11:08:21.581] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-14268 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.015 V
+[2026-10-26 11:08:22.081] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-14268 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.022 V
+[2026-10-26 11:08:22.582] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-14268 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.015 V
+[2026-10-26 11:08:23.082] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-14268 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.016 V
+[2026-10-26 11:08:23.582] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-14268 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.039 V
+[2026-10-26 11:08:23.693] 
+[2026-10-26 11:08:23.695] ---- motor check: 50 % duty, 600 ms per step. GP21 held = stop ----
+[2026-10-26 11:08:23.699] [vbat] GP28 pin 0.055 V (sd 0.007). Divider ratio unknown: measure the battery with a meter and set VBAT_DIVIDER = V_batt / V_pin
+[2026-10-26 11:08:24.934] [motor] ABORTED by GP21 - motors off
+[2026-10-26 11:08:24.939] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-15240 R=-182 (invalid 0/0) | GP20=up GP21=DOWN | GP28 0.046 V
+[2026-10-26 11:08:25.439] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-15397 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.029 V
+[2026-10-26 11:08:25.939] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-15397 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.030 V
+[2026-10-26 11:08:26.439] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-15397 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.034 V
+[2026-10-26 11:08:26.939] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-15397 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.030 V
+[2026-10-26 11:08:27.440] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-15397 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.030 V
+[2026-10-26 11:08:27.940] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-15397 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.028 V
+[2026-10-26 11:08:28.440] [live] IR L=1 C=1 B=1 (edges 5/5/5) | enc L=-15397 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.028 V
+[2026-10-26 11:08:28.940] [live] IR L=0 C=1 B=1 (edges 6/5/5) | enc L=-15397 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.031 V
+[2026-10-26 11:08:29.440] [live] IR L=0 C=0 B=1 (edges 8/6/5) | enc L=-15397 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.031 V
+[2026-10-26 11:08:29.942] [live] IR L=0 C=0 B=0 (edges 8/6/6) | enc L=-15397 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.030 V
+[2026-10-26 11:08:30.442] [live] IR L=0 C=0 B=0 (edges 8/6/6) | enc L=-15397 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.032 V
+[2026-10-26 11:08:30.943] [live] IR L=0 C=0 B=0 (edges 8/6/6) | enc L=-15397 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.033 V
+[2026-10-26 11:08:31.443] [live] IR L=0 C=0 B=0 (edges 8/6/6) | enc L=-15397 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.031 V
+[2026-10-26 11:08:31.943] [live] IR L=0 C=0 B=0 (edges 8/6/6) | enc L=-15397 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.032 V
+[2026-10-26 11:08:32.443] [live] IR L=0 C=0 B=0 (edges 8/6/6) | enc L=-15397 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.032 V
+[2026-10-26 11:08:32.942] [live] IR L=0 C=0 B=0 (edges 8/6/6) | enc L=-15397 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.033 V
+[2026-10-26 11:08:33.443] [live] IR L=0 C=0 B=0 (edges 8/6/6) | enc L=-15397 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.032 V
+[2026-10-26 11:08:33.944] [live] IR L=0 C=0 B=0 (edges 8/6/6) | enc L=-15397 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.032 V
+[2026-10-26 11:08:34.444] [live] IR L=0 C=0 B=0 (edges 8/6/6) | enc L=-15397 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.033 V
+[2026-10-26 11:08:34.944] [live] IR L=0 C=0 B=0 (edges 8/6/6) | enc L=-15397 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.033 V
+[2026-10-26 11:08:35.445] [live] IR L=0 C=0 B=0 (edges 8/6/6) | enc L=-15397 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.033 V
+[2026-10-26 11:08:35.946] [live] IR L=0 C=0 B=0 (edges 8/6/6) | enc L=-15397 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.030 V
+[2026-10-26 11:08:36.446] [live] IR L=0 C=0 B=0 (edges 8/6/6) | enc L=-15397 R=-182 (invalid 0/0) | GP20=up GP21=up | GP28 0.032 V

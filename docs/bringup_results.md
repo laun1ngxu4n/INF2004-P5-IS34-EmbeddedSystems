@@ -1,8 +1,8 @@
 # Bring-up results (fill in, commit, link in the Tribunal template)
 
-Date / place / board used: 22 Oct 2026 (IMU + parts_check), 25 Oct 2026 (IR, encoders by hand, ultrasonic): Pico W on Cytron Robo Pico; IMU board marked GY-511 (chip is an LSM303D)
+Date / place / board used: 22 Oct 2026 (IMU + parts_check), 25 Oct 2026 (IR, encoders by hand, ultrasonic), 26 Oct (motor check, STOP): Pico W on Cytron Robo Pico; IMU board marked GY-511 (chip is an LSM303D)
 Power arrangement used: laptop USB only
-Firmware: the 22 Oct IMU and parts_check results above were taken with bring-up v3.1 (images reproduced byte-for-byte, docs/logs/repro_check_2026-10-25.txt). From 25 Oct use bring-up v3.2 (review fixes); write the version next to every new result. 25 Oct IR, encoder and ultrasonic results: parts_check, ir_test, encoder_test and ultrasonic_test from the v3.2 image bundle (ir_test byte-identical to the 18 Oct image). Commit link: bring-up v3.2 is commit 20f97c1 on branch bringup-v3.2-ir
+Firmware: the 22 Oct IMU and parts_check results above were taken with bring-up v3.1 (images reproduced byte-for-byte, docs/logs/repro_check_2026-10-25.txt). From 25 Oct use bring-up v3.2 (review fixes); write the version next to every new result. 25 Oct IR, encoder and ultrasonic results: image version NOT confirmed for parts_check, encoder_test and ultrasonic_test (older images with the same file names were also on the laptop; the outputs used here do not differ between versions). ir_test is identical in every bundle. 26 Oct motor/STOP results: parts_check v3.2 confirmed by its header "Any GP21 press = stop"; runs on older images are kept as _OLD_IMAGE logs and are not used as v3.2 evidence. Commit link: bring-up v3.2 is commit 20f97c1 on branch bringup-v3.2-ir
 
 For each value, write the measured number, how many trials, and the log
 file or video name. "Not measured" is an honest answer; leave the reason.
@@ -26,17 +26,18 @@ accepted requirement.
 | Part | Expected | Result (OK / CHECK / FAIL / what you saw) | Notes |
 |---|---|---|---|
 | IMU (0x19, 0x1E "H43", ~1 g) | OK | OK (22 Oct): LSM303D at 0x1D, \|a\| 0.882 g | v3 failed (looked only at 0x19/0x1E); v3.1 detects LSM303D. \|a\| is before Z-offset correction (parts_check does not correct) |
-| Ultrasonic (5 pings at a wall) | OK | OK (25 Oct, v3.2): 353 / 356 / 356 / 356 / 356 mm at 3.3 V | FAIL on 22 Oct was "not wired yet". parts_check_2026-10-25_sonar.txt |
+| Ultrasonic (5 pings at a wall) | OK | OK (25 Oct): 353 / 356 / 356 / 356 / 356 mm at 3.3 V | FAIL on 22 Oct was "not wired yet". parts_check_2026-10-25_sonar.txt |
 | Servo left / right / centre | moves both ways | | |
 | NeoPixels red / green / blue | both LEDs, right colours | | |
 | Buzzer two beeps | audible | | |
 | GP28 pin voltage idle | - | 0.08-0.11 V, no battery connected (22 Oct) | not a battery reading; divider ratio measured: |
 | GP28 lowest under one motor (sag) | - | | |
-| Left motor fwd(A=PWM): which encoder, sign, wheel direction | own encoder only | | |
-| Right motor fwd(A=PWM): which encoder, sign, wheel direction | own encoder only | | |
-| Hand turn forward: L and R count direction | - | L counts DOWN, R counts UP for forward (25 Oct, v3.2); each wheel moves only its own count, invalid 0 | confirms Grove 3 (white GP4 = A, yellow GP5 = B) and Grove 4 (white GP16 = A, yellow GP17 = B). parts_check_2026-10-25_encoders.txt |
-| IR L / C / B flip on black/white | yes | yes (25 Oct, v3.2): each sensor flips only its own pin, L = GP0, C = GP1, B = GP2 | confirms the Grove rule on Grove 1 (white GP0, yellow GP1) and Grove 2 (white GP2). Output pasted in chat, not saved as a log |
-| Buttons GP20 / GP21 read DOWN when pressed | yes | | |
+| Left motor fwd(A=PWM): which encoder, sign, wheel direction | own encoder only | own encoder only; about -2,990 counts per 0.6 s step at 50 % (wheels lifted, includes coast), so about 2 rev/s free. Wheel turned BACKWARD at first; fixed 26 Oct by swapping the two M1 motor wires, now drives forward and counts down (same as the hand test) | v3.2 logs 26 Oct; first runs in parts_check_2026-10-25_motor_OLD_IMAGE.txt |
+| Right motor fwd(A=PWM): which encoder, sign, wheel direction | own encoder only | own encoder only; about +3,020 per step, drives forward, counts up. On 25 Oct it did not move in the first 4 runs (0 counts) and then worked: check the M2 connection | same |
+| Hand turn forward: L and R count direction | - | L counts DOWN, R counts UP for forward (25 Oct); each wheel moves only its own count, invalid 0 | confirms Grove 3 (white GP4 = A, yellow GP5 = B) and Grove 4 (white GP16 = A, yellow GP17 = B). parts_check_2026-10-25_encoders.txt |
+| IR L / C / B flip on black/white | yes | yes (25 Oct): each sensor flips only its own pin, L = GP0, C = GP1, B = GP2 | confirms the Grove rule on Grove 1 (white GP0, yellow GP1) and Grove 2 (white GP2). Output pasted in chat, not saved as a log |
+| Buttons GP20 / GP21 read DOWN when pressed | yes | yes (live view) | - | same |
+| Motor check STOP (v3.2, finding 03), wheels lifted, laptop USB | nothing driven when STOP comes first; no further step after a stop | PASS on v3.2: tap within 1 s: "before the first step - nothing driven" (2/2); GP21 held then GP20: "GP21 is held ... nothing driven", encoder unchanged (1/1); tap while a wheel spins: stopped, no later step (4/4); tap in the spin-down gap: next step never started, right count unchanged (2/2). No board resets. Bench check of the bring-up tool only, not NFR10 | 9 presses | parts_check_2026-10-26_motor_v3.2_a.txt, _b.txt |
 
 ## Buddy 1 - wifi_mqtt_test (A1, A10, NFR5, NFR5b, NFR9)
 
@@ -145,3 +146,5 @@ accepted requirement.
 - IR (25 Oct): a badly tuned LM393 module oscillates at every black/white edge (hundreds of edges per transition, 1-2 ms bursts) and floods the GPIO interrupt. Re-tuning the pot fixed it on the bench. The line and barcode code must survive a burst (merge edges inside a short window, bound the interrupt rate) and the pots need a tuning check before every run. Owner: B3 (B5 for the shared GPIO dispatcher).
 - Encoders (25 Oct): about 2,540 counts/rev and 0.080 mm/count. A Barcode field of the low 16 bits (Version C) wraps every 65,536 counts = about 5.3 m, so bar widths are safe; an 8-bit delta would not fit (large-barcode wide bar 21 mm = about 261 counts, 20 mm quiet zone = about 249). 1 m is about 12,400 counts. At 250 mm/s about 3,100 counts/s per wheel (about 6,200/s both), below the v3 PIO threshold of about 10,000 edges/s; recheck at top speed in the motor runs. Left counts down for forward. Owner: B2 (field ranges for the field table), B3 (barcode widths).
 - Ultrasonic (25 Oct): the 5 V HC-SR04 works at 3.3 V from about 50 mm to about 1.5 m on the bench, so no 5 V supply or ECHO divider for now; recheck under motor load. Range accuracy (A5) still unmeasured. ultrasonic_test batch bug: a GP20 press during a batch's last reading starts a new batch before the finished one prints, so its summary shows 0/20 (seen once in the log). Workaround: wait for the [batch] mean line before pressing again. Owner: B5.
+- Motors (26 Oct): the left motor ran backward for fwd(A=PWM); fixed by swapping the two M1 motor wires (left encoder still counts down for forward). Software for both wheels can now use A=PWM for forward; B2 negates the left count. The right motor did not turn in 4 runs on 25 Oct and then worked: likely a loose M2 connection. Owner: B2.
+- 26 Oct sonar FAIL ("no fall" on every ping) with two different sensors was aim, not hardware: TRIG and ECHO worked (the echo started), no echo came back; with a target in front it read OK again (52-97 mm).

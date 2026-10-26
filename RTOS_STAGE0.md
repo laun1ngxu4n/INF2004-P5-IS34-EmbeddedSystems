@@ -3,7 +3,7 @@
 Stage 0 is the first step of the build plan: micro T-Kernel boots on the
 Pico W **on one core** and runs **the 8 design tasks at their real priorities
 and periods**. The tasks do no robot work yet. Each one is timed, and
-Telemetry prints a timing table once a second. Later stages fill in the task
+Telemetry prints a timing table every 10 seconds. Later stages fill in the task
 bodies (Motion, Line, STOP/safe-off, telemetry) without changing this frame.
 
 Nothing is driven: no motors, servo, LEDs or buzzer. Laptop USB power is
@@ -21,7 +21,7 @@ enough and nothing needs to be wired or unplugged. **Do not build with
 | imu_task | B4 (`subsystem4/`) | 9 | 10 ms |
 | barcode_task | B3 (`subsystem3/`) | 10 | event, 10 ms timeout |
 | obstacle_task | B5 (`subsystem5/`) | 11 | 60 ms |
-| telemetry_task | B1 (`subsystem1/`) | 12 | 100 ms, report every 1 s |
+| telemetry_task | B1 (`subsystem1/`) | 12 | 100 ms, timing table every 10 s |
 
 Shared pieces, used by everyone from now on:
 - `app_program/app.h`: the priority and period table.
@@ -37,7 +37,7 @@ Shared pieces, used by everyone from now on:
 
 Prebuilt images, built from the commit that added this file (SDK 2.2.0, arm-none-eabi-gcc
 13.2.1, 0 warnings):
-- `mtk3pico_smp0_usb_cdc_wifi.uf2`: normal image (timing table every second)
+- `mtk3pico_smp0_usb_cdc_wifi.uf2`: normal image (timing table every 10 s)
 - `mtk3pico_smp0_usb_cdc_wifi_test.uf2`: test image (runs the Stage 0 tests)
 
 To build yourself (WSL Ubuntu on Windows), follow `README.md` sections 1-2
@@ -76,12 +76,12 @@ all subsystems started
 [TEST] === test run end ===
 ```
 **Pass:** 17 PASS lines and every SUMMARY says `0 failed`.
-The timing table keeps printing in between; that is normal.
+The timing table prints every 10 s in between; that is normal.
 
 ## 3. Test B: the normal image (manual, 60 s, INT-02)
 
 1. Flash `mtk3pico_smp0_usb_cdc_wifi.uf2` the same way, logging on.
-2. Leave it running for **at least 60 s**.
+2. Leave it running for **at least 60 s** (6 tables).
 3. Read the last `[tmg]` table:
 ```
 [tmg] t=60123 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
@@ -112,7 +112,7 @@ expect, each explained in section 4:
   ID, commit (`git rev-parse --short HEAD`), tester, PASS/FAIL, log file.
 
 Useful numbers in the table for the team:
-- **boot max @ s**: if the 117 ms pause is at about 1 s, it is start-up
+- **boot max @ s**: the ~120 ms pause at about 0.6 s is the WiFi radio starting up
   (USB / WiFi radio init) and harmless while the robot is still. If it is
   later, or the overruns column grows, something stalls the whole system.
 - **boot max interval** of safety and motion: shows how far the kernel's

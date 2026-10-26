@@ -54,7 +54,7 @@
 #define PERIOD_LINE_MS		20
 #define PERIOD_IMU_MS		10
 #define PERIOD_OBSTACLE_MS	60
-#define PERIOD_TELEMETRY_MS	100	/* LED/buzzer tick; report every 1 s */
+#define PERIOD_TELEMETRY_MS	100	/* LED/buzzer tick; table every 10 s */
 #define TIMEOUT_BARCODE_MS	10	/* event-driven, quiet-zone check */
 #define TIMEOUT_MISSION_MS	100	/* event-driven, wait on flg_mission */
 

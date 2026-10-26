@@ -18,14 +18,14 @@
  *
  *	P5-IS34 Stage 0: the 8 design tasks, one subsystem per buddy
  *	-------------------------------------------------------------
- *	  subsystem1/  B1  Telemetry (+ Notification)  100 ms, report 1 s
+ *	  subsystem1/  B1  Telemetry (+ Notification)  100 ms, report 10 s
  *	  subsystem2/  B2  Motion Control               10 ms
  *	  subsystem3/  B3  Line Following 20 ms, Barcode Decoder (event, 10 ms)
  *	  subsystem4/  B4  Safety / Fault Monitor 20 ms, IMU / Terrain 10 ms
  *	  subsystem5/  B5  Mission Controller (event, 100 ms), Obstacle 60 ms
  *	Priorities and periods: app.h and TEAM.md section 4.
  *	Stage 0 tasks do no robot work: they wake, are timed (app_timing.c)
- *	and go back to sleep.  Telemetry prints the timing table once a second.
+ *	and go back to sleep.  Telemetry prints the timing table every 10 s.
  *
  *	Interfaces (TEAM.md section 5):
  *	  IF-01  S1 -> S5  event flag flg_mission, bit MSN_FLG_PING (owned by S5)

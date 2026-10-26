@@ -3,7 +3,7 @@
  *	Subsystem 1 -- the Telemetry task (Notification merged in).
  *
  *	Stage 0: every 100 ms it wakes and is timed; once a second it sends
- *	IF-01 (MSN_FLG_PING to Mission) and prints the timing table.
+ *	IF-01 (MSN_FLG_PING to Mission); every 10 s it prints the timing table.
  *	Later stages add: LED/buzzer patterns on this 100 ms tick, the 1 Hz
  *	telemetry/heartbeat handed to the MQTT code in the WiFi service task,
  *	and the WIFI_LOSS warning from cyw43_utk_get_status().

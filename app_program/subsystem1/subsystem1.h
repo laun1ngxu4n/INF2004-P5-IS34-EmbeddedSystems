@@ -7,8 +7,8 @@
  *	files.  Other subsystems include it as "../subsystem1/subsystem1.h".
  *
  *	Stage 0: the Telemetry task runs every 100 ms (the LED/buzzer tick of
- *	the merged Notification part) and prints the task timing table once a
- *	second.  No WiFi/MQTT work yet: in this template MQTT lives in the
+ *	the merged Notification part) and prints the task timing table every
+ *	10 s.  No WiFi/MQTT work yet: in this template MQTT lives in the
  *	kernel's WiFi service task (lib/liblwip/sysdepend/pico_rp2040/
  *	mqtt_utk.c), see TEAM.md section 3.
  */
@@ -18,7 +18,10 @@
 
 #include "../app.h"
 
-#define S1_REPORT_TICKS		10	/* timing table every 10 x 100 ms = 1 s */
+#define S1_REPORT_TICKS		100	/* timing table every 100 x 100 ms = 10 s.
+					   Printing it every 1 s delayed every task
+					   by ~12 ms now and then (26 Oct): keep
+					   USB output small, see TEAM.md section 4 */
 #define S1_PING_TICKS		10	/* IF-01 ping every 10 x 100 ms = 1 s */
 
 /* Private to subsystem 1, shared between its own .c files */

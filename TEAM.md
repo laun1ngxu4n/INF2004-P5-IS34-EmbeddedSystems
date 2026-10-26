@@ -165,11 +165,25 @@ is kept and shifted below the kernel (Week 6 used 2-10). The values live in
 | 4 | imu_task – 9 – 10 ms | 6 |
 | 3 | barcode_task – 10 – event, 10 ms timeout | 7 |
 | 5 | obstacle_task – 11 – 60 ms | 8 |
-| 1 | telemetry_task – 12 – 100 ms, report 1 s | 9 (Notification was 10) |
+| 1 | telemetry_task – 12 – 100 ms, timing table every 10 s | 9 (Notification was 10) |
 
 Open with the instructor: the kernel's WiFi task (priority 4) runs above
 Safety and Motion, while the design keeps WiFi lowest. Stage 0 measures
 its effect in the timing table.
+
+Measured on the robot (Stage 0, 26 Oct):
+- Bringing the WiFi radio up stops every task for about 120 ms at about
+  0.6 s after reset (once). Never re-initialise the radio while driving.
+- Printing the timing table over USB every second delayed every task by
+  about 12 ms now and then (the kernel's USB console task is priority 3),
+  each time with lost output. Printing every 10 s removed it. **Team rule:
+  keep USB console output small while the robot drives** (a few short
+  lines per second at most); real telemetry goes over MQTT.
+- All tasks still wobble about +/-2.5 ms around their period with little
+  printing; not caused by printing, cause not yet known (WiFi or USB
+  background work). No overruns.
+- A kernel timeout ends on the next 10 ms tick: a "10 ms" timeout lasts
+  about 20 ms. Use a cyclic handler where exact timing matters.
 
 ## 5. Interfaces between subsystems
 

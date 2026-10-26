@@ -1,0 +1,204 @@
+[2026-10-26 11:48:58.249] [zero] counts cleared
+[2026-10-26 11:48:59.697] [hand] L=    -1 (A edges     0, B edges     1)   R=     0 (A edges     0, B edges     0)   invalid L=0 R=0
+[2026-10-26 11:49:10.449] [hand] L=    -1 (A edges     0, B edges     1)   R=     1 (A edges     0, B edges     1)   invalid L=0 R=0
+[2026-10-26 11:49:10.949] [hand] L=    -1 (A edges     0, B edges     1)   R=     2 (A edges     1, B edges     1)   invalid L=0 R=0
+[2026-10-26 11:49:14.551] [run] 30 % duty for 3000 ms
+[2026-10-26 11:49:14.651]   t= 100 ms  L=  -167  R=   102  counts/s L= -1670 R=  1020  (dt 100 ms)
+[2026-10-26 11:49:14.752]   t= 200 ms  L=  -434  R=   197  counts/s L= -2670 R=   950  (dt 100 ms)
+[2026-10-26 11:49:14.851]   t= 300 ms  L=  -715  R=   385  counts/s L= -2810 R=  1880  (dt 100 ms)
+[2026-10-26 11:49:14.950]   t= 400 ms  L= -1003  R=   659  counts/s L= -2880 R=  2740  (dt 100 ms)
+[2026-10-26 11:49:15.051]   t= 500 ms  L= -1298  R=   957  counts/s L= -2950 R=  2980  (dt 100 ms)
+[2026-10-26 11:49:15.152]   t= 600 ms  L= -1593  R=  1259  counts/s L= -2950 R=  3020  (dt 100 ms)
+[2026-10-26 11:49:15.251]   t= 700 ms  L= -1881  R=  1558  counts/s L= -2880 R=  2990  (dt 100 ms)
+[2026-10-26 11:49:15.352]   t= 800 ms  L= -2174  R=  1859  counts/s L= -2930 R=  3010  (dt 100 ms)
+[2026-10-26 11:49:15.451]   t= 900 ms  L= -2468  R=  2154  counts/s L= -2940 R=  2950  (dt 100 ms)
+[2026-10-26 11:49:15.552]   t=1000 ms  L= -2762  R=  2439  counts/s L= -2940 R=  2850  (dt 100 ms)
+[2026-10-26 11:49:15.651]   t=1100 ms  L= -3055  R=  2736  counts/s L= -2930 R=  2970  (dt 100 ms)
+[2026-10-26 11:49:15.751]   t=1200 ms  L= -3352  R=  3038  counts/s L= -2970 R=  3020  (dt 100 ms)
+[2026-10-26 11:49:15.852]   t=1300 ms  L= -3650  R=  3340  counts/s L= -2980 R=  3020  (dt 100 ms)
+[2026-10-26 11:49:15.951]   t=1400 ms  L= -3945  R=  3628  counts/s L= -2950 R=  2880  (dt 100 ms)
+[2026-10-26 11:49:16.051]   t=1500 ms  L= -4241  R=  3913  counts/s L= -2960 R=  2850  (dt 100 ms)
+[2026-10-26 11:49:16.151]   t=1600 ms  L= -4534  R=  4208  counts/s L= -2930 R=  2950  (dt 100 ms)
+[2026-10-26 11:49:16.251]   t=1700 ms  L= -4831  R=  4509  counts/s L= -2970 R=  3010  (dt 100 ms)
+[2026-10-26 11:49:16.351]   t=1800 ms  L= -5126  R=  4808  counts/s L= -2950 R=  2990  (dt 100 ms)
+[2026-10-26 11:49:16.451]   t=1900 ms  L= -5423  R=  5110  counts/s L= -2970 R=  3020  (dt 100 ms)
+[2026-10-26 11:49:16.551]   t=2000 ms  L= -5718  R=  5410  counts/s L= -2950 R=  3000  (dt 100 ms)
+[2026-10-26 11:49:16.651]   t=2100 ms  L= -6016  R=  5713  counts/s L= -2980 R=  3030  (dt 100 ms)
+[2026-10-26 11:49:16.751]   t=2200 ms  L= -6314  R=  6015  counts/s L= -2980 R=  3020  (dt 100 ms)
+[2026-10-26 11:49:16.851]   t=2300 ms  L= -6609  R=  6314  counts/s L= -2950 R=  2990  (dt 100 ms)
+[2026-10-26 11:49:16.952]   t=2400 ms  L= -6907  R=  6615  counts/s L= -2980 R=  3010  (dt 100 ms)
+[2026-10-26 11:49:17.051]   t=2500 ms  L= -7202  R=  6914  counts/s L= -2950 R=  2990  (dt 100 ms)
+[2026-10-26 11:49:17.152]   t=2600 ms  L= -7499  R=  7216  counts/s L= -2970 R=  3020  (dt 100 ms)
+[2026-10-26 11:49:17.250]   t=2700 ms  L= -7792  R=  7516  counts/s L= -2930 R=  3000  (dt 100 ms)
+[2026-10-26 11:49:17.351]   t=2800 ms  L= -8090  R=  7818  counts/s L= -2980 R=  3020  (dt 100 ms)
+[2026-10-26 11:49:17.450]   t=2900 ms  L= -8386  R=  8119  counts/s L= -2960 R=  3010  (dt 100 ms)
+[2026-10-26 11:49:17.551]   t=3000 ms  L= -8684  R=  8422  counts/s L= -2980 R=  3030  (dt 100 ms)
+[2026-10-26 11:49:17.555] [result] duty=30%  steady counts/s L=-2961 R=2992  (L-R mismatch -1.0 %)
+[2026-10-26 11:49:17.556] [result] peak edges/s L=2980 R=3030  invalid L=0 R=0
+[2026-10-26 11:49:17.556] [result] steady window 2000 ms, late samples 0
+[2026-10-26 11:49:17.556] [result] longest gap between count changes (steady part): completed interval L=459 us R=451 us, open gap at the 1 ms check L=440 us R=410 us
+[2026-10-26 11:49:17.556] [result] stall rule margin vs 200 ms (worst of the two): L x435 R x443  (stall rule inactive at this duty)
+[2026-10-26 11:49:17.556] [result] callback-body time: worst 4 us, load 0.42 % of CPU (excludes IRQ entry and SDK dispatch)
+[2026-10-26 11:49:17.556] [result] note: L and R count in opposite directions for forward
+[2026-10-26 11:49:17.564] [hand] L= -8692 (A edges  4346, B edges  4346)   R=  8430 (A edges  4215, B edges  4215)   invalid L=0 R=0
+[2026-10-26 11:49:17.804] [hand] L= -8774 (A edges  4387, B edges  4387)   R=  8518 (A edges  4259, B edges  4259)   invalid L=0 R=0
+[2026-10-26 11:49:26.424] [run] 40 % duty for 3000 ms
+[2026-10-26 11:49:26.524]   t= 100 ms  L=  -228  R=   227  counts/s L= -2280 R=  2270  (dt 100 ms)
+[2026-10-26 11:49:26.624]   t= 200 ms  L=  -600  R=   602  counts/s L= -3720 R=  3750  (dt 100 ms)
+[2026-10-26 11:49:26.724]   t= 300 ms  L=  -996  R=  1003  counts/s L= -3960 R=  4010  (dt 100 ms)
+[2026-10-26 11:49:26.824]   t= 400 ms  L= -1397  R=  1408  counts/s L= -4010 R=  4050  (dt 100 ms)
+[2026-10-26 11:49:26.924]   t= 500 ms  L= -1796  R=  1812  counts/s L= -3990 R=  4040  (dt 100 ms)
+[2026-10-26 11:49:27.024]   t= 600 ms  L= -2198  R=  2219  counts/s L= -4020 R=  4070  (dt 100 ms)
+[2026-10-26 11:49:27.124]   t= 700 ms  L= -2594  R=  2621  counts/s L= -3960 R=  4020  (dt 100 ms)
+[2026-10-26 11:49:27.225]   t= 800 ms  L= -2996  R=  3028  counts/s L= -4020 R=  4070  (dt 100 ms)
+[2026-10-26 11:49:27.323]   t= 900 ms  L= -3394  R=  3430  counts/s L= -3980 R=  4020  (dt 100 ms)
+[2026-10-26 11:49:27.424]   t=1000 ms  L= -3797  R=  3836  counts/s L= -4030 R=  4060  (dt 100 ms)
+[2026-10-26 11:49:27.523]   t=1100 ms  L= -4199  R=  4238  counts/s L= -4020 R=  4020  (dt 100 ms)
+[2026-10-26 11:49:27.624]   t=1200 ms  L= -4606  R=  4645  counts/s L= -4070 R=  4070  (dt 100 ms)
+[2026-10-26 11:49:27.724]   t=1300 ms  L= -5014  R=  5052  counts/s L= -4080 R=  4070  (dt 100 ms)
+[2026-10-26 11:49:27.824]   t=1400 ms  L= -5417  R=  5454  counts/s L= -4030 R=  4020  (dt 100 ms)
+[2026-10-26 11:49:27.925]   t=1500 ms  L= -5824  R=  5860  counts/s L= -4070 R=  4060  (dt 100 ms)
+[2026-10-26 11:49:28.024]   t=1600 ms  L= -6228  R=  6262  counts/s L= -4040 R=  4020  (dt 100 ms)
+[2026-10-26 11:49:28.124]   t=1700 ms  L= -6636  R=  6669  counts/s L= -4080 R=  4070  (dt 100 ms)
+[2026-10-26 11:49:28.223]   t=1800 ms  L= -7039  R=  7073  counts/s L= -4030 R=  4040  (dt 100 ms)
+[2026-10-26 11:49:28.324]   t=1900 ms  L= -7446  R=  7479  counts/s L= -4070 R=  4060  (dt 100 ms)
+[2026-10-26 11:49:28.423]   t=2000 ms  L= -7851  R=  7882  counts/s L= -4050 R=  4030  (dt 100 ms)
+[2026-10-26 11:49:28.524]   t=2100 ms  L= -8258  R=  8287  counts/s L= -4070 R=  4050  (dt 100 ms)
+[2026-10-26 11:49:28.623]   t=2200 ms  L= -8662  R=  8689  counts/s L= -4040 R=  4020  (dt 100 ms)
+[2026-10-26 11:49:28.724]   t=2300 ms  L= -9070  R=  9095  counts/s L= -4080 R=  4060  (dt 100 ms)
+[2026-10-26 11:49:28.824]   t=2400 ms  L= -9477  R=  9502  counts/s L= -4070 R=  4070  (dt 100 ms)
+[2026-10-26 11:49:28.924]   t=2500 ms  L= -9880  R=  9905  counts/s L= -4030 R=  4030  (dt 100 ms)
+[2026-10-26 11:49:29.024]   t=2600 ms  L=-10286  R= 10311  counts/s L= -4060 R=  4060  (dt 100 ms)
+[2026-10-26 11:49:29.123]   t=2700 ms  L=-10690  R= 10713  counts/s L= -4040 R=  4020  (dt 100 ms)
+[2026-10-26 11:49:29.225]   t=2800 ms  L=-11098  R= 11119  counts/s L= -4080 R=  4060  (dt 100 ms)
+[2026-10-26 11:49:29.324]   t=2900 ms  L=-11502  R= 11521  counts/s L= -4040 R=  4020  (dt 100 ms)
+[2026-10-26 11:49:29.424]   t=3000 ms  L=-11910  R= 11928  counts/s L= -4080 R=  4070  (dt 100 ms)
+[2026-10-26 11:49:29.429] [result] duty=40%  steady counts/s L=-4056 R=4046  (L-R mismatch 0.3 %)
+[2026-10-26 11:49:29.429] [result] peak edges/s L=4080 R=4070  invalid L=0 R=0
+[2026-10-26 11:49:29.429] [result] steady window 2000 ms, late samples 0
+[2026-10-26 11:49:29.429] [result] longest gap between count changes (steady part): completed interval L=334 us R=311 us, open gap at the 1 ms check L=320 us R=304 us
+[2026-10-26 11:49:29.429] [result] stall rule margin vs 200 ms (worst of the two): L x598 R x643
+[2026-10-26 11:49:29.429] [result] callback-body time: worst 1 us, load 0.58 % of CPU (excludes IRQ entry and SDK dispatch)
+[2026-10-26 11:49:29.429] [result] note: L and R count in opposite directions for forward
+[2026-10-26 11:49:29.429] [hand] L=-11922 (A edges  5961, B edges  5961)   R= 11939 (A edges  5970, B edges  5970)   invalid L=0 R=0
+[2026-10-26 11:49:29.677] [hand] L=-12046 (A edges  6023, B edges  6023)   R= 12064 (A edges  6032, B edges  6032)   invalid L=0 R=0
+[2026-10-26 11:49:31.927] [run] 50 % duty for 3000 ms
+[2026-10-26 11:49:32.027]   t= 100 ms  L=  -275  R=   276  counts/s L= -2750 R=  2760  (dt 100 ms)
+[2026-10-26 11:49:32.127]   t= 200 ms  L=  -744  R=   747  counts/s L= -4690 R=  4710  (dt 100 ms)
+[2026-10-26 11:49:32.227]   t= 300 ms  L= -1240  R=  1243  counts/s L= -4960 R=  4960  (dt 100 ms)
+[2026-10-26 11:49:32.327]   t= 400 ms  L= -1747  R=  1751  counts/s L= -5070 R=  5080  (dt 100 ms)
+[2026-10-26 11:49:32.426]   t= 500 ms  L= -2251  R=  2256  counts/s L= -5040 R=  5050  (dt 100 ms)
+[2026-10-26 11:49:32.527]   t= 600 ms  L= -2760  R=  2766  counts/s L= -5090 R=  5100  (dt 100 ms)
+[2026-10-26 11:49:32.627]   t= 700 ms  L= -3265  R=  3271  counts/s L= -5050 R=  5050  (dt 100 ms)
+[2026-10-26 11:49:32.726]   t= 800 ms  L= -3774  R=  3782  counts/s L= -5090 R=  5110  (dt 100 ms)
+[2026-10-26 11:49:32.826]   t= 900 ms  L= -4281  R=  4291  counts/s L= -5070 R=  5090  (dt 100 ms)
+[2026-10-26 11:49:32.926]   t=1000 ms  L= -4783  R=  4796  counts/s L= -5020 R=  5050  (dt 100 ms)
+[2026-10-26 11:49:33.027]   t=1100 ms  L= -5291  R=  5308  counts/s L= -5080 R=  5120  (dt 100 ms)
+[2026-10-26 11:49:33.126]   t=1200 ms  L= -5793  R=  5813  counts/s L= -5020 R=  5050  (dt 100 ms)
+[2026-10-26 11:49:33.227]   t=1300 ms  L= -6301  R=  6323  counts/s L= -5080 R=  5100  (dt 100 ms)
+[2026-10-26 11:49:33.326]   t=1400 ms  L= -6804  R=  6827  counts/s L= -5030 R=  5040  (dt 100 ms)
+[2026-10-26 11:49:33.427]   t=1500 ms  L= -7313  R=  7337  counts/s L= -5090 R=  5100  (dt 100 ms)
+[2026-10-26 11:49:33.526]   t=1600 ms  L= -7816  R=  7843  counts/s L= -5030 R=  5060  (dt 100 ms)
+[2026-10-26 11:49:33.627]   t=1700 ms  L= -8322  R=  8354  counts/s L= -5060 R=  5110  (dt 100 ms)
+[2026-10-26 11:49:33.726]   t=1800 ms  L= -8826  R=  8858  counts/s L= -5040 R=  5040  (dt 100 ms)
+[2026-10-26 11:49:33.827]   t=1900 ms  L= -9335  R=  9368  counts/s L= -5090 R=  5100  (dt 100 ms)
+[2026-10-26 11:49:33.927]   t=2000 ms  L= -9843  R=  9878  counts/s L= -5080 R=  5100  (dt 100 ms)
+[2026-10-26 11:49:34.027]   t=2100 ms  L=-10346  R= 10384  counts/s L= -5030 R=  5060  (dt 100 ms)
+[2026-10-26 11:49:34.127]   t=2200 ms  L=-10853  R= 10894  counts/s L= -5070 R=  5100  (dt 100 ms)
+[2026-10-26 11:49:34.227]   t=2300 ms  L=-11357  R= 11400  counts/s L= -5040 R=  5060  (dt 100 ms)
+[2026-10-26 11:49:34.327]   t=2400 ms  L=-11866  R= 11910  counts/s L= -5090 R=  5100  (dt 100 ms)
+[2026-10-26 11:49:34.426]   t=2500 ms  L=-12371  R= 12415  counts/s L= -5050 R=  5050  (dt 100 ms)
+[2026-10-26 11:49:34.527]   t=2600 ms  L=-12878  R= 12926  counts/s L= -5070 R=  5110  (dt 100 ms)
+[2026-10-26 11:49:34.627]   t=2700 ms  L=-13380  R= 13432  counts/s L= -5020 R=  5060  (dt 100 ms)
+[2026-10-26 11:49:34.727]   t=2800 ms  L=-13888  R= 13943  counts/s L= -5080 R=  5110  (dt 100 ms)
+[2026-10-26 11:49:34.826]   t=2900 ms  L=-14391  R= 14447  counts/s L= -5030 R=  5040  (dt 100 ms)
+[2026-10-26 11:49:34.927]   t=3000 ms  L=-14900  R= 14958  counts/s L= -5090 R=  5110  (dt 100 ms)
+[2026-10-26 11:49:34.931] [result] duty=50%  steady counts/s L=-5058 R=5081  (L-R mismatch -0.4 %)
+[2026-10-26 11:49:34.931] [result] peak edges/s L=5090 R=5120  invalid L=0 R=0
+[2026-10-26 11:49:34.931] [result] steady window 2000 ms, late samples 0
+[2026-10-26 11:49:34.931] [result] longest gap between count changes (steady part): completed interval L=269 us R=248 us, open gap at the 1 ms check L=262 us R=242 us
+[2026-10-26 11:49:34.931] [result] stall rule margin vs 200 ms (worst of the two): L x743 R x806
+[2026-10-26 11:49:34.931] [result] callback-body time: worst 1 us, load 0.73 % of CPU (excludes IRQ entry and SDK dispatch)
+[2026-10-26 11:49:34.931] [result] note: L and R count in opposite directions for forward
+[2026-10-26 11:49:34.939] [hand] L=-14916 (A edges  7458, B edges  7458)   R= 14974 (A edges  7487, B edges  7487)   invalid L=0 R=0
+[2026-10-26 11:49:35.180] [hand] L=-15082 (A edges  7541, B edges  7541)   R= 15138 (A edges  7569, B edges  7569)   invalid L=0 R=0
+[2026-10-26 11:49:36.312] [run] 70 % duty for 3000 ms
+[2026-10-26 11:49:36.412]   t= 100 ms  L=  -352  R=   365  counts/s L= -3520 R=  3650  (dt 100 ms)
+[2026-10-26 11:49:36.512]   t= 200 ms  L=  -988  R=  1008  counts/s L= -6360 R=  6430  (dt 100 ms)
+[2026-10-26 11:49:36.611]   t= 300 ms  L= -1677  R=  1699  counts/s L= -6890 R=  6910  (dt 100 ms)
+[2026-10-26 11:49:36.712]   t= 400 ms  L= -2388  R=  2412  counts/s L= -7110 R=  7130  (dt 100 ms)
+[2026-10-26 11:49:36.812]   t= 500 ms  L= -3100  R=  3127  counts/s L= -7120 R=  7150  (dt 100 ms)
+[2026-10-26 11:49:36.912]   t= 600 ms  L= -3808  R=  3835  counts/s L= -7080 R=  7080  (dt 100 ms)
+[2026-10-26 11:49:37.012]   t= 700 ms  L= -4524  R=  4550  counts/s L= -7160 R=  7150  (dt 100 ms)
+[2026-10-26 11:49:37.112]   t= 800 ms  L= -5231  R=  5260  counts/s L= -7070 R=  7100  (dt 100 ms)
+[2026-10-26 11:49:37.212]   t= 900 ms  L= -5948  R=  5976  counts/s L= -7170 R=  7160  (dt 100 ms)
+[2026-10-26 11:49:37.312]   t=1000 ms  L= -6656  R=  6685  counts/s L= -7080 R=  7090  (dt 100 ms)
+[2026-10-26 11:49:37.412]   t=1100 ms  L= -7373  R=  7401  counts/s L= -7170 R=  7160  (dt 100 ms)
+[2026-10-26 11:49:37.511]   t=1200 ms  L= -8082  R=  8112  counts/s L= -7090 R=  7110  (dt 100 ms)
+[2026-10-26 11:49:37.611]   t=1300 ms  L= -8799  R=  8828  counts/s L= -7170 R=  7160  (dt 100 ms)
+[2026-10-26 11:49:37.712]   t=1400 ms  L= -9508  R=  9538  counts/s L= -7090 R=  7100  (dt 100 ms)
+[2026-10-26 11:49:37.812]   t=1500 ms  L=-10223  R= 10255  counts/s L= -7150 R=  7170  (dt 100 ms)
+[2026-10-26 11:49:37.911]   t=1600 ms  L=-10931  R= 10966  counts/s L= -7080 R=  7110  (dt 100 ms)
+[2026-10-26 11:49:38.011]   t=1700 ms  L=-11646  R= 11682  counts/s L= -7150 R=  7160  (dt 100 ms)
+[2026-10-26 11:49:38.112]   t=1800 ms  L=-12362  R= 12398  counts/s L= -7160 R=  7160  (dt 100 ms)
+[2026-10-26 11:49:38.212]   t=1900 ms  L=-13072  R= 13108  counts/s L= -7100 R=  7100  (dt 100 ms)
+[2026-10-26 11:49:38.312]   t=2000 ms  L=-13788  R= 13824  counts/s L= -7160 R=  7160  (dt 100 ms)
+[2026-10-26 11:49:38.412]   t=2100 ms  L=-14498  R= 14532  counts/s L= -7100 R=  7080  (dt 100 ms)
+[2026-10-26 11:49:38.512]   t=2200 ms  L=-15215  R= 15249  counts/s L= -7170 R=  7170  (dt 100 ms)
+[2026-10-26 11:49:38.611]   t=2300 ms  L=-15921  R= 15957  counts/s L= -7060 R=  7080  (dt 100 ms)
+[2026-10-26 11:49:38.712]   t=2400 ms  L=-16636  R= 16673  counts/s L= -7150 R=  7160  (dt 100 ms)
+[2026-10-26 11:49:38.811]   t=2500 ms  L=-17345  R= 17382  counts/s L= -7090 R=  7090  (dt 100 ms)
+[2026-10-26 11:49:38.911]   t=2600 ms  L=-18059  R= 18100  counts/s L= -7140 R=  7180  (dt 100 ms)
+[2026-10-26 11:49:39.012]   t=2700 ms  L=-18767  R= 18809  counts/s L= -7080 R=  7090  (dt 100 ms)
+[2026-10-26 11:49:39.112]   t=2800 ms  L=-19482  R= 19525  counts/s L= -7150 R=  7160  (dt 100 ms)
+[2026-10-26 11:49:39.212]   t=2900 ms  L=-20191  R= 20234  counts/s L= -7090 R=  7090  (dt 100 ms)
+[2026-10-26 11:49:39.312]   t=3000 ms  L=-20905  R= 20951  counts/s L= -7140 R=  7170  (dt 100 ms)
+[2026-10-26 11:49:39.317] [result] duty=70%  steady counts/s L=-7124 R=7133  (L-R mismatch -0.1 %)
+[2026-10-26 11:49:39.317] [result] peak edges/s L=7170 R=7180  invalid L=0 R=0
+[2026-10-26 11:49:39.317] [result] steady window 2000 ms, late samples 0
+[2026-10-26 11:49:39.317] [result] longest gap between count changes (steady part): completed interval L=192 us R=179 us, open gap at the 1 ms check L=182 us R=174 us
+[2026-10-26 11:49:39.317] [result] stall rule margin vs 200 ms (worst of the two): L x1041 R x1117
+[2026-10-26 11:49:39.317] [result] callback-body time: worst 2 us, load 1.02 % of CPU (excludes IRQ entry and SDK dispatch)
+[2026-10-26 11:49:39.317] [result] note: L and R count in opposite directions for forward
+[2026-10-26 11:49:39.317] [hand] L=-20925 (A edges 10463, B edges 10462)   R= 20971 (A edges 10485, B edges 10486)   invalid L=0 R=0
+[2026-10-26 11:49:39.565] [hand] L=-21183 (A edges 10592, B edges 10591)   R= 21228 (A edges 10614, B edges 10614)   invalid L=0 R=0
+[2026-10-26 11:49:41.338] [run] 100 % duty for 3000 ms
+[2026-10-26 11:49:41.437]   t= 100 ms  L=  -415  R=   427  counts/s L= -4150 R=  4270  (dt 100 ms)
+[2026-10-26 11:49:41.538]   t= 200 ms  L= -1257  R=  1277  counts/s L= -8420 R=  8500  (dt 100 ms)
+[2026-10-26 11:49:41.637]   t= 300 ms  L= -2202  R=  2225  counts/s L= -9450 R=  9480  (dt 100 ms)
+[2026-10-26 11:49:41.737]   t= 400 ms  L= -3186  R=  3210  counts/s L= -9840 R=  9850  (dt 100 ms)
+[2026-10-26 11:49:41.839]   t= 500 ms  L= -4177  R=  4203  counts/s L= -9910 R=  9930  (dt 100 ms)
+[2026-10-26 11:49:41.938]   t= 600 ms  L= -5161  R=  5190  counts/s L= -9840 R=  9870  (dt 100 ms)
+[2026-10-26 11:49:42.038]   t= 700 ms  L= -6156  R=  6189  counts/s L= -9950 R=  9990  (dt 100 ms)
+[2026-10-26 11:49:42.138]   t= 800 ms  L= -7141  R=  7177  counts/s L= -9850 R=  9880  (dt 100 ms)
+[2026-10-26 11:49:42.238]   t= 900 ms  L= -8134  R=  8176  counts/s L= -9930 R=  9990  (dt 100 ms)
+[2026-10-26 11:49:42.337]   t=1000 ms  L= -9118  R=  9165  counts/s L= -9840 R=  9890  (dt 100 ms)
+[2026-10-26 11:49:42.438]   t=1100 ms  L=-10113  R= 10163  counts/s L= -9950 R=  9980  (dt 100 ms)
+[2026-10-26 11:49:42.537]   t=1200 ms  L=-11098  R= 11151  counts/s L= -9850 R=  9880  (dt 100 ms)
+[2026-10-26 11:49:42.637]   t=1300 ms  L=-12093  R= 12149  counts/s L= -9950 R=  9980  (dt 100 ms)
+[2026-10-26 11:49:42.737]   t=1400 ms  L=-13076  R= 13137  counts/s L= -9830 R=  9880  (dt 100 ms)
+[2026-10-26 11:49:42.838]   t=1500 ms  L=-14070  R= 14136  counts/s L= -9940 R=  9990  (dt 100 ms)
+[2026-10-26 11:49:42.937]   t=1600 ms  L=-15054  R= 15125  counts/s L= -9840 R=  9890  (dt 100 ms)
+[2026-10-26 11:49:43.038]   t=1700 ms  L=-16048  R= 16122  counts/s L= -9940 R=  9970  (dt 100 ms)
+[2026-10-26 11:49:43.137]   t=1800 ms  L=-17031  R= 17109  counts/s L= -9830 R=  9870  (dt 100 ms)
+[2026-10-26 11:49:43.238]   t=1900 ms  L=-18025  R= 18108  counts/s L= -9940 R=  9990  (dt 100 ms)
+[2026-10-26 11:49:43.337]   t=2000 ms  L=-19009  R= 19096  counts/s L= -9840 R=  9880  (dt 100 ms)
+[2026-10-26 11:49:43.438]   t=2100 ms  L=-20001  R= 20096  counts/s L= -9920 R= 10000  (dt 100 ms)
+[2026-10-26 11:49:43.538]   t=2200 ms  L=-20995  R= 21096  counts/s L= -9940 R= 10000  (dt 100 ms)
+[2026-10-26 11:49:43.638]   t=2300 ms  L=-21981  R= 22085  counts/s L= -9860 R=  9890  (dt 100 ms)
+[2026-10-26 11:49:43.738]   t=2401 ms  L=-22976  R= 23086  counts/s L= -9851 R=  9910  (dt 101 ms)
+[2026-10-26 11:49:43.838]   t=2501 ms  L=-23971  R= 24086  counts/s L= -9950 R= 10000  (dt 100 ms)
+[2026-10-26 11:49:43.939]   t=2601 ms  L=-24966  R= 25086  counts/s L= -9950 R= 10000  (dt 100 ms)
+[2026-10-26 11:49:44.039]   t=2701 ms  L=-25951  R= 26076  counts/s L= -9850 R=  9900  (dt 100 ms)
+[2026-10-26 11:49:44.139]   t=2801 ms  L=-26946  R= 27075  counts/s L= -9950 R=  9990  (dt 100 ms)
+[2026-10-26 11:49:44.239]   t=2901 ms  L=-27931  R= 28065  counts/s L= -9850 R=  9900  (dt 100 ms)
+[2026-10-26 11:49:44.338] [result] duty=100%  steady counts/s L=-9900 R=9946  (L-R mismatch -0.5 %)
+[2026-10-26 11:49:44.339] [result] peak edges/s L=9950 R=10000  invalid L=0 R=0
+[2026-10-26 11:49:44.342] [result] steady window 2000 ms, late samples 0
+[2026-10-26 11:49:44.342] [result] longest gap between count changes (steady part): completed interval L=139 us R=130 us, open gap at the 1 ms check L=136 us R=125 us
+[2026-10-26 11:49:44.342] [result] stall rule margin vs 200 ms (worst of the two): L x1438 R x1538
+[2026-10-26 11:49:44.342] [result] callback-body time: worst 2 us, load 1.42 % of CPU (excludes IRQ entry and SDK dispatch)
+[2026-10-26 11:49:44.342] [result] note: L and R count in opposite directions for forward
+[2026-10-26 11:49:44.349] [hand] L=-28939 (A edges 14469, B edges 14470)   R= 29078 (A edges 14541, B edges 14539)   invalid L=0 R=0
+[2026-10-26 11:49:44.591] [hand] L=-29339 (A edges 14669, B edges 14670)   R= 29475 (A edges 14741, B edges 14738)   invalid L=0 R=0
+[2026-10-26 11:49:50.349] [hand] L=-29339 (A edges 14669, B edges 14670)   R= 29474 (A edges 14741, B edges 14739)   invalid L=0 R=0

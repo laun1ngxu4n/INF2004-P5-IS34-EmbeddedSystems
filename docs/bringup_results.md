@@ -83,16 +83,16 @@ accepted requirement.
 | Counts per rev (L / R) | - | L 2,538 / R 2,540 (4x decoded; total over 4 forward turns 10,150 / 10,160). Per turn L 2,524 / 2,551 / 2,495 / 2,580, R 2,526 / 2,574 / 2,522 / 2,538 (hand alignment about +/-2 %). 1 turn back: L 2,490, R 2,497 | 4 forward + 1 back per wheel | encoder_test_2026-10-25_hand.txt |
 | mm per count | <= ~1 mm (A11) | 0.080 mm (calculated: 204 mm / 2,540); about 12x finer than A11 needs. Narrow 3.5 mm bar about 44 counts, wide 10.5 mm about 130 | - | same |
 | Both channels working (L / R) | yes | yes / yes: A and B edges rise together (L 6,336 / 6,335, R 6,334 / 6,340) | same session | same |
-| Steady counts/s at 30/40/50/70/100 % | - | | | |
-| Lowest duty that turns the wheel | - | | | |
-| L/R mismatch at 50 % | - | | | |
-| Peak edges/s (highest duty) | - | | | |
-| Callback-body time worst / load (excludes IRQ entry and dispatch) | ISRs only count | | | |
-| Longest natural gap between count changes at 40 % / 100 % | well below 200 ms | | | |
-| Stall detection: no-change time at detection, wheel held | 200 ms rule; A14 wants <= 200 ms in 10/10 | | | |
-| Any START-UP false stall at 40 % | none | | | |
+| Steady counts/s at 30/40/50/70/100 % | - | L / R: 2,961 / 2,992; 4,056 / 4,046; 5,058 / 5,081; 7,124 / 7,133; 9,900 / 9,946 (sign removed; L counts down for forward). Wheels lifted, no load, laptop USB, both motors together, no board reset. At 0.080 mm/count about 240 / 325 / 407 / 573 / 798 mm/s free-spinning (floor speed will be lower) | 1 run per duty, 2 s steady window | encoder_test_2026-10-26_motor_runs_v3.2.txt |
+| Lowest duty that turns the wheel | - | not measured (30 % is the lowest step and turns both wheels, lifted). At 30 % the right wheel lagged the left for the first ~400 ms | - | same |
+| L/R mismatch at 50 % | - | -0.4 % (all duties within 1.0 %) | 1 run | same |
+| Peak edges/s (highest duty) | - | 9,950 L / 10,000 R at 100 % = about 20,000/s for both wheels, above the v3 "move to PIO above about 10,000 edges/s" level; about 6,000/s for both at 30 % | 1 run | same |
+| Callback-body time worst / load (excludes IRQ entry and dispatch) | ISRs only count | worst 1-4 us; load 0.42 / 0.58 / 0.73 / 1.02 / 1.42 % at 30-100 %. IRQ entry and SDK dispatch not included, so real load is higher | 1 run per duty | same |
+| Longest natural gap between count changes at 40 % / 100 % | well below 200 ms | completed interval L 334 / 139 us, R 311 / 130 us (open gap at the 1 ms check slightly lower); stall margin x598 or more at every duty where the rule is active | 1 run per duty | same |
+| Stall detection: no-change time at detection, wheel held | 200 ms rule; A14 wants <= 200 ms in 10/10 | not measured: needs the power bank | - | - |
+| Any START-UP false stall at 40 % | none | none at 40, 50, 70 or 100 % (wheels lifted) | 1 run each | same |
 | Do L and R count the same sign for forward? | - | no: L negative, R positive for forward (mirrored motors); flip the left sign in software | 4 turns each | same |
-| Invalid transitions | 0 | 0 / 0 (hand turning only; motor speeds not tested yet) | whole session | same |
+| Invalid transitions | 0 | 0 / 0 by hand and at every motor duty up to 100 % (about 10,000 counts/s per wheel) | hand + 5 runs | encoder_test_2026-10-25_hand.txt, encoder_test_2026-10-26_motor_runs_v3.2.txt |
 
 ## Buddy 3 - ir_test (A3, A7, A11)
 
@@ -147,4 +147,5 @@ accepted requirement.
 - Encoders (25 Oct): about 2,540 counts/rev and 0.080 mm/count. A Barcode field of the low 16 bits (Version C) wraps every 65,536 counts = about 5.3 m, so bar widths are safe; an 8-bit delta would not fit (large-barcode wide bar 21 mm = about 261 counts, 20 mm quiet zone = about 249). 1 m is about 12,400 counts. At 250 mm/s about 3,100 counts/s per wheel (about 6,200/s both), below the v3 PIO threshold of about 10,000 edges/s; recheck at top speed in the motor runs. Left counts down for forward. Owner: B2 (field ranges for the field table), B3 (barcode widths).
 - Ultrasonic (25 Oct): the 5 V HC-SR04 works at 3.3 V from about 50 mm to about 1.5 m on the bench, so no 5 V supply or ECHO divider for now; recheck under motor load. Range accuracy (A5) still unmeasured. ultrasonic_test batch bug: a GP20 press during a batch's last reading starts a new batch before the finished one prints, so its summary shows 0/20 (seen once in the log). Workaround: wait for the [batch] mean line before pressing again. Owner: B5.
 - Motors (26 Oct): the left motor ran backward for fwd(A=PWM); fixed by swapping the two M1 motor wires (left encoder still counts down for forward). Software for both wheels can now use A=PWM for forward; B2 negates the left count. The right motor did not turn in 4 runs on 25 Oct and then worked: likely a loose M2 connection. Owner: B2.
+- Encoder motor runs (26 Oct, wheels lifted): L/R within 1 % at every duty, 0 invalid transitions up to about 10,000 counts/s per wheel. At 100 % both wheels together give about 20,000 edges/s, above the v3 PIO threshold of about 10,000; at the 250 mm/s design speed it is about 6,000/s. Measure total IRQ cost (entry + dispatch, not only the callback body) before deciding on PIO. Owner: B2.
 - 26 Oct sonar FAIL ("no fall" on every ping) with two different sensors was aim, not hardware: TRIG and ECHO worked (the echo started), no echo came back; with a target in front it read OK again (52-97 mm).

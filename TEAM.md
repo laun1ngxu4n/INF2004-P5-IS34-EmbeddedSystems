@@ -76,7 +76,7 @@ fixed.
 | GP22 | S1 | buzzer, PWM slice 3 |
 | GP26 | S4 | IMU SDA, I2C1 (Grove 6 white; Grove 5 yellow is the same pin, taped) |
 | GP27 | S4 | IMU SCL, I2C1 (Grove 6 yellow) |
-| GP28 | - | battery sense NOT fitted (no solder jumper, team decision 26 Oct); Grove 7 yellow taped |
+| GP28 | - | **not used, removed from scope (26 Oct)**: no battery sense, see section 7; Grove 7 yellow taped |
 
 ## 3. Peripherals
 
@@ -113,7 +113,7 @@ the drivers have no locking to stop it.
 | I2C1 | S4 | imu_task | GP26, GP27 (LSM303D at 0x1D, 400 kHz) |
 | SPI0 | - | | |
 | SPI1 | - | | |
-| ADC | - | | GP28 battery sense not fitted |
+| ADC | - | | not used (GP28 battery sense removed from scope, section 7) |
 | PWM slices 4, 5 | S2 | motion_task (normal writes) | GP8-GP11 motors. *Draft exception:* `safety_task` may call S2's `motor_safe_off()` directly, so the motors stop even if Motion hangs (NFR10) |
 | PWM slice 3 | S1 | telemetry_task | GP22 buzzer |
 | PWM slice 7 | S5 | obstacle_task | GP14 servo |
@@ -222,3 +222,13 @@ limit there. The numbers below are the example's usage.
 | Alarm handler | 12 | | | | | |
 
 (Stage 0 usage. The kernel's USB and WiFi service tasks also use a few of these.)
+
+## 7. Scope changes after the Week 6 design
+
+The submitted design documents are left as submitted; these changes
+override them.
+
+| Date | Change | Design items affected |
+|---|---|---|
+| 26 Oct | **GP28 battery sense removed.** The solder jumper is not fitted and no battery voltage is measured. The robot runs from a USB power bank on VIN. | FR9: "critically low battery" is no longer a fault cause (the other FR9 causes stay). Safety task: no VBAT_SENSE input. INIT self-test: no power-supply check. A12: V_warn / V_crit thresholds dropped. Telemetry: no battery field. |
+

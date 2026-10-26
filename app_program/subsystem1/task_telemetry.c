@@ -14,7 +14,8 @@
 
 EXPORT void telemetry_task(INT stacd, void *exinf)
 {
-	UINT	tick = 0;
+	UINT	report_tick = 0;
+	UINT	ping_tick = 0;
 
 	(void)stacd; (void)exinf;
 
@@ -22,10 +23,12 @@ EXPORT void telemetry_task(INT stacd, void *exinf)
 		tk_slp_tsk(TMO_FEVR);			/* woken every 100 ms */
 		app_timing_wake(tmg_telemetry, tk_can_wup(TSK_SELF));
 
-		tick++;
-		if (tick >= S1_REPORT_TICKS) {
-			tick = 0;
+		if (++ping_tick >= S1_PING_TICKS) {
+			ping_tick = 0;
 			CHECK(tk_set_flg(flg_mission, MSN_FLG_PING), "IF-01 ping");
+		}
+		if (++report_tick >= S1_REPORT_TICKS) {
+			report_tick = 0;
 			/* The report's printing counts in this task's run time on
 			   purpose: it is real Telemetry load at the lowest priority. */
 			app_timing_report();

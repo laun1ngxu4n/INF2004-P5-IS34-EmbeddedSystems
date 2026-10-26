@@ -18,7 +18,8 @@
 
 #include "../app.h"
 
-#define S1_REPORT_TICKS		10	/* report every 10 x 100 ms = 1 s */
+#define S1_REPORT_TICKS		10	/* timing table every 10 x 100 ms = 1 s */
+#define S1_PING_TICKS		10	/* IF-01 ping every 10 x 100 ms = 1 s */
 
 /* Private to subsystem 1, shared between its own .c files */
 IMPORT ID	tid_telemetry;

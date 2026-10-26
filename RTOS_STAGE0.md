@@ -112,9 +112,9 @@ expect, each explained in section 4:
   ID, commit (`git rev-parse --short HEAD`), tester, PASS/FAIL, log file.
 
 Useful numbers in the table for the team:
-- **boot max @ s**: the ~120 ms pause at about 0.6 s is the WiFi radio starting up
-  (USB / WiFi radio init) and harmless while the robot is still. If it is
-  later, or the overruns column grows, something stalls the whole system.
+- **boot max @ s**: the ~120 ms pause at about 0.6 s is the WiFi radio
+  starting up, harmless while the robot is still. If it is later, or the
+  overruns column grows after start-up, something stalls the whole system.
 - **boot max interval** of safety and motion: shows how far the kernel's
   USB (priority 3) and WiFi (priority 4) tasks delay the highest-priority
   robot tasks. This is the open question for the instructor.

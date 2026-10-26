@@ -22,4 +22,5 @@ Add a new row for every run. Never edit or delete old rows.
 
 | Date | Test ID | Commit | Tester | Result | Log / evidence | Notes |
 |---|---|---|---|---|---|---|
-| YYYY-MM-DD | INT-01 | `abc1234` | | PASS / FAIL | `logs/YYYY-MM-DD_….txt` | |
+| 2026-10-26 | INT-01 | `836d3fe` | B1 Ikhwan | PASS | `logs/2026-10-26_stage0_test.txt` | 3 pings in 3000 ms |
+| 2026-10-26 | INT-02 | `836d3fe` | B1 Ikhwan | PASS | `logs/2026-10-26_stage0_run.txt` (Stage 0 run starts at line 28; lines 1-27 are the end of the previous session) | run image `stage0_run_v4.uf2`, 60 s: all 8 tasks in every table, overruns stayed at the start-up values 11/5/1 (from the ~120 ms WiFi radio start-up pause at 0.6 s), 10 ms tasks 7.4-12.6 ms, 20 ms tasks 19.98-20.01 ms, no lost output. Earlier runs with the table printed every 1 s had a ~12 ms all-task delay with lost output (fixed in `836d3fe`, see TEAM.md section 4) |

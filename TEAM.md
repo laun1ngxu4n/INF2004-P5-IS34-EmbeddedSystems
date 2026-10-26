@@ -231,4 +231,50 @@ override them.
 | Date | Change | Design items affected |
 |---|---|---|
 | 26 Oct | **GP28 battery sense removed.** The solder jumper is not fitted and no battery voltage is measured. The robot runs from a USB power bank on VIN. | FR9: "critically low battery" is no longer a fault cause (the other FR9 causes stay). Safety task: no VBAT_SENSE input. INIT self-test: no power-supply check. A12: V_warn / V_crit thresholds dropped. Telemetry: no battery field. |
+| 26 Oct | **Barcode IR sensor replaced.** Reads slightly better than the old one (team observation, not yet re-measured). | Re-run the bring-up IR barcode pass, including the thin "A small" barcode, before writing the decoder. |
+| 26 Oct | **Barcode requirements from the instructor**, see 7.1. | FR2, FR2a, FR3, FR11 |
+| 26 Oct | **Obstacle requirements from the instructor**, see 7.2. | FR5, FR6, NFR3, A5 |
 
+### 7.1 Barcode (S3 decoder, S1 MQTT, S5 Mission, S2 Motion)
+
+Instructor brief: decode Code 39 A-Z, readable in both directions, store
+the character, carry on to the cross-junction, then do the mapped move
+(forward, U-turn, left, right). The 4-character mapping is sent from the
+PC over MQTT just before the demo and must not be hard-coded.
+
+| # | Requirement | Changes from Week 6 | Owner |
+|---|---|---|---|
+| B1 | Decode every Code 39 character, at least A-Z, using the full pattern table (9 elements, 3 wide). | Week 6 only defined A-D (+ Z reserved). | S3 |
+| B2 | Decode in both directions: if the start/stop `*` reads reversed, reverse the elements and decode again. | New. | S3 |
+| B3 | Measure bar widths in **encoder counts** (0.080 mm/count), not time, so a speed change over the barcode does not change the reading. | New. Time-based widths only work at constant speed. | S3 (reads S2 counts) |
+| B4 | Drive slower while line following, at a speed chosen by test so the thinnest bar is still read reliably. | New. Week 6 had no barcode speed limit. | S2, S5 |
+| B5 | Store the decoded character. Keep the latest unconsumed one (FR11). | Same as Week 6. | S5 |
+| B6 | **All four moves, U-turn included, happen at the next cross-junction.** | Week 6 did the U-turn straight after the barcode: changed. | S5, S2 |
+| B7 | No mapping is hard-coded. Until a mapping arrives over MQTT, a decoded character only gets stored and reported; at the junction the robot stops and reports "no mapping". | Week 6 had default A-D: removed. | S3, S5 |
+| B8 | The mapping arrives over MQTT at run time (no restart) and is acknowledged with what was stored. | FR2a kept, message format below is new. | S1, S3 |
+
+Mapping message, **draft (confirm the format with the instructor)**:
+- topic `is34/cmd/map`, payload four `char=move` pairs, e.g. `K=L,Q=R,X=F,M=U`
+  (L left, R right, F forward, U U-turn).
+- Rejected unless it has exactly 4 pairs, each character A-Z used once and
+  each move used once. A rejected message keeps the old mapping.
+- Ack on `is34/ack/map`: the stored mapping, or the reason it was rejected.
+
+### 7.2 Obstacle (S5 Obstacle Scanner, S2 Motion)
+
+Instructor brief: obstacle 10-20 cm wide. Profile it (no precise
+measuring needed), estimate the width and **report it with its
+uncertainty**, choose the best move and do it at a reasonable speed:
+a consistently safe path, clear the obstacle, find the line again.
+
+| # | Requirement | Changes from Week 6 | Owner |
+|---|---|---|---|
+| O1 | After every servo move, wait for the servo to settle (time set by test) before pinging. | Week 6 only estimated settle time for NFR3. | S5 |
+| O2 | Take 3-5 pings per angle and use the median. | Week 6: 2 pings to confirm "clear". | S5 |
+| O3 | Background subtraction: a ray belongs to the obstacle only if it is clearly shorter than the background (open space) at that angle. | New. | S5 |
+| O4 | An edge needs 2 consecutive angles past the threshold, with hysteresis (separate on/off thresholds). | Week 6: one >100 mm range jump. | S5 |
+| O5 | Scan from 2 robot positions (e.g. after reversing a short distance) and combine the two widths. | Week 6 measured from one position. | S5, S2 |
+| O6 | Report `width_mm`, `uncertainty_mm` and the two edge angles in telemetry. Uncertainty from the angle step and beam width at that range, plus the spread between the two scans. | Week 6 reported the profile but no uncertainty. | S5, S1 |
+| O7 | Plan the bypass with `max(measured width + uncertainty, 200 mm)` plus the 50 mm margins each side. | New: never plan for less than the largest expected obstacle. | S5 |
+| O8 | Bypass, clear the obstacle and reacquire the line as Week 6 (5 legs, rejoin within 500 mm, no contact). | Same. | S5, S2, S3 |
+| O9 | NFR3 scan times (1.2 s coarse, 2.0 s fine) to be re-set after O1, O2 and O5 are measured. | O1, O2 and O5 make the scan longer. | S5 |

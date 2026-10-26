@@ -1,6 +1,6 @@
 # Subsystem 2 — test log
 
-**Subsystem:** Producer (example)  ·  **Student ID:** <student ID>  ·  **Code:** `app_program/subsystem2/`
+**Subsystem:** Motion Control (B2)  ·  **Student ID:** <student ID>  ·  **Code:** `app_program/subsystem2/`
 
 See `testing/README.md` for how to run tests and record results.
 
@@ -10,8 +10,8 @@ Define a test here before running it. Test IDs never change.
 
 | ID | What is tested | Requirement / interface | Method | Steps / how | Expected result |
 |---|---|---|---|---|---|
-| S2-U01 | sample values stay within 0..100 | | auto | `subsystem2_test.c` | `[TEST] S2-U01 PASS` |
-| S2-U02 | free slots and free blocks within pool size | IF-02 | auto | `subsystem2_test.c` | `[TEST] S2-U02 PASS` |
+| S2-U01 | motion_task wakes every 10 ms (Stage 0, `make TEST=1`) | NFR1/NFR7 timing hooks | auto | `subsystem2_test.c`, 2 s window | wake count within 10 % of 200; `[TEST] S2-U01 PASS` |
+| S2-U02 | motion_task: no overrun, longest interval <= 25 ms | build plan timing hooks | auto | same | `[TEST] S2-U02 PASS` |
 
 *Method:* **auto** = `TEST_CHECK` in code, result printed on the console;
 **manual** = a person observes the result (LED, scope, meter, phone app…).

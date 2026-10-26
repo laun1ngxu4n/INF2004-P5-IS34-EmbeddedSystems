@@ -1,7 +1,10 @@
 # Team and subsystems
 
-The tables are pre-filled with the **example** in `app_program/` (marked
-*example*). Replace those rows with your own as you replace the example code.
+**P5-IS34 (26 Oct): DRAFT for the team to confirm.** Filled in from the
+Week 6 design, the Tribunal 1 Version B/C decisions and the bring-up
+results (`bringup/docs/bringup_results.md`). Rows marked *draft* still need
+the team's agreement; student IDs and GitHub usernames are left for each
+member to fill in.
 
 Fill this in at the start of the project and keep it up to date. It is the
 single place that says **who owns what**, so that five people can work in
@@ -17,11 +20,11 @@ subsystem, ask its owner or open a pull request for them to review.
 
 | # | Subsystem (what it does) | Student ID | GitHub username | Code | Tests |
 |---|---|---|---|---|---|
-| 1 | *example:* LED heartbeat on GP19 | | | `app_program/subsystem1/` | `testing/subsystem1/` |
-| 2 | *example:* Producer: makes a sample every 300 ms | | | `app_program/subsystem2/` | `testing/subsystem2/` |
-| 3 | *example:* Consumer: collects samples into statistics | | | `app_program/subsystem3/` | `testing/subsystem3/` |
-| 4 | *example:* Monitor: prints reports, pauses the LED | | | `app_program/subsystem4/` | `testing/subsystem4/` |
-| 5 | | | | `app_program/subsystem5/` | `testing/subsystem5/` |
+| 1 | B1 Muhammad Ikhwan: WiFi/MQTT telemetry, remote commands, NeoPixel + buzzer | | mhdikhwan | `app_program/subsystem1/` | `testing/subsystem1/` |
+| 2 | B2 Ng Chern Loong Branson: motors, encoders, PID, distance moves, spin turns | | | `app_program/subsystem2/` | `testing/subsystem2/` |
+| 3 | B3 Lau Ning Xuan: IR line following, Code 39 barcode, junctions | | | `app_program/subsystem3/` | `testing/subsystem3/` |
+| 4 | B4 Muhammad Haziq: IMU (humps, collisions), Safety / Fault Monitor | | | `app_program/subsystem4/` | `testing/subsystem4/` |
+| 5 | B5 Muhammad Irfan: ultrasonic + servo, obstacle bypass, Mission Controller, integration | | | `app_program/subsystem5/` | `testing/subsystem5/` |
 
 Shared files (`app_program/app_main.c`, `app_program/app.h`, this file)
 are changed only by agreement of the team. The exception is claiming an empty
@@ -48,32 +51,32 @@ fixed.
 | Pin | Owner | Used for |
 |---|---|---|
 | GP23, GP24, GP25, GP29 | *reserved* | Pico W radio |
-| GP0 | | (taken whenever the team builds with `CRASH_REPORT=1`) |
-| GP1 | | (taken whenever the team builds with `CRASH_REPORT=1`) |
-| GP2 | | |
-| GP3 | | |
-| GP4 | | |
-| GP5 | | |
-| GP6 | | |
-| GP7 | | |
-| GP8 | | |
-| GP9 | | |
-| GP10 | | |
-| GP11 | | |
-| GP12 | | |
-| GP13 | | |
-| GP14 | | |
-| GP15 | | |
-| GP16 | | |
-| GP17 | | |
-| GP18 | | |
-| GP19 | *example:* S1 | external LED (LED + 330 Ω to GND) |
-| GP20 | | |
-| GP21 | | |
-| GP22 | | |
-| GP26 | | (ADC0 capable) |
-| GP27 | | (ADC1 capable) |
-| GP28 | | (ADC2 capable) |
+| GP0 | S3 | IR left D0 (Grove 1 white). Never build `CRASH_REPORT=1` with it plugged in |
+| GP1 | S3 | IR centre D0 (Grove 1 yellow). Same `CRASH_REPORT=1` warning |
+| GP2 | S3 | IR barcode D0 (Grove 2 white) |
+| GP3 | - | unused (Grove 2 yellow, taped) |
+| GP4 | S2 | left encoder A (Grove 3 white) |
+| GP5 | S2 | left encoder B (Grove 3 yellow). Left counts DOWN for forward |
+| GP6 | S5 | ultrasonic TRIG (Grove 5 white, jumper wire) |
+| GP7 | S5 | ultrasonic ECHO (Grove 7 white, jumper wire), HC-SR04 at 3.3 V |
+| GP8 | S2 | left motor M1A, PWM slice 4 (A = PWM drives forward after the 26 Oct M1 wire swap) |
+| GP9 | S2 | left motor M1B, PWM slice 4 |
+| GP10 | S2 | right motor M2A, PWM slice 5 |
+| GP11 | S2 | right motor M2B, PWM slice 5 |
+| GP12 | - | unused (servo header 1) |
+| GP13 | - | unused (servo header 2) |
+| GP14 | S5 | servo PWM, slice 7 (servo header 3) |
+| GP15 | - | unused (servo header 4) |
+| GP16 | S2 | right encoder A (Grove 4 white) |
+| GP17 | S2 | right encoder B (Grove 4 yellow) |
+| GP18 | S1 | NeoPixel status LEDs (PIO) |
+| GP19 | - | unused (the template's example LED is removed) |
+| GP20 | S5 | START button (on board, active low) |
+| GP21 | S5 | STOP button, held = RESET (on board, active low); one shared STOP helper (section 5) |
+| GP22 | S1 | buzzer, PWM slice 3 |
+| GP26 | S4 | IMU SDA, I2C1 (Grove 6 white; Grove 5 yellow is the same pin, taped) |
+| GP27 | S4 | IMU SCL, I2C1 (Grove 6 yellow) |
+| GP28 | - | battery sense NOT fitted (no solder jumper, team decision 26 Oct); Grove 7 yellow taped |
 
 ## 3. Peripherals
 
@@ -105,13 +108,17 @@ the drivers have no locking to stop it.
 
 | Peripheral | Owner subsystem | Owning task | Pins |
 |---|---|---|---|
-| UART1 | | | |
-| I2C0 | | | |
-| I2C1 | | | |
-| SPI0 | | | |
-| SPI1 | | | |
-| ADC | | | GP26–GP28 |
-| PWM slices (list) | | | |
+| UART1 | - | | |
+| I2C0 | - | | |
+| I2C1 | S4 | imu_task | GP26, GP27 (LSM303D at 0x1D, 400 kHz) |
+| SPI0 | - | | |
+| SPI1 | - | | |
+| ADC | - | | GP28 battery sense not fitted |
+| PWM slices 4, 5 | S2 | motion_task (normal writes) | GP8-GP11 motors. *Draft exception:* `safety_task` may call S2's `motor_safe_off()` directly, so the motors stop even if Motion hangs (NFR10) |
+| PWM slice 3 | S1 | telemetry_task | GP22 buzzer |
+| PWM slice 7 | S5 | obstacle_task | GP14 servo |
+| PIO0 (one SM) | S1 | telemetry_task | GP18 NeoPixel |
+| GPIO interrupts (one callback) | S5 | shared dispatcher, *draft* | GP0-2 IR, GP4/5/16/17 encoders, GP7 echo, GP21 STOP: one dispatcher hands each pin to its owner |
 | WiFi radio, TCP/IP, MQTT | *kernel* | `cyw43_utk_task` (built in) | GP23–25, GP29 |
 
 ### WiFi and MQTT are special
@@ -144,15 +151,25 @@ What students *can* do:
 1 is the highest. 1–4 are used by the kernel (USB console 3, WiFi 4). Each subsystem gets its own band by default;
 change it only by team agreement. Write down every task you create.
 
-| Subsystem | Priority band | Tasks (name – priority – core) |
-|---|---|---|
-| 1 | 12–13 | *example:* led_task – 12 – any |
-| 2 | 14–15 | *example:* producer_task – 14 – core 1 |
-| 3 | 16–17 | *example:* consumer_task – 16 – core 0 |
-| 4 | 18–19 | *example:* monitor_task – 18 – any |
-| 5 | 20–21 | |
+**P5-IS34, draft:** single core (`SMP=0`, team decision 26 Oct), so the core
+column is not used. Instead of one band per subsystem, the Week 6 task order
+is kept and shifted below the kernel (Week 6 used 2-10). The values live in
+`app_program/app.h`. Notification is merged into Telemetry (8 tasks).
 
-Core: `TP_PRC1` = core 0, `TP_PRC2` = core 1, or "any".
+| Subsystem | Tasks (name – priority – period) | Week 6 priority |
+|---|---|---|
+| 4 | safety_task – 5 – 20 ms | 2 |
+| 2 | motion_task – 6 – 10 ms | 3 |
+| 5 | mission_task – 7 – event, 100 ms timeout | 4 |
+| 3 | line_task – 8 – 20 ms | 5 |
+| 4 | imu_task – 9 – 10 ms | 6 |
+| 3 | barcode_task – 10 – event, 10 ms timeout | 7 |
+| 5 | obstacle_task – 11 – 60 ms | 8 |
+| 1 | telemetry_task – 12 – 100 ms, report 1 s | 9 (Notification was 10) |
+
+Open with the instructor: the kernel's WiFi task (priority 4) runs above
+Safety and Motion, while the design keeps WiFi lowest. Stage 0 measures
+its effect in the timing table.
 
 ## 5. Interfaces between subsystems
 
@@ -162,11 +179,11 @@ sends to it or waits on it. Agree on the data format before coding.
 
 | ID | From → To | Mechanism | Object ID name | Data / meaning | Agreed by |
 |---|---|---|---|---|---|
-| IF-01 | S2 → S3 | mailbox (owned by S3) | `mbx_samples` | `SAMPLE_MSG` in `subsystem2.h` | *example* |
-| IF-02 | S3 → S2 | semaphore + fixed memory pool (owned by S2) | `sem_slots`, `mpf_samples` | receiver returns the block, then 1 slot | *example* |
-| IF-03 | S3 → S4 | message buffer + event flag (owned by S4) | `mbf_summary`, `flg_events` | text line ≤ `S4_SUMMARY_MAX` bytes, then `FLG_BATCH` | *example* |
-| IF-04 | S4 → S3 | shared data under a mutex (owned by S3) | `app_stats`, `mtx_stats` | `APP_STATS`, read only while locked | *example* |
-| IF-05 | S4 → S1 | task control | `tid_led` | `tk_sus_tsk` / `tk_rsm_tsk` / `tk_chg_pri` | *example* |
+| IF-01 | S1 → S5 (later also buttons, Safety, MQTT) | event flag (owned by S5) | `flg_mission` | bit `MSN_FLG_PING`, Stage 0 only; later START/STOP/finish bits | *draft* |
+| IF-02 | all → all | shared words under `APP_LOCK` (`app_lock.h`) | `stop_reasons`, fault bits | every multi-writer read-modify-write uses the one lock helper | *draft* |
+| IF-03 | S3 → S2 | latest-value slot + event flag | `line_cmd` | newest steering only; old steering is dropped (finding 07) | *draft* |
+| IF-04 | S2 → S5 | Week 6 `completion_slot` | | `{epoch, id, status, stopped}` (kept instead of the v3 message) | *draft* |
+| IF-05 | S1 (MQTT) → S4/S5 | STOP helper, then message buffer | | MQTT STOP sets the STOP bit through the same helper as GP21 before any queue (Version C) | *draft, needs instructor OK for `mqtt_utk.c`* |
 | IF-06 | | | | | |
 
 Each interface is tested by at least one integration test
@@ -179,15 +196,15 @@ limit there. The numbers below are the example's usage.
 
 | Object | Limit | S1 | S2 | S3 | S4 | S5 |
 |---|---|---|---|---|---|---|
-| Task | 32 | 1 | 1 | 1 | 1 | |
-| Semaphore | 16 | | 1 | | | |
-| Event flag | 16 | | | | 1 | |
-| Mailbox | 12 | | | 1 | | |
-| Mutex | 12 | | | 1 | | |
-| Message buffer | 12 | | | | 1 | |
-| Fixed memory pool | 12 | | 1 | | | |
+| Task | 32 | 1 | 1 | 2 | 2 | 2 |
+| Semaphore | 16 | | | | | |
+| Event flag | 16 | | | | | 1 |
+| Mailbox | 12 | | | | | |
+| Mutex | 12 | | | | | |
+| Message buffer | 12 | | | | | |
+| Fixed memory pool | 12 | | | | | |
 | Variable memory pool | 12 | | | | | |
-| Cyclic handler | 12 | 1 | | | | |
-| Alarm handler | 12 | | | | 1 | |
+| Cyclic handler | 12 | 1 | 1 | 1 | 2 | 1 |
+| Alarm handler | 12 | | | | | |
 
-(The kernel's USB and WiFi service tasks also use a few of these.)
+(Stage 0 usage. The kernel's USB and WiFi service tasks also use a few of these.)

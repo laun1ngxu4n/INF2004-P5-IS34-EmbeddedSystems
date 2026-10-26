@@ -1,6 +1,6 @@
 # Subsystem 4 — test log
 
-**Subsystem:** Monitor (example)  ·  **Student ID:** <student ID>  ·  **Code:** `app_program/subsystem4/`
+**Subsystem:** Safety / Fault Monitor + IMU (B4)  ·  **Student ID:** <student ID>  ·  **Code:** `app_program/subsystem4/`
 
 See `testing/README.md` for how to run tests and record results.
 
@@ -10,8 +10,10 @@ Define a test here before running it. Test IDs never change.
 
 | ID | What is tested | Requirement / interface | Method | Steps / how | Expected result |
 |---|---|---|---|---|---|
-| S4-U01 | message buffer max line = S4_SUMMARY_MAX | IF-03 | auto | `subsystem4_test.c` | `[TEST] S4-U01 PASS` |
-| S4-U02 | LED pauses and resumes every 6 reports | IF-05 | manual | 1. Flash normal image. 2. Watch LED and console ~20 s. | console shows "LED task paused"/"resumed"; LED stops/starts |
+| S4-U01 | safety_task wakes every 20 ms (Stage 0, `make TEST=1`) | NFR1/NFR7 timing hooks | auto | `subsystem4_test.c`, 2 s window | wake count within 10 % of 100; `[TEST] S4-U01 PASS` |
+| S4-U02 | safety_task: no overrun, longest interval <= 35 ms | build plan timing hooks | auto | same | `[TEST] S4-U02 PASS` |
+| S4-U03 | imu_task wakes every 10 ms (Stage 0, `make TEST=1`) | NFR1/NFR7 timing hooks | auto | `subsystem4_test.c`, 2 s window | wake count within 10 % of 200; `[TEST] S4-U03 PASS` |
+| S4-U04 | imu_task: no overrun, longest interval <= 25 ms | build plan timing hooks | auto | same | `[TEST] S4-U04 PASS` |
 
 *Method:* **auto** = `TEST_CHECK` in code, result printed on the console;
 **manual** = a person observes the result (LED, scope, meter, phone app…).

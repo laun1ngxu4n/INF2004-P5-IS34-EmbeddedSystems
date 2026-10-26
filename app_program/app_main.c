@@ -16,24 +16,21 @@
  *	and then puts the initial task to sleep forever.
  *	If usermain() RETURNS, the kernel shuts the whole system down.
  *
- *	The example system: one subsystem per folder, one task each
- *	------------------------------------------------------------
- *	  subsystem1/  LED       blinks GP19, paced by a cyclic handler
- *	  subsystem2/  Producer  makes a "sample" every 300 ms     (core 1)
- *	  subsystem3/  Consumer  collects samples into statistics  (core 0)
- *	  subsystem4/  Monitor   prints reports, pauses/resumes the LED
- *	  subsystem5/  (empty template for the fifth student)
+ *	P5-IS34 Stage 0: the 8 design tasks, one subsystem per buddy
+ *	-------------------------------------------------------------
+ *	  subsystem1/  B1  Telemetry (+ Notification)  100 ms, report 1 s
+ *	  subsystem2/  B2  Motion Control               10 ms
+ *	  subsystem3/  B3  Line Following 20 ms, Barcode Decoder (event, 10 ms)
+ *	  subsystem4/  B4  Safety / Fault Monitor 20 ms, IMU / Terrain 10 ms
+ *	  subsystem5/  B5  Mission Controller (event, 100 ms), Obstacle 60 ms
+ *	Priorities and periods: app.h and TEAM.md section 4.
+ *	Stage 0 tasks do no robot work: they wake, are timed (app_timing.c)
+ *	and go back to sleep.  Telemetry prints the timing table once a second.
  *
- *	How they talk to each other (the interfaces, see TEAM.md section 5):
- *	  IF-01  S2 -> S3  mailbox mbx_samples      (owned by S3)
- *	  IF-02  S3 -> S2  semaphore sem_slots + memory pool mpf_samples
- *	                   (owned by S2: S3 hands slots and blocks back)
- *	  IF-03  S3 -> S4  message buffer mbf_summary + event flag flg_events
- *	                   (owned by S4)
- *	  IF-04  S4 -> S3  reads app_stats under mutex mtx_stats (owned by S3)
- *	  IF-05  S4 -> S1  suspends/resumes the LED task tid_led (owned by S1)
- *	The subsystem that RECEIVES or OWNS the data creates the object and
- *	publishes its ID in its header; the other side just uses it.
+ *	Interfaces (TEAM.md section 5):
+ *	  IF-01  S1 -> S5  event flag flg_mission, bit MSN_FLG_PING (owned by S5)
+ *	                   Stage 0 check that an event wakes Mission; later
+ *	                   START/STOP/finish from MQTT use the same flag.
  *
  *	micro T-Kernel APIs used, and where to find them:
  *	  tasks       tk_cre_tsk tk_sta_tsk tk_slp_tsk tk_wup_tsk tk_can_wup
@@ -92,6 +89,25 @@ EXPORT ID app_start_task(FP entry, PRI pri, UW prc, const char *name)
 	return tid;
 }
 
+/* Cyclic handler body shared by every periodic task: exinf points at the
+   task's ID variable.  Interrupt context: short, never waits. */
+LOCAL void wake_handler(void *exinf)
+{
+	tk_wup_tsk(*(ID *)exinf);	/* queues if the task is still busy */
+}
+
+EXPORT ID app_create_wake_cyclic(ID *p_tid, RELTIM period_ms)
+{
+	T_CCYC	ccyc = {0};
+
+	ccyc.exinf  = p_tid;
+	ccyc.cycatr = TA_HLNG;		/* created stopped; tk_sta_cyc in _start */
+	ccyc.cychdr = (FP)wake_handler;
+	ccyc.cyctim = period_ms;	/* period, ms */
+	ccyc.cycphs = period_ms;	/* delay before the first call, ms */
+	return tk_cre_cyc(&ccyc);
+}
+
 EXPORT INT usermain(void)
 {
 	T_RVER	ver;
@@ -106,6 +122,8 @@ EXPORT INT usermain(void)
 #else
 	tm_printf((UB*)"single-core build\n");
 #endif
+	tm_printf((UB*)"P5-IS34 RTOS stage 0: 8 tasks, no robot work yet. "
+		  "Kernel tick %d ms\n", (INT)CNF_TIMER_PERIOD);
 
 	/* Phase 1: every subsystem creates its kernel objects */
 	CHECK(subsystem1_init(), "subsystem1_init");

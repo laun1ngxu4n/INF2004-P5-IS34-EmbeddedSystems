@@ -1,42 +1,40 @@
 /*
  *	subsystem3.c
- *	Subsystem 3 -- Consumer: creates its objects and starts its task.
- *
- *	APIs shown: tk_cre_mbx, tk_cre_mtx
+ *	Subsystem 3 -- Line Following + Barcode Decoder: creates its objects
+ *	and starts its tasks.
  */
 
 #include "subsystem3.h"
 
-EXPORT ID		mbx_samples;	/* IF-01 */
-EXPORT ID		mtx_stats;	/* IF-04 */
-EXPORT APP_STATS	app_stats;
+EXPORT ID	tid_line;
+EXPORT ID	cyc_line;
+EXPORT INT	tmg_line;
+EXPORT ID	tid_barcode;
+EXPORT INT	tmg_barcode;
 
 EXPORT ER subsystem3_init(void)
 {
-	T_CMBX	cmbx = {0};
-	T_CMTX	cmtx = {0};
-
-	/* Mailbox: passes a POINTER to a message (zero copy).  The message
-	   memory must stay valid until the receiver is done with it, which
-	   is why subsystem 2 takes it from its memory pool. */
-	cmbx.mbxatr = TA_TFIFO | TA_MFIFO;	/* FIFO waiters, FIFO messages */
-	mbx_samples = tk_cre_mbx(&cmbx);
-	if (mbx_samples < E_OK) {
-		return mbx_samples;
+	tmg_line = app_timing_add("line", PRI_LINE, PERIOD_LINE_MS);
+	tmg_barcode = app_timing_add("barcode", PRI_BARCODE, TIMEOUT_BARCODE_MS);
+	cyc_line = app_create_wake_cyclic(&tid_line, PERIOD_LINE_MS);
+	if (tmg_line < E_OK) {
+		return tmg_line;
 	}
-
-	/* Mutex: only one task at a time may touch app_stats.  TA_INHERIT
-	   (priority inheritance) avoids priority inversion: a low-priority
-	   holder is temporarily raised to the waiter's priority. */
-	cmtx.mtxatr = TA_INHERIT;
-	mtx_stats = tk_cre_mtx(&cmtx);
-	return (mtx_stats < E_OK) ? mtx_stats : E_OK;
+	if (tmg_barcode < E_OK) {
+		return tmg_barcode;
+	}
+	return (cyc_line < E_OK) ? cyc_line : E_OK;
 }
 
 EXPORT ER subsystem3_start(void)
 {
-	/* Pinned to core 0 (TP_PRC1): opposite core to the producer */
-	ID tid = app_start_task(consumer_task, S3_PRI_CONSUMER, TP_PRC1,
-				"consumer_task");
-	return (tid < E_OK) ? tid : E_OK;
+	tid_line = app_start_task(line_task, PRI_LINE, 0, "line_task");
+	if (tid_line < E_OK) {
+		return tid_line;
+	}
+	tid_barcode = app_start_task(barcode_task, PRI_BARCODE, 0, "barcode_task");
+	if (tid_barcode < E_OK) {
+		return tid_barcode;
+	}
+	return tk_sta_cyc(cyc_line);
 }

@@ -1,9 +1,15 @@
 /*
  *	subsystem3.h
- *	Subsystem 3 -- Consumer (statistics).  Student ID: <student ID>.
+ *	Subsystem 3 -- Line Following + Barcode Decoder (Buddy 3, Lau Ning Xuan).
  *
- *	Public interface of subsystem 3.  Other subsystems include it as
- *	"../subsystem3/subsystem3.h".
+ *	This header is subsystem 3's PUBLIC interface: only what other
+ *	subsystems are allowed to use.  Everything else stays LOCAL in the .c
+ *	files.  Other subsystems include it as "../subsystem3/subsystem3.h".
+ *
+ *	Stage 0: Line Following runs every 20 ms; the Barcode Decoder waits
+ *	with a 10 ms timeout (later it is also woken by each IR_BARCODE edge).
+ *	Neither reads the IR sensors yet (GP0 left, GP1 centre, GP2 barcode;
+ *	0 = white, 1 = black at the bring-up pot settings).
  */
 
 #ifndef SUBSYSTEM3_H
@@ -11,26 +17,13 @@
 
 #include "../app.h"
 
-#define S3_PRI_CONSUMER		16	/* priority band 16-17 (TEAM.md) */
-#define S3_BATCH_SIZE		5	/* report to subsystem 4 every N samples */
-
-/* IF-01: send SAMPLE_MSG (subsystem2.h) here with tk_snd_mbx */
-IMPORT ID	mbx_samples;
-
-/* IF-04: statistics.  Read them ONLY while holding mtx_stats:
- *	tk_loc_mtx(mtx_stats, TMO_FEVR);  copy = app_stats;  tk_unl_mtx(mtx_stats);
- */
-typedef struct {
-	UW	received;	/* samples received so far */
-	INT	min;
-	INT	max;
-	W	sum;
-} APP_STATS;
-
-IMPORT ID		mtx_stats;
-IMPORT APP_STATS	app_stats;
-
-/* Private to subsystem 3 */
-IMPORT void	consumer_task(INT stacd, void *exinf);
+/* Private to subsystem 3, shared between its own .c files */
+IMPORT ID	tid_line;
+IMPORT ID	cyc_line;
+IMPORT INT	tmg_line;
+IMPORT ID	tid_barcode;
+IMPORT INT	tmg_barcode;
+IMPORT void	line_task(INT stacd, void *exinf);
+IMPORT void	barcode_task(INT stacd, void *exinf);
 
 #endif /* SUBSYSTEM3_H */

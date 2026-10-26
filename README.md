@@ -1,3 +1,9 @@
+> **P5-IS34:** this is the course template set up for our robot. Start
+> with **[RTOS_STAGE0.md](RTOS_STAGE0.md)** (what is built, how to flash and
+> test it) and **[TEAM.md](TEAM.md)** (pins, owners, priorities, interfaces).
+> Build with Pico SDK **2.2.0**; the default is now single core (`SMP=0`).
+> The hardware bring-up tests and their results are in [`bringup/`](bringup/).
+
 # micro T-Kernel 3.0 project for Raspberry Pi Pico W
 
 A starting point for your project: micro T-Kernel 3.0 running on **both cores**

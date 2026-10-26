@@ -4,6 +4,10 @@
  *
  *	Anything that belongs to ONE subsystem goes in that subsystem's own
  *	header instead (app_program/subsystemN/subsystemN.h).
+ *
+ *	P5-IS34 Stage 0 (26 Oct): the 8 tasks of the design exist and run at
+ *	their periods, but do no robot work yet.  Each later stage fills in a
+ *	task body; the task list, priorities and periods below stay.
  */
 
 #ifndef APP_H
@@ -13,23 +17,58 @@
 #include <tm/tmonitor.h>	/* T-Monitor API: tm_printf() console output */
 #include <bsp/libbsp.h>		/* Board helpers: gpio_set_pin/val, pwm_... */
 
+#include "app_lock.h"		/* APP_LOCK / APP_UNLOCK for shared data */
+#include "app_timing.h"		/* per-task period and run-time monitor */
+
 /* ---------------------------------------------------------------------
  *  Pins: free for projects are GP0..GP22 and GP26..GP28.  GP0/GP1 are
  *  taken by UART0 when built with "make CRASH_REPORT=1" (see README).
  *  Never use GP23/24/25/29: they are wired to the Pico W radio.
  *  Claim every pin in TEAM.md section 2 before using it.
+ *  P5-IS34: GP0/GP1 are the IR sensors, so never build CRASH_REPORT=1
+ *  with the IR sensors plugged in.
  * --------------------------------------------------------------------- */
 
 /* ---------------------------------------------------------------------
  *  Task priorities: 1 is the highest; the kernel's USB console (3) and
- *  WiFi (4) tasks sit above every application task.  Each subsystem
- *  has its own band (TEAM.md section 4), defined in its own header.
+ *  WiFi (4) tasks sit above every application task.
+ *
+ *  P5-IS34 (TEAM.md section 4, draft for the team to confirm): the Week 6
+ *  order, shifted down to 5..12 below the kernel.  Notification is merged
+ *  into Telemetry, so the design's 9 tasks become 8.
  * --------------------------------------------------------------------- */
+#define PRI_SAFETY		5	/* S4  Safety / Fault Monitor */
+#define PRI_MOTION		6	/* S2  Motion Control */
+#define PRI_MISSION		7	/* S5  Mission Controller */
+#define PRI_LINE		8	/* S3  Line Following */
+#define PRI_IMU			9	/* S4  IMU / Terrain Monitor */
+#define PRI_BARCODE		10	/* S3  Barcode Decoder */
+#define PRI_OBSTACLE		11	/* S5  Obstacle Scanner */
+#define PRI_TELEMETRY		12	/* S1  Telemetry + Notification */
+
+/* Task periods in ms (Week 6 task table).  The kernel tick is 10 ms
+   (CNF_TIMER_PERIOD in config/config.h), so every period is a multiple
+   of 10 ms and a timeout is only exact to the next tick. */
+#define PERIOD_SAFETY_MS	20
+#define PERIOD_MOTION_MS	10
+#define PERIOD_LINE_MS		20
+#define PERIOD_IMU_MS		10
+#define PERIOD_OBSTACLE_MS	60
+#define PERIOD_TELEMETRY_MS	100	/* LED/buzzer tick; report every 1 s */
+#define TIMEOUT_BARCODE_MS	10	/* event-driven, quiet-zone check */
+#define TIMEOUT_MISSION_MS	100	/* event-driven, wait on flg_mission */
+
 #define TASK_STACK_SIZE		2048	/* bytes; tm_printf needs ~1 KB */
 
 /* Create and start a task.  prc = TP_PRC1 (core 0), TP_PRC2 (core 1), or
    0 for "any core".  Defined in app_main.c. */
 IMPORT ID app_start_task(FP entry, PRI pri, UW prc, const char *name);
+
+/* Create a cyclic handler that wakes the task whose ID is stored at
+   *p_tid every period_ms.  Create it in _init (it starts stopped); start
+   it with tk_sta_cyc() in _start, after the task exists.  Defined in
+   app_main.c. */
+IMPORT ID app_create_wake_cyclic(ID *p_tid, RELTIM period_ms);
 
 /* ---------------------------------------------------------------------
  *  Every subsystem provides these.  usermain() calls ALL the _init()

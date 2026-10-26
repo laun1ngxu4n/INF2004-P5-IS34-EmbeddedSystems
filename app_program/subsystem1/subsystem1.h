@@ -1,10 +1,16 @@
 /*
  *	subsystem1.h
- *	Subsystem 1 -- LED heartbeat.  Student ID: <student ID>.
+ *	Subsystem 1 -- Telemetry / WiFi + Notification (Buddy 1, Muhammad Ikhwan).
  *
  *	This header is subsystem 1's PUBLIC interface: only what other
  *	subsystems are allowed to use.  Everything else stays LOCAL in the .c
  *	files.  Other subsystems include it as "../subsystem1/subsystem1.h".
+ *
+ *	Stage 0: the Telemetry task runs every 100 ms (the LED/buzzer tick of
+ *	the merged Notification part) and prints the task timing table once a
+ *	second.  No WiFi/MQTT work yet: in this template MQTT lives in the
+ *	kernel's WiFi service task (lib/liblwip/sysdepend/pico_rp2040/
+ *	mqtt_utk.c), see TEAM.md section 3.
  */
 
 #ifndef SUBSYSTEM1_H
@@ -12,16 +18,12 @@
 
 #include "../app.h"
 
-#define S1_PRI_LED	12		/* priority band 12-13 (TEAM.md) */
-#define S1_LED_PIN	19		/* GP19: LED + 330R resistor to GND */
-#define S1_TICK_MS	250		/* LED toggles every tick */
-
-/* IF-05: the LED task's ID, so subsystem 4 may pause/resume it */
-IMPORT ID	tid_led;
+#define S1_REPORT_TICKS		10	/* report every 10 x 100 ms = 1 s */
 
 /* Private to subsystem 1, shared between its own .c files */
-IMPORT ID	cyc_led;
-IMPORT void	led_task(INT stacd, void *exinf);
-IMPORT void	led_cyclic_handler(void *exinf);
+IMPORT ID	tid_telemetry;
+IMPORT ID	cyc_telemetry;
+IMPORT INT	tmg_telemetry;
+IMPORT void	telemetry_task(INT stacd, void *exinf);
 
 #endif /* SUBSYSTEM1_H */

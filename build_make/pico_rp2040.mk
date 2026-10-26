@@ -16,7 +16,9 @@
 # by SIO CPUID and needs the same profile.
 ################################################################################
 
-SMP ?= 1
+# P5-IS34: single core by team decision (26 Oct); app_lock.h refuses SMP=1
+# until it has a hardware spinlock.
+SMP ?= 0
 
 ifneq ($(SMP),0)
 ifneq ($(SMP),1)

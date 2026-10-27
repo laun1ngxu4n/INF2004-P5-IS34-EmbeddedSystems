@@ -232,6 +232,7 @@ override them.
 |---|---|---|
 | 26 Oct | **GP28 battery sense removed.** The solder jumper is not fitted and no battery voltage is measured. The robot runs from a USB power bank on VIN. | FR9: "critically low battery" is no longer a fault cause (the other FR9 causes stay). Safety task: no VBAT_SENSE input. INIT self-test: no power-supply check. A12: V_warn / V_crit thresholds dropped. Telemetry: no battery field. |
 | 26 Oct | **Barcode IR sensor replaced.** Reads slightly better than the old one (team observation, not yet re-measured). | Re-run the bring-up IR barcode pass, including the thin "A small" barcode, before writing the decoder. |
+| 27 Oct | **Ramp: only the lower practice ramp matters.** The demo ramp is about the lower practice ramp's height, slightly lower or higher; ignore the higher ramp. Goal: estimate the height reached from the IMU, by sensing and processing. | FR4 and the hump assumption (10-30 mm, tests at 10/20/30 mm): re-centre the range and the tests on the measured height of the lower ramp. Measure that ramp's height and length first. |
 | 26 Oct | **Barcode requirements from the instructor**, see 7.1. | FR2, FR2a, FR3, FR11 |
 | 26 Oct | **Obstacle requirements from the instructor**, see 7.2. | FR5, FR6, NFR3, A5 |
 

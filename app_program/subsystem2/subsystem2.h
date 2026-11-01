@@ -23,9 +23,11 @@
 
 /* Robot geometry */
 #define S2_UM_PER_COUNT		80	/* 0.080 mm per encoder count */
-#define S2_TRACK_MM		130	/* wheel centre to wheel centre.
-					   NOT MEASURED YET: turns scale with
-					   it (S2-M02 shows how to correct it) */
+#define S2_TRACK_MM		123	/* wheel centre to wheel centre.
+					   Effective value from S2-M02 (1 Nov):
+					   130 turned about 95 / 190 deg for
+					   90 / 180, so 130 x 90/95 = 123.
+					   Re-run S2-M02 to confirm. */
 
 /* Speeds used by the team (mm/s) */
 #define S2_SPEED_LINE		200	/* line following, design 10-25 cm/s */

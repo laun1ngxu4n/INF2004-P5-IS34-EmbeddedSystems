@@ -122,8 +122,13 @@ EXPORT INT usermain(void)
 #else
 	tm_printf((UB*)"single-core build\n");
 #endif
-	tm_printf((UB*)"P5-IS34 RTOS stage 1: motion + STOP. "
+#if APP_TEST
+	tm_printf((UB*)"P5-IS34 test image, hands-on TEST_STAGE=%d. "
+		  "Kernel tick %d ms\n", APP_TEST_STAGE, (INT)CNF_TIMER_PERIOD);
+#else
+	tm_printf((UB*)"P5-IS34 mission image. "
 		  "Kernel tick %d ms\n", (INT)CNF_TIMER_PERIOD);
+#endif
 
 	/* The shared GPIO interrupt (app_gpio.c), before anyone registers */
 	CHECK(app_gpio_init(), "app_gpio_init");

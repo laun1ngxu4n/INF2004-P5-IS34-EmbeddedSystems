@@ -1,6 +1,7 @@
-# Prebuilt images (1 Nov, after the review fixes)
+# Prebuilt images (1 Nov, after the review fixes and the Stage 1 run)
 
-Built from this repo with Pico SDK 2.2.0, 0 warnings. **Not run on the
+Built from this repo with Pico SDK 2.3.1 (GCC 15.2), 0 warnings, S2_TRACK_MM 123.
+**Stage 1 passed on the robot (1 Nov); Stages 2-6 not run on the
 robot yet.** Flash: hold BOOTSEL, plug in USB, drag the file onto RPI-RP2.
 Steps for each: `../TESTING_GUIDE.md`.
 

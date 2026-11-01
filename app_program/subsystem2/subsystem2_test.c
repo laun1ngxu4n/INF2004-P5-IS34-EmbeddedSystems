@@ -273,8 +273,9 @@ EXPORT void subsystem2_drive_test(void)
 	TEST_INIT();
 
 	tm_printf((UB*)"\n[DRIVE] === Stage 1 drive tests ===\n"
-		  "[DRIVE] Power bank on VIN, USB to the laptop for the log.\n"
-		  "[DRIVE] Robot ON THE FLOOR with about 1.5 m clear in front.\n"
+		  "[DRIVE] Laptop USB only (never USB and the power bank together).\n"
+		  "[DRIVE] Wheels LIFTED for S2-M05 and S2-M06, then on the floor\n"
+		  "[DRIVE] with about 1.5 m clear in front.\n"
 		  "[DRIVE] STOP (GP21) stops the motors at any time.\n"
 		  "[DRIVE] Track width used for turns: %d mm (S2_TRACK_MM)\n",
 		  S2_TRACK_MM);

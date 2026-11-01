@@ -212,7 +212,7 @@ the hands-on test of stage n (`app_program/app_stage_test.c` and each
 
 | Value | Where | Now | Tuned by |
 |---|---|---|---|
-| Track width | `S2_TRACK_MM` | 130 mm | ruler, or S2-M02 angles |
+| Track width | `S2_TRACK_MM` | 123 mm (from S2-M02 angles, 1 Nov) | ruler, or S2-M02 angles |
 | Speed controller | `FF_*`, `KP`, `KI` in `task_motion.c` | FF 1.25/mm/s + 80, KP 1, KI 6 (per mille) | wobble or sluggish speed |
 | Line steering | `STEER_SMALL/HARD` in `task_line.c` | 40 / 110 mm/s | S3-L01 |
 | Junction length | `S3_JUNC_MIN/MAX_MM` | 8-45 mm | S3-L02 |

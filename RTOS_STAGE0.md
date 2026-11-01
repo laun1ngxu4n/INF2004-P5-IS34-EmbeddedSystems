@@ -64,7 +64,7 @@ make TEST=1 -j8     # test image    -> mtk3pico_smp0_usb_cdc_wifi_test.uf2
 
 Expected:
 ```
-P5-IS34 RTOS stage 0: 8 tasks, no robot work yet. Kernel tick 10 ms
+P5-IS34 test image, hands-on TEST_STAGE=1. Kernel tick 10 ms
 all subsystems started
 [TEST] === test run start ===
 [TEST] telemetry: 20 wakes in 2000 ms (expected 20), longest interval ... overruns 0

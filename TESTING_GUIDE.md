@@ -1,7 +1,7 @@
 # P5-IS34 testing guide: every stage, step by step
 
-Everything below is built and compiles with 0 warnings (1 Nov). **None of
-Stages 1-6 has run on the robot yet.** Expect to tune the numbers marked
+Everything below is built and compiles with 0 warnings (1 Nov). **Stage 1 passed on
+the robot (1 Nov, S2_TRACK_MM set to 123); Stages 2-6 have not run yet.** Expect to tune the numbers marked
 "NOT MEASURED" in section 2 after the first runs.
 
 Test plan and test IDs: `testing/PLAN.md`. Record every run as a row in
@@ -28,7 +28,7 @@ They are guesses in the code. Measure them, change the define, rebuild.
 
 | What | Define, file | Now |
 |---|---|---|
-| Track width, wheel centre to wheel centre | `S2_TRACK_MM`, `subsystem2/subsystem2.h` | 130 |
+| Track width, wheel centre to wheel centre | `S2_TRACK_MM`, `subsystem2/subsystem2.h` | 123 (from S2-M02, 1 Nov) |
 | Robot width (outside of wheels) / length | `S2_ROBOT_WIDTH_MM`, `S2_ROBOT_LENGTH_MM`, same file | 150 / 200 |
 | Line sensors in front of the wheel axle | `S3_SENSOR_TO_AXLE_MM`, `subsystem3/subsystem3.h` | 60 |
 | Axle to front support (for L x sin, reported beside the main height) | `S4_L_MM`, `subsystem4/subsystem4.h` | 80 |

@@ -12,6 +12,8 @@ Define a test here before running it. Test IDs never change.
 |---|---|---|---|---|---|
 | S1-U01 | telemetry_task wakes every 100 ms (Stage 0, `make TEST=1`) | NFR1/NFR7 timing hooks | auto | `subsystem1_test.c`, 2 s window | wake count within 10 % of 20; `[TEST] S1-U01 PASS` |
 | S1-U02 | telemetry_task: no overrun, longest interval <= 115 ms | build plan timing hooks | auto | same | `[TEST] S1-U02 PASS` |
+| S1-T01 | *planned (Stage 5)* Results reach the PC | FR7 | manual | one run with a barcode, an obstacle and the ramp | PC shows the barcode character, obstacle width +/- uncertainty and ramp height |
+| S1-T02 | *planned (Stage 5)* START / STOP from the PC | FR12 | manual | 5 of each over MQTT | robot starts / stops every time |
 
 *Method:* **auto** = `TEST_CHECK` in code, result printed on the console;
 **manual** = a person observes the result (LED, scope, meter, phone app…).

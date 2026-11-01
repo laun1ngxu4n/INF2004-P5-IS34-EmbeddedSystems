@@ -10,8 +10,7 @@ Define a test here before running it. Test IDs never change.
 
 | ID | What is tested | Requirement / interface | Method | Steps / how | Expected result |
 |---|---|---|---|---|---|
-| SYS-01 | e.g. device reports a reading over WiFi every 10 s | REQ-? | manual | 1. Power on. 2. Watch the dashboard for 2 minutes. | a reading appears every 10 s ± 1 s |
-| SYS-02 | | | manual | 1. … 2. … | |
+| SYS-01 | *planned (Stage 6)* Demo rehearsal | all graded parts | manual | 1. Send a 4-character map from the PC. 2. START. 3. Course with barcodes, junctions, an obstacle and the ramp. 4. 3 full runs | every barcode move done at its junction; obstacle passed with no contact and its width +/- reported; ramp height reported within +/- 5 mm; line found again after each manoeuvre |
 
 *Method:* **auto** = `TEST_CHECK` in code, result printed on the console;
 **manual** = a person observes the result (LED, scope, meter, phone app…).

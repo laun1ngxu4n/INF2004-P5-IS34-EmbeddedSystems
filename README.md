@@ -6,6 +6,7 @@
 > **Requirement changes since the Week 6 design** (GP28 removed, instructor
 > barcode/obstacle/ramp rules, IMU is an LSM303D) are in
 > [TEAM.md section 7](TEAM.md#7-scope-changes-after-the-week-6-design).
+> **What we test, stage by stage:** [testing/PLAN.md](testing/PLAN.md) (essentials only).
 
 # micro T-Kernel 3.0 project for Raspberry Pi Pico W
 

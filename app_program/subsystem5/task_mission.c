@@ -24,6 +24,8 @@ EXPORT void mission_task(INT stacd, void *exinf)
 		if (er == E_OK && (ptn & MSN_FLG_PING) != 0u) {
 			mission_pings++;
 		}
+		/* MSN_FLG_STOP: the motors are already off (app_stop_request in
+		   the button interrupt).  Stage 6 adds the mission state change. */
 		/* Stage 1: drain inputs with TMO_POL, apply the precedence rules. */
 
 		app_timing_done(tmg_mission);

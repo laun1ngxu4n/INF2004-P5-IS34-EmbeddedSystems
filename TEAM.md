@@ -118,7 +118,7 @@ the drivers have no locking to stop it.
 | PWM slice 3 | S1 | telemetry_task | GP22 buzzer |
 | PWM slice 7 | S5 | obstacle_task | GP14 servo |
 | PIO0 (one SM) | S1 | telemetry_task | GP18 NeoPixel |
-| GPIO interrupts (one callback) | S5 | shared dispatcher, *draft* | GP0-2 IR, GP4/5/16/17 encoders, GP7 echo, GP21 STOP: one dispatcher hands each pin to its owner |
+| GPIO interrupts (one callback) | shared | `app_program/app_gpio.c` (Stage 1) | GP0-2 IR, GP4/5/16/17 encoders, GP7 echo, GP21 STOP: each owner calls `app_gpio_irq_add()` in its `_init`; the dispatcher hands each pin to its owner |
 | WiFi radio, TCP/IP, MQTT | *kernel* | `cyw43_utk_task` (built in) | GP23–25, GP29 |
 
 ### WiFi and MQTT are special
@@ -194,7 +194,7 @@ sends to it or waits on it. Agree on the data format before coding.
 | ID | From → To | Mechanism | Object ID name | Data / meaning | Agreed by |
 |---|---|---|---|---|---|
 | IF-01 | S1 → S5 (later also buttons, Safety, MQTT) | event flag (owned by S5) | `flg_mission` | bit `MSN_FLG_PING`, Stage 0 only; later START/STOP/finish bits | *draft* |
-| IF-02 | all → all | shared words under `APP_LOCK` (`app_lock.h`) | `stop_reasons`, fault bits | every multi-writer read-modify-write uses the one lock helper | *draft* |
+| IF-02 | all → all | STOP helper `app_stop.[ch]` (Stage 1) + `APP_LOCK` | `app_stop_request(reason)` | motors off at once from any context; Motion cancels its command while any reason is set; owner of a reason clears it | *draft* |
 | IF-03 | S3 → S2 | latest-value slot + event flag | `line_cmd` | newest steering only; old steering is dropped (finding 07) | *draft* |
 | IF-04 | S2 → S5 | Week 6 `completion_slot` | | `{epoch, id, status, stopped}` (kept instead of the v3 message) | *draft* |
 | IF-05 | S1 (MQTT) → S4/S5 | STOP helper, then message buffer | | MQTT STOP sets the STOP bit through the same helper as GP21 before any queue (Version C) | *draft, needs instructor OK for `mqtt_utk.c`* |

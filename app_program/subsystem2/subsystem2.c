@@ -1,6 +1,7 @@
 /*
  *	subsystem2.c
- *	Subsystem 2 -- Motion Control: creates its objects and starts its task.
+ *	Subsystem 2 -- Motion Control: sets up the motors and encoders, creates
+ *	its objects and starts its task.
  */
 
 #include "subsystem2.h"
@@ -11,6 +12,12 @@ EXPORT INT	tmg_motion;
 
 EXPORT ER subsystem2_init(void)
 {
+	ER	er;
+
+	er = motion_hw_init();		/* motors off, encoders counting */
+	if (er < E_OK) {
+		return er;
+	}
 	tmg_motion = app_timing_add("motion", PRI_MOTION, PERIOD_MOTION_MS);
 	cyc_motion = app_create_wake_cyclic(&tid_motion, PERIOD_MOTION_MS);
 	if (tmg_motion < E_OK) {

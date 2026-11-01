@@ -19,6 +19,8 @@
 
 #include "app_lock.h"		/* APP_LOCK / APP_UNLOCK for shared data */
 #include "app_timing.h"		/* per-task period and run-time monitor */
+#include "app_gpio.h"		/* the shared GPIO interrupt dispatcher */
+#include "app_stop.h"		/* the one STOP helper */
 
 /* ---------------------------------------------------------------------
  *  Pins: free for projects are GP0..GP22 and GP26..GP28.  GP0/GP1 are
@@ -97,6 +99,7 @@ IMPORT void subsystem2_test(void);
 IMPORT void subsystem3_test(void);
 IMPORT void subsystem4_test(void);
 IMPORT void subsystem5_test(void);
+IMPORT void subsystem2_drive_test(void);	/* Stage 1, needs START presses */
 #endif
 
 /* Print a readable message if a kernel call failed (negative error code) */

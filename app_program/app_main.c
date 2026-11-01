@@ -122,8 +122,11 @@ EXPORT INT usermain(void)
 #else
 	tm_printf((UB*)"single-core build\n");
 #endif
-	tm_printf((UB*)"P5-IS34 RTOS stage 0: 8 tasks, no robot work yet. "
+	tm_printf((UB*)"P5-IS34 RTOS stage 1: motion + STOP. "
 		  "Kernel tick %d ms\n", (INT)CNF_TIMER_PERIOD);
+
+	/* The shared GPIO interrupt (app_gpio.c), before anyone registers */
+	CHECK(app_gpio_init(), "app_gpio_init");
 
 	/* Phase 1: every subsystem creates its kernel objects */
 	CHECK(subsystem1_init(), "subsystem1_init");
@@ -159,6 +162,9 @@ EXPORT INT usermain(void)
 	subsystem4_test();
 	subsystem5_test();
 	tm_printf((UB*)"[TEST] === test run end ===\n");
+
+	/* Stage 1: driving tests, each started by the START button */
+	subsystem2_drive_test();
 #endif
 
 	/* Sleep forever.  Returning from usermain() would shut down. */

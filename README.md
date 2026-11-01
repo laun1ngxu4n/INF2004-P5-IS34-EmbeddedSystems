@@ -1,6 +1,6 @@
 > **P5-IS34:** this is the course template set up for our robot. Start
 > with **[RTOS_STAGE0.md](RTOS_STAGE0.md)** (what is built, how to flash and
-> test it) and **[TEAM.md](TEAM.md)** (pins, owners, priorities, interfaces).
+> test it), then **[RTOS_STAGE1.md](RTOS_STAGE1.md)** (motion + STOP, the robot drives) and **[TEAM.md](TEAM.md)** (pins, owners, priorities, interfaces).
 > Build with Pico SDK **2.2.0**; the default is now single core (`SMP=0`).
 > The hardware bring-up tests and their results are in [`bringup/`](bringup/).
 > **Requirement changes since the Week 6 design** (GP28 removed, instructor

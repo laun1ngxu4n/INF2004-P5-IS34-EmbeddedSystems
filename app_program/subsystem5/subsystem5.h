@@ -7,6 +7,10 @@
  *	subsystems are allowed to use.  Everything else stays LOCAL in the .c
  *	files.  Other subsystems include it as "../subsystem5/subsystem5.h".
  *
+ *	Stage 1: GP21 STOP stops the motors at once from its interrupt
+ *	(app_stop_request) and tells Mission (MSN_FLG_STOP); GP20 START is
+ *	read by polling (button_down).
+ *
  *	Stage 0: Mission waits on flg_mission with a 100 ms timeout; the
  *	Obstacle Scanner runs every 60 ms (the design's ping period) without
  *	pinging yet (TRIG GP6, ECHO GP7; works at 3.3 V on the bench).
@@ -16,12 +20,20 @@
 #define SUBSYSTEM5_H
 
 #include "../app.h"
+#include "../app_gpio.h"
+#include "../app_stop.h"
 
 /* IF-01: Mission's wake-up event flag, created and owned by subsystem 5.
    Other subsystems only set bits; Mission waits and clears them. */
 IMPORT ID	flg_mission;
 #define MSN_FLG_PING	0x0001u		/* Stage 0 check from Telemetry, 1 Hz */
-#define MSN_FLG_ALL	0x0001u		/* every bit Mission waits for */
+#define MSN_FLG_STOP	0x0002u		/* STOP button pressed (Stage 1) */
+#define MSN_FLG_ALL	0x0003u		/* every bit Mission waits for */
+
+/* On-board buttons (active low), owned by subsystem 5 */
+#define PIN_START	20
+#define PIN_STOP	21
+#define button_down(pin)	(app_gpio_get(pin) == 0u)
 
 /* Private to subsystem 5, shared between its own .c files */
 IMPORT ID	tid_mission;

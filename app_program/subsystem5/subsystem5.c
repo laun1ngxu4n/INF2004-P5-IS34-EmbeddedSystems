@@ -14,9 +14,18 @@ EXPORT ID	tid_obstacle;
 EXPORT ID	cyc_obstacle;
 EXPORT INT	tmg_obstacle;
 
+/* GP21 pressed: interrupt context.  Stop first, then tell Mission. */
+LOCAL void stop_button_isr(UINT pin, UW events)
+{
+	(void)pin; (void)events;
+	app_stop_request(STOP_BUTTON);
+	tk_set_flg(flg_mission, MSN_FLG_STOP);
+}
+
 EXPORT ER subsystem5_init(void)
 {
 	T_CFLG	cflg = {0};
+	ER	er;
 
 	/* Several setters (Telemetry now; buttons, Safety, MQTT later), one
 	   waiter (Mission), which clears the bits it has handled. */
@@ -25,6 +34,19 @@ EXPORT ER subsystem5_init(void)
 	flg_mission = tk_cre_flg(&cflg);
 	if (flg_mission < E_OK) {
 		return flg_mission;
+	}
+
+	er = app_gpio_input(PIN_START, TRUE);
+	if (er < E_OK) {
+		return er;
+	}
+	er = app_gpio_input(PIN_STOP, TRUE);
+	if (er < E_OK) {
+		return er;
+	}
+	er = app_gpio_irq_add(PIN_STOP, APP_GPIO_FALL, stop_button_isr);
+	if (er < E_OK) {
+		return er;
 	}
 
 	tmg_mission = app_timing_add("mission", PRI_MISSION, TIMEOUT_MISSION_MS);

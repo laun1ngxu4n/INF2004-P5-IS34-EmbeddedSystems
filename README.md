@@ -7,7 +7,7 @@
 > barcode/obstacle/ramp rules, IMU is an LSM303D) are in
 > [TEAM.md section 7](TEAM.md#7-scope-changes-after-the-week-6-design).
 > **What we test, stage by stage:** [testing/PLAN.md](testing/PLAN.md) (essentials only).
-> **Handover / full context:** [CONTEXT.md](CONTEXT.md). **How to run every stage:** [TESTING_GUIDE.md](TESTING_GUIDE.md).
+> **Ready-to-flash images:** [images/](images/). **Handover / full context:** [CONTEXT.md](CONTEXT.md). **How to run every stage:** [TESTING_GUIDE.md](TESTING_GUIDE.md).
 
 # micro T-Kernel 3.0 project for Raspberry Pi Pico W
 

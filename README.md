@@ -3,6 +3,9 @@
 > test it) and **[TEAM.md](TEAM.md)** (pins, owners, priorities, interfaces).
 > Build with Pico SDK **2.2.0**; the default is now single core (`SMP=0`).
 > The hardware bring-up tests and their results are in [`bringup/`](bringup/).
+> **Requirement changes since the Week 6 design** (GP28 removed, instructor
+> barcode/obstacle/ramp rules, IMU is an LSM303D) are in
+> [TEAM.md section 7](TEAM.md#7-scope-changes-after-the-week-6-design).
 
 # micro T-Kernel 3.0 project for Raspberry Pi Pico W
 

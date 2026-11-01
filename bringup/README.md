@@ -192,7 +192,7 @@ Robot on blocks, wheels off the table, ultrasonic pointed at a wall
 1. Boot: read the summary. IMU and ultrasonic say OK/CHECK/FAIL; servo,
    LEDs and buzzer say LOOK/LISTEN, so write down what you saw and heard.
    No buzzer sound: check the mute switch on the board.
-2. Battery: the GP28 pin voltage is printed. Measure the battery with a
+2. Battery (**skip: GP28 battery sense removed from scope, TEAM.md section 7**): the GP28 pin voltage is printed. Measure the battery with a
    meter and set `VBAT_DIVIDER = V_batt / V_pin` in `parts_check.c`. Near
    0 V or noisy means GP28 is not wired to the battery on this setup (A12).
 3. Live line: turn each wheel forward by hand and check the count goes up

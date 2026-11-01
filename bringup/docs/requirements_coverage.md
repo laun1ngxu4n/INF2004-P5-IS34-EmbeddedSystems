@@ -1,5 +1,7 @@
 # Requirement coverage of the bring-up tests (against the submitted Week 6 design)
 
+> **Scope changes since Week 6** (27 Oct): see `TEAM.md` section 7 in the repo root. Rows changed by them are marked **[changed]** below.
+
 Coverage levels:
 - Bench: the test measures the requirement's own quantity on the real part, but standalone (no RTOS, no other tasks running). It can show a problem, or support the number; it is not acceptance.
 - Prerequisite: the test measures something the requirement depends on (calibration, wiring, sensor limits), not the requirement itself.
@@ -10,15 +12,15 @@ Coverage levels:
 | ID | Short form | Coverage | From which test | Still needed |
 |---|---|---|---|---|
 | FR1 | Follow the line with IR | Prerequisite | ir_test (polarity, separation, chatter) | Line controller on the course |
-| FR2 | Decode Code 39, A-D mapping | Prerequisite | ir_test (bar widths, 1.8x ratio), encoder_test (mm/count) | Decoder, 20 passes per code |
-| FR2a | New mapping over MQTT at runtime | Prerequisite | wifi_mqtt_test (command path, parser, verdicts) | robot/cmd/map handler and apply-without-restart |
-| FR3 | Execute barcode commands with encoders | Prerequisite | encoder_test (counts/rev, direction), parts_check (mapping) | PID turns and junction logic |
-| FR4 | Detect humps, peak height, report | Prerequisite | imu_test (static tilt h_est, pitch noise) | Moving hump trials, telemetry field |
-| FR5 | Detect and profile obstacles | Prerequisite | ultrasonic_test (accuracy, outcomes, scans) | Profiling logic |
+| FR2 | Decode Code 39 **A-Z, both directions [changed]**; no hard-coded mapping | Prerequisite | ir_test (bar widths, 1.8x ratio), encoder_test (mm/count) | Decoder, 20 passes per code; reverse passes; slower barcode speed (TEAM.md 7.1) |
+| FR2a | New mapping over MQTT at runtime | Prerequisite | wifi_mqtt_test (command path, parser, verdicts) | 4-character map handler and apply-without-restart (draft format in TEAM.md 7.1) |
+| FR3 | Execute barcode commands with encoders; **all moves incl. U-turn at the junction [changed]** | Prerequisite | encoder_test (counts/rev, direction), parts_check (mapping) | PID turns and junction logic |
+| FR4 | Detect humps, peak height, report; **demo ramp = lower practice ramp height [changed]** | Prerequisite | imu_test (static tilt h_est, pitch noise) | Moving hump trials, telemetry field |
+| FR5 | Detect and profile obstacles | Prerequisite | ultrasonic_test (accuracy, outcomes, scans) | Profiling logic: median, hysteresis, background, 2 positions, width +/- uncertainty (TEAM.md 7.2) |
 | FR6 | Navigate around obstacles | None | - | Bypass trials (A9) |
 | FR7 | Telemetry at a regular interval + snapshot | Bench (rate only) | wifi_mqtt_test (1 Hz publish, payload capacity) | Real fields, snapshot with ages (NFR5a) |
 | FR8 | Reacquire line after manoeuvres | None | - | Course trials |
-| FR9 | Stop and FAULT on listed causes | Prerequisite | encoder_test (stall rule timing), imu_test (shock rule), parts_check (GP28) | Safety task, latching, reset rule |
+| FR9 | Stop and FAULT on listed causes; **low battery removed [changed]** | Prerequisite | encoder_test (stall rule timing), imu_test (shock rule) | Safety task, latching, reset rule |
 | FR10 | Heartbeat while connected | Bench | wifi_mqtt_test + mqtt_watch.py | Repeat inside the RTOS |
 | FR11 | Junctions, apply latest command | None | - | Line + Mission integration |
 | FR12 | START/STOP by button or MQTT, mission done | Prerequisite | parts_check (buttons), wifi_mqtt_test (command path) | Mission controller |
@@ -34,7 +36,7 @@ Coverage levels:
 | NFR1 | Line loop period <= 20 ms | None | - | Integrated task timing |
 | NFR1a | No line loss > 300 ms, 10-25 cm/s | None | - | Course runs |
 | NFR2 | IMU sampled >= 100 Hz | Bench | imu_test (fresh samples/s, overruns, loop work) | Same under RTOS load |
-| NFR3 | Coarse scan <= 1.2 s, fine <= 2.0 s | Bench | ultrasonic_test long press (timed, 2 pings/ray, through recentre) | Settle-time validation; repeat in the Obstacle task |
+| NFR3 | Coarse scan <= 1.2 s, fine <= 2.0 s; **limits to be re-set [changed]** | Bench | ultrasonic_test long press (timed, 2 pings/ray, through recentre) | Settle-time validation; repeat in the Obstacle task |
 | NFR4 | Last bar to nav_cmd_q <= 200 ms at 150 mm/s | None | - | Decoder timing at controlled speed |
 | NFR5 | >= 1 Hz; reconnect <= 20 s in 20 worst-phase trials; retry gap <= 2 s | Bench | wifi_mqtt_test (recovery, backoff), mqtt_watch.py | 20 trials under max load, worst phase, independent availability marker |
 | NFR5a | Snapshot <= 500 ms with per-field age | None | - | Snapshot handler with real producers |
@@ -55,15 +57,15 @@ Coverage levels:
 | A1 | WiFi/MQTT stable, reconnect <= 20 s | Bench | wifi_mqtt_test, mqtt_watch.py |
 | A2 | Encoders accurate, little slip | Prerequisite | encoder_test (counts/rev, mismatch); 1 m and turn runs need PID |
 | A3 | IR separates line, junctions, curves | Bench (static) | ir_test; moving logs at 10/15/25 cm/s still needed |
-| A4 | IMU hump height within +/- 5 mm | Bench (static tilt) | imu_test; moving humps still needed |
+| A4 | IMU hump height within +/- 5 mm (LSM303D, calibrate at standstill) | Bench (static tilt) | imu_test; moving humps still needed |
 | A5 | HC-SR04 works at 3.3 V, beam fits margin | Bench | ultrasonic_test |
 | A6 | Track is clean black on light | None | course |
 | A7 | Barcode format and position | Prerequisite | ir_test (bar widths) |
-| A8 | Humps 10-30 mm, no grounding | None | course |
+| A8 | **[changed]** Ramp about the lower practice ramp's height (measure it), no grounding | None | course |
 | A9 | Obstacle depth and corridors | None | bypass trials |
 | A10 | WiFi coverage over the course | Bench | wifi_mqtt_test RSSI + mqtt_watch.py --csv walk |
 | A11 | Element-width resolution <= 1 mm | Prerequisite | encoder_test (mm/count) + ir_test (edge timing) |
-| A12 | Approved power, GP28 scaling | Bench | parts_check (GP28 idle and sag; divider ratio by meter) |
+| A12 | Approved power; **GP28 scaling removed [changed]** | Bench | power bank on VIN run (bringup_results.md) |
 | A13 | Sensor mounting | Prerequisite | ir_test, ultrasonic_test at mounted height |
 | A14 | Stall <= 200 ms; 2 g separates collision from hump | Bench | encoder_test (stall), imu_test (shock / false shock) |
 | A15 | LED/buzzer add no jitter to 10 ms loop | Bench | notify_test (timer-IRQ model, not the RTOS) |

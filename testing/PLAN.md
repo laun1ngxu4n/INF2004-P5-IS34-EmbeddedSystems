@@ -4,7 +4,8 @@ We test only what the demo needs. Measurements that were "nice to have"
 are dropped, and the graded ones (barcode, obstacle width, ramp height) are
 folded into the stage tests below instead of being run on their own.
 
-Every test ID below has its row in the owner's `TEST_LOG.md`.
+Every test ID below has its row in the owner's `TEST_LOG.md`. How to run
+each one: `TESTING_GUIDE.md` (image `make TEST=1 TEST_STAGE=n`).
 
 | Stage | What gets built | Tests (owner folder) | Graded item folded in |
 |---|---|---|---|

@@ -36,6 +36,14 @@ IMPORT ER	app_gpio_input(UINT pin, BOOL pull_up);
 /* Call cb on the given edges of pin.  One callback per pin. */
 IMPORT ER	app_gpio_irq_add(UINT pin, UW events, APP_GPIO_CB cb);
 
+/* Take peripheral blocks out of reset (RESETS_RESET_PWM, _I2C1, ...).
+   The kernel only releases what its own drivers use: with USE_PTMR = 0
+   the PWM block stays in reset, so motors and servo must call this. */
+IMPORT void	app_hw_release(UW resets_mask);
+
+/* Make pin a plain output (low) */
+IMPORT ER	app_gpio_output(UINT pin);
+
 /* Current level of an input pin (0 or 1) */
 #define app_gpio_get(pin)	((in_w(GPIO_IN) >> (pin)) & 1u)
 

@@ -99,7 +99,7 @@ IMPORT void subsystem2_test(void);
 IMPORT void subsystem3_test(void);
 IMPORT void subsystem4_test(void);
 IMPORT void subsystem5_test(void);
-IMPORT void subsystem2_drive_test(void);	/* Stage 1, needs START presses */
+IMPORT void app_stage_test(void);	/* hands-on, TEST_STAGE=n (app_stage_test.c) */
 #endif
 
 /* Print a readable message if a kernel call failed (negative error code) */

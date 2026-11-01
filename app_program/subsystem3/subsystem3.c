@@ -14,6 +14,16 @@ EXPORT INT	tmg_barcode;
 
 EXPORT ER subsystem3_init(void)
 {
+	ER	er;
+
+	er = line_hw_init();
+	if (er < E_OK) {
+		return er;
+	}
+	er = barcode_hw_init();
+	if (er < E_OK) {
+		return er;
+	}
 	tmg_line = app_timing_add("line", PRI_LINE, PERIOD_LINE_MS);
 	tmg_barcode = app_timing_add("barcode", PRI_BARCODE, TIMEOUT_BARCODE_MS);
 	cyc_line = app_create_wake_cyclic(&tid_line, PERIOD_LINE_MS);

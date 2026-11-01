@@ -55,6 +55,20 @@ EXPORT ER app_gpio_init(void)
 	return E_OK;
 }
 
+EXPORT void app_hw_release(UW resets_mask)
+{
+	clr_w(RESETS_RESET, resets_mask);
+	while ((in_w(RESETS_RESET_DONE) & resets_mask) != resets_mask) {
+		;
+	}
+}
+
+EXPORT ER app_gpio_output(UINT pin)
+{
+	gpio_set_val(pin, 0);
+	return gpio_set_pin(pin, GPIO_MODE_OUT);
+}
+
 EXPORT ER app_gpio_input(UINT pin, BOOL pull_up)
 {
 	ER	er;

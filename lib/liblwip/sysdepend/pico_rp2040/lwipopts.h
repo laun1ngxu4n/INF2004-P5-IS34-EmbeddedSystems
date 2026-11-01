@@ -53,7 +53,7 @@
  * mqtt.c arms its own cyclic keepalive timer per client, and mqtt_utk.c adds
  * the heartbeat chain plus a connect-retry timer. Four covers those with
  * room to spare; each slot is only a few bytes. */
-#define MEMP_NUM_SYS_TIMEOUT        (LWIP_NUM_SYS_TIMEOUT_INTERNAL + 4)
+#define MEMP_NUM_SYS_TIMEOUT        (LWIP_NUM_SYS_TIMEOUT_INTERNAL + 6)	/* P5-IS34: +2 for the is34 outbox pump */
 
 #define LWIP_ARP                    1
 #define LWIP_ETHERNET               1

@@ -89,8 +89,12 @@ TEST ?= 0
 ifneq ($(filter $(TEST),0 1),$(TEST))
 $(error Unknown TEST '$(TEST)'; use 0 or 1)
 endif
+# P5-IS34: TEST_STAGE=n picks the hands-on test that runs after the
+# automatic ones: 1 motion+STOP, 2 line+barcode+junction, 3 obstacle,
+# 4 IMU ramp, 6 whole course.  See TESTING_GUIDE.md.
+TEST_STAGE ?= 1
 ifeq ($(TEST),1)
-TEST_SUFFIX := _test
+TEST_SUFFIX := _test_s$(TEST_STAGE)
 endif
 
 # CRASH_REPORT=1 also copies every console line to UART0 on GP0 (TX) /
@@ -178,7 +182,7 @@ ifeq ($(SMP),1)
 CFLAGS  += -DCNF_SMP=1
 ASFLAGS += -DCNF_SMP=1
 endif
-CFLAGS  += -DAPP_TEST=$(TEST)
+CFLAGS  += -DAPP_TEST=$(TEST) -DAPP_TEST_STAGE=$(TEST_STAGE)
 CFLAGS  += -DTM_CONSOLE_UART=$(CRASH_REPORT)
 ifeq ($(CRASH_REPORT),0)
 CFLAGS  += -DBOARD_UART0_FREE=1
@@ -211,7 +215,7 @@ endif
 # before any recipe executes.
 ################################################################################
 
-PROFILE_ID := smp$(SMP)-$(CONSOLE)-wifi$(WIFI)-net$(NET)-mqtt$(MQTT)-crash$(CRASH_REPORT)-test$(TEST)
+PROFILE_ID := smp$(SMP)-$(CONSOLE)-wifi$(WIFI)-net$(NET)-mqtt$(MQTT)-crash$(CRASH_REPORT)-test$(TEST)-stage$(TEST_STAGE)
 PROFILE_FILE := .build_profile
 
 ifneq ($(strip $(shell cat $(PROFILE_FILE) 2>/dev/null)),$(PROFILE_ID))

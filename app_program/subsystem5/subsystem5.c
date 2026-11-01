@@ -36,6 +36,10 @@ EXPORT ER subsystem5_init(void)
 		return flg_mission;
 	}
 
+	er = obstacle_hw_init();
+	if (er < E_OK) {
+		return er;
+	}
 	er = app_gpio_input(PIN_START, TRUE);
 	if (er < E_OK) {
 		return er;

@@ -110,7 +110,7 @@ the drivers have no locking to stop it.
 |---|---|---|---|
 | UART1 | - | | |
 | I2C0 | - | | |
-| I2C1 | S4 | imu_task | GP26, GP27 (LSM303D at 0x1D, 400 kHz) |
+| I2C1 | S4 | imu_task (`imu_i2c.c`, polled) | GP26, GP27 (LSM303D at 0x1D, 400 kHz) |
 | SPI0 | - | | |
 | SPI1 | - | | |
 | ADC | - | | not used (GP28 battery sense removed from scope, section 7) |
@@ -195,9 +195,9 @@ sends to it or waits on it. Agree on the data format before coding.
 |---|---|---|---|---|---|
 | IF-01 | S1 → S5 (later also buttons, Safety, MQTT) | event flag (owned by S5) | `flg_mission` | bit `MSN_FLG_PING`, Stage 0 only; later START/STOP/finish bits | *draft* |
 | IF-02 | all → all | STOP helper `app_stop.[ch]` (Stage 1) + `APP_LOCK` | `app_stop_request(reason)` | motors off at once from any context; Motion cancels its command while any reason is set; owner of a reason clears it | *draft* |
-| IF-03 | S3 → S2 | latest-value slot + event flag | `line_cmd` | newest steering only; old steering is dropped (finding 07) | *draft* |
-| IF-04 | S2 → S5 | Week 6 `completion_slot` | | `{epoch, id, status, stopped}` (kept instead of the v3 message) | *draft* |
-| IF-05 | S1 (MQTT) → S4/S5 | STOP helper, then message buffer | | MQTT STOP sets the STOP bit through the same helper as GP21 before any queue (Version C) | *draft, needs instructor OK for `mqtt_utk.c`* |
+| IF-03 | S3 → S2 | latest value, read by Motion every 10 ms (Stage 2) | `line_steer_mm_s()` | steering mm/s, + = left; newest only (finding 07) | *draft* |
+| IF-04 | S2 → S5 | command id + result slot (Stage 1) | `motion_drive/turn/follow()` return an id; `motion_get_status()` | `{id, result DONE/STOPPED/TIMEOUT/BUSY, counts, speeds}` | *draft* |
+| IF-05 | S1 (MQTT) ↔ all | hooks `app_mqtt_rx()` / `app_mqtt_tx()` called by `mqtt_utk.c` (Stage 5) | `is34/cmd/map|start|stop`, `is34/event`, `is34/telemetry`, `is34/ack/map` | MQTT STOP calls `app_stop_request(STOP_MQTT)` first; events from every subsystem go through `tele_event()` | *draft, needs instructor OK for the `mqtt_utk.c` / `lwipopts.h` change* |
 | IF-06 | | | | | |
 
 Each interface is tested by at least one integration test

@@ -53,12 +53,23 @@ typedef struct {
    reason is set.  A new command replaces a running one. */
 IMPORT ID	motion_drive(INT speed_mm_s, INT dist_mm);	/* speed < 0 = reverse */
 IMPORT ID	motion_turn(INT deg);				/* + = left (CCW) */
+IMPORT ID	motion_follow(INT speed_mm_s);	/* follow the line (IF-03 steering from
+						   line_steer_mm_s()) until another command */
 IMPORT void	motion_halt(void);				/* stop, no STOP reason */
 IMPORT void	motion_get_status(MOTION_STATUS *st);
 
 /* Motors off now.  Any context, also interrupt handlers; used by the
    STOP helper (app_stop.c) and, later, Safety (TEAM.md section 3). */
 IMPORT void	motor_safe_off(void);
+
+/* Distance driven since boot, mean of both wheels, in encoder counts
+   (0.080 mm each).  Any context, also interrupt handlers (barcode edges). */
+IMPORT W	motion_odometer(void);
+#define S2_COUNTS_TO_MM(c)	((c) * S2_UM_PER_COUNT / 1000)
+
+/* Robot body (NOT MEASURED YET, used by obstacle bypass and junctions) */
+#define S2_ROBOT_WIDTH_MM	150	/* outside of the wheels */
+#define S2_ROBOT_LENGTH_MM	200	/* front bumper to back */
 
 /* Private to subsystem 2, shared between its own .c files */
 IMPORT ID	tid_motion;

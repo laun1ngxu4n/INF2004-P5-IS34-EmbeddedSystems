@@ -14,6 +14,7 @@
 #include "subsystem2.h"
 #include "../test_report.h"
 #include "../subsystem5/subsystem5.h"	/* START / STOP buttons */
+#include "../app_stage_test.h"
 
 #if APP_TEST
 
@@ -42,36 +43,6 @@ LOCAL const char *res_name(INT r)
 	}
 }
 
-/* tm_printf has no %f: print x10 as "12.3" */
-LOCAL void print_x10(const char *before, INT x10, const char *after)
-{
-	INT	a = (x10 < 0) ? -x10 : x10;
-
-	tm_printf((UB*)"%s%s%d.%d%s", before, (x10 < 0) ? "-" : "",
-		  a / 10, a % 10, after);
-}
-
-/* Wait for a START press and release.  Clears a STOP once STOP is up. */
-LOCAL void wait_start(const char *what)
-{
-	tm_printf((UB*)"\n[DRIVE] %s\n[DRIVE] press START (GP20) to go\n", what);
-	while (1) {
-		while (!button_down(PIN_START)) {
-			tk_dly_tsk(10);
-		}
-		tk_dly_tsk(30);				/* debounce */
-		if (button_down(PIN_START) && !button_down(PIN_STOP)) {
-			break;
-		}
-	}
-	while (button_down(PIN_START)) {
-		tk_dly_tsk(10);
-	}
-	app_stop_clear(STOP_BUTTON);
-	tm_printf((UB*)"[DRIVE] starting in 1 s, hands off\n");
-	tk_dly_tsk(1000);
-}
-
 /* Wait until command id is no longer BUSY (at most 15 s) */
 LOCAL INT wait_done(ID id, MOTION_STATUS *st)
 {
@@ -97,7 +68,7 @@ LOCAL BOOL test_turns(void)
 	BOOL			all_done = TRUE;
 	INT			round, k;
 
-	wait_start("S2-M02 turns: robot on the floor, mark its heading "
+	test_wait_start("S2-M02 turns: robot on the floor, mark its heading "
 		   "(tape along one side). 3 rounds of: left 90, right 90, 180.");
 	for (round = 1; round <= 3; round++) {
 		for (k = 0; k < 3; k++) {
@@ -123,7 +94,7 @@ LOCAL BOOL test_turns(void)
 			tm_printf((UB*)"[S2-M02] round %d %s: %s in %d ms, ",
 				  round, names[k], res_name(res),
 				  (INT)((app_time_us() - t0) / 1000u) - 300);
-			print_x10("encoder angle ", deg10, " deg\n");
+			test_print_x10("encoder angle ", deg10, " deg\n");
 			if (res != MOT_RES_DONE) {
 				all_done = FALSE;
 				if (res == MOT_RES_STOPPED) {
@@ -135,7 +106,7 @@ LOCAL BOOL test_turns(void)
 		tm_printf((UB*)"[S2-M02] round %d done: write down the real "
 			  "angles (left 90, right 90, 180) from the tape\n", round);
 		if (round < 3) {
-			wait_start("S2-M02 next round: put the robot back on its mark");
+			test_wait_start("S2-M02 next round: put the robot back on its mark");
 		}
 	}
 	return all_done;
@@ -151,7 +122,7 @@ LOCAL BOOL test_slow_speed(void)
 	ID		id;
 	INT		res, mean = 0, diff_mm;
 
-	wait_start("S2-M03 slow speed: 0.5 m clear in front of the robot. "
+	test_wait_start("S2-M03 slow speed: 0.5 m clear in front of the robot. "
 		   "It drives 500 mm at the barcode speed.");
 	motion_get_status(&st);
 	l0 = st.count_l;
@@ -199,7 +170,7 @@ LOCAL BOOL test_stop_once(INT k)
 
 	tm_printf((UB*)"\n[DRIVE] S2-M04 try %d of 5: it drives up to 1.5 m at "
 		  "%d mm/s. PRESS STOP (GP21) while it drives.\n", k, S2_SPEED_LINE);
-	wait_start("S2-M04 STOP");
+	test_wait_start("S2-M04 STOP");
 	id = motion_drive(S2_SPEED_LINE, 1500);
 	if (id < E_OK) {
 		return FALSE;

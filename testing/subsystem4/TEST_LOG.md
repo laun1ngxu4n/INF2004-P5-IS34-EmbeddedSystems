@@ -14,6 +14,7 @@ Define a test here before running it. Test IDs never change.
 | S4-U02 | safety_task: no overrun, longest interval <= 35 ms | build plan timing hooks | auto | same | `[TEST] S4-U02 PASS` |
 | S4-U03 | imu_task wakes every 10 ms (Stage 0, `make TEST=1`) | NFR1/NFR7 timing hooks | auto | `subsystem4_test.c`, 2 s window | wake count within 10 % of 200; `[TEST] S4-U03 PASS` |
 | S4-U04 | imu_task: no overrun, longest interval <= 25 ms | build plan timing hooks | auto | same | `[TEST] S4-U04 PASS` |
+| S4-I01 | *planned (Stage 4)* IMU found and configured under the RTOS | FR4 | auto | `make TEST=1 TEST_STAGE=4` | `[TEST] S4-I01 PASS` |
 | S4-R01 | *planned (Stage 4)* Ramp height | FR4, A4, TEAM.md 7 (ramp) | manual | first measure the lower practice ramp (height, length, flat top?) and the robot's wheelbase L; then 10 runs over the ramp | 10/10 detected; every reported height within +/- 5 mm of the measured height |
 
 *Method:* **auto** = `TEST_CHECK` in code, result printed on the console;

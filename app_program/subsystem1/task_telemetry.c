@@ -1,21 +1,168 @@
 /*
  *	task_telemetry.c
- *	Subsystem 1 -- the Telemetry task (Notification merged in).
+ *	Subsystem 1 -- the Telemetry task (Notification merged in), the event
+ *	outbox and the MQTT command inbox.
  *
- *	Stage 0: every 100 ms it wakes and is timed; once a second it sends
- *	IF-01 (MSN_FLG_PING to Mission); every 10 s it prints the timing table.
- *	Later stages add: LED/buzzer patterns on this 100 ms tick, the 1 Hz
- *	telemetry/heartbeat handed to the MQTT code in the WiFi service task,
- *	and the WIFI_LOSS warning from cyw43_utk_get_status().
+ *	Every 100 ms: IF-01 ping once a second, the status line once a second,
+ *	the timing table every 10 s.  Events from every subsystem go into a
+ *	small outbox; the WiFi task pulls them with app_mqtt_tx() and hands
+ *	commands to app_mqtt_rx().  Both hooks only copy under APP_LOCK and
+ *	never wait, because they run in the kernel's WiFi task.
  */
 
 #include "subsystem1.h"
-#include "../subsystem5/subsystem5.h"	/* IF-01: flg_mission */
+#include "../subsystem2/subsystem2.h"
+#include "../subsystem3/subsystem3.h"
+#include "../subsystem4/subsystem4.h"
+#include "../subsystem5/subsystem5.h"
+
+#define OUTBOX_N	8
+
+typedef struct {
+	UB	topic;			/* 0 event, 1 telemetry, 2 ack/map */
+	UB	text[TELE_TEXT_MAX];
+} OUTMSG;
+
+LOCAL OUTMSG		outbox[OUTBOX_N];
+LOCAL UW		ob_w, ob_r;	/* under APP_LOCK */
+LOCAL UW		out_dropped;
+LOCAL const char	*state_text = "IDLE";
+
+LOCAL void outbox_put(UB topic, const UB *text)
+{
+	UINT	s;
+	INT	i;
+
+	APP_LOCK(s);
+	if (ob_w - ob_r >= OUTBOX_N) {
+		ob_r++;			/* full: drop the oldest */
+		out_dropped++;
+	}
+	outbox[ob_w % OUTBOX_N].topic = topic;
+	for (i = 0; i < TELE_TEXT_MAX - 1 && text[i] != '\0'; i++) {
+		outbox[ob_w % OUTBOX_N].text[i] = text[i];
+	}
+	outbox[ob_w % OUTBOX_N].text[i] = '\0';
+	ob_w++;
+	APP_UNLOCK(s);
+}
+
+EXPORT void tele_event(const UB *text)
+{
+	tm_printf((UB*)"[EVT] %s\n", text);
+	outbox_put(0, text);
+}
+
+EXPORT void tele_set_state(const char *state)
+{
+	state_text = state;
+}
+
+/* ---- MQTT hooks, called from the WiFi task (mqtt_utk.c) ------------- */
+
+/* TRUE if s starts with prefix; *rest = what follows */
+LOCAL BOOL starts_with(const char *s, const char *prefix, const char **rest)
+{
+	while (*prefix != '\0') {
+		if (*s++ != *prefix++) return FALSE;
+	}
+	*rest = s;
+	return TRUE;
+}
+
+LOCAL BOOL same(const char *a, const char *b)
+{
+	while (*a != '\0' && *a == *b) {
+		a++;
+		b++;
+	}
+	return *a == *b;
+}
+
+EXPORT int app_mqtt_tx(char *topic, unsigned tmax, unsigned char *buf, unsigned bmax)
+{
+	static const char	*names[3] = {TOPIC_EVENT, TOPIC_TELEMETRY, TOPIC_ACK_MAP};
+	OUTMSG			m;
+	UINT			s;
+	unsigned		i;
+
+	APP_LOCK(s);
+	if (ob_r == ob_w) {
+		APP_UNLOCK(s);
+		return 0;
+	}
+	m = outbox[ob_r % OUTBOX_N];
+	ob_r++;
+	APP_UNLOCK(s);
+
+	for (i = 0; i + 1 < tmax && names[m.topic][i] != '\0'; i++) {
+		topic[i] = names[m.topic][i];
+	}
+	topic[i] = '\0';
+	for (i = 0; i + 1 < bmax && m.text[i] != '\0'; i++) {
+		buf[i] = m.text[i];
+	}
+	return (int)i;
+}
+
+EXPORT void app_mqtt_rx(const char *topic, const unsigned char *data, unsigned len)
+{
+	const char	*cmd;
+	UB		why[64];
+	UB		msg[TELE_TEXT_MAX];
+
+	if (!starts_with(topic, TOPIC_CMD_PREFIX, &cmd)) {
+		return;
+	}
+	if (same(cmd, "map")) {
+		if (barcode_set_mapping(data, (INT)len, why, sizeof(why))) {
+			UB map[24];
+			barcode_mapping_text(map, sizeof(map));
+			tm_sprintf(msg, (const UB*)"OK %s", map);
+		} else {
+			tm_sprintf(msg, (const UB*)"REJECTED %s (old mapping kept)", why);
+		}
+		tm_printf((UB*)"[MQTT] map: %s\n", msg);
+		outbox_put(2, msg);
+	} else if (same(cmd, "start")) {
+		tm_printf((UB*)"[MQTT] start\n");
+		tk_set_flg(flg_mission, MSN_FLG_START);
+	} else if (same(cmd, "stop")) {
+		app_stop_request(STOP_MQTT);
+		tk_set_flg(flg_mission, MSN_FLG_STOP);
+		tm_printf((UB*)"[MQTT] stop\n");
+	}
+}
+
+/* ---- the task -------------------------------------------------------- */
+
+LOCAL void status_line(void)
+{
+	MOTION_STATUS	st;
+	BARCODE_RESULT	bc;
+	UB		text[TELE_TEXT_MAX];
+	UB		map[24];
+
+	motion_get_status(&st);
+	barcode_last(&bc);
+	barcode_mapping_text(map, sizeof(map));
+	tm_sprintf(text, (const UB*)
+		"state=%s speed=%d,%d dist=%d line=%d junctions=%d "
+		"barcode=%c map=%s ramp_peak=%d.%d stop=%d",
+		state_text, st.speed_l, st.speed_r,
+		(INT)S2_COUNTS_TO_MM(motion_odometer()), line_state(),
+		(INT)line_junctions(), (bc.ok ? bc.ch : '-'),
+		(map[0] != '\0') ? (char*)map : "none",
+		imu_ramp_peak_mm10() / 10, imu_ramp_peak_mm10() % 10,
+		(INT)app_stop_reasons());
+	outbox_put(1, text);
+}
 
 EXPORT void telemetry_task(INT stacd, void *exinf)
 {
 	UINT	report_tick = 0;
 	UINT	ping_tick = 0;
+	UINT	status_tick = 0;
 
 	(void)stacd; (void)exinf;
 
@@ -26,6 +173,10 @@ EXPORT void telemetry_task(INT stacd, void *exinf)
 		if (++ping_tick >= S1_PING_TICKS) {
 			ping_tick = 0;
 			CHECK(tk_set_flg(flg_mission, MSN_FLG_PING), "IF-01 ping");
+		}
+		if (++status_tick >= S1_STATUS_TICKS) {
+			status_tick = 0;
+			status_line();
 		}
 		if (++report_tick >= S1_REPORT_TICKS) {
 			report_tick = 0;

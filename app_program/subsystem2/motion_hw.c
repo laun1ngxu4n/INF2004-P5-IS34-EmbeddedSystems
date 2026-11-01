@@ -106,6 +106,11 @@ EXPORT void motor_safe_off(void)
 	out_w(PWM_SLICE_CC(SLICE_R), 0u);
 }
 
+EXPORT W motion_odometer(void)
+{
+	return (enc_count[WHEEL_R] - enc_count[WHEEL_L]) / 2;
+}
+
 /* Counts with + = forward for both wheels */
 EXPORT void encoder_read(W *l, W *r, UW *invalid)
 {
@@ -127,6 +132,7 @@ EXPORT ER motion_hw_init(void)
 	ER		er;
 	INT		i;
 
+	app_hw_release(RESETS_RESET_PWM);	/* not released by the kernel */
 	motor_safe_off();
 	for (i = 0; i < 4; i++) {
 		pwm_set_pin(mpins[i]);

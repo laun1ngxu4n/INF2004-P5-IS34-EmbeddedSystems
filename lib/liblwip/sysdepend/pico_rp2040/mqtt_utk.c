@@ -26,6 +26,29 @@
 #define MQTT_UTK_KEEPALIVE_S    60
 #define MQTT_UTK_RETRY_MS       3000
 
+/* P5-IS34 (Stage 5): the robot's own topics.  The application provides
+ * app_mqtt_rx() / app_mqtt_tx() (app_program/subsystem1/task_telemetry.c);
+ * the weak versions below keep the template working without them.  Both
+ * run here, in this task, and only copy data -- no lwIP call ever leaves
+ * this task (docs/RELEASE.md safety rule 6). */
+#define IS34_CMD_TOPIC          "is34/cmd/#"
+#define IS34_PUMP_MS            100     /* outbox poll: one message per poll */
+#define IS34_TOPIC_MAX          32
+#define IS34_PAYLOAD_MAX        200
+
+__attribute__((weak)) void app_mqtt_rx(const char *topic,
+                                       const unsigned char *data, unsigned len)
+{
+	(void)topic; (void)data; (void)len;
+}
+
+__attribute__((weak)) int app_mqtt_tx(char *topic, unsigned tmax,
+                                      unsigned char *buf, unsigned bmax)
+{
+	(void)topic; (void)tmax; (void)buf; (void)bmax;
+	return 0;
+}
+
 /* Inbound message staging. A publish arrives as one topic callback followed by
  * one or more data callbacks, so the topic has to be kept until the fragment
  * carrying MQTT_DATA_FLAG_LAST shows up. Both buffers are sized well past the
@@ -84,6 +107,7 @@ static void incoming_data_cb(void *arg, const u8_t *data, u16_t len, u8_t flags)
 		rx_data[rx_len] = '\0';
 		tm_printf((UB*)"mqtt: RX [%s] \"%s\"%s\n", rx_topic, rx_data,
 			  rx_truncated? " (truncated)": "");
+		app_mqtt_rx(rx_topic, rx_data, rx_len);
 	}
 }
 
@@ -127,6 +151,25 @@ static void heartbeat_timeout(void *arg)
 	sys_timeout(MQTT_UTK_HEARTBEAT_MS, heartbeat_timeout, NULL);
 }
 
+/* P5-IS34: publish one queued application message per poll */
+static void is34_pump_timeout(void *arg)
+{
+	char		topic[IS34_TOPIC_MAX];
+	UB		payload[IS34_PAYLOAD_MAX];
+	int		len;
+
+	(void)arg;
+	if(mqtt_client_is_connected(client)) {
+		len = app_mqtt_tx(topic, sizeof(topic), payload, sizeof(payload));
+		if(len > 0) {
+			(void)mqtt_publish(client, topic, payload, (u16_t)len,
+					   0 /* qos */, 0 /* retain */,
+					   publish_done_cb, NULL);
+		}
+	}
+	sys_timeout(IS34_PUMP_MS, is34_pump_timeout, NULL);
+}
+
 static void retry_timeout(void *arg)
 {
 	(void)arg;
@@ -161,6 +204,10 @@ static void connection_cb(mqtt_client_t *c, void *arg, mqtt_connection_status_t 
 
 		err = mqtt_subscribe(client, MQTT_TOPIC, 0 /* qos */,
 				     subscribe_done_cb, NULL);
+		if(err == ERR_OK) {
+			err = mqtt_subscribe(client, IS34_CMD_TOPIC, 0 /* qos */,
+					     subscribe_done_cb, NULL);
+		}
 		if(err != ERR_OK) {
 			tm_printf((UB*)"mqtt: mqtt_subscribe() failed, err=%d\n",
 				  (int)err);
@@ -172,6 +219,8 @@ static void connection_cb(mqtt_client_t *c, void *arg, mqtt_connection_status_t 
 		 * MEMP_SYS_TIMEOUT slot until the pool is exhausted. */
 		sys_untimeout(heartbeat_timeout, NULL);
 		sys_timeout(MQTT_UTK_HEARTBEAT_MS, heartbeat_timeout, NULL);
+		sys_untimeout(is34_pump_timeout, NULL);
+		sys_timeout(IS34_PUMP_MS, is34_pump_timeout, NULL);
 	} else {
 		/* mqtt_client_connect() reconnects on its own for a dropped
 		 * keepalive; a rejected/never-established connection does not

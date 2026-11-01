@@ -22,16 +22,16 @@ image drives, and only after you press START.
 
 | File | What it does |
 |---|---|
-| `mtk3pico_smp0_usb_cdc_wifi_test.uf2` | Stage 0 timing tests (about 25 s), then the **drive tests** below |
+| `mtk3pico_smp0_usb_cdc_wifi_test_s1.uf2` (`make TEST=1 TEST_STAGE=1`) | Stage 0 timing tests (about 25 s), then the **drive tests** below |
 | `mtk3pico_smp0_usb_cdc_wifi.uf2` | Normal image: timing table every 10 s, nothing moves |
 
 Build them yourself as in `RTOS_STAGE0.md` section 1 (`make` and `make TEST=1`).
 
 ## Before you start
 
-- **Power bank on VIN** (the motors need it) **and USB to the laptop** for
-  the log. If the laptop and the power bank together cause a problem, tell
-  me; do not leave the robot on the laptop only, the motors will be weak.
+- **Laptop USB only, no power bank** (never both together: not checked).
+  The motors run on USB 5 V (the bring-up motor tests did); a long cable,
+  the laptop follows the robot. See `TESTING_GUIDE.md` section 1.
 - Turns need the **track width**: wheel centre to wheel centre, in mm.
   The code uses **130 mm, a guess**. Measure it with a ruler and send it
   to me. If you can't, S2-M02 below tells us the right value anyway.
@@ -87,6 +87,6 @@ encoder errors (should be 0 or close to it).
 |---|---|
 | A wheel spins the wrong way, or the robot spins instead of driving straight | Press STOP. Send me the log: a motor or encoder wire is the other way round from bring-up |
 | It drives, then stops early with `TIMEOUT` | A wheel was blocked or too weak (power bank off?); check VIN power |
-| It does not move at all, result `TIMEOUT` | Power bank not on VIN, or the motor switch on the board is off |
+| It does not move at all, result `TIMEOUT` | Too weak on USB (try the test on the power bank alone and watch it), or the motor switch on the board is off |
 | Turns way over or under, all by the same amount | Track width: send the real angles |
 | STOP does nothing | Unplug the power bank, send me the log |

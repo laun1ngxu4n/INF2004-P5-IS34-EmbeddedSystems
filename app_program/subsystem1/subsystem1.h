@@ -6,11 +6,19 @@
  *	subsystems are allowed to use.  Everything else stays LOCAL in the .c
  *	files.  Other subsystems include it as "../subsystem1/subsystem1.h".
  *
- *	Stage 0: the Telemetry task runs every 100 ms (the LED/buzzer tick of
- *	the merged Notification part) and prints the task timing table every
- *	10 s.  No WiFi/MQTT work yet: in this template MQTT lives in the
- *	kernel's WiFi service task (lib/liblwip/sysdepend/pico_rp2040/
- *	mqtt_utk.c), see TEAM.md section 3.
+ *	Stage 5:
+ *	  tele_event()  every subsystem reports results (barcode, junction move,
+ *	                obstacle width, ramp height, faults) through this one
+ *	                call: printed on USB as "[EVT] ..." and published on
+ *	                MQTT topic is34/event.
+ *	  Telemetry task publishes a status line on is34/telemetry every 1 s.
+ *	  MQTT commands (only with "make NET=lwip MQTT=1"):
+ *	    is34/cmd/map    "K=L,Q=R,X=F,M=U"  -> barcode mapping, ack on is34/ack/map
+ *	    is34/cmd/start  (any payload)      -> Mission START
+ *	    is34/cmd/stop   (any payload)      -> STOP at once
+ *	  The MQTT code itself stays in the kernel's WiFi task
+ *	  (lib/liblwip/sysdepend/pico_rp2040/mqtt_utk.c); it calls the two
+ *	  hooks app_mqtt_rx() / app_mqtt_tx() defined in task_telemetry.c.
  */
 
 #ifndef SUBSYSTEM1_H
@@ -23,6 +31,20 @@
 					   by ~12 ms now and then (26 Oct): keep
 					   USB output small, see TEAM.md section 4 */
 #define S1_PING_TICKS		10	/* IF-01 ping every 10 x 100 ms = 1 s */
+#define S1_STATUS_TICKS		10	/* is34/telemetry every 1 s */
+
+#define TOPIC_EVENT		"is34/event"
+#define TOPIC_TELEMETRY		"is34/telemetry"
+#define TOPIC_ACK_MAP		"is34/ack/map"
+#define TOPIC_CMD_PREFIX	"is34/cmd/"
+
+#define TELE_TEXT_MAX		160
+
+/* Report one event line (any task; not from interrupt handlers) */
+IMPORT void	tele_event(const UB *text);
+
+/* Mission state text for the status line (set by Mission) */
+IMPORT void	tele_set_state(const char *state);
 
 /* Private to subsystem 1, shared between its own .c files */
 IMPORT ID	tid_telemetry;

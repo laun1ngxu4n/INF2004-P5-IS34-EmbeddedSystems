@@ -17,11 +17,13 @@
 
 #include "subsystem2.h"
 #include "../app_stop.h"
+#include "../subsystem3/subsystem3.h"	/* IF-03: line_steer_mm_s() */
 
 #define CMD_NONE	0
 #define CMD_DRIVE	1
 #define CMD_TURN	2
 #define CMD_HALT	3
+#define CMD_FOLLOW	4
 
 #define DT_S		0.010f		/* task period */
 #define SPEED_AVG_N	4		/* speed over the last 4 periods */
@@ -79,6 +81,11 @@ EXPORT ID motion_drive(INT speed_mm_s, INT dist_mm)
 EXPORT ID motion_turn(INT deg)
 {
 	return cmd_post(CMD_TURN, S2_SPEED_TURN, deg);
+}
+
+EXPORT ID motion_follow(INT speed_mm_s)
+{
+	return cmd_post(CMD_FOLLOW, speed_mm_s, 0);
 }
 
 EXPORT void motion_halt(void)
@@ -216,6 +223,8 @@ EXPORT void motion_task(INT stacd, void *exinf)
 				limit_ms = (UW)(2000.0f * 3.14159f * S2_TRACK_MM *
 					absf((float)cur.amount) / 360.0f /
 					(float)cur.speed) + 1000;
+			} else if (cur.type == CMD_FOLLOW) {
+				limit_ms = 0;		/* runs until replaced */
 			} else {			/* HALT */
 				result = MOT_RES_DONE;
 				cur.type = CMD_NONE;
@@ -223,7 +232,20 @@ EXPORT void motion_task(INT stacd, void *exinf)
 		}
 
 		/* 3. Run the command */
-		if (cur.type == CMD_DRIVE || cur.type == CMD_TURN) {
+		if (cur.type == CMD_FOLLOW) {
+			float	steer = (float)line_steer_mm_s();	/* + = steer left */
+			float	t_l, t_r;
+
+			v_prof += ACCEL_MM_S2 * DT_S;
+			if (v_prof > absf((float)cur.speed)) v_prof = absf((float)cur.speed);
+			t_l = v_prof - steer;
+			t_r = v_prof + steer;
+			if (t_l < 0.0f) t_l = 0.0f;
+			if (t_r < 0.0f) t_r = 0.0f;
+			duty_l = wheel_duty(&pi_l, t_l, vl);
+			duty_r = wheel_duty(&pi_r, t_r, vr);
+			motor_write(duty_l, duty_r);
+		} else if (cur.type == CMD_DRIVE || cur.type == CMD_TURN) {
 			float	target, done, remain, v_cap, sl, sr, corr;
 
 			elapsed_ms += 10;

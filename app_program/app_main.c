@@ -163,8 +163,9 @@ EXPORT INT usermain(void)
 	subsystem5_test();
 	tm_printf((UB*)"[TEST] === test run end ===\n");
 
-	/* Stage 1: driving tests, each started by the START button */
-	subsystem2_drive_test();
+	/* Hands-on test of the stage picked with TEST_STAGE=n; each move
+	   waits for the START button */
+	app_stage_test();
 #endif
 
 	/* Sleep forever.  Returning from usermain() would shut down. */

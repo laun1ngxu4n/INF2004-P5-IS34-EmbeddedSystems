@@ -10,6 +10,7 @@
 #include "subsystem4.h"
 #include "../subsystem1/subsystem1.h"
 #include "../subsystem2/subsystem2.h"
+#include "../app_math.h"
 
 #define IMU_ADDR	0x1D
 #define REG_WHO_AM_I	0x0F
@@ -43,18 +44,6 @@ EXPORT INT imu_pitch_mdeg_sin(void)	{ return sin_x1000; }
 EXPORT INT imu_ramp_peak_mm10(void)	{ return ramp_peak_mm10; }
 EXPORT UW imu_ramp_reports(void)		{ return ramp_reports; }
 
-LOCAL float sqrt_f(float x)
-{
-	float	r = (x > 1.0f) ? x : 1.0f;
-	INT	i;
-
-	if (x <= 0.0f) return 0.0f;
-	for (i = 0; i < 12; i++) r = 0.5f * (r + x / r);
-	return r;
-}
-
-LOCAL float abs_f(float x)	{ return (x < 0.0f) ? -x : x; }
-
 LOCAL BOOL chip_setup(void)
 {
 	UB who = 0;
@@ -76,7 +65,7 @@ EXPORT void imu_task(INT stacd, void *exinf)
 	float	sin_f = 0.0f, h = 0.0f, peak = 0.0f, peak_sin = 0.0f;
 	W	odo_prev;
 	INT	flat_mm10 = 0;
-	W	quiet_until = 0;
+	INT	quiet_mm10 = 0;		/* distance left before another report */
 
 	(void)stacd; (void)exinf;
 	imu_i2c_init();
@@ -108,12 +97,12 @@ EXPORT void imu_task(INT stacd, void *exinf)
 			float	ax = (float)(H)(b[0] | (b[1] << 8));
 			float	ay = (float)(H)(b[2] | (b[3] << 8));
 			float	az = (float)(H)(b[4] | (b[5] << 8));
-			float	mag = sqrt_f(ax * ax + ay * ay + az * az);
+			float	mag = app_sqrtf(ax * ax + ay * ay + az * az);
 			float	sp, cp, rel;
 
 			if (mag < 1.0f) goto done;
 			sp = ax / mag;				/* sin(pitch) */
-			cp = sqrt_f(ay * ay + az * az) / mag;	/* cos(pitch) */
+			cp = app_sqrtf(ay * ay + az * az) / mag;	/* cos(pitch) */
 
 			if (cal_request) {
 				cal_s += sp;
@@ -144,20 +133,23 @@ EXPORT void imu_task(INT stacd, void *exinf)
 			odo_prev = odo;
 			h += ds * sin_f;
 			height_mm10 = (INT)(h * 10.0f);
-			if (abs_f(h) > abs_f(peak)) peak = h;
-			if (abs_f(sin_f) > abs_f(peak_sin)) peak_sin = sin_f;
+			if (app_absf(h) > app_absf(peak)) peak = h;
+			if (app_absf(sin_f) > app_absf(peak_sin)) peak_sin = sin_f;
 
-			if (abs_f(sin_f) < FLAT_SIN) {
-				flat_mm10 += (INT)(abs_f(ds) * 10.0f);
+			if (quiet_mm10 > 0) {
+				quiet_mm10 -= (INT)(app_absf(ds) * 10.0f);
+			}
+			if (app_absf(sin_f) < FLAT_SIN) {
+				flat_mm10 += (INT)(app_absf(ds) * 10.0f);
 			} else {
 				flat_mm10 = 0;
 			}
 			if (flat_mm10 > FLAT_MM * 10) {
-				INT p10 = (INT)(abs_f(peak) * 10.0f);
+				INT p10 = (INT)(app_absf(peak) * 10.0f);
 
-				if (p10 >= REPORT_MIN_MM10 && odo - quiet_until >= 0) {
+				if (p10 >= REPORT_MIN_MM10 && quiet_mm10 <= 0) {
 					UB	msg[TELE_TEXT_MAX];
-					INT	l10 = (INT)(abs_f(peak_sin) * S4_L_MM * 10.0f);
+					INT	l10 = (INT)(app_absf(peak_sin) * S4_L_MM * 10.0f);
 
 					ramp_peak_mm10 = p10;
 					ramp_reports++;
@@ -165,9 +157,9 @@ EXPORT void imu_task(INT stacd, void *exinf)
 						"ramp peak height %d.%d mm (L*sin(peak pitch) "
 						"%d.%d mm, peak sin %d/1000)",
 						p10 / 10, p10 % 10, l10 / 10, l10 % 10,
-						(INT)(abs_f(peak_sin) * 1000.0f));
+						(INT)(app_absf(peak_sin) * 1000.0f));
 					tele_event(msg);
-					quiet_until = odo + QUIET_AFTER_MM * 1000 / S2_UM_PER_COUNT;
+					quiet_mm10 = QUIET_AFTER_MM * 10;
 				}
 				h = peak = peak_sin = 0.0f;	/* back on the floor */
 				flat_mm10 = 0;

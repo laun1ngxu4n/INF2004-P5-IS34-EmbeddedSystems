@@ -1,4 +1,4 @@
-# Prebuilt images (1 Nov, commit 3ddc0a8 code)
+# Prebuilt images (1 Nov, after the review fixes)
 
 Built from this repo with Pico SDK 2.2.0, 0 warnings. **Not run on the
 robot yet.** Flash: hold BOOTSEL, plug in USB, drag the file onto RPI-RP2.

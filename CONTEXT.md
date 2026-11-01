@@ -60,6 +60,22 @@ All images build with 0 warnings (Pico SDK 2.2.0, arm-none-eabi-gcc
 13.2.1). "Built" means compiled and reviewed, nothing more. Expect the
 first runs to need tuning (section 8).
 
+### Review fixes (1 Nov)
+An outside review of the stage tests found real problems, fixed:
+- `sqrt` used 12 Newton steps from x: for IMU-sized numbers (6.7e7) it
+  gave 17,700 instead of 8,185, so every pitch and height was wrong. Now
+  one correct `app_sqrtf` in `app_program/app_math.h` for everyone.
+- Sonar failure policy: ECHO that never rises is now a sensor fault
+  (`SONAR_FAULT`), never open space; 5 in a row during a run stop the
+  robot, and a scan ray with no ECHO counts as blocked.
+- Ramp report suppression used the odometer, which goes negative after a
+  reverse; now a distance counter.
+- Tests: Stage 1 starts with the wheels lifted (directions S2-M05, STOP
+  S2-M06), asks for the measured real distance, and says the turn PASS is
+  not the angle check. S3-L01 needs 3 m followed. Stage 2's Mission part
+  runs with obstacle watch and IMU off (`mission_features`). Gates in
+  `TESTING_GUIDE.md`.
+
 ## 4. Hardware (measured in bring-up)
 
 - Pico W on Cytron Robo Pico. Pins: `TEAM.md` section 2. Summary: IR

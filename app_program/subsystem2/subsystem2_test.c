@@ -122,11 +122,15 @@ LOCAL BOOL test_slow_speed(void)
 	ID		id;
 	INT		res, mean = 0, diff_mm;
 
+	UW		t0;
+
 	test_wait_start("S2-M03 slow speed: 0.5 m clear in front of the robot. "
-		   "It drives 500 mm at the barcode speed.");
+		   "Mark where the robot's front is now: it drives 500 mm at the "
+		   "barcode speed; then MEASURE how far it really went.");
 	motion_get_status(&st);
 	l0 = st.count_l;
 	r0 = st.count_r;
+	t0 = app_time_us();
 	id = motion_drive(S2_SPEED_BARCODE, 500);
 	if (id < E_OK) {
 		return FALSE;
@@ -154,12 +158,16 @@ LOCAL BOOL test_slow_speed(void)
 	tm_printf((UB*)"[S2-M03] %s; target %d mm/s; middle 300 mm: mean %d, "
 		  "min %d, max %d mm/s (%d samples); left - right %d mm\n",
 		  res_name(res), S2_SPEED_BARCODE, mean, vmin, vmax, n, diff_mm);
+	tm_printf((UB*)"[S2-M03] encoders say %d mm in %d ms. WRITE DOWN the real "
+		  "distance: more than 25 mm off 500 = wrong mm/count scale\n",
+		  (INT)(((st.count_l - l0) + (st.count_r - r0)) / 2 * S2_UM_PER_COUNT / 1000),
+		  (INT)((app_time_us() - t0) / 1000u));
 	return res == MOT_RES_DONE && n > 0 &&
 	       mean >= S2_SPEED_BARCODE * 9 / 10 && mean <= S2_SPEED_BARCODE * 11 / 10;
 }
 
 /* S2-M04: drive, press STOP; time from press to wheels stopped */
-LOCAL BOOL test_stop_once(INT k)
+LOCAL BOOL test_stop_once(INT k, BOOL lifted)
 {
 	MOTION_STATUS	st;
 	ID		id;
@@ -168,9 +176,14 @@ LOCAL BOOL test_stop_once(INT k)
 	BOOL		pressed = FALSE;
 	INT		res;
 
-	tm_printf((UB*)"\n[DRIVE] S2-M04 try %d of 5: it drives up to 1.5 m at "
-		  "%d mm/s. PRESS STOP (GP21) while it drives.\n", k, S2_SPEED_LINE);
-	test_wait_start("S2-M04 STOP");
+	if (lifted) {
+		tm_printf((UB*)"\n[DRIVE] S2-M06 STOP check, wheels LIFTED: the wheels "
+			  "turn forward; PRESS STOP (GP21) after a second.\n");
+	} else {
+		tm_printf((UB*)"\n[DRIVE] S2-M04 try %d of 5: it drives up to 1.5 m at "
+			  "%d mm/s. PRESS STOP (GP21) while it drives.\n", k, S2_SPEED_LINE);
+	}
+	test_wait_start(lifted ? "S2-M06 STOP (wheels lifted)" : "S2-M04 STOP");
 	id = motion_drive(S2_SPEED_LINE, 1500);
 	if (id < E_OK) {
 		return FALSE;
@@ -202,16 +215,55 @@ LOCAL BOOL test_stop_once(INT k)
 	}
 	res = st.result;
 	if (!pressed) {
-		tm_printf((UB*)"[S2-M04] try %d: no STOP pressed (%s), not counted\n",
-			  k, res_name(res));
+		tm_printf((UB*)"[%s] try %d: no STOP pressed (%s), not counted\n",
+			  lifted ? "S2-M06" : "S2-M04", k, res_name(res));
 		return FALSE;
 	}
-	tm_printf((UB*)"[S2-M04] try %d: %s; wheels stopped %d ms after the "
-		  "press; rolled %d mm after the press\n", k, res_name(res),
+	tm_printf((UB*)"[%s] try %d: %s; wheels stopped %d ms after the "
+		  "press; rolled %d mm after the press\n",
+		  lifted ? "S2-M06" : "S2-M04", k, res_name(res),
 		  (INT)((t_last_move - t_press) / 1000u),
 		  (INT)(((last_l - c0_l) + (last_r - c0_r)) / 2 *
 			S2_UM_PER_COUNT / 1000));
 	return res == MOT_RES_STOPPED && (t_last_move - t_press) < 500000u;
+}
+
+/* S2-M05: wheels lifted, both wheels forward then back; check both signs */
+LOCAL BOOL test_directions(void)
+{
+	static const INT	dir[2] = {+1, -1};
+	MOTION_STATUS		st;
+	BOOL			ok = TRUE;
+	INT			k;
+
+	test_wait_start("S2-M05 directions: LIFT THE WHEELS off the table. Both "
+			"wheels turn forward 300 mm, then backward 300 mm. Watch "
+			"that both turn the robot's forward way first.");
+	for (k = 0; k < 2; k++) {
+		W	l0, r0, dl, dr;
+		INT	res;
+
+		motion_get_status(&st);
+		l0 = st.count_l;
+		r0 = st.count_r;
+		res = wait_done(motion_drive(dir[k] * S2_SPEED_BARCODE, 300), &st);
+		tk_dly_tsk(300);
+		motion_get_status(&st);
+		dl = st.count_l - l0;
+		dr = st.count_r - r0;
+		tm_printf((UB*)"[S2-M05] %s: %s, left %d counts, right %d counts "
+			  "(expected about %s3750 each)\n",
+			  (k == 0) ? "forward" : "backward", res_name(res),
+			  (INT)dl, (INT)dr, (k == 0) ? "+" : "-");
+		/* both the commanded sign, and within 25 % of each other */
+		if (dl * dir[k] <= 0 || dr * dir[k] <= 0 ||
+		    dl * 4 * dir[k] < dr * 3 * dir[k] || dr * 4 * dir[k] < dl * 3 * dir[k]) {
+			ok = FALSE;
+		}
+		if (res == MOT_RES_STOPPED) return FALSE;
+		tk_dly_tsk(700);
+	}
+	return ok;
 }
 
 EXPORT void subsystem2_drive_test(void)
@@ -227,13 +279,22 @@ EXPORT void subsystem2_drive_test(void)
 		  "[DRIVE] Track width used for turns: %d mm (S2_TRACK_MM)\n",
 		  S2_TRACK_MM);
 
-	TEST_CHECK("S2-M02", test_turns(),
-		   "all 9 turns finished (judge the angles from the tape: "
-		   "90 +/- 10, 180 +/- 15)");
+	/* Order (review 1 Nov): directions and STOP with the wheels lifted,
+	   then speed/distance on the floor, then turns, then the STOP tries. */
+	TEST_CHECK("S2-M05", test_directions(),
+		   "wheels lifted: both encoders count the commanded way, "
+		   "within 25 % of each other");
+	TEST_CHECK("S2-M06", test_stop_once(0, TRUE),
+		   "wheels lifted: STOP stopped the wheels within 500 ms");
+	tm_printf((UB*)"\n[DRIVE] From here: robot ON THE FLOOR.\n");
 	TEST_CHECK("S2-M03", test_slow_speed(),
-		   "barcode speed: mean within 10 % over the middle 300 mm");
+		   "barcode speed: mean within 10 % (encoders); "
+		   "ALSO record the measured real distance");
+	TEST_CHECK("S2-M02", test_turns(),
+		   "all 9 turn COMMANDS finished. This is not the angle check: "
+		   "pass/fail is your measured angles (90 +/- 10, 180 +/- 15)");
 	for (k = 1; k <= 5; k++) {
-		if (test_stop_once(k)) {
+		if (test_stop_once(k, FALSE)) {
 			stops++;
 		}
 	}

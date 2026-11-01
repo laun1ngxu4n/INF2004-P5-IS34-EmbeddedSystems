@@ -50,8 +50,9 @@ LOCAL void ir_live(void)
 }
 
 /* Follow the line for up to secs; print junctions, barcodes, line lost */
-LOCAL void follow_and_watch(INT secs, INT *junc, INT *lost, INT *codes_ok, INT *codes_fail)
+LOCAL INT follow_and_watch(INT secs, INT *junc, INT *lost, INT *codes_ok, INT *codes_fail)
 {
+	W		odo0 = motion_odometer();
 	UW		j0 = line_junctions(), jn;
 	BARCODE_RESULT	r;
 	UW		seq;
@@ -60,7 +61,7 @@ LOCAL void follow_and_watch(INT secs, INT *junc, INT *lost, INT *codes_ok, INT *
 	barcode_last(&r);
 	seq = r.seq;
 	line_set_enabled(TRUE);
-	if (motion_follow(S2_SPEED_BARCODE) < E_OK) return;
+	if (motion_follow(S2_SPEED_BARCODE) < E_OK) return 0;
 	for (t = 0; t < secs * 100 && !test_stop_pressed(); t++) {
 		tk_dly_tsk(10);
 		jn = line_junctions();
@@ -93,11 +94,12 @@ LOCAL void follow_and_watch(INT secs, INT *junc, INT *lost, INT *codes_ok, INT *
 		}
 	}
 	motion_halt();
+	return (INT)S2_COUNTS_TO_MM(motion_odometer() - odo0);	/* mm followed */
 }
 
 EXPORT void subsystem3_stage_test(void)
 {
-	INT	junc = 0, lost = 0, ok = 0, fail = 0, k;
+	INT	junc = 0, lost = 0, ok = 0, fail = 0, k, dist;
 	TEST_INIT();
 
 	tm_printf((UB*)"\n[DRIVE] === Stage 2: line, junctions, barcodes ===\n"
@@ -105,13 +107,19 @@ EXPORT void subsystem3_stage_test(void)
 		  S2_SPEED_BARCODE);
 	ir_live();
 
+	tm_printf((UB*)"\n[DRIVE] --- Stage 2A: line + junctions ---\n");
 	test_wait_start("S3-L01 / S3-L02: robot on the line. It follows for up to "
-			"60 s; count the junctions you see.");
-	follow_and_watch(60, &junc, &lost, &ok, &fail);
-	tm_printf((UB*)"[S3-L01] line lost %d times; [S3-L02] junctions counted %d "
-		  "(write down the real number)\n", lost, junc);
-	TEST_CHECK("S3-L01", lost == 0, "followed the line without LINE_LOST");
+			"60 s (let it run; STOP only if it goes wrong); count the "
+			"junctions you see.");
+	dist = follow_and_watch(60, &junc, &lost, &ok, &fail);
+	tm_printf((UB*)"[S3-L01] followed %d mm, line lost %d times; [S3-L02] "
+		  "junctions counted %d (write down the real number)\n", dist, lost, junc);
+	TEST_CHECK("S3-L01", lost == 0 && dist >= 3000,
+		   "followed at least 3 m without LINE_LOST");
 
+	tm_printf((UB*)"\n[DRIVE] --- Stage 2B: barcodes. Before each run write "
+		  "down the codes on the track in the order the robot meets them; "
+		  "compare with the printed ones ---\n");
 	for (k = 1; k <= 3; k++) {
 		INT j = 0, l = 0;
 		tm_printf((UB*)"\n[DRIVE] S3-B01..B03 barcodes, run %d of 3\n", k);
@@ -124,8 +132,10 @@ EXPORT void subsystem3_stage_test(void)
 
 	TEST_SUMMARY("subsystem3 stage 2");
 
-	tm_printf((UB*)"\n[DRIVE] S5-B01 / S5-B02 junction moves: Mission takes over.\n");
-	app_course_test();
+	tm_printf((UB*)"\n[DRIVE] --- Stage 2C: S5-B01 / S5-B02 junction moves. "
+		  "Mission takes over, obstacle watch and IMU OFF (untested "
+		  "until Stages 3 and 4) ---\n");
+	app_course_test(FALSE, FALSE);
 }
 
 #endif /* APP_TEST */

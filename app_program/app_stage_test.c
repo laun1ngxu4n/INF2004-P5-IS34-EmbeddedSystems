@@ -60,12 +60,15 @@ EXPORT void test_use_test_mapping(void)
 		  "the demo mapping comes over MQTT)\n");
 }
 
-/* Stage 6: the whole course, Mission in charge */
-EXPORT void app_course_test(void)
+/* Mission in charge.  Stage 2 runs it without obstacle watch and IMU
+   (not tested yet), Stage 3 adds obstacles, Stage 6 uses everything. */
+EXPORT void app_course_test(BOOL obstacles, BOOL imu)
 {
 	UB map[24];
 
-	tm_printf((UB*)"\n[DRIVE] === Stage 6: whole course (SYS-01) ===\n");
+	mission_features(obstacles, imu);
+	tm_printf((UB*)"\n[DRIVE] === Mission run: obstacle watch %s, IMU %s ===\n",
+		  obstacles ? "ON" : "OFF", imu ? "ON" : "OFF");
 #if defined(TM_MQTT) && TM_MQTT
 	tm_printf((UB*)"[DRIVE] send the mapping from the PC: topic is34/cmd/map\n");
 	while (barcode_mapping_text(map, sizeof(map)) == 0) {
@@ -88,7 +91,7 @@ EXPORT void app_stage_test(void)
 	case 2:	subsystem3_stage_test();	break;
 	case 3:	subsystem5_stage_test();	break;
 	case 4:	subsystem4_stage_test();	break;
-	case 6:	app_course_test();		break;
+	case 6:	app_course_test(TRUE, TRUE);	break;
 	default:
 		tm_printf((UB*)"[DRIVE] no hands-on test for TEST_STAGE=%d\n",
 			  APP_TEST_STAGE);

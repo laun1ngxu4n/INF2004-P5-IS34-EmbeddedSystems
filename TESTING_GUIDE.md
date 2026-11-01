@@ -67,17 +67,47 @@ motors at once, at any time.**
 
 ## 4. Stage by stage
 
+### Gates: a console PASS is not enough
+
+Move to the next step only with the evidence in this table. Every
+`[TEST] PASS` must be backed by the physical result it stands for, and
+every test image re-runs the Stage 0 timing checks on the exact firmware
+you are testing.
+
+| Gate | Evidence before going on |
+|---|---|
+| Stage 0 | the 17 auto checks PASS at the start of the image under test |
+| Stage 1 | right directions and signs (lifted), STOP works (lifted, then 5/5 on the floor), real 0.5 m distance measured, real turn angles measured |
+| Stage 2A | at least 3 m of line following without loss; junction count = real count |
+| Stage 2B | the codes placed on the track, in order, decoded in both directions |
+| Stage 2C | the right move at each junction, U-turn, and the stop for an unmapped code (obstacle watch and IMU are OFF here) |
+| Stage 3 | servo direction, widths of known obstacles inside W +/- U, a clean bypass; a covered sonar must stop the run |
+| Stage 4 | measured ramp height, 10 runs within +/- 5 mm |
+| Stage 5 | mapping and telemetry with the robot STILL first, then START/STOP while it moves |
+| Stage 6 | repeated full runs, with logs and what you saw |
+
+Stages 3 and 4 only need Stage 1 (and the line for the bypass); they can
+be done in either order. All subsystems still start in every image:
+`TEST_STAGE` only picks the hands-on part.
+
 ### Stage 1: motion + STOP (`_test_s1`), owner B2
 
-1. Robot on the floor, tape mark along one side for its heading.
-2. **S2-M02 turns**: 3 rounds of left 90, right 90, 180. After each round
-   write down the real angles (protractor app). Pass: 90 +/- 10, 180 +/- 15.
-   All turns off by the same factor = track width wrong: new
-   `S2_TRACK_MM` = old x (commanded angle / real angle).
-3. **S2-M03 slow speed**: 0.5 m at 150 mm/s. Pass: `[TEST] S2-M03 PASS`
-   (mean within 10 %).
-4. **S2-M04 STOP**: 5 tries, press STOP while it drives. Pass: 5/5 within
-   500 ms.
+Order (review, 1 Nov): wheels lifted first, then the floor.
+1. **S2-M05 directions, wheels LIFTED**: both wheels forward 300 mm, then
+   back. Watch that both turn the robot's forward way first. Pass: PASS
+   line, and what you saw matches.
+2. **S2-M06 STOP, wheels lifted**: press STOP after a second. Pass: wheels
+   stop at once.
+3. Robot on the floor from here. **S2-M03**: mark the front, it drives
+   500 mm at 150 mm/s; **measure the real distance**. Pass: PASS line
+   (speed) and the real distance 475-525 mm. Otherwise the mm/count scale
+   is off: send the number.
+4. **S2-M02 turns**: 3 rounds of left 90, right 90, 180 from a tape mark.
+   The PASS line only means the commands finished; **pass/fail is your
+   measured angles**: 90 +/- 10, 180 +/- 15. All off by the same factor =
+   track width wrong: new `S2_TRACK_MM` = old x (commanded / real angle).
+5. **S2-M04 STOP**: 5 tries on the floor, press STOP while it drives.
+   Pass: 5/5 within 500 ms.
 
 If a wheel turns the wrong way, or it spins when it should drive: STOP,
 send the log (a motor or encoder wire differs from bring-up).
@@ -86,17 +116,19 @@ send the log (a motor or encoder wire differs from bring-up).
 
 1. **IR view (15 s)**: slide black tape under each sensor; L, C and B
    must each change. Nothing changes = sensor or pot.
-2. **S3-L01 / S3-L02**: robot on the line, START. It follows up to 60 s
-   and prints each junction. Pass L01: `[TEST] S3-L01 PASS` (no line
-   lost). L02: printed junction count = real count (write both down).
+2. **2A, S3-L01 / S3-L02**: robot on the line, START, let it run (up to
+   60 s). Pass L01: `[TEST] S3-L01 PASS` = at least 3 m followed with no
+   line lost, and you saw it stay on the line. L02: printed junction count = real count (write both down).
    If it wobbles off the line on curves: `STEER_SMALL` / `STEER_HARD` in
    `subsystem3/task_line.c`.
-3. **S3-B01..B03**: 3 runs over stretches with barcodes, forwards and
-   backwards; each barcode prints `[S3] barcode X` or `READ_FAIL`. Write
-   down which codes were on the track. "A small" must read too
+3. **2B, S3-B01..B03**: before each run **write down the codes on the
+   track in the order the robot meets them**; 3 runs, forwards and
+   backwards. Each prints `[S3] barcode X` or `READ_FAIL`. Pass: the printed
+   sequence equals your written one ("it decoded something" is not a pass). "A small" must read too
    (S3-B03): if it fails, lower `S2_SPEED_BARCODE` and rebuild.
-4. **S5-B01 / S5-B02**: Mission takes over with the TEST mapping (A=L,
-   B=R, C=F, D=U). START: it follows the line, reads barcodes and does
+4. **2C, S5-B01 / S5-B02**: Mission takes over with the TEST mapping (A=L,
+   B=R, C=F, D=U), with obstacle watch and IMU **off** (they are tested in
+   Stages 3 and 4). START: it follows the line, reads barcodes and does
    the move at the next junction (`[EVT] junction ...`). Check a U-turn
    barcode too (D). For S5-B02 use a code not in the mapping (e.g. E):
    it must stop at the junction with "no mapping for barcode E".
@@ -105,7 +137,12 @@ send the log (a motor or encoder wire differs from bring-up).
 
 1. **Servo check**: at the first START prompt the sensor must point
    LEFT, at the second RIGHT. Wrong way: `S5_SERVO_LEFT_HIGH 0`, rebuild.
-2. **Sonar view (10 s)**: hand in front, distances must follow.
+2. **Sonar view (10 s)**: hand in front, distances must follow. `-1` =
+   nothing in range, `-2` = no ECHO at all (sensor or wiring fault).
+   Failure policy: during a run, 5 pings in a row with no ECHO stop the
+   robot ("ultrasonic not answering"); a scan ray with no ECHO counts as
+   blocked, never as open space. Check it once: cover/unplug ECHO during
+   S5-O02 and the robot must stop.
 3. **S5-O01 width**: 15 tries, obstacle about 250 mm straight ahead.
    Use 100, 150 and 200 mm wide obstacles, 5 each. Each try scans,
    reverses 80 mm, scans again and prints
@@ -131,7 +168,8 @@ send the log (a motor or encoder wire differs from bring-up).
 
 ### Stage 5: telemetry + MQTT (demo image), owner B1
 
-Needs section 6 first. Power bank only. On the laptop:
+Needs section 6 first. Power bank only. **Robot on a stand (wheels
+lifted) for steps 1-2**, on the floor only for step 3. On the laptop:
 ```sh
 mosquitto_sub -h <broker IP> -t 'is34/#' -v
 ```

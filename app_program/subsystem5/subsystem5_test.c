@@ -86,7 +86,7 @@ EXPORT void subsystem5_stage_test(void)
 
 	tm_printf((UB*)"\n[DRIVE] S5-O02 bypass: Mission takes over. Put an obstacle "
 		  "on the line ahead of the robot.\n");
-	app_course_test();
+	app_course_test(TRUE, FALSE);		/* IMU is Stage 4 */
 }
 
 #endif /* APP_TEST */

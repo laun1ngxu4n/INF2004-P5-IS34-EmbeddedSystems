@@ -39,6 +39,19 @@
 LOCAL INT		mstate = M_IDLE;
 LOCAL volatile BOOL	armed = !APP_TEST;
 LOCAL UB		pending;		/* latest unconsumed barcode, 0 = none */
+LOCAL BOOL		use_obstacles = TRUE;
+LOCAL BOOL		use_imu = TRUE;
+
+EXPORT void mission_features(BOOL obstacles, BOOL imu)
+{
+	use_obstacles = obstacles;
+	use_imu = imu;
+}
+
+LOCAL void watch_on(void)
+{
+	obstacle_watch(use_obstacles);
+}
 
 EXPORT void mission_arm(BOOL on)	{ armed = on; }
 
@@ -110,7 +123,7 @@ LOCAL BOOL resume_follow(void)
 		tk_dly_tsk(10);
 	}
 	line_set_enabled(TRUE);
-	obstacle_watch(TRUE);
+	watch_on();
 	tk_clr_flg(flg_mission, ~(MSN_FLG_JUNCTION | MSN_FLG_LINE_LOST |
 				  MSN_FLG_OBSTACLE | MSN_FLG_BARCODE));
 	return TRUE;
@@ -123,7 +136,7 @@ LOCAL void start_run(void)
 	say((const UB*)"start");
 	set_state(M_CAL);
 	motion_halt();
-	if (imu_ok()) {
+	if (use_imu && imu_ok()) {
 		imu_calibrate();
 		for (t = 0; t < 200 && !imu_calibrated(); t++) tk_dly_tsk(10);
 	}
@@ -134,7 +147,7 @@ LOCAL void start_run(void)
 		return;
 	}
 	line_set_enabled(TRUE);
-	obstacle_watch(TRUE);
+	watch_on();
 	set_state(M_RUN);
 }
 
@@ -199,7 +212,7 @@ LOCAL BOOL ahead_clear(INT dist_mm)
 {
 	INT d = sonar_ping_mm();
 
-	return d < 0 || d > dist_mm + MARGIN_MM;
+	return d == SONAR_OPEN || (d >= 0 && d > dist_mm + MARGIN_MM);	/* fault = not clear */
 }
 
 LOCAL void on_obstacle(void)
@@ -214,10 +227,18 @@ LOCAL void on_obstacle(void)
 	obstacle_watch(FALSE);
 	line_set_enabled(FALSE);
 	wait_still();
+	if (obstacle_sensor_fault()) {
+		halt("ultrasonic not answering (no ECHO), not driving blind");
+		return;
+	}
 	tm_sprintf(msg, (const UB*)"obstacle ahead at %d mm: scanning", obstacle_front_mm());
 	say(msg);
 
 	obstacle_scan(&a);
+	if (a.fault_rays > a.rays / 2) {
+		halt("ultrasonic not answering during the scan");
+		return;
+	}
 	if (!a.found) {
 		say((const UB*)"scan found nothing ahead, going on");
 		if (!resume_follow()) halt("could not restart");

@@ -20,7 +20,7 @@ IMPORT void	subsystem2_drive_test(void);		/* stage 1 */
 IMPORT void	subsystem3_stage_test(void);		/* stage 2 */
 IMPORT void	subsystem5_stage_test(void);		/* stage 3 */
 IMPORT void	subsystem4_stage_test(void);		/* stage 4 */
-IMPORT void	app_course_test(void);			/* stage 6 */
+IMPORT void	app_course_test(BOOL obstacles, BOOL imu);	/* Mission run; stage 6 = all on */
 #endif
 
 #endif /* APP_STAGE_TEST_H */

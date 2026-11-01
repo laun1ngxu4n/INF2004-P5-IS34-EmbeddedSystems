@@ -54,7 +54,14 @@ IMPORT ID	flg_mission;
    so edges are pulled in by it.  Tune with S5-O01 known widths. */
 #define S5_BEAM_HALF_DEG	6
 
+/* Sonar results: mm, or SONAR_OPEN (echo came back too late or not at
+   all after rising: nothing in range), or SONAR_FAULT (ECHO never rose:
+   sensor or wiring fault, never treated as open space). */
+#define SONAR_OPEN		(-1)
+#define SONAR_FAULT		(-2)
+
 IMPORT void	obstacle_watch(BOOL on);	/* forward watch during line following */
+IMPORT BOOL	obstacle_sensor_fault(void);	/* 5 pings in a row without ECHO */
 IMPORT INT	obstacle_front_mm(void);	/* last forward reading, -1 = none */
 
 typedef struct {
@@ -67,6 +74,7 @@ typedef struct {
 	BOOL	left_clear;	/* open space beyond the left edge */
 	BOOL	right_clear;
 	INT	rays;		/* rays scanned */
+	INT	fault_rays;	/* rays where the sensor did not answer */
 } OBSTACLE_PROFILE;
 
 /* Blocking: called by Mission (or a test) while the robot stands still.
@@ -76,13 +84,17 @@ IMPORT void	obstacle_scan(OBSTACLE_PROFILE *p);
 IMPORT void	obstacle_combine(const OBSTACLE_PROFILE *a, const OBSTACLE_PROFILE *b,
 				 OBSTACLE_PROFILE *out);
 IMPORT void	servo_set_angle(INT deg);	/* 30..150, 90 = ahead */
-IMPORT INT	sonar_ping_mm(void);		/* blocking 60 ms; -1 = no echo */
+IMPORT INT	sonar_ping_mm(void);		/* blocking 60 ms; mm, SONAR_OPEN or SONAR_FAULT */
 
 /* ---- Mission ------------------------------------------------------- */
 IMPORT const char *mission_state_name(void);
 /* Mission reacts to START only when armed: always in the normal image;
    in a test image only after the test arms it (so tests can use START). */
 IMPORT void	mission_arm(BOOL on);
+/* Which parts Mission uses (all TRUE in the normal image).  Stage tests
+   switch off the parts not tested yet, so a Stage 2 run does not depend
+   on the untested obstacle (Stage 3) or IMU (Stage 4) code. */
+IMPORT void	mission_features(BOOL obstacles, BOOL imu);
 
 /* Private to subsystem 5, shared between its own .c files */
 IMPORT ID	tid_mission;

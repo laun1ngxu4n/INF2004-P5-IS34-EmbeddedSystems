@@ -17,6 +17,7 @@
 
 #include "subsystem2.h"
 #include "../app_stop.h"
+#include "../app_math.h"
 #include "../subsystem3/subsystem3.h"	/* IF-03: line_steer_mm_s() */
 
 #define CMD_NONE	0
@@ -110,21 +111,6 @@ LOCAL float clampf(float v, float lo, float hi)
 LOCAL float absf(float v)
 {
 	return (v < 0.0f) ? -v : v;
-}
-
-/* sqrt for the slow-down curve (no libm needed) */
-LOCAL float sqrtf_pos(float x)
-{
-	float	r = (x > 1.0f) ? x : 1.0f;
-	INT	i;
-
-	if (x <= 0.0f) {
-		return 0.0f;
-	}
-	for (i = 0; i < 12; i++) {
-		r = 0.5f * (r + x / r);
-	}
-	return r;
 }
 
 typedef struct {
@@ -275,7 +261,7 @@ EXPORT void motion_task(INT stacd, void *exinf)
 			}
 
 			/* Profile: ramp up, never faster than can stop in 'remain' */
-			v_cap = sqrtf_pos(2.0f * ACCEL_MM_S2 * remain);
+			v_cap = app_sqrtf(2.0f * ACCEL_MM_S2 * remain);
 			if (v_cap < V_MIN_MM_S) v_cap = V_MIN_MM_S;
 			v_prof += ACCEL_MM_S2 * DT_S;
 			if (v_prof > absf((float)cur.speed)) v_prof = absf((float)cur.speed);

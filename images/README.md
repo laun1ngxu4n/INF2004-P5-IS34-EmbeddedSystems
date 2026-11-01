@@ -17,5 +17,26 @@ Not here: the **demo image with MQTT** (`make NET=lwip MQTT=1`). It needs
 your WiFi name, password and broker IP compiled in, so each person builds
 it with their own `config/wifi_secrets.h` (TESTING_GUIDE.md section 6).
 
+## Bring-up part checks (`bringup/`, no RTOS)
+
+`images/bringup/` holds the stand-alone part tests, rebuilt on 1 Nov from
+the current `bringup/` source (v3.2) with Pico SDK 2.2.0, 0 warnings.
+They do not use the RTOS. How to run each one and what it prints:
+`../bringup/README.md`; past results: `../bringup/docs/bringup_results.md`.
+
+| File | Checks |
+|---|---|
+| `parts_check_v3.2.uf2` | every part alive: IR, encoders, motors (wheels lifted), sonar, servo, IMU, buttons |
+| `encoder_test_v3.2.uf2` | encoder counts, direction, speed per duty |
+| `ir_test_v3.2.uf2` | IR line and barcode sensor edges |
+| `ultrasonic_test_v3.2.uf2` | sonar accuracy, servo scans |
+| `imu_test_v3.2.uf2` | IMU pitch, tilt height, shocks |
+| `i2c_diag_v3.2.uf2` | finds the IMU on the I2C bus |
+| `notify_test_v3.2.uf2` | NeoPixel and buzzer |
+| `wifi_mqtt_test_prompt_v3.2.uf2` | WiFi + MQTT; asks for SSID, password and broker IP over USB |
+
+Quick health check before a test session: flash `parts_check_v3.2.uf2`
+(wheels lifted), then flash the stage image you want.
+
 After changing any code, rebuild and replace these files, or they no
 longer match the code.

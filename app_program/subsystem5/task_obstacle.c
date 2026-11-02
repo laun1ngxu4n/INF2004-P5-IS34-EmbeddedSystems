@@ -24,8 +24,8 @@
 #define PIN_SERVO	14		/* PWM slice 7 A */
 #define SERVO_SLICE	7
 
-#define SCAN_FROM	40		/* servo degrees */
-#define SCAN_TO		140
+#define SCAN_FROM	(90 - S5_SERVO_HALF_DEG)	/* servo degrees */
+#define SCAN_TO		(90 + S5_SERVO_HALF_DEG)
 #define SCAN_STEP	5
 #define NRAYS		((SCAN_TO - SCAN_FROM) / SCAN_STEP + 1)
 #define PINGS		5
@@ -94,15 +94,27 @@ EXPORT INT sonar_ping_mm(void)
 	return echo_mm();
 }
 
+LOCAL void servo_write(INT deg)
+{
+	INT us = 1500 + (deg - 90) * S5_SERVO_US_PER_DEG * (S5_SERVO_LEFT_HIGH ? 1 : -1);
+
+	pwm_set_cc(PIN_SERVO, (UW)us);			/* 1 count = 1 us */
+	servo_now = deg;
+}
+
+/* Walk there S5_SERVO_DEG_STEP per 20 ms frame: a full-speed jump broke
+   the servo horn */
 EXPORT void servo_set_angle(INT deg)
 {
-	INT us;
+	if (deg < SCAN_FROM) deg = SCAN_FROM;
+	if (deg > SCAN_TO) deg = SCAN_TO;
+	while (servo_now != deg) {
+		INT next = servo_now + ((deg > servo_now) ? S5_SERVO_DEG_STEP : -S5_SERVO_DEG_STEP);
 
-	if (deg < 30) deg = 30;
-	if (deg > 150) deg = 150;
-	servo_now = deg;
-	us = 1500 + (deg - 90) * S5_SERVO_US_PER_DEG * (S5_SERVO_LEFT_HIGH ? 1 : -1);
-	pwm_set_cc(PIN_SERVO, (UW)us);			/* 1 count = 1 us */
+		if ((deg > servo_now) ? (next > deg) : (next < deg)) next = deg;
+		servo_write(next);
+		tk_dly_tsk(20);
+	}
 }
 
 EXPORT void obstacle_watch(BOOL on)	{ watch = on; }

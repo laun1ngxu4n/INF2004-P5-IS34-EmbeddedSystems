@@ -48,11 +48,15 @@ EXPORT void subsystem5_stage_test(void)
 	TEST_INIT();
 
 	tm_printf((UB*)"\n[DRIVE] === Stage 3: obstacle ===\n");
-	servo_set_angle(150);
-	test_wait_start("Servo check: the ultrasonic should now point LEFT. If it "
-			"points RIGHT, set S5_SERVO_LEFT_HIGH to 0 and rebuild.");
-	servo_set_angle(30);
-	test_wait_start("Servo check: now it should point RIGHT.");
+	servo_set_angle(90);
+	test_wait_start("Servo check: the ultrasonic should point STRAIGHT AHEAD "
+			"(if not, refit the horn while it is powered).");
+	servo_set_angle(90 + S5_SERVO_HALF_DEG);
+	test_wait_start("Servo check: it should now point LEFT. If it points "
+			"RIGHT, set S5_SERVO_LEFT_HIGH to 0 and rebuild. Do the "
+			"wires at the back still have slack?");
+	servo_set_angle(90 - S5_SERVO_HALF_DEG);
+	test_wait_start("Servo check: now it should point RIGHT. Wires still slack?");
 	servo_set_angle(90);
 
 	tm_printf((UB*)"[S5] forward distance for 10 s: move your hand in front\n");
@@ -61,11 +65,12 @@ EXPORT void subsystem5_stage_test(void)
 		tk_dly_tsk(270);
 	}
 
-	for (k = 1; k <= 15; k++) {
-		tm_printf((UB*)"\n[DRIVE] S5-O01 width, try %d of 15 (5 each of 100, "
-			  "150, 200 mm)\n", k);
-		test_wait_start("Obstacle about 250 mm straight ahead of the sensor. "
-				"Write down its real width.");
+	for (k = 1; k <= 6; k++) {
+		tm_printf((UB*)"\n[DRIVE] S5-O01 width, try %d of 6 (any 3 boxes of "
+			  "different widths, 2 tries each; STOP ends early)\n", k);
+		test_wait_start("Box about 250 mm straight ahead of the sensor, flat "
+				"face to it, nothing else within 50 cm. Write down "
+				"its real width (ruler).");
 		obstacle_scan(&a);
 		motion_drive(-S2_SPEED_BARCODE, 80);
 		do {

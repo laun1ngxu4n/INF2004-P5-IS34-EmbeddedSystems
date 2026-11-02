@@ -23,6 +23,11 @@
 #define FLAT_MM		100		/* level for this far = back on the floor */
 #define REPORT_MIN_MM10	80		/* peaks under 8 mm are not ramps */
 #define QUIET_AFTER_MM	600		/* no 2nd report for the way down */
+/* Tilt alone keeps |a| at 1 g; a bump or a speed change adds to it.  A
+   sample more than this far from the calibrated |a| is a jolt, not tilt:
+   keep the last pitch (Stage 4 run, 2 Nov: hitting a 10 mm hump read as
+   up to 40 deg) */
+#define JOLT_FRAC	0.05f
 
 IMPORT void	imu_i2c_init(void);
 IMPORT ER	imu_i2c_read(UB addr, UB reg, UB *buf, INT n);
@@ -35,6 +40,7 @@ LOCAL volatile INT	height_mm10;
 LOCAL volatile INT	sin_x1000;
 LOCAL volatile INT	ramp_peak_mm10;
 LOCAL volatile UW	ramp_reports;
+LOCAL volatile UW	jolts;
 
 EXPORT BOOL imu_ok(void)		{ return ok; }
 EXPORT void imu_calibrate(void)		{ calibrated = FALSE; cal_request = TRUE; }
@@ -43,6 +49,7 @@ EXPORT INT imu_height_mm10(void)	{ return height_mm10; }
 EXPORT INT imu_pitch_mdeg_sin(void)	{ return sin_x1000; }
 EXPORT INT imu_ramp_peak_mm10(void)	{ return ramp_peak_mm10; }
 EXPORT UW imu_ramp_reports(void)		{ return ramp_reports; }
+EXPORT UW imu_jolts(void)		{ return jolts; }
 
 LOCAL BOOL chip_setup(void)
 {
@@ -62,6 +69,7 @@ EXPORT void imu_task(INT stacd, void *exinf)
 {
 	INT	retry = 0, ncal = 0;
 	float	cal_s = 0.0f, cal_c = 0.0f, s0 = 0.0f, c0 = 1.0f;
+	float	cal_m = 0.0f, m0 = 0.0f;		/* |a| when level and still */
 	float	sin_f = 0.0f, h = 0.0f, peak = 0.0f, peak_sin = 0.0f;
 	W	odo_prev;
 	INT	flat_mm10 = 0;
@@ -107,10 +115,12 @@ EXPORT void imu_task(INT stacd, void *exinf)
 			if (cal_request) {
 				cal_s += sp;
 				cal_c += cp;
+				cal_m += mag;
 				if (++ncal >= CAL_SAMPLES) {
 					s0 = cal_s / CAL_SAMPLES;
 					c0 = cal_c / CAL_SAMPLES;
-					cal_s = cal_c = 0.0f;
+					m0 = cal_m / CAL_SAMPLES;
+					cal_s = cal_c = cal_m = 0.0f;
 					ncal = 0;
 					cal_request = FALSE;
 					calibrated = TRUE;
@@ -119,10 +129,15 @@ EXPORT void imu_task(INT stacd, void *exinf)
 				}
 				goto done;
 			}
-			/* sin(pitch - level pitch), low-pass filtered */
-			rel = sp * c0 - cp * s0;
-			sin_f += LPF_K * (rel - sin_f);
-			sin_x1000 = (INT)(sin_f * 1000.0f);
+			/* sin(pitch - level pitch), low-pass filtered; jolts
+			   skipped (the pitch from before them is kept) */
+			if (app_absf(mag - m0) <= JOLT_FRAC * m0) {
+				rel = sp * c0 - cp * s0;
+				sin_f += LPF_K * (rel - sin_f);
+				sin_x1000 = (INT)(sin_f * 1000.0f);
+			} else {
+				jolts++;
+			}
 		}
 
 		/* Height: distance driven x sin(pitch) */

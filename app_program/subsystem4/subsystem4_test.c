@@ -58,12 +58,46 @@ EXPORT void subsystem4_stage_test(void)
 				"straight at it. It calibrates 1 s, then drives 1.5 m.");
 		imu_calibrate();
 		while (!imu_calibrated()) tk_dly_tsk(10);
-		motion_drive(S2_SPEED_BARCODE, 1500);
-		for (t = 0; t < 1500; t++) {
-			MOTION_STATUS st;
-			motion_get_status(&st);
-			if (st.result != MOT_RES_BUSY) break;
-			tk_dly_tsk(10);
+		{
+			W odo0 = motion_odometer();
+			UW j0 = imu_jolts();
+			INT hmax = 0, smax = 0;
+
+			motion_drive(S2_SPEED_BARCODE, 1500);
+			for (t = 0; t < 1500; t++) {
+				MOTION_STATUS st;
+				motion_get_status(&st);
+				if (st.result != MOT_RES_BUSY) break;
+				if (imu_height_mm10() > hmax) hmax = imu_height_mm10();
+				{
+					INT s = imu_pitch_mdeg_sin();
+					if (s < 0) s = -s;
+					if (s > smax) smax = s;
+				}
+				/* reported (level again on top): stop here, so the
+				   robot does not drive off the end of the ramp */
+				if (imu_ramp_reports() != n0) {
+					motion_halt();
+					break;
+				}
+				/* what the IMU sees on the way: a climb shows as
+				   sin > 30 and a rising height */
+				if (t % 50 == 0) {
+					tm_printf((UB*)"[S4] %d mm driven, sin(pitch) x1000 %d, ",
+						  (INT)S2_COUNTS_TO_MM(motion_odometer() - odo0),
+						  imu_pitch_mdeg_sin());
+					test_print_x10("height ", imu_height_mm10(), " mm\n");
+				}
+				tk_dly_tsk(10);
+			}
+			/* also when STOP came before it was level again */
+			test_print_x10("[S4-R01] highest climbed this run ", hmax, " mm\n");
+			/* short hump: the robot tips over it, height = L x sin */
+			tm_printf((UB*)"[S4-R01] peak |sin(pitch)| x1000 %d, x L %d mm = ",
+				  smax, S4_L_MM);
+			test_print_x10("", smax * S4_L_MM / 100, " mm (L not measured yet)\n");
+			tm_printf((UB*)"[S4-R01] %d samples skipped as jolts (10 ms each)\n",
+				  (INT)(imu_jolts() - j0));
 		}
 		tk_dly_tsk(500);
 		if (imu_ramp_reports() != n0) {
@@ -72,7 +106,10 @@ EXPORT void subsystem4_stage_test(void)
 		} else {
 			tm_printf((UB*)"[S4-R01] no ramp reported this run\n");
 		}
-		if (test_stop_pressed()) break;
+		if (test_stop_pressed()) {
+			tm_printf((UB*)"[S4-R01] STOP pressed: runs ended\n");
+			break;
+		}
 	}
 	TEST_SUMMARY("subsystem4 stage 4");
 }

@@ -210,6 +210,12 @@ line found after every manoeuvre.
    (This file is git-ignored: never commit it.)
 4. `cd build_make && make NET=lwip MQTT=1` and flash
    `mtk3pico_smp0_usb_cdc_wifi_lwip_mqtt.uf2`.
+5. On the laptop: `pip install paho-mqtt`, then `python tools/is34_panel.py`.
+   The panel shows the status line and events, and has START, STOP
+   (Space) and mapping buttons; it logs everything to `tools/is34_*.log`.
+   "Start broker" runs Mosquitto on port 1884
+   (`tools/mosquitto_robot.conf`): use that port in `wifi_secrets.h` if
+   the Mosquitto Windows service already holds 1883 for localhost only.
 
 ## 7. Send back
 

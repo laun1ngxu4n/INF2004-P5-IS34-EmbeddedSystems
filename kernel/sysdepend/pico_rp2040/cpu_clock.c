@@ -104,6 +104,16 @@ EXPORT void startup_clock(ATR clkatr)
 
 	out_w(CLK_REF+CLK_x_DIV, div);
 
+	/* Watchdog tick generator: one tick per microsecond from clk_ref
+	 * (12 MHz XOSC), the 1 MHz reference for the TIMER block (TIMERAWL,
+	 * time_us_64, TinyUSB, cyw43).  The Pico SDK does this in
+	 * clocks_init(); this port does not link that.  Without it the
+	 * TIMER ran at 12 MHz / 512 = 23 kHz, 43x slow, after a power-on or
+	 * RUN-pin reset (P5-IS34 Stage 2 log, 2 Nov).  It only looked right
+	 * after flashing, because the bootrom's USB boot had set it and a
+	 * watchdog reboot keeps it.  WATCHDOG_TICK: CYCLES 8:0, ENABLE bit 9. */
+	out_w(0x40058000 + 0x2c, (1 << 9) | XOSC_MHz);
+
 	/* CLK SYS settings */
 	div = (TMCLK_MHz << 8) / TMCLK_MHz;
 	if (div > in_w(CLK_SYS+CLK_x_DIV)) out_w(CLK_SYS+CLK_x_DIV, div);

@@ -2,7 +2,9 @@
  *	task_line.c
  *	Subsystem 3 -- the Line Following task (every 20 ms).
  *
- *	IR_LEFT sits just left of the line, IR_CENTER over it:
+ *	The side sensor (GP0) sits just beside the line, IR_CENTER over it.
+ *	Written for the side sensor on the LEFT; S3_SIDE = -1 (side sensor on
+ *	the right, our robot) mirrors every steering value:
  *	  centre black, left white   on the line           steer 0
  *	  centre black, left black   drifting right, or a junction: steer left
  *	  centre white, left black   far right of the line  steer left hard
@@ -17,9 +19,15 @@
 #include "../subsystem2/subsystem2.h"	/* motion_odometer() */
 #include "../subsystem5/subsystem5.h"	/* flg_mission */
 
-#define STEER_SMALL	40	/* mm/s */
-#define STEER_HARD	110
+/* Steering, tuned on the Stage 2 run (1 Nov): 40 / 110 swung the sensors
+   right across the line and off the other side. */
+#define STEER_SMALL	25	/* mm/s */
+#define STEER_HARD	40	/* also the on-the-spot turn speed (70 overshot, 2 Nov) */
+#define STEER_STEP	15	/* most the steering may change per 20 ms */
+#define S3_FILTER_N	2	/* a sensor pattern steers only after this many
+				   readings in a row (2 = 40 ms, ~6 mm) */
 #define S3_LOST_MM	250
+#define S3_LOST_MS	4000	/* searching on the spot this long = lost */
 #define S3_JUNC_MIN_MM	8
 #define S3_JUNC_MAX_MM	45
 
@@ -27,12 +35,14 @@ LOCAL volatile INT	steer;
 LOCAL volatile INT	state = LINE_ON;
 LOCAL volatile UW	junctions;
 LOCAL volatile BOOL	enabled = TRUE;
+LOCAL volatile BOOL	centre_on = TRUE;	/* filtered centre sensor */
 
 EXPORT INT line_steer_mm_s(void)	{ return steer; }
 EXPORT INT line_state(void)		{ return state; }
 EXPORT UW line_junctions(void)		{ return junctions; }
 EXPORT BOOL line_center_black(void)	{ return app_gpio_get(PIN_IR_CENTER) == IR_BLACK; }
 EXPORT void line_set_enabled(BOOL on)	{ enabled = on; }
+EXPORT BOOL line_centre_on(void)	{ return centre_on; }
 
 EXPORT ER line_hw_init(void)
 {
@@ -44,15 +54,19 @@ EXPORT ER line_hw_init(void)
 EXPORT void line_task(INT stacd, void *exinf)
 {
 	W	lost_from = 0, both_from = 0;
+	INT	search_n = 0;		/* periods spent searching */
 	BOOL	both = FALSE, was_enabled = TRUE;
 	INT	last_side = 0;		/* +1 line last seen to the left, -1 right */
+	UW	stable = 1u, cand = 1u;	/* filtered sensor pattern: bit 1 side, bit 0 centre */
+	INT	cand_n = 0, out = 0;
 
 	(void)stacd; (void)exinf;
 
 	while (1) {
-		BOOL	l, c;
+		BOOL	l, c, fl, fc;
 		W	odo;
-		INT	s;
+		INT	s, target;
+		UW	pat;
 
 		tk_slp_tsk(TMO_FEVR);			/* woken every 20 ms */
 		app_timing_wake(tmg_line, tk_can_wup(TSK_SELF));
@@ -60,20 +74,36 @@ EXPORT void line_task(INT stacd, void *exinf)
 		l = (app_gpio_get(PIN_IR_LEFT) == IR_BLACK);
 		c = (app_gpio_get(PIN_IR_CENTER) == IR_BLACK);
 		odo = motion_odometer();
+		pat = ((UW)l << 1) | (UW)c;
 		if (enabled && !was_enabled) {
 			both = FALSE;			/* start clean after a manoeuvre */
 			lost_from = odo;
+			stable = cand = pat;
+			cand_n = S3_FILTER_N;
+			out = 0;
 		}
 		was_enabled = enabled;
 
-		/* Steering */
-		if (c && !l) {
+		/* Filter: ignore a pattern that does not last S3_FILTER_N readings */
+		if (pat == cand) {
+			if (cand_n < S3_FILTER_N) cand_n++;
+		} else {
+			cand = pat;
+			cand_n = 1;
+		}
+		if (cand_n >= S3_FILTER_N) stable = cand;
+		fl = (stable & 2u) != 0u;
+		fc = (stable & 1u) != 0u;
+		centre_on = fc;
+
+		/* Steering, from the filtered pattern */
+		if (fc && !fl) {
 			s = 0;
 			last_side = 0;
-		} else if (c && l) {
+		} else if (fc && fl) {
 			s = STEER_SMALL;
 			last_side = +1;
-		} else if (!c && l) {
+		} else if (!fc && fl) {
 			s = STEER_HARD;
 			last_side = +1;
 		} else {
@@ -81,18 +111,40 @@ EXPORT void line_task(INT stacd, void *exinf)
 			   saw it to the left */
 			s = (last_side > 0) ? STEER_HARD : -STEER_HARD;
 		}
-		steer = s;
+		/* Build a turn up gently (STEER_STEP per period), but ease off
+		   at once: ramping down too kept the robot turning after the
+		   centre had found the line again, and it swung across
+		   (Stage 2 run, 2 Nov). */
+		target = s * S3_SIDE;
+		if ((out > 0 && target < 0) || (out < 0 && target > 0)) {
+			out = 0;			/* other way: drop the old turn */
+		}
+		if ((out >= 0 && target >= 0 && target <= out) ||
+		    (out <= 0 && target <= 0 && target >= out)) {
+			out = target;			/* easing off */
+		} else if (out < target - STEER_STEP) {
+			out += STEER_STEP;
+		} else if (out > target + STEER_STEP) {
+			out -= STEER_STEP;
+		} else {
+			out = target;
+		}
+		steer = out;
 
 		/* Lost / found */
 		if (c || l) {
 			lost_from = odo;
+			search_n = 0;
 			if (state != LINE_ON) {
 				state = LINE_ON;
 			}
 		} else if (state == LINE_ON) {
 			state = LINE_SEARCH;
 		} else if (state == LINE_SEARCH && enabled &&
-			   S2_COUNTS_TO_MM(odo - lost_from) > S3_LOST_MM) {
+			   (S2_COUNTS_TO_MM(odo - lost_from) > S3_LOST_MM ||
+			    ++search_n > S3_LOST_MS / PERIOD_LINE_MS)) {
+			/* distance, or time: Motion turns on the spot while
+			   searching, which adds no distance */
 			state = LINE_LOST;
 			tk_set_flg(flg_mission, MSN_FLG_LINE_LOST);
 		}

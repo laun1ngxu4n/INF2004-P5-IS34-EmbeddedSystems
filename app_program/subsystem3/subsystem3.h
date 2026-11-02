@@ -22,10 +22,16 @@
 
 #include "../app.h"
 
-#define PIN_IR_LEFT		0
+#define PIN_IR_LEFT		0	/* the side (edge) sensor; see S3_SIDE */
 #define PIN_IR_CENTER		1
 #define PIN_IR_BARCODE		2
 #define IR_BLACK		1	/* D0 level over black (bring-up) */
+
+/* Which side of the centre sensor the GP0 side sensor is mounted on,
+   seen from behind the robot: +1 left, -1 right.  On our robot it is on
+   the RIGHT (Stage 2 run, 1 Nov), so the line task follows the line's
+   right edge and every steering value is mirrored. */
+#define S3_SIDE			(-1)
 
 /* Geometry, NOT MEASURED YET: set from the robot */
 #define S3_SENSOR_TO_AXLE_MM	60	/* line sensors in front of the wheel axle */
@@ -43,6 +49,7 @@ IMPORT UW	line_junctions(void);		/* junctions seen since boot */
 IMPORT void	line_set_enabled(BOOL on);	/* FALSE: no junction / lost events
 						   (during turns and bypasses) */
 IMPORT BOOL	line_center_black(void);	/* raw centre sensor */
+IMPORT BOOL	line_centre_on(void);		/* filtered centre sensor on the line */
 
 /* Barcode results */
 typedef struct {
@@ -55,6 +62,14 @@ typedef struct {
 	INT	wide_mm10;	/* mean wide element, 0.1 mm */
 } BARCODE_RESULT;
 IMPORT void	barcode_last(BARCODE_RESULT *r);
+IMPORT BOOL	barcode_busy(void);		/* inside a barcode now (Motion slows) */
+IMPORT UW	barcode_edges(void);		/* barcode sensor edges since boot */
+IMPORT BOOL	barcode_candidate(void);	/* bar, space, bar seen: worth a rescan */
+IMPORT UW	barcode_seq(void);		/* +1 for every result published */
+IMPORT void	barcode_pause(BOOL on);		/* TRUE: ignore edges (backing up);
+						   FALSE: start a fresh read */
+IMPORT UW	barcode_debug(INT *n, INT *w_mm10, INT max);	/* last code that
+						   ended, any length; returns a seq */
 
 /* Mapping (TEAM.md 7.1 B7/B8): exactly 4 pairs "K=L,Q=R,X=F,M=U".
    L left, R right, F forward, U U-turn.  Returns TRUE if accepted.  On

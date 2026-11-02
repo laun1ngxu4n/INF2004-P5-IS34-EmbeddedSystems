@@ -2,7 +2,8 @@
 
 Last updated: 2 Nov 2026. How to run each test:
 [TESTING_GUIDE.md](TESTING_GUIDE.md). Formal results:
-[testing/](testing/) `TEST_LOG.md` files.
+[testing/](testing/) `TEST_LOG.md` files. What the robot does, its limits
+and everything still open: [ROBOT_BEHAVIOUR.md](ROBOT_BEHAVIOUR.md).
 
 Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
 ⬜ not tested yet · ❌ tested and failing

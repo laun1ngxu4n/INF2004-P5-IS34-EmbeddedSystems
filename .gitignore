@@ -25,3 +25,6 @@ config/wifi_secrets.h
 
 # macOS
 .DS_Store
+
+# Robot panel logs (tools/is34_panel.py)
+tools/is34_*.log

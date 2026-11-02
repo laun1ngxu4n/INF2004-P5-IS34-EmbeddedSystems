@@ -21,7 +21,11 @@
 #define RING		128		/* edges kept, a power of 2 */
 #define MAX_ELEM	99		/* up to 10 characters */
 #define S3_QUIET_MM	40		/* no edge for this far = end of barcode */
-#define MERGE_COUNTS	6		/* < 0.5 mm apart = sensor chatter */
+#define MERGE_COUNTS	15		/* < 1.2 mm apart = sensor chatter.  The
+					   sensor flickers at its threshold
+					   (thousands of edges, Stage 2 2 Nov);
+					   must stay under half the narrowest
+					   bar: 3.5 mm small codes = 44 counts */
 #define MIN_ELEM_REPORT	20		/* fewer elements = noise, not reported */
 
 typedef struct { W odo; UB level; } EDGE;
@@ -29,6 +33,14 @@ typedef struct { W odo; UB level; } EDGE;
 LOCAL EDGE		ring[RING];
 LOCAL volatile UW	ring_w;		/* written by the interrupt */
 LOCAL UW		ring_r;		/* read by the task */
+
+LOCAL volatile BOOL	busy;		/* inside a barcode (in_code) */
+LOCAL volatile INT	n_now;		/* clean elements so far in this one */
+LOCAL volatile BOOL	paused;		/* Motion is backing up: ignore edges */
+LOCAL volatile UW	seq_now;	/* results published so far */
+
+#define S3_SCAN_MIN_ELEM	3	/* bar, space, bar: looks like a barcode
+					   start (a grout line or junction is 1) */
 
 LOCAL BARCODE_RESULT	last;
 LOCAL UB		map_ch[4];
@@ -66,6 +78,31 @@ EXPORT ER barcode_hw_init(void)
 
 	return (er < E_OK) ? er : app_gpio_irq_add(PIN_IR_BARCODE, APP_GPIO_BOTH, bar_edge);
 }
+
+EXPORT BOOL barcode_busy(void)	{ return busy; }
+EXPORT UW barcode_edges(void)	{ return ring_w; }
+EXPORT BOOL barcode_candidate(void)	{ return busy && n_now >= S3_SCAN_MIN_ELEM; }
+
+/* Debug (Stage 2 tests): the element widths of the last code that ended,
+   even one too short to report, so a test can show what the sensor saw */
+#define DBG_MAX		40
+LOCAL INT		dbg_w[DBG_MAX];	/* 0.1 mm */
+LOCAL INT		dbg_n;
+LOCAL volatile UW	dbg_seq;
+
+EXPORT UW barcode_debug(INT *n, INT *w_mm10, INT max)
+{
+	INT	i;
+	UINT	s;
+
+	APP_LOCK(s);
+	*n = dbg_n;
+	for (i = 0; i < dbg_n && i < DBG_MAX && i < max; i++) w_mm10[i] = dbg_w[i];
+	APP_UNLOCK(s);
+	return dbg_seq;
+}
+EXPORT UW barcode_seq(void)	{ return seq_now; }
+EXPORT void barcode_pause(BOOL on)	{ paused = on; }
 
 EXPORT void barcode_last(BARCODE_RESULT *r)
 {
@@ -158,7 +195,36 @@ EXPORT void barcode_task(INT stacd, void *exinf)
 	INT	n = 0;
 	W	prev_odo = 0;
 	BOOL	in_code = FALSE, too_long = FALSE;
-	UW	seq = 0;
+	UW	seq = 0, end;
+	UB	stable = !IR_BLACK;	/* debounced level */
+	UB	raw_lvl = !IR_BLACK;	/* level after the last raw edge */
+	W	raw_odo = 0;		/* where that raw edge was */
+	BOOL	raw_ok = FALSE;
+
+	/* A level counts only once it has held for MERGE_COUNTS of travel:
+	   then it starts where its last raw edge was.  Flicker never holds,
+	   so it neither makes elements nor keeps a code open (Stage 2, 2 Nov:
+	   pair-cancelling let every other flicker edge through). */
+#define COMMIT(lvl, pos)						\
+	do {								\
+		if ((lvl) != stable) {					\
+			stable = (lvl);					\
+			if (!in_code) {					\
+				if ((lvl) == IR_BLACK) {		\
+					in_code = TRUE;			\
+					too_long = FALSE;		\
+					n = 0;				\
+					prev_odo = (pos);		\
+				}					\
+			} else {					\
+				W w_ = (pos) - prev_odo;		\
+				if (w_ < 0) w_ = -w_;			\
+				if (n < MAX_ELEM) elem[n++] = w_;	\
+				else too_long = TRUE;			\
+				prev_odo = (pos);			\
+			}						\
+		}							\
+	} while (0)
 
 	(void)stacd; (void)exinf;
 	ring_r = ring_w;
@@ -167,39 +233,62 @@ EXPORT void barcode_task(INT stacd, void *exinf)
 		(void)tk_slp_tsk(TIMEOUT_BARCODE_MS);
 		app_timing_wake(tmg_barcode, 0);
 
-		/* Drain new edges */
-		while (ring_r != ring_w) {
+		/* Motion is backing up to rescan: drop this read and every edge
+		   until it drives forward again, then start fresh */
+		if (paused) {
+			ring_r = ring_w;
+			in_code = FALSE;
+			n = 0;
+			busy = FALSE;
+			n_now = 0;
+			stable = !IR_BLACK;
+			raw_ok = FALSE;
+			app_timing_done(tmg_barcode);
+			continue;
+		}
+
+		/* Drain the edges that are here now, never more than the ring
+		   holds: a chattering sensor keeps adding edges, and an
+		   unbounded loop starved every task below this one (530 ms,
+		   Stage 2 run, 1 Nov).  If the ring overflowed, edges were
+		   lost: drop the barcode being read. */
+		{
+			UW	avail = ring_w - ring_r;
+
+			if (avail > RING) {
+				ring_r = ring_w - RING;
+				in_code = FALSE;
+				n = 0;
+				stable = !IR_BLACK;
+				raw_ok = FALSE;
+				avail = RING;
+			}
+			end = ring_r + avail;
+		}
+		while (ring_r != end) {
 			EDGE ed = ring[ring_r & (RING - 1)];
-			W    w;
+			W    d;
 
 			ring_r++;
-			if (!in_code) {
-				if (ed.level == IR_BLACK) {	/* first bar starts */
-					in_code = TRUE;
-					too_long = FALSE;
-					n = 0;
-					prev_odo = ed.odo;
+			if (raw_ok) {
+				d = ed.odo - raw_odo;
+				if (d < 0) d = -d;
+				if (d >= MERGE_COUNTS) {
+					COMMIT(raw_lvl, raw_odo);	/* that level held */
 				}
-				continue;
 			}
-			w = ed.odo - prev_odo;
-			if (w < 0) w = -w;
-			if (w < MERGE_COUNTS) {
-				/* chatter: this edge and the previous one cancel */
-				if (n == 0) {
-					in_code = FALSE;	/* the "first bar" was a glitch */
-				} else {
-					n--;
-					prev_odo -= elem[n];	/* back to the start of that element */
-				}
-				continue;
+			raw_lvl = ed.level;
+			raw_odo = ed.odo;
+			raw_ok = TRUE;
+		}
+		/* The latest level may have held long enough by now */
+		if (raw_ok) {
+			W d = motion_odometer() - raw_odo;
+
+			if (d < 0) d = -d;
+			if (d >= MERGE_COUNTS) {
+				COMMIT(raw_lvl, raw_odo);
 			}
-			if (n < MAX_ELEM) {
-				elem[n++] = w;
-			} else {
-				too_long = TRUE;
-			}
-			prev_odo = ed.odo;
 		}
 
 		/* End of a barcode: quiet for S3_QUIET_MM */
@@ -209,6 +298,18 @@ EXPORT void barcode_task(INT stacd, void *exinf)
 			if (gap < 0) gap = -gap;
 			if (S2_COUNTS_TO_MM(gap) > S3_QUIET_MM) {
 				in_code = FALSE;
+				{
+					INT	i;
+					UINT	s;
+
+					APP_LOCK(s);
+					dbg_n = n;
+					for (i = 0; i < n && i < DBG_MAX; i++) {
+						dbg_w[i] = (INT)(elem[i] * S2_UM_PER_COUNT / 100);
+					}
+					dbg_seq++;
+					APP_UNLOCK(s);
+				}
 				if (n >= MIN_ELEM_REPORT) {
 					BARCODE_RESULT	r = {0};
 					UINT		s;
@@ -221,11 +322,14 @@ EXPORT void barcode_task(INT stacd, void *exinf)
 					APP_LOCK(s);
 					last = r;
 					APP_UNLOCK(s);
+					seq_now = seq;
 					tk_set_flg(flg_mission, MSN_FLG_BARCODE);
 				}
 				n = 0;
 			}
 		}
+		busy = in_code;
+		n_now = in_code ? n : 0;
 
 		app_timing_done(tmg_barcode);
 	}

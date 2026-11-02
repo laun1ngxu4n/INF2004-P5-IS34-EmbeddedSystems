@@ -2,7 +2,8 @@
 """
 P5-IS34 robot control panel (laptop side of Stage 5 / the demo).
 
-Shows the robot's 1 s status line (is34/telemetry) and every event
+Shows the robot's 1 s status line (is34/telemetry), its live sensor
+readings (is34/sensors, every 0.5 s) and every event
 (is34/event, is34/ack/map), and sends START, STOP and the 4-pair mapping
 (is34/cmd/start, is34/cmd/stop, is34/cmd/map).  Everything shown is also
 written to a log file next to this script (is34_<date>_<time>.log).
@@ -19,6 +20,7 @@ or run it yourself:
 Keys: Space = STOP, Ctrl+G = START.
 """
 import argparse
+import math
 import os
 import queue
 import subprocess
@@ -143,6 +145,18 @@ class Panel:
         for c in range(3):
             st.columnconfigure(c, weight=1)
 
+        sn = ttk.LabelFrame(self.root, text="Live sensors (every 0.5 s)", padding=8)
+        sn.pack(fill="x", padx=8, pady=(0, 6))
+        self.sens = {}
+        for col, (key, label) in enumerate([("line", "Line + barcode"),
+                                            ("obst", "Obstacle (sonar)"),
+                                            ("imu", "IMU")]):
+            ttk.Label(sn, text=label).grid(row=0, column=col, sticky="w", padx=6)
+            v = tk.Label(sn, text="-", font=("Consolas", 11), anchor="w", justify="left")
+            v.grid(row=1, column=col, sticky="nw", padx=6)
+            self.sens[key] = v
+            sn.columnconfigure(col, weight=1)
+
         ev = ttk.LabelFrame(self.root, text="Events", padding=4)
         ev.pack(fill="both", expand=True, padx=8, pady=(0, 8))
         self.events = tk.Text(ev, height=12, state="disabled", font=("Consolas", 10))
@@ -243,6 +257,9 @@ class Panel:
                     self.vals[key].configure(text=pretty(key, val))
             state = parse_status(text).get("state", "")
             self.vals["state"].configure(fg=STATE_COLOURS.get(state, "#b00020"))
+        elif topic == "is34/sensors":
+            self.log.write(time.strftime("%H:%M:%S ") + f"{topic} {text}\n")
+            self._sensors(parse_status(text))
         elif topic == "is34/ack/map":
             good = text.startswith("OK")
             self.ack_lbl.configure(text=text, foreground="#2a9d3a" if good else "#b00020")
@@ -251,6 +268,32 @@ class Panel:
             self.add_event("robot", text)
         elif not topic.startswith("is34/cmd/"):     # our own commands are echoed back
             self.add_event("robot", f"{topic} {text}")
+
+    def _sensors(self, d):
+        def num(key):
+            try:
+                return int(d.get(key, ""))
+            except ValueError:
+                return None
+
+        ir = d.get("ir", "???")
+        dot = lambda c: "●" if c == "1" else "○"      # filled = black
+        scan = {"0": "-", "1": "backing up", "2": "reading slowly"}.get(d.get("scan"), "?")
+        self.sens["line"].configure(text=(
+            f"S {dot(ir[0:1])}  C {dot(ir[1:2])}  B {dot(ir[2:3])}\n"
+            f"steer {num('steer')} mm/s\n"
+            f"in barcode: {'yes' if d.get('inbar') == '1' else 'no'}\n"
+            f"rescan: {scan}"))
+        front = num("front")
+        front_txt = {None: "?", -1: "nothing in range", -2: "NO ECHO (fault)"}.get(
+            front, f"{front} mm")
+        self.sens["obst"].configure(text=f"front {front_txt}\n(updated while it runs)")
+        tilt, h10 = num("tilt"), num("h10")
+        if tilt is not None and h10 is not None:
+            deg = math.degrees(math.asin(max(-1.0, min(1.0, tilt / 1000.0))))
+            self.sens["imu"].configure(text=(
+                f"tilt {deg:+.1f} deg\nclimbed {h10 / 10:.1f} mm\n"
+                f"{'OK' if d.get('imu') == '1' else 'NOT ANSWERING'}"))
 
     def add_event(self, who, text):
         line = time.strftime("%H:%M:%S ") + f"[{who}] {text}"

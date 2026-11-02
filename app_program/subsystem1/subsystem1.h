@@ -32,10 +32,12 @@
 					   USB output small, see TEAM.md section 4 */
 #define S1_PING_TICKS		10	/* IF-01 ping every 10 x 100 ms = 1 s */
 #define S1_STATUS_TICKS		10	/* is34/telemetry every 1 s */
+#define S1_SENSOR_TICKS		5	/* is34/sensors every 0.5 s (laptop panel) */
 
 #define TOPIC_EVENT		"is34/event"
 #define TOPIC_TELEMETRY		"is34/telemetry"
 #define TOPIC_ACK_MAP		"is34/ack/map"
+#define TOPIC_SENSORS		"is34/sensors"
 #define TOPIC_CMD_PREFIX	"is34/cmd/"
 
 #define TELE_TEXT_MAX		160

@@ -4,8 +4,9 @@
  *	outbox and the MQTT command inbox.
  *
  *	Every 100 ms: IF-01 ping once a second, the status line once a second,
- *	the timing table every 10 s.  Events from every subsystem go into a
- *	small outbox; the WiFi task pulls them with app_mqtt_tx() and hands
+ *	the live sensor line twice a second, the timing table every 10 s.
+ *	Events from every subsystem go into a small outbox; the WiFi task
+ *	pulls them with app_mqtt_tx() and hands
  *	commands to app_mqtt_rx().  Both hooks only copy under APP_LOCK and
  *	never wait, because they run in the kernel's WiFi task.
  */
@@ -19,7 +20,7 @@
 #define OUTBOX_N	8
 
 typedef struct {
-	UB	topic;			/* 0 event, 1 telemetry, 2 ack/map */
+	UB	topic;			/* 0 event, 1 telemetry, 2 ack/map, 3 sensors */
 	UB	text[TELE_TEXT_MAX];
 } OUTMSG;
 
@@ -81,7 +82,8 @@ LOCAL BOOL same(const char *a, const char *b)
 
 EXPORT int app_mqtt_tx(char *topic, unsigned tmax, unsigned char *buf, unsigned bmax)
 {
-	static const char	*names[3] = {TOPIC_EVENT, TOPIC_TELEMETRY, TOPIC_ACK_MAP};
+	static const char	*names[4] = {TOPIC_EVENT, TOPIC_TELEMETRY, TOPIC_ACK_MAP,
+					  TOPIC_SENSORS};
 	OUTMSG			m;
 	UINT			s;
 	unsigned		i;
@@ -158,11 +160,32 @@ LOCAL void status_line(void)
 	outbox_put(1, text);
 }
 
+/* Live sensor readings for the laptop panel (not graded, just to see what
+   the robot sees): ir = side, centre, barcode (1 = black), steer mm/s,
+   scan = barcode rescan phase, inbar = inside a barcode, front = last
+   forward sonar mm (-1 open, -2 no ECHO), tilt = sin(pitch) x1000,
+   h10 = climbed height in 0.1 mm, imu = IMU answering */
+LOCAL void sensor_line(void)
+{
+	UB	text[TELE_TEXT_MAX];
+
+	tm_sprintf(text, (const UB*)
+		"ir=%d%d%d steer=%d scan=%d inbar=%d front=%d tilt=%d h10=%d imu=%d",
+		(INT)(app_gpio_get(PIN_IR_LEFT) == IR_BLACK),
+		(INT)(app_gpio_get(PIN_IR_CENTER) == IR_BLACK),
+		(INT)(app_gpio_get(PIN_IR_BARCODE) == IR_BLACK),
+		line_steer_mm_s(), motion_scan_phase(), (INT)barcode_busy(),
+		obstacle_front_mm(), imu_pitch_mdeg_sin(), imu_height_mm10(),
+		(INT)imu_ok());
+	outbox_put(3, text);
+}
+
 EXPORT void telemetry_task(INT stacd, void *exinf)
 {
 	UINT	report_tick = 0;
 	UINT	ping_tick = 0;
 	UINT	status_tick = 0;
+	UINT	sensor_tick = 0;
 
 	(void)stacd; (void)exinf;
 
@@ -177,6 +200,10 @@ EXPORT void telemetry_task(INT stacd, void *exinf)
 		if (++status_tick >= S1_STATUS_TICKS) {
 			status_tick = 0;
 			status_line();
+		}
+		if (++sensor_tick >= S1_SENSOR_TICKS) {
+			sensor_tick = 0;
+			sensor_line();
 		}
 		if (++report_tick >= S1_REPORT_TICKS) {
 			report_tick = 0;

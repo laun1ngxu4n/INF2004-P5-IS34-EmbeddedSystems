@@ -29,6 +29,20 @@
 					   90 / 180, so 130 x 90/95 = 123.
 					   Re-run S2-M02 to confirm. */
 
+/* Line following: forward speed, in % of the follow speed, while the
+   centre sensor is off the line; 0 = stop and turn on the spot until it
+   is back on the line (IF-03, Stage 2 runs 2 Nov) */
+#define S2_SEARCH_PCT		20	/* 0 rocked in place: always creep forward */
+/* Line following: speed while the barcode sensor is inside a barcode */
+#define S2_SPEED_IN_BARCODE	50
+/* Barcode rescan: on bar-space-bar, back up S2_SCAN_BACK_MM straight,
+   then read forward at S2_SCAN_SPEED; give up S2_SCAN_MAX_MM after the
+   back-up point; no new rescan for S2_SCAN_COOL_MM after one */
+#define S2_SCAN_BACK_MM		60
+#define S2_SCAN_SPEED		40
+#define S2_SCAN_MAX_MM		400
+#define S2_SCAN_COOL_MM		200
+
 /* Speeds used by the team (mm/s) */
 #define S2_SPEED_LINE		200	/* line following, design 10-25 cm/s */
 #define S2_SPEED_BARCODE	150	/* over barcodes (TEAM.md 7.1 B4) */
@@ -59,6 +73,7 @@ IMPORT ID	motion_follow(INT speed_mm_s);	/* follow the line (IF-03 steering from
 						   line_steer_mm_s()) until another command */
 IMPORT void	motion_halt(void);				/* stop, no STOP reason */
 IMPORT void	motion_get_status(MOTION_STATUS *st);
+IMPORT INT	motion_scan_phase(void);		/* 0 none, 1 backing up, 2 rescanning */
 
 /* Motors off now.  Any context, also interrupt handlers; used by the
    STOP helper (app_stop.c) and, later, Safety (TEAM.md section 3). */

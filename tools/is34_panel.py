@@ -163,6 +163,9 @@ class Panel:
             self.cli.loop_start()
         except OSError as e:
             self.add_event("panel", f"cannot reach broker {self.host}:{self.port}: {e}")
+            # none on this laptop yet: start one (once), then connect again
+            if self.host in ("127.0.0.1", "localhost") and self.broker_proc is None:
+                self.start_broker()
 
     def start_broker(self):
         conf = os.path.join(HERE, "mosquitto_robot.conf")
@@ -180,7 +183,10 @@ class Panel:
     def publish(self, topic, payload):
         r = self.cli.publish(topic, payload, qos=1)
         ok = r.rc == mqtt.MQTT_ERR_SUCCESS
-        self.add_event("sent", f"{topic} {payload}" + ("" if ok else "  (NOT SENT: not connected)"))
+        self.add_event("sent", f"{topic} {payload}" + ("" if ok else
+                       "  (NOT SENT: not connected to the broker, press Start broker)"))
+        if ok and time.time() - self.last_status > OFFLINE_S:
+            self.add_event("panel", "warning: the robot is not online, it will not see this")
 
     def start(self):
         self.publish("is34/cmd/start", "go")

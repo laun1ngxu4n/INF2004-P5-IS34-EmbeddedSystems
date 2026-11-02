@@ -38,6 +38,7 @@ IMPORT INT	imu_height_mm10(void);		/* current height, 0.1 mm */
 IMPORT INT	imu_pitch_mdeg_sin(void);	/* sin(pitch) x 1000, relative */
 IMPORT INT	imu_ramp_peak_mm10(void);	/* last reported ramp peak, 0.1 mm */
 IMPORT UW	imu_ramp_reports(void);		/* ramps reported since boot */
+IMPORT UW	imu_jolts(void);		/* samples skipped as jolts since boot */
 
 /* Private to subsystem 4, shared between its own .c files */
 IMPORT ID	tid_safety;

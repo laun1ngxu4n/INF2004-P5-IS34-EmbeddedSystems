@@ -17,7 +17,7 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
 | 2B | Barcodes | B3 | 🟡 partial reads, no full decode yet |
 | 2C | Junction moves from barcodes | B3 + B5 | ⬜ needs 2B |
 | 3 | Obstacle: sonar, servo, width, bypass | B5 | 🟡 servo + sonar work; width and bypass not shown |
-| 4 | IMU + ramp height | B4 | ⬜ |
+| 4 | IMU + ramp height | B4 | 🟡 IMU works; height reads too high on the hump |
 | 5 | Telemetry + MQTT | B1 | ⬜ |
 | 6 | Whole course | all | ⬜ |
 
@@ -97,11 +97,34 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
 
 ## Stage 4: ramp (`TEST_STAGE=4`)
 
-- [ ] ⬜ S4-I01 IMU found. IMU I2C "read failed" dropouts seen in Stage 2
-  logs: **reseat the Grove cable (port 6) first**
-- [ ] ⬜ S4-R01 ramp height, 10 runs within ±5 mm
+The practice "ramp" is a **hump**: a block 10 mm high, about 5 cm long in
+the driving direction (20 cm across), 0.5 cm flat on top. Much shorter
+than the robot, so the robot tips over it instead of driving up a slope.
+
+### What works
+- [x] ✅ S4-I01 IMU found (no read dropouts in the 2 Nov runs after reseating)
+- [x] ✅ Tilt view: lifting the front gives sin(pitch) up to about 500, back
+  to 0 when level; sign correct
+- [x] ✅ Test stops the robot itself once a ramp is reported, and prints
+  distance / tilt / height every 0.5 s plus the highest climb and
+  L x peak tilt for every run
+
+### Not done yet
+- [ ] 🟡 **S4-R01** height within ±5 mm. 3 runs over the 10 mm hump read 18.3,
+  66.0 and no report (L x peak tilt: 15.6, 52.0, 18.6 mm). Cause: hitting the
+  hump jolts the robot and the accelerometer (no gyro) reads the jolt as
+  tilt (up to 40 deg; the hump can only tilt it about 7 deg).
+  **Fix built, not tested on the robot:** readings where |a| is more than
+  5% off the calibrated 1 g are skipped as jolts (`JOLT_FRAC`,
+  `task_imu.c`); each run prints how many were skipped. If tilt then
+  sticks near 0 with hundreds skipped, loosen `JOLT_FRAC`.
+- [ ] ⬜ **Measure L** (`S4_L_MM`, now a guess of 80): wheel axle centre to where
+  the front support touches the floor. For a short hump the height is
+  L x peak sin(pitch); if that is steady near 10 mm it should become the
+  main report.
+- [ ] ⬜ Tape the hump down for the runs (a loose block can be pushed along)
 - Note for B4: a hard STOP can give a false ramp report (braking tilts
-  the robot)
+  the robot); the jolt filter should help with this too
 
 ## Stage 5: telemetry + MQTT (demo image)
 

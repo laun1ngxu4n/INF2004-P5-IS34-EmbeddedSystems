@@ -226,7 +226,8 @@ limit there. The numbers below are the example's usage.
 ## 7. Scope changes after the Week 6 design
 
 The submitted design documents are left as submitted; these changes
-override them.
+override them. Section-by-section edits for the next report:
+`docs/week6_report_changes.md`.
 
 | Date | Change | Design items affected |
 |---|---|---|

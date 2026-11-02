@@ -179,6 +179,9 @@ the hands-on test of stage n (`app_program/app_stage_test.c` and each
 
 ## 6. Requirement changes after the Week 6 design (`TEAM.md` section 7)
 
+For the next report, `docs/week6_report_changes.md` goes through the
+Week 6 document section by section: what to change, add or drop.
+
 - GP28 battery sense removed (no low-battery fault, no VBAT, no A12
   thresholds).
 - Barcode (instructor): Code 39 A-Z, both directions, store the

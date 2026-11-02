@@ -1,0 +1,60 @@
+**Yes—the overall sequence is sensible. Stage 1 establishes motion; Stage 2 builds line following and barcode behaviour on top of it. However, I would adjust the test workflow before treating either stage as passed.** The code is coherent enough to begin controlled testing, but its hardware behaviour remains unverified.
+
+The key dependencies are:
+
+| Stage | What it establishes | Why the next stage needs it |
+|---|---|---|
+| 1: Motion | Motor/encoder direction, speed control, turns and STOP | Line following needs predictable wheel response; barcode widths depend on encoder distance |
+| 2: Line/barcode | Steering, junction detection, barcode decoding and mapped turns | Obstacle avoidance needs reliable line reacquisition |
+| 3: Obstacles | Sonar, servo, profiling and bypass | Full Mission needs demonstrated clearance and recovery |
+| 4: IMU | Calibration and ramp-height estimation | Full Mission needs reliable terrain reporting |
+| 5: MQTT | Mapping, telemetry and remote START/STOP | Final demonstration needs verified PC communication |
+| 6: Mission | Combined course behaviour | Requires the preceding capabilities |
+
+Stages 3 and 4 can be validated independently after motion works.
+
+**Stage 1 needs stronger pass criteria and a different order.**
+
+The current harness runs **turns → speed → STOP**. I recommend:
+
+1. Wheels lifted: confirm motor direction and both encoder signs.
+2. Verify STOP during a short, controlled motor command.
+3. Floor test: short straight movement and speed control.
+4. Measure and calibrate turns.
+5. Repeat the five STOP trials before proceeding.
+
+Two limitations matter:
+
+- **The turn test’s automatic PASS means all commands finished.** It does not establish that the robot physically turned within the angle tolerance. The encoder angle uses the same track-width assumption as the controller, so independently measure the actual heading.
+- **The speed test uses encoder-derived speed.** Also measure physical travel/time to catch an incorrect distance scale.
+
+These behaviours are visible in [Stage 1 tests](C:/Users/irfan/OneDrive/Documents/GitHub/kwanxkwan/app_program/subsystem2/subsystem2_test.c:62).
+
+**Stage 2’s initial sequence is coherent, but its final handover introduces other stages.**
+
+The sensible progression already present is:
+
+**Stationary IR checks → line following → junction counting → barcode runs → mapped junction manoeuvres.**
+
+However:
+
+- The line-following test checks `lost == 0`. If movement never starts or the operator stops early, that can still produce PASS. Require a completed route or minimum distance as well.
+- Barcode tests print decoded characters and `READ_FAIL` counts. You must compare them against the **known sequence placed on the track**. “It decoded something” is insufficient.
+- At the end, `app_course_test()` arms the **full Mission Controller**. That enables obstacle watching and invokes IMU calibration at START. Consequently, the final part of Stage 2 already depends on untested Stage 3/4 behaviour. See [Stage 2 handover](C:/Users/irfan/OneDrive/Documents/GitHub/kwanxkwan/app_program/subsystem3/subsystem3_test.c:125).
+
+Also, `TEST_STAGE` selects the hands-on exercise; **all subsystems still initialize and run**. These images are not isolated subsystem builds.
+
+**My recommended workflow is therefore:**
+
+| Gate | Required evidence before advancing |
+|---|---|
+| Current Stage 0 | Timing/startup checks on the exact firmware revision being tested |
+| Stage 1 | Correct direction/signs, demonstrated STOP, measured speed/distance and physical turn accuracy |
+| Stage 2A | Repeatable line following and correct junction counts |
+| Stage 2B | Expected barcode sequence decoded in both reading directions |
+| Stage 2C | Correct mapped moves, U-turn and unmapped-code stop; explicitly control the obstacle/IMU dependencies |
+| Stages 3/4 | Resolve the sonar failure policy and IMU numerical defect, then perform their hardware tests |
+| Stage 5 | First test mapping/telemetry while stationary, then remote START/STOP under controlled motion |
+| Stage 6 | Repeated full-course runs with logs and physical observations |
+
+Keep the stage structure. **Strengthen the gates and separate Stage 2’s component tests from its full-Mission handover.** A console PASS should be accompanied by the physical outcome that the test is intended to prove.

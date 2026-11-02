@@ -18,7 +18,7 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
 | 2C | Junction moves from barcodes | B3 + B5 | ⬜ needs 2B |
 | 3 | Obstacle: sonar, servo, width, bypass | B5 | 🟡 servo + sonar work; width and bypass not shown |
 | 4 | IMU + ramp height | B4 | 🟡 IMU works; height reads too high on the hump |
-| 5 | Telemetry + MQTT | B1 | ⬜ |
+| 5 | Telemetry + MQTT | B1 | ✅ passed 2 Nov (START/STOP 3 of 5 rounds) |
 | 6 | Whole course | all | ⬜ |
 
 ## Stage 0: RTOS timing (`make TEST=1`)
@@ -128,9 +128,29 @@ than the robot, so the robot tips over it instead of driving up a slope.
 
 ## Stage 5: telemetry + MQTT (demo image)
 
-- [ ] ⬜ S1-T01 1 Hz telemetry on `is34/telemetry`, events on `is34/event`
-- [ ] ⬜ Mapping accepted / bad mapping rejected
-- [ ] ⬜ S1-T02 remote START/STOP, 5 of each
+Run 2 Nov on a phone hotspot (2.4 GHz), robot on the power bank for
+S1-T02. Robot got IP 10.14.83.102; broker on the laptop.
+
+- [x] ✅ WiFi join + MQTT connect (`mqtt: connected`), heartbeat both ways
+- [x] ✅ S1-T01 status line on `is34/telemetry` every 1 s (state, speed,
+  distance, line, junctions, barcode, mapping, ramp peak, stop reason);
+  events on `is34/event`
+- [x] ✅ Mapping `K=L,Q=R,X=F,M=U` gives `is34/ack/map OK ...` and shows in
+  the status line; bad `K=L` gives `REJECTED 1 pairs, need exactly 4 (old
+  mapping kept)`
+- [x] ✅ S1-T02 remote START / STOP: **3 of 5 rounds done, 3/3 passed**. Each
+  START gave CAL then RUN at 150-170 mm/s; each STOP gave the `STOP` event
+  in the same second and IDLE, speed 0, `stop=2` by the next status line.
+  Two more rounds would make it the full 5.
+
+Setup notes:
+- The laptop's Mosquitto Windows service only listens on localhost:1883,
+  so a second broker was run on **port 1884** (`listener 1884 0.0.0.0`,
+  `allow_anonymous true`) and `MQTT_BROKER_PORT` set to 1884 in
+  `config/wifi_secrets.h` (git-ignored).
+- The broker IP is built into the image: if the laptop's IP on the
+  hotspot changes, edit `MQTT_BROKER_IP` and rebuild
+  (`make NET=lwip MQTT=1`).
 
 ## Stage 6: whole course
 

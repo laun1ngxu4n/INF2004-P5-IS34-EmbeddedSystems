@@ -295,11 +295,26 @@ EXPORT void obstacle_task(INT stacd, void *exinf)
 		app_timing_wake(tmg_obstacle, tk_can_wup(TSK_SELF));
 
 		if (scanning || !watch) {
-			pinged = FALSE;
 			close_count = 0;
 			fault_count = 0;
 			told = FALSE;
 			if (!scanning) sensor_fault = FALSE;	/* fresh start next watch */
+#if !APP_TEST
+			/* Idle: keep pinging ahead so the laptop panel shows a live
+			   distance; Mission is told nothing until the watch is on.
+			   Not in test images: their tests turn the servo and ping
+			   themselves. */
+			if (!scanning) {
+				if (pinged) front_mm = echo_mm();
+				if (servo_now != 90) servo_set_angle(90);
+				trigger();
+				pinged = TRUE;
+			} else {
+				pinged = FALSE;
+			}
+#else
+			pinged = FALSE;
+#endif
 		} else {
 			if (pinged) {
 				INT mm = echo_mm();

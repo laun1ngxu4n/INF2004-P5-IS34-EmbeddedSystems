@@ -287,7 +287,7 @@ class Panel:
         front = num("front")
         front_txt = {None: "?", -1: "nothing in range", -2: "NO ECHO (fault)"}.get(
             front, f"{front} mm")
-        self.sens["obst"].configure(text=f"front {front_txt}\n(updated while it runs)")
+        self.sens["obst"].configure(text=f"front {front_txt}")
         tilt, h10 = num("tilt"), num("h10")
         if tilt is not None and h10 is not None:
             deg = math.degrees(math.asin(max(-1.0, min(1.0, tilt / 1000.0))))

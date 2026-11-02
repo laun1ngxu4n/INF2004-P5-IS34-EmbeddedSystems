@@ -1,0 +1,74 @@
+[2026-10-26 15:52:52.984] 
+[2026-10-26 15:52:52.984] 
+[2026-10-26 15:52:52.984] microT-Kernel Version 3.00
+[2026-10-26 15:52:52.984] 
+[2026-10-26 15:52:52.984] 
+[2026-10-26 15:52:52.984] === micro T-Kernel on Raspberry Pi Pico W (spec 0x6300, product 0x0003) ===
+[2026-10-26 15:52:52.984] single-core build
+[2026-10-26 15:52:52.984] P5-IS34 RTOS stage 0: 8 tasks, no robot work yet. Kernel tick 10 ms
+[2026-10-26 15:52:52.984] all subsystems started
+[2026-10-26 15:52:52.984] 
+[2026-10-26 15:52:52.984] [TEST] waiting 3000 ms for start-up to finish
+[2026-10-26 15:52:52.984] wifi: cyw43_utk_task starting (proc 1)
+[2026-10-26 15:52:52.984] wifi: cyw43_init() ...
+[2026-10-26 15:52:52.985] wifi: cyw43_init() returned, bringing interface up ...
+[2026-10-26 15:52:52.985] [TEST] === test run start ===
+[2026-10-26 15:52:52.985] [TEST] telemetry: 21 wakes in 2000 ms (expected 20), longest interval 100118 us (limit 115 ms), overruns 0
+[2026-10-26 15:52:52.985] [TEST] S1-U01 PASS  wake rate
+[2026-10-26 15:52:53.002] [TEST] S1-U02 PASS  no overrun, longest interval within limit
+[2026-10-26 15:52:53.002] [TEST] subsystem1 SUMMARY 2 passed, 0 failed
+[2026-10-26 15:52:53.002] [TEST] motion: 201 wakes in 2000 ms (expected 200), longest interval 10494 us (limit 25 ms), overruns 0
+[2026-10-26 15:52:53.002] [TEST] S2-U01 PASS  wake rate
+[2026-10-26 15:52:53.002] [TEST] S2-U02 PASS  no overrun, longest interval within limit
+[2026-10-26 15:52:53.002] [TEST] subsystem2 SUMMARY 2 passed, 0 failed
+[2026-10-26 15:52:53.002] [TEST] line: 101 wakes in 2000 ms (expected 100), longest interval 20444 us (limit 35 ms), overruns 0
+[2026-10-26 15:52:53.002] [TEST] S3-U01 PASS  wake rate
+[2026-10-26 15:52:53.002] [TEST] S3-U02 PASS  no overrun, longest interval within limit
+[2026-10-26 15:52:53.002] [tmg] t=10138 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[2026-10-26 15:52:53.003] [tmg] telemetry 12 100 |    100   0 | 53.23-146.79 (146.79 @ 0.6) | 38 (38)
+[2026-10-26 15:52:53.016] [tmg] motion     6  10 |    989  11 | 3.39-126.72 (126.72 @ 0.6) | 14 (14)
+[2026-10-26 15:52:53.016] [tmg] line       8  20 |    495   5 | 13.35-126.77 (126.77 @ 0.6) | 2 (2)
+[2026-10-26 15:52:53.016] [tmg] barcode   10  10 |    495   0 | 13.35-136.67 (136.67 @ 0.6) | 2 (2)
+[2026-10-26 15:52:53.016] [tmg] safety     5  20 |    495   5 | 13.45-126.67 (126.67 @ 0.6) | 21 (21)
+[2026-10-26 15:52:53.016] [tmg] imu        9  10 |    989  11 | 3.33-126.77 (126.77 @ 0.6) | 2 (2)
+[2026-10-26 15:52:53.016] [tmg] mission    7 100 |     99   0 | 10.05-226.73 (226.73 @ 0.6) | 4 (4)
+[2026-10-26 15:52:53.016] [tmg] obstacle  11  60 |    165   1 | 53.24-126.78 (126.78 @ 0.6) | 3 (3)
+[2026-10-26 15:52:53.016] [TEST] barcode: 100 wakes in 2000 ms (expected about 100), longest interval 20012 us (limit 35 ms), overruns 0
+[2026-10-26 15:52:53.016] [TEST] S3-U03 PASS  wake rate
+[2026-10-26 15:52:53.030] [TEST] S3-U04 PASS  no overrun, longest interval within limit
+[2026-10-26 15:52:53.030] [TEST] subsystem3 SUMMARY 4 passed, 0 failed
+[2026-10-26 15:52:53.030] [TEST] safety: 101 wakes in 2000 ms (expected 100), longest interval 20435 us (limit 35 ms), overruns 0
+[2026-10-26 15:52:53.030] [TEST] S4-U01 PASS  wake rate
+[2026-10-26 15:52:53.030] [TEST] S4-U02 PASS  no overrun, longest interval within limit
+[2026-10-26 15:52:53.030] [TEST] imu: 201 wakes in 2000 ms (expected 200), longest interval 10309 us (limit 25 ms), overruns 0
+[2026-10-26 15:52:53.030] [TEST] S4-U03 PASS  wake rate
+[2026-10-26 15:52:53.030] [TEST] S4-U04 PASS  no overrun, longest interval within limit
+[2026-10-26 15:52:53.030] [TEST] subsystem4 SUMMARY 4 passed, 0 failed
+[2026-10-26 15:52:53.030] [TEST] mission: 20 wakes in 2000 ms (expected about 18), longest interval 110031 us (limit 125 ms), overruns 0
+[2026-10-26 15:52:53.031] [TEST] S5-U01 PASS  wake rate
+[2026-10-26 15:52:53.047] [TEST] S5-U02 PASS  no overrun, longest interval within limit
+[2026-10-26 15:52:53.047] [TEST] obstacle: 33 wakes in 2000 ms (expected 33), longest interval 60008 us (limit 75 ms), overruns 0
+[2026-10-26 15:52:53.047] [TEST] S5-U03 PASS  wake rate
+[2026-10-26 15:52:53.047] [TEST] S5-U04 PASS  no overrun, longest interval within limit
+[2026-10-26 15:52:53.047] [tmg] t=20138 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[2026-10-26 15:52:53.047] [tmg] telemetry 12 100 |    200   0 | 99.99-100.01 (146.79 @ 0.6) | 1436 (1436)
+[2026-10-26 15:52:53.047] [tmg] motion     6  10 |   1989  11 | 9.54-10.46 (126.72 @ 0.6) | 3 (14)
+[2026-10-26 15:52:53.047] [tmg] line       8  20 |    995   5 | 19.56-20.43 (126.77 @ 0.6) | 2 (2)
+[2026-10-26 15:52:53.047] [tmg] barcode   10  10 |    995   0 | 19.56-20.43 (136.67 @ 0.6) | 2 (2)
+[2026-10-26 15:52:53.047] [tmg] safety     5  20 |    995   5 | 19.56-20.43 (126.67 @ 0.6) | 2 (21)
+[2026-10-26 15:52:53.061] [tmg] imu        9  10 |   1989  11 | 9.53-10.46 (126.77 @ 0.6) | 2 (2)
+[2026-10-26 15:52:53.061] [tmg] mission    7 100 |    199   0 | 10.05-110.03 (226.73 @ 0.6) | 2 (4)
+[2026-10-26 15:52:53.061] [tmg] obstacle  11  60 |    332   1 | 59.57-60.43 (126.78 @ 0.6) | 2 (3)
+[2026-10-26 15:52:53.061] [TEST] mission: 3 pings in 3000 ms (expected 3)
+[2026-10-26 15:52:53.061] [TEST] INT-01 PASS  IF-01 ping from Telemetry wakes Mission once a second
+[2026-10-26 15:52:53.061] [TEST] subsystem5 SUMMARY 5 passed, 0 failed
+[2026-10-26 15:52:53.061] [TEST] === test run end ===
+[2026-10-26 15:52:53.061] [tmg] t=30138 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[2026-10-26 15:52:53.061] [tmg] telemetry 12 100 |    300   0 | 99.99-100.00 (146.79 @ 0.6) | 1383 (1436)
+[2026-10-26 15:52:53.061] [tmg] motion     6  10 |   2989  11 | 6.36-13.63 (126.72 @ 0.6) | 3 (14)
+[2026-10-26 15:52:53.077] [tmg] line       8  20 |   1495   5 | 16.41-23.60 (126.77 @ 0.6) | 2 (2)
+[2026-10-26 15:52:53.077] [tmg] barcode   10  10 |   1495   0 | 16.41-23.60 (136.67 @ 0.6) | 2 (2)
+[2026-10-26 15:52:53.077] [tmg] safety     5  20 |   1495   5 | 16.39-23.60 (126.67 @ 0.6) | 3 (21)
+[2026-10-26 15:52:53.077] [tmg] imu        9  10 |   2989  11 | 6.35-13.64 (126.77 @ 0.6) | 2 (2)
+[2026-10-26 15:52:53.077] [tmg] mission    7 100 |    299   0 | 10.05-110.03 (226.73 @ 0.6) | 2 (4)
+[2026-10-26 15:52:53.077] [tmg] obstacle  11  60 |    499   1 | 59.98-60.02 (126.78 @ 0.6) | 2 (3)

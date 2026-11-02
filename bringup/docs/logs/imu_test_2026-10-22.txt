@@ -1,0 +1,661 @@
+P5-IS34 IMU bring-up log, 22 Oct 2026
+Board: Pico W on Cytron Robo Pico, laptop USB power. IMU board marked GY-511.
+Source: serial output pasted during the session. These are EXCERPTS in the
+order they happened, not one continuous capture. Section headers (=====)
+were added afterwards; everything under them is verbatim serial output.
+
+===== 1. parts_check v3, IMU on Grove 6, red on GY-511 3V3 pin (IMU FAIL) =====
+ith a meter and set VBAT_DIVIDER = V_batt / V_pin
+---- summary ----
+  IMU            FAIL
+  Ultrasonic     FAIL
+  Servo          LOOK/LISTEN
+  NeoPixels      LOOK/LISTEN
+  Buzzer         LOOK/LISTEN
+  Battery sense  OK
+Live view below. Hand-turn each wheel FORWARD, move each IR sensor over black/wh                         ite.
+GP20 = motor check (LIFT THE WHEELS), GP21 = repeat part checks.
+
+[live] IR L=0 C=0 B=0 (edges 0/0/0) | enc L=0 R=0 (invalid 0/0) | GP20=up GP21=u                         p | GP28 0.085 V
+...
+[parts check re-run with GP21]
+---- part checks ----
+[imu] accel 0x19: NO ANSWER | mag 0x1E: NO ANSWER, ID '???' (expect 'H43')
+[imu] check GP26 SDA / GP27 SCL, 3V3, GND (and Grove 5 is not also used)
+
+===== 2. i2c_diag v1, run 1 (wires in original order) =====
+=== I2C / Grove diagnostic, run 1 ===
+[1] Line levels (PULLED UP = a powered board's pull-up is on it; floating = nothing powered; HELD LOW = shorted or unpowered chip)
+  Grove 1: GP0 floating  GP1 floating
+  Grove 2: GP2 floating  GP3 floating
+  Grove 3: GP4 floating  GP5 floating
+  Grove 4: GP16 floating  GP17 floating
+  Grove 5: GP6 floating  GP26 PULLED UP
+  Grove 6: GP26 PULLED UP GP27 PULLED UP
+  Grove 7: GP7 floating  GP28 floating
+[2] Slow software I2C scan, every Grove port, both wire orders
+  Grove 1 SDA=GP0 SCL=GP1: nothing answered
+  Grove 1 SDA=GP1 SCL=GP0: nothing answered
+  Grove 2 SDA=GP2 SCL=GP3: nothing answered
+  Grove 2 SDA=GP3 SCL=GP2: nothing answered
+  Grove 3 SDA=GP4 SCL=GP5: nothing answered
+  Grove 3 SDA=GP5 SCL=GP4: nothing answered
+  Grove 4 SDA=GP16 SCL=GP17: nothing answered
+  Grove 4 SDA=GP17 SCL=GP16: nothing answered
+  Grove 5 SDA=GP6 SCL=GP26: nothing answered
+  Grove 5 SDA=GP26 SCL=GP6: nothing answered
+  Grove 6 SDA=GP26 SCL=GP27: nothing answered
+  Grove 6 SDA=GP27 SCL=GP26: FOUND 0x1D
+  Grove 7 SDA=GP7 SCL=GP28: nothing answered
+  Grove 7 SDA=GP28 SCL=GP7: nothing answered
+[3] Hardware I2C on the design pins
+  hardware I2C1 GP26/GP27 @ 100 kHz: accel 0x19 NO ANSWER, mag 0x1E NO ANSWER
+  hardware I2C1 GP26/GP27 @ 400 kHz: accel 0x19 NO ANSWER, mag 0x1E NO ANSWER
+[verdict] something answers but not at 0x19/0x1E - see FOUND lines (different chip?).
+
+===== 3. i2c_diag v3, run 1 (after swapping SDA/SCL wires at the sensor) =====
+=== I2C / Grove diagnostic v3, run 1 ===
+[1] Line levels (PULLED UP = a powered board's pull-up is on it; floating = nothing powered; HELD LOW = shorted or unpowered chip)
+  Grove 1: GP0 floating  GP1 floating
+  Grove 2: GP2 floating  GP3 floating
+  Grove 3: GP4 floating  GP5 floating
+  Grove 4: GP16 floating  GP17 floating
+  Grove 5: GP6 floating  GP26 PULLED UP
+  Grove 6: GP26 PULLED UP GP27 PULLED UP
+  Grove 7: GP7 floating  GP28 floating
+[2] Slow software I2C scan, every Grove port, both wire orders
+  Grove 1 SDA=GP0 SCL=GP1: nothing answered
+  Grove 1 SDA=GP1 SCL=GP0: nothing answered
+  Grove 2 SDA=GP2 SCL=GP3: nothing answered
+  Grove 2 SDA=GP3 SCL=GP2: nothing answered
+  Grove 3 SDA=GP4 SCL=GP5: nothing answered
+  Grove 3 SDA=GP5 SCL=GP4: nothing answered
+  Grove 4 SDA=GP16 SCL=GP17: nothing answered
+  Grove 4 SDA=GP17 SCL=GP16: nothing answered
+  Grove 5 SDA=GP6 SCL=GP26: nothing answered
+  Grove 5 SDA=GP26 SCL=GP6: nothing answered
+  Grove 6 SDA=GP26 SCL=GP27: FOUND 0x1D
+    0x1D ID regs: [0x00]=00 [0x0D]=FE [0x0F]=49 [0x0A]=D4 [0x4F]=00
+    0x1D looks like: LSM303D (accel + mag, one address) or LSM9DS0 accel/mag
+  Grove 6 SDA=GP27 SCL=GP26: nothing answered
+  Grove 7 SDA=GP7 SCL=GP28: nothing answered
+  Grove 7 SDA=GP28 SCL=GP7: nothing answered
+[3] Hardware I2C on the design pins
+  hardware I2C1 GP26/GP27 @ 100 kHz scan: 0x1D
+    hw 0x19 regs: [0x00]=-- [0x0A]=-- [0x0B]=-- [0x0C]=-- [0x0D]=-- [0x0F]=-- [0x4F]=--
+    hw 0x1D regs: [0x00]=00 [0x0A]=D4 [0x0B]=01 [0x0C]=CC [0x0D]=FE [0x0F]=49 [0x4F]=00
+    hw 0x1E regs: [0x00]=-- [0x0A]=-- [0x0B]=-- [0x0C]=-- [0x0D]=-- [0x0F]=-- [0x4F]=--
+  hardware I2C1 GP26/GP27 @ 400 kHz scan: 0x1D
+    hw 0x19 regs: [0x00]=-- [0x0A]=-- [0x0B]=-- [0x0C]=-- [0x0D]=-- [0x0F]=-- [0x4F]=--
+    hw 0x1D regs: [0x00]=00 [0x0A]=D4 [0x0B]=01 [0x0C]=CC [0x0D]=FE [0x0F]=49 [0x4F]=00
+    hw 0x1E regs: [0x00]=-- [0x0A]=-- [0x0B]=-- [0x0C]=-- [0x0D]=-- [0x0F]=-- [0x4F]=--
+[verdict] something answers but not at 0x19/0x1E - see FOUND lines (different chip?).
+
+===== 4. parts_check v3.1 (LSM303D detection) =====
+---- part checks ----
+[imu] LSM303D at 0x1D (WHO_AM_I 0x49), accel + mag on one address: configured
+[imu] |a| = 0.882 g over 20 reads (expect ~1.0 g when still)
+---- summary ----
+  IMU            OK
+  Ultrasonic     FAIL
+
+===== 5. imu_test v3.1, first run (before Z-offset correction), flat, 400 kHz =====
+=== P5-IS34 IMU bring-up test (v3) ===
+[scan] I2C1 devices: 0x1D
+[scan] LSM303D at 0x1D (WHO_AM_I 0x49): accel + mag on one address
+[init] LSM303D at 0x1D configured (accel 100 Hz +/-4 g, mag 50 Hz +/-4 gauss): OK
+Keep it flat and still, press GP21 to calibrate. GP20 toggles 100/400 kHz.
+pitch=  0.00 filt=  0.00 rel=  0.00 roll=  0.00 |a|=0.000 g heading=  0.0 read=  0 us peak=  0.00
+[stats] NO FRESH ACCEL SAMPLES in 1 ms (status fails 0, data fails 0, mag fails 0) - displayed values are stale
+[stats] shock: peak change 0.00 g, peak | |a|-1g | 0.00 g, shocks >2.0 g: 0 (total 0), saturated samples 0 | loop work max 273 us
+pitch=  2.60 filt=  2.26 rel=  2.26 roll=178.52 |a|=0.883 g heading=170.8 read=354 us peak=  2.26
+pitch=  2.43 filt=  2.45 rel=  2.45 roll=178.57 |a|=0.883 g heading=171.2 read=354 us peak=  2.45
+pitch=  2.43 filt=  2.50 rel=  2.50 roll=178.61 |a|=0.880 g heading=170.8 read=354 us peak=  2.51
+pitch=  2.40 filt=  2.47 rel=  2.47 roll=178.53 |a|=0.881 g heading=170.5 read=354 us peak=  2.52
+pitch=  2.42 filt=  2.44 rel=  2.44 roll=178.45 |a|=0.882 g heading=170.9 read=354 us peak=  2.52
+pitch=  2.27 filt=  2.39 rel=  2.39 roll=178.63 |a|=0.884 g heading=170.8 read=354 us peak=  2.52
+pitch=  2.42 filt=  2.42 rel=  2.42 roll=178.58 |a|=0.882 g heading=170.9 read=354 us peak=  2.52
+pitch=  2.48 filt=  2.50 rel=  2.50 roll=178.62 |a|=0.878 g heading=170.8 read=354 us peak=  2.52
+pitch=  2.43 filt=  2.47 rel=  2.47 roll=178.53 |a|=0.879 g heading=170.8 read=354 us peak=  2.55
+pitch=  2.43 filt=  2.43 rel=  2.43 roll=178.61 |a|=0.883 g heading=171.0 read=354 us peak=  2.55
+pitch=  2.58 filt=  2.47 rel=  2.47 roll=178.69 |a|=0.879 g heading=170.4 read=354 us peak=  2.55
+pitch=  2.54 filt=  2.49 rel=  2.49 roll=178.72 |a|=0.881 g heading=170.7 read=354 us peak=  2.55
+pitch=  2.40 filt=  2.47 rel=  2.47 roll=178.68 |a|=0.882 g heading=170.0 read=354 us peak=  2.55
+pitch=  2.21 filt=  2.36 rel=  2.36 roll=178.69 |a|=0.879 g heading=170.9 read=354 us peak=  2.55
+pitch=  2.49 filt=  2.42 rel=  2.42 roll=178.58 |a|=0.879 g heading=171.0 read=354 us peak=  2.55
+pitch=  2.48 filt=  2.40 rel=  2.40 roll=178.62 |a|=0.881 g heading=170.7 read=354 us peak=  2.55
+pitch=  2.16 filt=  2.38 rel=  2.38 roll=178.68 |a|=0.882 g heading=170.7 read=354 us peak=  2.55
+pitch=  2.34 filt=  2.39 rel=  2.39 roll=178.67 |a|=0.879 g heading=171.2 read=354 us peak=  2.55
+pitch=  2.42 filt=  2.41 rel=  2.41 roll=178.74 |a|=0.882 g heading=170.7 read=354 us peak=  2.55
+pitch=  2.43 filt=  2.42 rel=  2.42 roll=178.65 |a|=0.882 g heading=171.1 read=354 us peak=  2.55
+[stats] 200 samples in 2000 ms (100.0 Hz) | pitch mean 2.44 sd 0.105 deg | |a| mean 0.8820 sd 0.0041 g | read avg 355 max 386 us @ 400 kHz | overruns 1 | fails: status 0 data 0 mag 0
+[stats] shock: peak change 0.04 g, peak | |a|-1g | 0.15 g, shocks >2.0 g: 0 (total 0), saturated samples 0 | loop work max 571 us
+pitch=  2.28 filt=  2.41 rel=  2.41 roll=178.80 |a|=0.879 g heading=171.0 read=354 us peak=  2.55
+pitch=  2.53 filt=  2.48 rel=  2.48 roll=178.73 |a|=0.883 g heading=170.8 read=354 us peak=  2.55
+pitch=  2.35 filt=  2.41 rel=  2.41 roll=178.88 |a|=0.884 g heading=170.8 read=354 us peak=  2.55
+pitch=  2.46 filt=  2.46 rel=  2.46 roll=178.61 |a|=0.877 g heading=170.3 read=354 us peak=  2.55
+pitch=  2.32 filt=  2.36 rel=  2.36 roll=178.80 |a|=0.883 g heading=170.8 read=354 us peak=  2.55
+pitch=  2.38 filt=  2.42 rel=  2.42 roll=178.57 |a|=0.883 g heading=170.7 read=354 us peak=  2.55
+pitch=  2.35 filt=  2.43 rel=  2.43 roll=178.75 |a|=0.879 g heading=170.9 read=354 us peak=  2.55
+pitch=  2.43 filt=  2.46 rel=  2.46 roll=178.73 |a|=0.878 g heading=170.6 read=354 us peak=  2.55
+pitch=  2.50 filt=  2.40 rel=  2.40 roll=178.66 |a|=0.880 g heading=170.9 read=354 us peak=  2.55
+pitch=  2.37 filt=  2.45 rel=  2.45 roll=178.78 |a|=0.887 g heading=170.8 read=354 us peak=  2.55
+pitch=  2.34 filt=  2.42 rel=  2.42 roll=178.66 |a|=0.888 g heading=170.8 read=354 us peak=  2.55
+pitch=  2.58 filt=  2.44 rel=  2.44 roll=178.64 |a|=0.882 g heading=170.3 read=354 us peak=  2.55
+pitch=  2.68 filt=  2.49 rel=  2.49 roll=178.65 |a|=0.885 g heading=170.7 read=354 us peak=  2.55
+pitch=  2.57 filt=  2.50 rel=  2.50 roll=178.66 |a|=0.886 g heading=170.8 read=354 us peak=  2.55
+pitch=  2.46 filt=  2.48 rel=  2.48 roll=178.55 |a|=0.884 g heading=170.6 read=354 us peak=  2.55
+pitch=  2.36 filt=  2.42 rel=  2.42 roll=178.86 |a|=0.883 g heading=170.6 read=354 us peak=  2.55
+pitch=  2.39 filt=  2.39 rel=  2.39 roll=178.69 |a|=0.885 g heading=171.2 read=354 us peak=  2.55
+pitch=  2.44 filt=  2.47 rel=  2.47 roll=178.74 |a|=0.882 g heading=170.8 read=354 us peak=  2.55
+pitch=  2.36 filt=  2.39 rel=  2.39 roll=178.75 |a|=0.884 g heading=171.1 read=354 us peak=  2.55
+pitch=  2.35 filt=  2.42 rel=  2.42 roll=178.74 |a|=0.882 g heading=171.0 read=354 us peak=  2.55
+[stats] 201 samples in 2000 ms (100.5 Hz) | pitch mean 2.43 sd 0.104 deg | |a| mean 0.8826 s
+
+===== 6. Flip test: flipped over (other way up) =====
+[stats] 201 samples in 2000 ms (100.5 Hz) | pitch mean -6.64 sd 0.265 deg | |a| mean 1.1425 sd 0.0055 g | read avg 355 max 369 us @ 400 kHz | overruns 0 | fails: status 0 data 0 mag 0
+[stats] shock: peak change 0.02 g, peak | |a|-1g | 0.16 g, shocks >2.0 g: 0 (total 0), saturated samples 0 | loop work max 547 us
+pitch= -6.51 filt= -6.38 rel= -6.38 roll= 13.95 |a|=1.158 g heading=192.0 read=354 us peak= 16.40
+pitch= -6.89 filt= -6.75 rel= -6.75 roll= 13.90 |a|=1.131 g heading=192.1 read=354 us peak= 16.40
+pitch= -6.58 filt= -6.55 rel= -6.55 roll= 13.64 |a|=1.142 g heading=192.3 read=354 us peak= 16.40
+pitch= -6.07 filt= -6.21 rel= -6.21 roll= 13.34 |a|=1.145 g heading=191.9 read=354 us peak= 16.40
+pitch= -6.93 filt= -6.55 rel= -6.55 roll= 13.49 |a|=1.144 g heading=191.7 read=354 us peak= 16.40
+pitch= -6.70 filt= -6.86 rel= -6.86 roll= 14.09 |a|=1.138 g heading=191.8 read=354 us peak= 16.40
+pitch= -6.60 filt= -6.48 rel= -6.48 roll= 14.51 |a|=1.140 g heading=191.6 read=354 us peak= 16.40
+pitch= -6.50 filt= -6.46 rel= -6.46 roll= 14.06 |a|=1.135 g heading=192.0 read=354 us peak= 16.40
+pitch= -6.11 filt= -6.28 rel= -6.28 roll= 13.65 |a|=1.140 g heading=191.7 read=354 us peak= 16.40
+pitch= -6.62 filt= -6.47 rel= -6.47 roll= 14.28 |a|=1.140 g heading=192.0 read=354 us peak= 16.40
+pitch= -6.14 filt= -6.32 rel= -6.32 roll= 14.16 |a|=1.148 g heading=192.1 read=354 us peak= 16.40
+pitch= -6.46 filt= -6.57 rel= -6.57 roll= 14.50 |a|=1.137 g heading=191.8 read=354 us peak= 16.40
+pitch= -6.60 filt= -6.60 rel= -6.60 roll= 13.75 |a|=1.145 g heading=192.1 read=354 us peak= 16.40
+pitch= -6.58 filt= -6.48 rel= -6.48 roll= 14.04 |a|=1.163 g heading=192.0 read=354 us peak= 16.40
+pitch= -6.76 filt= -6.52 rel= -6.52 roll= 14.34 |a|=1.134 g heading=192.1 read=354 us peak= 16.40
+pitch= -6.32 filt= -6.43 rel= -6.43 roll= 14.53 |a|=1.146 g heading=192.1 read=354 us peak= 16.40
+pitch= -6.32 filt= -6.36 rel= -6.36 roll= 14.17 |a|=1.136 g heading=192.1 read=354 us peak= 16.40
+pitch= -6.51 filt= -6.43 rel= -6.43 roll= 13.78 |a|=1.143 g heading=191.9 read=354 us peak= 16.40
+pitch= -6.58 filt= -6.70 rel= -6.70 roll= 13.55 |a|=1.145 g heading=191.7 read=354 us peak= 16.40
+pitch= -6.44 filt= -6.42 rel= -6.42 roll= 13.67 |a|=1.141 g heading=192.3 read=354 us peak= 16.40
+[stats] 200 samples in 2000 ms (100.0 Hz) | pitch mean -6.48 sd 0.239 deg | |a| mean 1.1432 sd 0.0057 g | read avg 355 max 366 us @ 400 kHz | overruns 0 | fails: status 0 data 0 mag 0
+[stats] shock: peak change 0.02 g, peak | |a|-1g | 0.16 g, shocks >2.0 g: 0 (total 0), saturated samples 0 | loop work max 539 us
+pitch= -6.51 filt= -6.41 rel= -6.41 roll= 13.97 |a|=1.147 g heading=192.0 read=354 us peak= 16.40
+pitch= -6.83 filt= -6.59 rel= -6.59 roll= 14.03 |a|=1.143 g heading=192.2 read=354 us peak= 16.40
+pitch= -6.14 filt= -6.58 rel= -6.58 roll= 14.61 |a|=1.142 g heading=192.3 read=354 us peak= 16.40
+pitch= -6.40 filt= -6.41 rel= -6.41 roll= 13.93 |a|=1.145 g heading=191.9 read=354 us peak= 16.40
+pitch= -7.04 filt= -6.74 rel= -6.74 roll= 13.56 |a|=1.136 g heading=192.4 read=354 us peak= 16.40
+pitch= -6.61 filt= -6.60 rel= -6.60 roll= 14.14 |a|=1.149 g heading=191.7 read=354 us peak= 16.40
+pitch= -6.21 filt= -6.21 rel= -6.21 roll= 14.01 |a|=1.135 g heading=191.7 read=354 us peak= 16.40
+pitch= -6.30 filt= -6.44 rel= -6.44 roll= 14.35 |a|=1.142 g heading=192.0 read=354 us peak= 16.40
+pitch= -6.74 filt= -6.66 rel= -6.66 roll= 13.87 |a|=1.144 g heading=192.1 read=354 us peak= 16.40
+pitch= -6.52 filt= -6.59 rel= -6.59 roll= 14.19 |a|=1.144 g heading=192.4 read=354 us peak= 16.40
+pitch= -6.48 filt= -6.40 rel= -6.40 roll= 14.16 |a|=1.148 g heading=192.5 read=354 us peak= 16.40
+pitch= -6.60 filt= -6.46 rel= -6.46 roll= 14.30 |a|=1.141 g heading=192.0 read=354 us peak= 16.40
+pitch= -6.77 filt= -6.74 rel= -6.74 roll= 14.01 |a|=1.153 g heading=192.2 read=354 us peak= 16.40
+pitch= -6.45 filt= -6.59 rel= -6.59 roll= 13.94 |a|=1.137 g heading=192.0 read=354 us peak= 16.40
+pitch= -6.24 filt= -6.53 rel= -6.53 roll= 14.74 |a|=1.132 g heading=192.2 read=354 us peak= 16.40
+pitch= -5.74 filt= -6.11 rel= -6.11 roll= 14.47 |a|=1.158 g heading=192.0 read=354 us peak= 16.40
+pitch= -6.58 filt= -6.21 rel= -6.21 roll= 14.86 |a|=1.139 g heading=192.2 read=354 us peak= 16.40
+pitch= -5.64 filt= -5.91 rel= -5.91 roll= 14.76 |a|=1.148 g heading=192.0 read=354 us peak= 16.40
+pitch= -6.00 filt= -5.83 rel= -5.83 roll= 14.47 |a|=1.144 g heading=191.8 read=354 us peak= 16.40
+pitch= -6.21 filt= -6.12 rel= -6.12 roll= 14.98 |a|=1.147 g heading=192.3 read=354 us peak= 16.40
+[stats] 201 samples in 2000 ms (100.5 Hz) | pitch mean -6.41 sd 0.339 deg | |a| mean 1.1425 sd 0.0066 g | read avg 355 max 375 us @ 400 kHz | overruns 0 | fails: status 0 data 0 mag 0
+[stats] shock: peak change 0.02 g, peak | |a|-1g | 0.16 g, shocks >2.0 g: 0 (total 0), saturated samples 0 | loop work max 561 us
+pitch= -6.07 filt= -5.98 rel= -5.98 roll= 14.33 |a|=1.153 g heading=192.0 read=354 us peak= 16.40
+pitch= -6.47 filt= -6.36 rel= -6.36 roll= 13.94 |a|=1.136 g heading=192.4 read=354 us peak= 16.40
+pitch= -6.04 filt= -5.94 rel= -5.94 roll= 14.35 |a|=1.146 g heading=191.8 read=354 us peak= 16.40
+pitch= -5.44 filt= -5.64 rel= -5.64 roll= 14.54 |a|=1.151 g heading=192.2 read=354 us peak= 16.40
+pitch= -6.11 filt= -5.93 rel= -5.93 roll= 14.41 |a|=1.144 g heading=191.6 read=354 us pea
+
+===== 7. Flip test: back to the usual way up (stats lines) =====
+[stats] 200 samples in 2000 ms (100.0 Hz) | pitch mean 2.59 sd 0.091 deg | |a| mean 0.8804 sd 0.0025 g | read avg 355 max 367 us @ 400 kHz | overruns 0 | fails: status 0 data 0 mag 0
+[stats] shock: peak change 0.01 g, peak | |a|-1g | 0.13 g, shocks >2.0 g: 0 (total 0), saturated samples 0 | loop work max 544 us
+[stats] 201 samples in 2000 ms (100.5 Hz) | pitch mean 2.58 sd 0.089 deg | |a| mean 0.8807 sd 0.0025 g | read avg 355 max 370 us @ 400 kHz | overruns 0 | fails: status 0 data 0 mag 0
+[stats] shock: peak change 0.01 g, peak | |a|-1g | 0.13 g, shocks >2.0 g: 0 (total 0), saturated samples 0 | loop work max 578 us
+
+===== 8. 100 kHz (GP20) =====
+[stats] 201 samples in 2001 ms (100.4 Hz) | pitch mean 2.50 sd 0.205 deg | |a| mean 0.8802 sd 0.0046 g | read avg 1311 max 1322 us @ 100 kHz | overruns 0 | fails: status 0 data 0 mag 0
+[stats] shock: peak change 0.02 g, peak | |a|-1g | 0.13 g, shocks >2.0 g: 0 (total 0), saturated samples 0 | loop work max 1791 us
+pitch=  2.23 filt=  2.44 rel= -0.16 roll=179.09 |a|=0.873 g heading=183.5 read=1310 us peak= -9.90
+pitch=  2.55 filt=  2.45 rel= -0.15 roll=179.15 |a|=0.887 g heading=183.7 read=1310 us peak= -9.90
+pitch=  2.45 filt=  2.55 rel= -0.06 roll=179.34 |a|=0.879 g heading=183.6 read=1310 us peak= -9.90
+pitch=  2.52 filt=  2.51 rel= -0.09 roll=179.01 |a|=0.882 g heading=183.8 read=1310 us peak= -9.90
+pitch=  2.81 filt=  2.59 rel= -0.01 roll=179.21 |a|=0.885 g heading=183.6 read=1310 us peak= -9.90
+pitch=  2.83 filt=  2.56 rel= -0.04 roll=179.34 |a|=0.885 g heading=183.8 read=1310 us peak= -9.90
+pitch=  2.61 filt=  2.46 rel= -0.14 roll=179.11 |a|=0.877 g heading=183.4 read=1310 us peak= -9.90
+pitch=  2.56 filt=  2.47 rel= -0.13 roll=179.05 |a|=0.872 g heading=183.7 read=1310 us peak= -9.90
+pitch=  2.31 filt=  2.47 rel= -0.13 roll=179.09 |a|=0.873 g heading=183.7 read=1310 us peak= -9.90
+pitch=  2.64 filt=  2.53 rel= -0.07 roll=179.29 |a|=0.886 g heading=183.2 read=1310 us peak= -9.90
+pitch=  2.41 filt=  2.45 rel= -0.16 roll=179.10 |a|=0.881 g heading=183.6 read=1310 us peak= -9.90
+pitch=  2.60 filt=  2.49 rel= -0.11 roll=179.52 |a|=0.886 g heading=183.8 read=1310 us peak= -9.90
+pitch=  2.16 filt=  2.50 rel= -0.10 roll=179.24 |a|=0.875 g heading=183.5 read=1310 us peak= -9.90
+pitch=  2.44 filt=  2.47 rel= -0.13 roll=178.97 |a|=0.880 g heading=183.7 read=1310 us peak= -9.90
+pitch=  2.39 filt=  2.53 rel= -0.07 roll=179.31 |a|=0.875 g heading=183.5 read=1310 us peak= -9.90
+pitch=  2.70 filt=  2.53 rel= -0.07 roll=179.41 |a|=0.882 g heading=183.5 read=1310 us peak= -9.90
+pitch=  2.21 filt=  2.38 rel= -0.22 roll=178.94 |a|=0.878 g heading=183.4 read=1310 us peak= -9.90
+pitch=  2.27 filt=  2.48 rel= -0.12 roll=179.05 |a|=0.876 g heading=183.4 read=1310 us peak= -9.90
+pitch=  2.61 filt=  2.49 rel= -0.11 roll=179.14 |a|=0.886 g heading=183.6 read=1310 us peak= -9.90
+pitch=  2.79 filt=  2.58 rel= -0.02 roll=179.37 |a|=0.887 g heading=183.4 read=1310 us peak= -9.90
+[stats] 200 samples in 2000 ms (100.0 Hz) | pitch mean 2.49 sd 0.208 deg | |a| mean 0.8802 sd 0.0048 g | read avg 1311 max 1322 us @ 100 kHz | overruns 0 | fails: status 0 data 0 mag 0
+[stats] shock: peak change 0.02 g, peak | |a|-1g | 0.13 g, shocks >2.0 g: 0 (total 0), saturated samples 0 | loop work max 1793 us
+pitch=  2.76 filt=  2.50 rel= -0.10 roll=179.43 |a|=0.882 g heading=183.7 read=1311 us peak= -9.90
+pitch=  2.46 filt=  2.50 rel= -0.10 roll=179.10 |a|=0.881 g heading=183.5 read=1310 us peak= -9.90
+pitch=  2.83 filt=  2.52 rel= -0.08 roll=179.34 |a|=0.889 g heading=183.5 read=1310 us peak= -9.90
+pitch=  2.35 filt=  2.48 rel= -0.12 roll=178.97 |a|=0.873 g heading=184.0 read=1310 us peak= -9.90
+pitch=  2.74 filt=  2.51 rel= -0.09 roll=179.26 |a|=0.880 g heading=184.1 read=1310 us peak= -9.90
+pitch=  2.50 filt=  2.47 rel= -0.13 roll=179.10 |a|=0.880 g heading=183.5 read=1310 us peak= -9.90
+pitch=  2.70 filt=  2.51 rel= -0.09 roll=179.08 |a|=0.883 g heading=183.7 read=1310 us peak= -9.90
+pitch=  2.78 filt=  2.56 rel= -0.04 roll=178.96 |a|=0.883 g heading=183.5 read=1310 us peak= -9.90
+pitch=  2.82 filt=  2.59 rel= -0.01 roll=179.12 |a|=0.888 g heading=183.6 read=1310 us peak= -9.90
+pitch=  2.45 filt=  2.46 rel= -0.14 roll=179.30 |a|=0.875 g heading=183.7 read=1310 us peak= -9.90
+pitch=  2.18 filt=  2.39 rel= -0.21 roll=179.09 |a|=0.874 g heading=183.5 read=1310 us peak= -9.90
+pitch=  2.71 filt=  2.57 rel= -0.04 roll=179.28 |a|=0.885 g heading=183.4 read=1310 us peak= -9.90
+pitch=  2.16 filt=  2.43 rel= -0.17 roll=179.01 |a|=0.874 g heading=183.5 read=1310 us peak= -9.90
+pitch=  2.61 filt=  2.46 rel= -0.14 roll=179.24 |a|=0.885 g heading=183.5 read=1310 us peak= -9.90
+pitch=  2.68 filt=  2.56 rel= -0.04 roll=179.37 |a|=0.883 g heading=183.9 read=1310 us peak= -9.90
+pitch=  2.73 filt=  2.56 rel= -0.04 roll=179.31 |a|=0.877 g heading=183.4 read=1310 us peak= -9.90
+pitch=  2.83 filt=  2.54 rel= -0.06 roll=179.27 |a|=0.887 g heading=183.2 read=1310 us peak= -9.90
+pitch=  2.21 filt=  2.50 rel= -0.10 roll=179.08 |a|=0.875 g heading=183.4 read=1310 us peak= -9.90
+pitch=  2.86 filt=  2.52 rel= -0.08 roll=179.22 |a|=0.881 g heading=183.2 read=1310 us peak= -9.90
+pitch=  2.19 filt=  2.47 rel= -0.13 roll=178.87 |a|=0.877 g heading=183.1 read=1310 us peak= -9.90
+[stats] 201 samples in 2000 ms (100.5 Hz) | pitch mean 2.50 sd 0.211 deg | |a| mean 0.8807 sd 0.0044 g | read avg 1311 max 1321 us @ 100 kHz | overruns 0 | fails: status 0 data 0 mag 0
+[stats] shock: peak change 0.02 g, peak | |a|-1g | 0.13 g, shocks >2.0 g: 0 (total 0), saturated samples 0 | loop work max 1799 us
+pitch=  2.70 filt=  2.59 rel= -0.01 roll=179.30 |a|=0.885 g heading=183.3 read=1311 us peak= -9.90
+
+===== 9. With Z-offset calibration (first calibrated run, stats lines) =====
+[stats] 200 samples in 2000 ms (100.0 Hz) | pitch mean 2.56 sd 0.087 deg | |a| mean 0.9991 sd 0.0026 g | read avg 355 max 367 us @ 400 kHz | overruns 0 | fails: status 0 data 0 mag 0
+[stats] shock: peak change 0.01 g, peak | |a|-1g | 0.01 g, shocks >2.0 g: 0 (total 0), saturated samples 0 | loop work max 533 us
+[stats] 201 samples in 2000 ms (100.5 Hz) | pitch mean 2.55 sd 0.083 deg | |a| mean 0.9992 sd 0.0027 g | read avg 356 max 368 us @ 400 kHz | overruns 0 | fails: status 0 data 0 mag 0
+[stats] shock: peak change 0.01 g, peak | |a|-1g | 0.01 g, shocks >2.0 g: 0 (total 0), saturated samples 0 | loop work max 543 us
+
+===== 10. Recalibration, hands off =====
+[cal] Z offset = +0.118 g (|a| raw 0.882 -> corrected 1.000 g), pitch zero = 2.75 deg, peak reset
+pitch=  2.83 filt=  2.85 rel=  0.10 roll=179.64 |a|=1.002 g heading=179.3 read=355 us peak=  0.11
+pitch=  3.01 filt=  2.90 rel=  0.15 roll=179.61 |a|=0.998 g heading=178.9 read=355 us peak=  0.15
+pitch=  2.84 filt=  2.84 rel=  0.09 roll=179.64 |a|=0.996 g heading=179.1 read=355 us peak=  0.17
+[stats] 201 samples in 2000 ms (100.5 Hz) | pitch mean 2.92 sd 1.757 deg | |a| mean 0.9999 sd 0.0066 g | read avg 357 max 369 us @ 400 kHz | overruns 0 | fails: status 0 data 0 mag 0
+[stats] shock: peak change 0.45 g, peak | |a|-1g | 0.06 g, shocks >2.0 g: 0 (total 0), saturated samples 0 | loop work max 837 us
+pitch=  2.95 filt=  2.89 rel=  0.14 roll=179.64 |a|=1.000 g heading=179.1 read=355 us peak=  0.17
+pitch=  2.87 filt=  2.88 rel=  0.14 roll=179.70 |a|=1.004 g heading=178.8 read=355 us peak=  0.17
+pitch=  2.99 filt=  2.92 rel=  0.17 roll=179.73 |a|=0.998 g heading=179.3 read=355 us peak=  0.17
+pitch=  2.95 filt=  2.91 rel=  0.16 roll=179.73 |a|=0.995 g heading=179.3 read=355 us peak=  0.18
+pitch=  2.80 filt=  2.83 rel=  0.08 roll=179.71 |a|=0.997 g heading=179.1 read=355 us peak=  0.18
+pitch=  2.82 filt=  2.85 rel=  0.10 roll=179.63 |a|=0.999 g heading=179.0 read=355 us peak=  0.18
+pitch=  2.86 filt=  2.84 rel=  0.10 roll=179.59 |a|=0.997 g heading=179.3 read=355 us peak=  0.18
+pitch=  2.84 filt=  2.87 rel=  0.12 roll=179.59 |a|=0.999 g heading=178.8 read=355 us peak=  0.18
+pitch=  2.85 filt=  2.87 rel=  0.12 roll=179.77 |a|=1.000 g heading=179.1 read=355 us peak=  0.18
+pitch=  2.85 filt=  2.93 rel=  0.18 roll=179.62 |a|=0.995 g heading=179.3 read=355 us peak=  0.20
+pitch=  2.77 filt=  2.88 rel=  0.13 roll=179.77 |a|=0.998 g heading=179.1 read=355 us peak=  0.20
+pitch=  2.84 filt=  2.89 rel=  0.14 roll=179.71 |a|=1.003 g heading=178.9 read=355 us peak=  0.20
+pitch=  2.82 filt=  2.86 rel=  0.11 roll=179.72 |a|=1.003 g heading=178.6 read=355 us peak=  0.20
+pitch=  2.76 filt=  2.84 rel=  0.09 roll=179.76 |a|=1.004 g heading=179.3 read=355 us peak=  0.20
+pitch=  2.89 filt=  2.91 rel=  0.16 roll=179.76 |a|=1.006 g heading=179.2 read=355 us peak=  0.20
+pitch=  2.99 filt=  2.86 rel=  0.11 roll=179.74 |a|=0.995 g heading=179.2 read=355 us peak=  0.20
+pitch=  2.82 filt=  2.86 rel=  0.12 roll=179.66 |a|=1.002 g heading=179.4 read=355 us peak=  0.20
+pitch=  3.02 filt=  2.88 rel=  0.13 roll=179.55 |a|=1.003 g heading=178.8 read=355 us peak=  0.20
+pitch=  2.91 filt=  2.86 rel=  0.11 roll=179.60 |a|=0.996 g heading=179.3 read=355 us peak=  0.20
+pitch=  2.69 filt=  2.83 rel=  0.08 roll=179.61 |a|=1.005 g heading=179.3 read=355 us peak=  0.20
+[stats] 201 samples in 2000 ms (100.5 Hz) | pitch mean 2.87 sd 0.086 deg | |a| mean 0.9996 sd 0.0029 g | read avg 355 max 367 us @ 400 kHz | overruns 0 | fails: status 0 data 0 mag 0
+[stats] shock: peak change 0.01 g, peak | |a|-1g | 0.01 g, shocks >2.0 g: 0 (total 0), saturated samples 0 | loop work max 544 us
+pitch=  2.91 filt=  2.85 rel=  0.10 roll=179.71 |a|=1.002 g heading=179.4 read=355 us peak=  0.20
+pitch=  2.86 filt=  2.88 rel=  0.13 roll=179.62 |a|=1.003 g heading=178.7 read=355 us peak=  0.20
+pitch=  2.95 filt=  2.91 rel=  0.16 roll=179.58 |a|=0.997 g heading=179.0 read=355 us peak=  0.20
+pitch=  2.85 filt=  2.91 rel=  0.17 roll=179.68 |a|=1.003 g heading=179.2 read=355 us peak=  0.20
+pitch=  2.83 filt=  2.87 rel=  0.12 roll=179.51 |a|=1.003 g heading=179.1 read=355 us peak=  0.20
+pitch=  2.91 filt=  2.88 rel=  0.13 roll=179.67 |a|=1.003 g heading=179.4 read=355 us peak=  0.20
+pitch=  2.91 filt=  2.90 rel=  0.16 roll=179.69 |a|=0.999 g heading=179.2 read=355 us peak=  0.20
+pitch=  2.85 filt=  2.87 rel=  0.12 roll=179.71 |a|=0.999 g heading=178.8 read=355 us peak=  0.20
+pitch=  2.99 filt=  2.93 rel=  0.18 roll=179.71 |a|=0.999 g heading=179.2 read=355 us peak=  0.20
+pitch=  2.76 filt=  2.84 rel=  0.09 roll=179.59 |a|=1.004 g heading=179.1 read=355 us peak=  0.20
+pitch=  2.83 filt=  2.84 rel=  0.09 roll=179.63 |a|=1.006 g heading=179.0 read=355 us peak=  0.20
+pitch=  2.85 filt=  2.87 rel=  0.12 roll=179.73 |a|=0.998 g heading=179.3 read=355 us peak=  0.20
+pitch=  2.89 filt=  2.89 rel=  0.15 roll=179.68 |a|=1.001 g heading=179.0 read=355 us peak=  0.20
+pitch=  2.93 filt=  2.90 rel=  0.15 roll=179.67 |a|=0.997 g heading=178.7 read=355 us peak=  0.20
+pitch=  3.06 filt=  2.92 rel=  0.17 roll=179.71 |a|=0.998 g heading=179.1 read=355 us peak=  0.20
+pitch=  2.89 filt=  2.90 rel=  0.15 roll=179.59 |a|=1.000 g heading=179.0 read=355 us peak=  0.20
+pitch=  2.80 filt=  2.83 rel=  0.08 roll=179.67 |a|=1.001 g heading=179.1 read=355 us peak=  0.20
+pitch=  3.11 filt=  2.94 rel=  0.19 roll=179.61 |a|=1.000 g heading=178.9 read=355 us peak=  0.20
+pitch=  2.92 filt=  2.90 rel=  0.15 roll=179.82 |a|=0.998 g heading=179.2 read=355 us peak=  0.20
+pitch=  2.84 filt=  2.88 rel=  0.14 roll=179.65 |a|=1.002 g heading=179.3 read=355 us peak=  0.20
+[stats] 200 samples in 2000 ms (100.0 Hz) | pitch mean 2.88 sd 0.083 deg | |a| mean 0.9994 sd 0.0024 g | read avg 355 max 366 us @ 400 kHz | overruns 0 | fails: status 0 data 0 mag 0
+[stats] shock: peak change 0.01 g, peak | |a|-1g | 0.01 g, shocks >2.0 g: 0 (total 0), saturated samples 0 | loop work max 535 us
+pitch=  2.84 filt=  2.83 rel=  0.08 roll=179.72 |a|=1.002 g heading=178.7 read=355 us peak=  0.20
+pitch=  2.96 filt=  2.90 rel=  0.15 roll=179.72 |a|=0.999 g heading=179.0 read=355 us peak=  0.20
+pitch=  2.87 filt=  2.86 rel=  0.11 roll=179.72 |a|=1.000 g heading=179.1 read=355 us peak=  0.20
+pitch=  2.72 filt=  2.83 rel=  0.08 roll=179.66 |a|=0.999 g heading=178.9 read=355 us peak=  0.20
+pitch=  2.86 filt=  2.90 rel=  0.16 roll=179.84 |a|=1.001 g heading=179.1 read=355 us peak=  0.20
+pitch=  2.95 filt=  2.87 rel=  0.12 roll=179.63 |a|=0.999 g heading=179.0 read=355 us peak=  0.20
+pitch=  2.79 filt=  2.85 rel=  0.11 roll=179.65 |a|=0.999 g heading=178.6 read=355 us peak=  0.20
+pitch=  2.84 filt=  2.89 rel=  0.14 roll=179.70 |a|=0.996 g heading=179.0 read=355 us peak=  0.20
+pitch=  2.76 filt=  2.84 rel=  0.10 roll=179.64 |a|=1.002 g heading=179.2 read=355 us peak=  0.20
+pitch=  2.85 filt=  2.90 rel=  0.15 roll=179.57 |a|=1.000 g heading=179.0 read=355 us peak=  0.20
+pitch=  2.85 filt=  2.87 rel=  0.12 roll=179.72 |a|=1.000 g heading=179.0 read=355 us peak=  0.20
+pitch=  2.83 filt=  2.88 rel=  0.14 roll=179.76 |a|=0.999 g heading=179.5 read=355 us peak=  0.20
+pitch=  2.86 filt=  2.94 rel=  0.19 roll=179.69 |a|=0.996 g heading=179.1 read=355 us peak=  0.21
+pitch=  2.89 filt=  2.89 rel=  0.14 roll=179.71 |a|=0.998 g heading=178.7 read=355 us peak=  0.21
+pitch=  2.82 filt=  2.88 rel=  0.13 roll=179.66 |a|=0.999 g heading=179.3 read=355 us peak=  0.21
+pitch=  2.99 filt=  2.92 rel=  0.18 roll=179.68 |a|=0.993 g heading=179.0 read=355 us peak=  0.21
+pitch=  2.82 filt=  2.90 rel=  0.15 roll=179.68 |a|=1.000 g heading=178.6 read=355 us peak=  0.21
+pitch=  2.74 filt=  2.85 rel=  0.10 roll=179.78 |a|=0.999 g heading=179.2 read=355 us peak=  0.21
+pitch=  2.90 filt=  2.85 rel=  0.10 roll=179.62 |a|=0.998 g heading=178.9 read=355 us peak=  0.21
+pitch=  2.90 filt=  2.87 rel=  0.13 roll=179.65 |a|=0.998 g heading=179.3 read=355 us peak=  0.21
+[stats] 201 samples in 2000 ms (100.5 Hz) | pitch mean 2.88 sd 0.082 deg | |a| mean 0.9992 sd 0.0024 g | read avg 356 max 367 us @ 400 kHz | overruns 0 | fails: status 0 data 0 mag 0
+[stats] shock: peak change 0.01 g, peak | |a|-1g | 0.01 g, shocks >2.0 g: 0 (total 0), saturated samples 0 | loop work max 559 us
+pitch=  2.95 filt=  2.85 rel=  0.10 roll=179.68 |a|=1.002 g heading=179.2 read=355 us peak=  0.21
+pitch=  2.80 filt=  2.87 rel=  0.13 roll=179.75 |a|=0.999 g heading=178.9 read=355 us peak=  0.21
+pitch=  2.85 filt=  2.87 rel=  0.12 roll=179.67 |a|=0.999 g heading=179.1 read=355 us peak=  0.21
+pitch=  2.91 filt=  2.86 rel=  0.11 roll=179.76 |a|=0.998 g heading=179.1 read=355 us peak=  0.21
+pitch=  2.79 filt=  2.88 rel=  0.13 roll=179.54 |a|=0.994 g heading=179.1 read=355 us peak=  0.21
+pitch=  2.84 filt=  2.83 rel=  0.08 roll=179.62 |a|=1.001 g heading=179.1 read=355 us peak=  0.21
+pitch=  2.97 filt=  2.86 rel=  0.12 roll=179.65 |a|=0.995 g heading=179.4 read=355 us peak=  0.21
+pitch=  2.82 filt=  2.86 rel=  0.11 roll=179.62 |a|=1.001 g heading=178.9 read=355 us peak=  0.21
+pitch=  2.88 filt=  2.86 rel=  0.11 roll=179.56 |a|=0.996 g heading=179.1 read=355 us peak=  0.21
+pitch=  2.91 filt=  2.88 rel=  0.13 roll=179.66 |a|=0.997 g heading=178.8 read=355 us peak=  0.21
+pitch=  2.83 filt=  2.85 rel=  0.11 roll=179.71 |a|=0.998 g heading=178.9 read=355 us peak=  0.21
+pitch=  2.90 filt=  2.84 rel=  0.09 roll=179.61 |a|=0.998 g heading=178.9 read=355 us peak=  0.21
+pitch=  2.94 filt=  2.89 rel=  0.14 roll=179.66 |a|=0.997 g heading=178.8 read=355 us peak=  0.21
+pitch=  2.88 filt=  2.86 rel=  0.11 roll=179.57 |a|=1.004 g heading=178.7 read=355 us peak=  0.21
+pitch=  2.81 filt=  2.85 rel=  0.10 roll=179.58 |a|=1.002 g heading=179.2 read=355 us peak=  0.21
+pitch=  2.94 filt=  2.83 rel=  0.08 roll=179.75 |a|=1.002 g heading=179.1 read=355 us peak=  0.21
+pitch=  2.94 filt=  2.87 rel=  0.12 roll=179.61 |a|=1.003 g heading=179.0 read=355 us peak=  0.21
+pitch=  2.89 filt=  2.85 rel=  0.10 roll=179.66 |a|=1.002 g heading=178.5 read=355 us peak=  0.21
+pitch=  3.06 filt=  2.89 rel=  0.14 roll=179.66 |a|=0.998 g heading=178.7 read=35
+
+===== 11. Tilt blocks (this run was NOT calibrated: |a| 0.88 g, rel = pitch) =====
+--- 10 mm (stats) ---
+[stats] 200 samples in 2000 ms (100.0 Hz) | pitch mean 7.28 sd 0.102 deg | |a| mean 0.8848 sd 0.0025 g | read avg 355 max 368 us @ 400 kHz | overruns 0 | fails: status 0 data 0 mag 0
+[stats] 201 samples in 2000 ms (100.5 Hz) | pitch mean 7.28 sd 0.093 deg | |a| mean 0.8851 sd 0.0026 g | read avg 356 max 373 us @ 400 kHz | overruns 0 | fails: status 0 data 0 mag 0
+--- 20 mm (stats) ---
+[stats] 201 samples in 2000 ms (100.5 Hz) | pitch mean 9.60 sd 0.098 deg | |a| mean 0.8866 sd 0.0025 g | read avg 355 max 367 us @ 400 kHz | overruns 0 | fails: status 0 data 0 mag 0
+[stats] 200 samples in 2000 ms (100.0 Hz) | pitch mean 9.62 sd 0.085 deg | |a| mean 0.8867 sd 0.0025 g | read avg 355 max 364 us @ 400 kHz | overruns 0 | fails: status 0 data 0 mag 0
+--- back to flat (stats) ---
+[stats] 201 samples in 2000 ms (100.5 Hz) | pitch mean 2.56 sd 0.096 deg | |a| mean 0.8816 sd 0.0026 g | read avg 356 max 372 us @ 400 kHz | overruns 0 | fails: status 0 data 0 mag 0
+[stats] 200 samples in 2000 ms (100.0 Hz) | pitch mean 2.57 sd 0.103 deg | |a| mean 0.8811 sd 0.0027 g | read avg 356 max 368 us @ 400 kHz | overruns 0 | fails: status 0 data 0 mag 0
+--- 30 mm ---
+[stats] 201 samples in 2000 ms (100.5 Hz) | pitch mean 17.47 sd 0.117 deg | |a| mean 0.8934 sd 0.0024 g | read avg 356 max 375 us @ 400 kHz | overruns 0 | fails: status 0 data 0 mag 0
+[stats] shock: peak change 0.02 g, peak | |a|-1g | 0.11 g, shocks >2.0 g: 0 (total 0), saturated samples 0 | loop work max 542 us
+pitch= 17.52 filt= 17.49 rel= 17.49 roll=179.76 |a|=0.890 g heading=236.1 read=355 us peak= 30.01
+pitch= 17.37 filt= 17.43 rel= 17.43 roll=179.77 |a|=0.892 g heading=236.0 read=355 us peak= 30.01
+pitch= 17.56 filt= 17.50 rel= 17.50 roll=179.76 |a|=0.893 g heading=235.8 read=355 us peak= 30.01
+pitch= 17.42 filt= 17.48 rel= 17.48 roll=179.70 |a|=0.891 g heading=236.0 read=355 us peak= 30.01
+pitch= 17.30 filt= 17.44 rel= 17.44 roll=179.80 |a|=0.893 g heading=236.0 read=355 us peak= 30.01
+pitch= 17.48 filt= 17.43 rel= 17.43 roll=179.75 |a|=0.894 g heading=235.8 read=355 us peak= 30.01
+pitch= 17.38 filt= 17.48 rel= 17.48 roll=179.75 |a|=0.892 g heading=236.1 read=355 us peak= 30.01
+pitch= 17.46 filt= 17.49 rel= 17.49 roll=179.75 |a|=0.892 g heading=235.9 read=355 us peak= 30.01
+pitch= 17.55 filt= 17.43 rel= 17.43 roll=179.75 |a|=0.891 g heading=236.0 read=355 us peak= 30.01
+pitch= 17.34 filt= 17.45 rel= 17.45 roll=179.81 |a|=0.894 g heading=236.0 read=355 us peak= 30.01
+pitch= 17.33 filt= 17.43 rel= 17.43 roll=179.75 |a|=0.894 g heading=235.9 read=355 us peak= 30.01
+pitch= 17.60 filt= 17.49 rel= 17.49 roll=179.75 |a|=0.894 g heading=235.9 read=355 us peak= 30.01
+pitch= 17.37 filt= 17.44 rel= 17.44 roll=179.72 |a|=0.894 g heading=235.9 read=355 us peak= 30.01
+pitch= 17.39 filt= 17.43 rel= 17.43 roll=179.81 |a|=0.893 g heading=236.0 read=355 us peak= 30.01
+pitch= 17.35 filt= 17.42 rel= 17.42 roll=179.87 |a|=0.894 g heading=236.0 read=355 us peak= 30.01
+pitch= 17.47 filt= 17.42 rel= 17.42 roll=179.79 |a|=0.892 g heading=235.9 read=355 us peak= 30.01
+pitch= 17.44 filt= 17.42 rel= 17.42 roll=179.80 |a|=0.894 g heading=236.2 read=355 us peak= 30.01
+pitch= 17.50 filt= 17.47 rel= 17.47 roll=179.79 |a|=0.892 g heading=235.9 read=355 us peak= 30.01
+pitch= 17.51 filt= 17.45 rel= 17.45 roll=179.76 |a|=0.895 g heading=235.9 read=355 us peak= 30.01
+pitch= 17.46 filt= 17.49 rel= 17.49 roll=179.80 |a|=0.894 g heading=235.9 read=355 us peak= 30.01
+[stats] 200 samples in 2000 ms (100.0 Hz) | pitch mean 17.45 sd 0.097 deg | |a| mean 0.8935 sd 0.0021 g | read avg 355 max 367 us @ 400 kHz | overruns 0 | fails: status 0 data 0 mag 0
+[stats] shock: peak change 0.01 g, peak | |a|-1g | 0.11 g, shocks >2.0 g: 0 (total 0), saturated samples 0 | loop work max 521 us
+pitch= 17.44 filt= 17.49 rel= 17.49 roll=179.66 |a|=0.893 g heading=236.1 read=355 us peak= 30.01
+pitch= 17.34 filt= 17.42 rel= 17.42 roll=179.80 |a|=0.897 g heading=236.4 read=355 us peak= 30.01
+pitch= 17.63 filt= 17.46 rel= 17.46 roll=179.69 |a|=0.893 g heading=235.9 read=355 us peak= 30.01
+pitch= 17.49 filt= 17.44 rel= 17.44 roll=179.66 |a|=0.892 g heading=236.0 read=355 us peak= 30.01
+pitch= 17.38 filt= 17.42 rel= 17.42 roll=179.70 |a|=0.897 g heading=236.0 read=355 us peak= 30.01
+pitch= 17.50 filt= 17.47 rel= 17.47 roll=179.67 |a|=0.896 g heading=236.0 read=355 us peak= 30.01
+pitch= 17.55 filt= 17.46 rel= 17.46 roll=179.82 |a|=0.893 g heading=236.0 read=355 us peak= 30.01
+pitch= 17.49 filt= 17.47 rel= 17.47 roll=179.77 |a|=0.897 g heading=236.1 read=355 us peak= 30.01
+pitch= 17.62 filt= 17.53 rel= 17.53 roll=179.79 |a|=0.893 g heading=236.0 read=355 us peak= 30.01
+pitch= 17.49 filt= 17.46 rel= 17.46 roll=179.84 |a|=0.894 g heading=236.1 read=355 us peak= 30.01
+pitch= 17.33 filt= 17.43 rel= 17.43 roll=179.76 |a|=0.900 g heading=235.8 read=355 us peak= 30.01
+pitch= 17.46 filt= 17.50 rel= 17.50 roll=179.69 |a|=0.894 g heading=236.2 read=355 us peak= 30.01
+pitch= 17.39 filt= 17.45 rel= 17.45 roll=179.88 |a|=0.895 g heading=235.9 read=355 us peak= 30.01
+pitch= 17.28 filt= 17.42 rel= 17.42 roll=179.69 |a|=0.897 g heading=236.0 read=355 us peak= 30.01
+pitch= 17.29 filt= 17.45 rel= 17.45 roll=179.79 |a|=0.899 g heading=236.0 read=355 us peak= 30.01
+pitch= 17.36 filt= 17.41 rel= 17.41 roll=179.76 |a|=0.892 g heading=236.0 read=355 us peak= 30.01
+
+===== 12. Shock session (hand bumps into a box + hump/drop; order not recorded), calibrated =====
+1.19 rel= -0.95 roll=179.80 |a|=0.998 g heading=224.4 read=355 us peak=  8.49
+pitch=  1.02 filt=  1.22 rel= -0.91 roll=179.92 |a|=0.998 g heading=224.7 read=355 us peak=  8.49
+pitch=  1.40 filt=  1.12 rel= -1.01 roll=179.89 |a|=1.002 g heading=224.4 read=355 us peak=  8.49
+pitch=  2.12 filt=  1.92 rel= -0.21 roll=-179.69 |a|=1.004 g heading=223.8 read=355 us peak=  8.49
+pitch=  3.56 filt=  3.60 rel=  1.47 roll=-179.67 |a|=0.991 g heading=223.0 read=355 us peak=  8.49
+pitch=  1.09 filt=  1.33 rel= -0.80 roll=178.94 |a|=1.011 g heading=222.7 read=355 us peak=  8.49
+pitch= -1.57 filt= -0.77 rel= -2.90 roll=-178.29 |a|=0.988 g heading=222.1 read=355 us peak=  8.49
+pitch= -4.43 filt= -1.51 rel= -3.64 roll=179.03 |a|=0.987 g heading=221.2 read=355 us peak=  8.49
+pitch=  2.09 filt= -0.22 rel= -2.35 roll=178.32 |a|=1.019 g heading=219.8 read=355 us peak=  8.49
+pitch= -0.24 filt= -0.29 rel= -2.43 roll=177.43 |a|=1.011 g heading=219.3 read=355 us peak=  8.49
+pitch= -2.79 filt= -3.64 rel= -5.77 roll=-166.74 |a|=1.015 g heading=218.6 read=355 us peak=  8.49
+pitch= -1.64 filt= -3.33 rel= -5.46 roll=179.40 |a|=0.994 g heading=218.6 read=355 us peak=  8.49
+pitch= -0.43 filt= -0.73 rel= -2.87 roll=179.61 |a|=0.997 g heading=218.8 read=355 us peak=  8.49
+[stats] 200 samples in 2000 ms (100.0 Hz) | pitch mean 0.69 sd 2.632 deg | |a| mean 1.0008 sd 0.0161 g | read avg 355 max 366 us @ 400 kHz | overruns 0 | fails: status 0 data 0 mag 0
+[stats] shock: peak change 0.64 g, peak | |a|-1g | 0.17 g, shocks >2.0 g: 0 (total 0), saturated samples 0 | loop work max 518 us
+pitch= -0.52 filt= -0.65 rel= -2.78 roll=179.89 |a|=0.997 g heading=218.8 read=355 us peak=  8.49
+pitch= -0.53 filt= -0.58 rel= -2.71 roll=179.71 |a|=0.997 g heading=218.6 read=355 us peak=  8.49
+pitch= -0.21 filt= -0.52 rel= -2.65 roll=179.68 |a|=1.001 g heading=218.7 read=355 us peak=  8.49
+pitch= -0.38 filt= -0.44 rel= -2.57 roll=179.65 |a|=0.995 g heading=218.6 read=355 us peak=  8.49
+pitch= -0.19 filt= -0.47 rel= -2.60 roll=179.85 |a|=1.005 g heading=218.8 read=355 us peak=  8.49
+pitch= -6.16 filt= -1.95 rel= -4.09 roll=-179.27 |a|=0.994 g heading=218.7 read=355 us peak=  8.49
+pitch=  2.79 filt=  1.92 rel= -0.22 roll=179.36 |a|=1.000 g heading=218.5 read=355 us peak=  8.49
+pitch=  2.06 filt=  1.88 rel= -0.25 roll=179.47 |a|=0.999 g heading=218.4 read=355 us peak=  8.49
+pitch=  1.85 filt=  1.74 rel= -0.39 roll=179.79 |a|=1.000 g heading=218.7 read=355 us peak=  8.49
+pitch=  1.81 filt=  1.74 rel= -0.40 roll=179.72 |a|=0.998 g heading=218.4 read=355 us peak=  8.49
+pitch=  1.65 filt=  1.72 rel= -0.41 roll=179.74 |a|=0.996 g heading=218.6 read=355 us peak=  8.49
+pitch=  1.73 filt=  1.76 rel= -0.37 roll=179.82 |a|=0.997 g heading=218.5 read=355 us peak=  8.49
+pitch=  1.81 filt=  1.76 rel= -0.37 roll=179.76 |a|=1.001 g heading=218.5 read=355 us peak=  8.49
+pitch=  1.82 filt=  1.76 rel= -0.37 roll=179.79 |a|=1.000 g heading=218.5 read=355 us peak=  8.49
+pitch=  1.82 filt=  1.76 rel= -0.38 roll=179.79 |a|=1.000 g heading=218.5 read=355 us peak=  8.49
+pitch=  1.88 filt=  1.75 rel= -0.38 roll=179.83 |a|=1.000 g heading=218.5 read=355 us peak=  8.49
+pitch=  1.84 filt=  1.78 rel= -0.35 roll=179.77 |a|=1.001 g heading=218.6 read=355 us peak=  8.49
+pitch=  1.68 filt=  1.79 rel= -0.35 roll=179.73 |a|=1.002 g heading=218.3 read=355 us peak=  8.49
+pitch=  1.68 filt=  1.68 rel= -0.45 roll=179.82 |a|=0.997 g heading=218.5 read=355 us peak=  8.49
+pitch=  2.74 filt=  2.01 rel= -0.12 roll=179.81 |a|=1.002 g heading=218.3 read=355 us peak=  8.49
+[stats] 201 samples in 2000 ms (100.5 Hz) | pitch mean 1.04 sd 1.508 deg | |a| mean 0.9998 sd 0.0032 g | read avg 356 max 374 us @ 400 kHz | overruns 0 | fails: status 0 data 0 mag 0
+[stats] shock: peak change 0.11 g, peak | |a|-1g | 0.02 g, shocks >2.0 g: 0 (total 0), saturated samples 0 | loop work max 530 us
+pitch=  2.13 filt=  1.83 rel= -0.30 roll=179.63 |a|=0.997 g heading=218.4 read=355 us peak=  8.49
+pitch=  1.54 filt=  1.82 rel= -0.32 roll=179.87 |a|=1.000 g heading=218.6 read=355 us peak=  8.49
+pitch=  1.55 filt=  1.78 rel= -0.36 roll=179.67 |a|=0.999 g heading=218.7 read=355 us peak=  8.49
+pitch=  1.52 filt=  1.79 rel= -0.34 roll=179.79 |a|=0.999 g heading=218.5 read=355 us peak=  8.49
+pitch=  1.79 filt=  1.88 rel= -0.25 roll=179.78 |a|=1.000 g heading=218.7 read=355 us peak=  8.49
+pitch=  1.84 filt=  1.82 rel= -0.31 roll=179.71 |a|=1.002 g heading=218.6 read=355 us peak=  8.49
+pitch=  1.75 filt=  1.81 rel= -0.33 roll=179.82 |a|=0.997 g heading=218.7 read=355 us peak=  8.49
+pitch=  1.69 filt=  1.80 rel= -0.33 roll=179.92 |a|=1.002 g heading=218.5 read=355 us peak=  8.49
+pitch=  1.90 filt=  1.77 rel= -0.36 roll=179.99 |a|=0.997 g heading=218.6 read=355 us peak=  8.49
+pitch=  1.77 filt=  1.84 rel= -0.29 roll=179.72 |a|=0.998 g heading=218.6 read=355 us peak=  8.49
+pitch=  1.82 filt=  1.81 rel= -0.33 roll=179.75 |a|=0.997 g heading=218.8 read=355 us peak=  8.49
+pitch=  1.81 filt=  1.86 rel= -0.28 roll=179.80 |a|=0.996 g heading=218.8 read=355 us peak=  8.49
+pitch=  1.86 filt=  1.84 rel= -0.29 roll=179.73 |a|=0.998 g heading=218.9 read=355 us peak=  8.49
+pitch=  1.82 filt=  1.85 rel= -0.28 roll=179.90 |a|=0.997 g heading=218.6 read=355 us peak=  8.49
+pitch=  1.78 filt=  1.79 rel= -0.34 roll=179.80 |a|=0.998 g heading=218.4 read=355 us peak=  8.49
+pitch=  2.23 filt=  1.91 rel= -0.22 roll=179.83 |a|=0.999 g heading=218.4 read=355 us peak=  8.49
+pitch=  1.67 filt=  1.81 rel= -0.32 roll=179.49 |a|=0.995 g heading=218.4 read=355 us peak=  8.49
+pitch=  1.98 filt=  1.87 rel= -0.27 roll=179.89 |a|=1.000 g heading=218.5 read=355 us peak=  8.49
+pitch=  1.98 filt=  1.84 rel= -0.29 roll=-179.81 |a|=0.993 g heading=218.4 read=355 us peak=  8.49
+pitch=  3.37 filt=  1.88 rel= -0.25 roll=179.48 |a|=1.003 g heading=218.5 read=355 us peak=  8.49
+[stats] 200 samples in 2000 ms (100.0 Hz) | pitch mean 1.82 sd 0.349 deg | |a| mean 1.0002 sd 0.0027 g | read avg 356 max 376 us @ 400 kHz | overruns 0 | fails: status 0 data 0 mag 0
+[stats] shock: peak change 0.06 g, peak | |a|-1g | 0.01 g, shocks >2.0 g: 0 (total 0), saturated samples 0 | loop work max 528 us
+pitch=  2.07 filt=  1.96 rel= -0.18 roll=179.53 |a|=1.003 g heading=218.4 read=355 us peak=  8.49
+pitch= -0.44 filt=  1.45 rel= -0.68 roll=-179.18 |a|=1.009 g heading=218.9 read=355 us peak=  8.49
+pitch=  1.43 filt=  2.97 rel=  0.83 roll=179.29 |a|=1.000 g heading=219.2 read=355 us peak=  8.49
+pitch=  3.25 filt=  2.94 rel=  0.81 roll=179.46 |a|=1.002 g heading=219.3 read=355 us peak=  8.49
+pitch=  3.06 filt=  2.48 rel=  0.34 roll=-179.83 |a|=1.001 g heading=219.3 read=355 us peak=  8.49
+pitch=  2.55 filt=  1.46 rel= -0.68 roll=177.46 |a|=0.994 g heading=219.1 read=355 us peak=  8.49
+pitch=  2.52 filt=  0.94 rel= -1.19 roll=-178.36 |a|=1.002 g heading=219.1 read=355 us peak=  8.49
+pitch= -2.29 filt=  0.25 rel= -1.88 roll=179.58 |a|=1.003 g heading=218.0 read=355 us peak=  8.49
+pitch= -1.43 filt=  0.88 rel= -1.25 roll=-178.63 |a|=1.023 g heading=217.4 read=355 us peak=  8.49
+pitch=  5.57 filt=  4.02 rel=  1.89 roll=-179.53 |a|=0.965 g heading=216.7 read=355 us peak=  8.49
+pitch=  5.48 filt=  4.37 rel=  2.24 roll=177.29 |a|=0.974 g heading=216.9 read=355 us peak=  8.49
+pitch=  2.44 filt=  2.73 rel=  0.60 roll=179.17 |a|=0.999 g heading=217.2 read=355 us peak=  8.49
+pitch=  2.54 filt=  3.16 rel=  1.02 roll=179.66 |a|=0.998 g heading=218.0 read=355 us peak=  8.49
+pitch=  2.15 filt=  2.46 rel=  0.33 roll=179.95 |a|=1.004 g heading=218.4 read=355 us peak=  8.49
+pitch=  2.42 filt=  2.35 rel=  0.22 roll=-179.95 |a|=1.001 g heading=218.3 read=355 us peak=  8.49
+pitch=  3.77 filt=  2.76 rel=  0.63 roll=-179.81 |a|=1.009 g heading=218.0 read=355 us peak=  8.49
+pitch=  3.35 filt=  2.54 rel=  0.40 roll=179.50 |a|=0.999 g heading=218.6 read=355 us peak=  8.49
+pitch=  1.46 filt=  2.40 rel=  0.27 roll=179.48 |a|=0.999 g heading=218.6 read=355 us peak=  8.49
+pitch=  2.30 filt=  2.49 rel=  0.36 roll=-178.77 |a|=1.003 g heading=218.4 read=355 us peak=  8.49
+pitch=  2.42 filt=  2.32 rel=  0.19 roll=-179.92 |a|=1.005 g heading=218.5 read=355 us peak=  8.49
+[stats] 201 samples in 2000 ms (100.5 Hz) | pitch mean 2.37 sd 1.974 deg | |a| mean 1.0017 sd 0.0132 g | read avg 355 max 378 us @ 400 kHz | overruns 0 | fails: status 0 data 0 mag 0
+[stats] shock: peak change 0.23 g, peak | |a|-1g | 0.07 g, shocks >2.0 g: 0 (total 0), saturated samples 0 | loop work max 535 us
+pitch=  2.14 filt=  2.30 rel=  0.17 roll=179.60 |a|=0.996 g heading=218.4 read=355 us peak=  8.49
+pitch=  2.76 filt=  2.32 rel=  0.19 roll=179.63 |a|=1.002 g heading=218.3 read=355 us peak=  8.49
+pitch=  2.09 filt=  2.24 rel=  0.11 roll=179.77 |a|=0.996 g heading=218.3 read=355 us peak=  8.49
+pitch=  1.98 filt=  2.27 rel=  0.14 roll=179.67 |a|=1.002 g heading=218.5 read=355 us peak=  8.49
+pitch=  2.26 filt=  2.36 rel=  0.23 roll=-179.84 |a|=1.001 g heading=218.3 read=355 us peak=  8.49
+pitch=  3.07 filt=  2.53 rel=  0.40 roll=179.88 |a|=1.006 g heading=218.5 read=355 us peak=  8.49
+pitch=  1.60 filt=  2.37 rel=  0.24 roll=-178.44 |a|=1.008 g heading=218.6 read=355 us peak=  8.49
+pitch=  2.83 filt=  2.59 rel=  0.45 roll=179.24 |a|=1.005 g heading=218.4 read=355 us peak=  8.49
+pitch=  3.69 filt=  2.56 rel=  0.42 roll=179.92 |a|=1.004 g heading=218.6 read=355 us peak=  8.49
+pitch=  3.29 filt=  3.17 rel=  1.04 roll=-179.18 |a|=1.005 g heading=218.7 read=355 us peak=  8.49
+pitch= -2.06 filt=  0.16 rel= -1.97 roll=178.85 |a|=1.006 g heading=218.4 read=355 us peak=  8.49
+pitch=  2.36 filt=  2.20 rel=  0.07 roll=179.95 |a|=1.003 g heading=218.4 read=355 us peak=  8.49
+pitch=  2.02 filt=  2.17 rel=  0.04 roll=179.70 |a|=1.004 g heading=218.2 read=355 us peak=  8.49
+pitch=  2.63 filt=  2.95 rel=  0.82 roll=179.96 |a|=0.997 g heading=218.0 read=355 us peak=  8.49
+pitch=  2.67 filt=  2.28 rel=  0.15 roll=-179.75 |a|=1.004 g heading=218.1 read=355 us peak=  8.49
+pitch=  2.31 filt=  2.73 rel=  0.60 roll=179.82 |a|=0.998 g heading=217.7 read=355 us peak=  8.49
+pitch=  2.67 filt=  2.64 rel=  0.51 roll=179.49 |a|=0.996 g heading=217.5 read=355 us peak=  8.49
+pitch=  3.27 filt=  2.83 rel=  0.70 roll=-179.93 |a|=1.004 g heading=217.2 read=355 us peak=  8.49
+pitch=  2.77 filt=  2.37 rel=  0.24 roll=-179.65 |a|=1.008 g heading=217.2 read=355 us peak=  8.49
+pitch=  2.01 filt=  2.26 rel=  0.13 roll=179.66 |a|=0.999 g heading=217.0 read=355 us peak=  8.49
+[stats] 201 samples in 2000 ms (100.5 Hz) | pitch mean 2.40 sd 1.153 deg | |a| mean 1.0008 sd 0.0048 g | read avg 356 max 376 us @ 400 kHz | overruns 0 | fails: status 0 data 0 mag 0
+[stats] shock: peak change 0.14 g, peak | |a|-1g | 0.02 g, shocks >2.0 g: 0 (total 0), saturated samples 0 | loop work max 531 us
+pitch=  3.66 filt=  3.07 rel=  0.94 roll=179.70 |a|=0.995 g heading=217.2 read=355 us peak=  8.49
+pitch=  2.04 filt=  2.44 rel=  0.30 roll=-179.87 |a|=1.040 g heading=217.3 read=355 us peak=  8.49
+pitch= 12.93 filt=  5.01 rel=  2.88 roll=-178.77 |a|=0.802 g heading=217.9 read=355 us peak=  8.49
+pitch=  2.34 filt=  3.23 rel=  1.10 roll=-179.72 |a|=1.026 g heading=218.3 read=355 us peak=  8.49
+pitch=  1.79 filt=  3.17 rel=  1.04 roll=-177.04 |a|=1.109 g heading=218.6 read=355 us peak=  8.49
+pitch=  4.45 filt=  3.48 rel=  1.35 roll=174.75 |a|=0.926 g heading=218.7 read=355 us peak=  8.49
+pitch= -2.82 filt=  1.94 rel= -0.19 roll=-178.21 |a|=1.054 g heading=218.7 read=355 us peak=  8.49
+pitch=  2.83 filt=  1.07 rel= -1.06 roll=-179.37 |a|=1.002 g heading=218.4 read=355 us peak=  8.49
+pitch=  2.21 filt=  2.22 rel=  0.09 roll=179.84 |a|=0.998 g heading=218.7 read=355 us peak=  8.49
+pitch=  2.50 filt=  2.32 rel=  0.19 roll=179.63 |a|=1.000 g heading=218.4 read=355 us peak=  8.49
+pitch=  2.36 filt=  2.43 rel=  0.30 roll=179.90 |a|=0.998 g heading=218.5 read=355 us peak=  8.49
+pitch=  2.23 filt=  2.42 rel=  0.29 roll=179.51 |a|=1.004 g heading=218.4 read=355 us peak=  8.49
+pitch=  2.26 filt=  2.46 rel=  0.33 roll=179.60 |a|=0.998 g heading=218.4 read=355 us peak=  8.49
+pitch=  2.38 filt=  2.43 rel=  0.30 roll=179.66 |a|=1.001 g heading=218.6 read=355 us peak=  8.49
+pitch=  2.30 filt=  2.45 rel=  0.32 roll=179.59 |a|=1.004 g heading=218.5 read=355 us peak=  8.49
+pitch=  2.47 filt=  2.43 rel=  0.30 roll=179.63 |a|=0.999 g heading=218.4 read=355 us peak=  8.49
+pitch=  2.39 filt=  2.17 rel=  0.03 roll=179.63 |a|=0.997 g heading=218.4 read=355 us peak=  8.49
+pitch=  2.55 filt=  2.51 rel=  0.38 roll=179.59 |a|=0.996 g heading=218.3 read=355 us peak=  8.49
+pitch=  2.19 filt=  2.39 rel=  0.25 roll=179.71 |a|=1.002 g heading=218.0 read=355 us peak=  8.49
+pitch=  2.75 filt=  2.75 rel=  0.62 roll=179.47 |a|=0.998 g heading=218.0 read=355 us peak=  8.49
+[stats] 200 samples in 2000 ms (100.0 Hz) | pitch mean 2.56 sd 3.477 deg | |a| mean 1.0029 sd 0.0683 g | read avg 356 max 367 us @ 400 kHz | overruns 0 | fails: status 0 data 0 mag 0
+[stats] shock: peak change 0.72 g, peak | |a|-1g | 0.26 g, shocks >2.0 g: 0 (total 0), saturated samples 0 | loop work max 522 us
+pitch=  3.14 filt=  2.75 rel=  0.62 roll=179.60 |a|=1.003 g heading=218.2 read=355 us peak=  8.49
+pitch=  2.22 filt=  2.50 rel=  0.37 roll=179.61 |a|=0.999 g heading=218.0 read=355 us peak=  8.49
+pitch=  2.59 filt=  2.48 rel=  0.35 roll=179.82 |a|=0.997 g heading=218.2 read=355 us peak=  8.49
+pitch=  2.83 filt=  2.65 rel=  0.51 roll=179.43 |a|=0.999 g heading=218.5 read=355 us peak=  8.49
+pitch=  2.25 filt=  2.72 rel=  0.59 roll=179.60 |a|=1.000 g heading=218.8 read=355 us peak=  8.49
+pitch=  2.47 filt=  2.56 rel=  0.43 roll=179.70 |a|=1.001 g heading=218.4 read=355 us peak=  8.49
+pitch=  2.07 filt=  2.51 rel=  0.38 roll=179.64 |a|=0.998 g heading=218.8 read=355 us peak=  8.49
+pitch=  2.94 filt=  2.61 rel=  0.48 roll=179.72 |a|=1.000 g heading=218.6 read=355 us peak=  8.49
+pitch=  2.58 filt=  2.55 rel=  0.41 roll=179.64 |a|=1.004 g heading=218.8 read=355 us peak=  8.49
+pitch=  2.10 filt=  2.41 rel=  0.28 roll=179.67 |a|=1.001 g heading=218.7 read=355 us peak=  8.49
+pitch=  2.48 filt=  2.59 rel=  0.45 roll=179.93 |a|=1.000 g heading=218.8 read=355 us peak=  8.49
+pitch=  2.85 filt=  2.55 rel=  0.41 roll=179.54 |a|=0.997 g heading=218.8 read=355 us peak=  8.49
+pitch=  1.96 filt=  2.53 rel=  0.40 roll=179.68 |a|=0.999 g heading=218.5 read=355 us peak=  8.49
+pitch= -0.35 filt=  1.49 rel= -0.64 roll=-179.53 |a|=0.989 g heading=218.7 read=355 us peak=  8.49
+pitch=  1.30 filt=  2.24 rel=  0.11 roll=179.85 |a|=0.998 g heading=218.7 read=355 us peak=  8.49
+pitch=  2.25 filt=  2.37 rel=  0.24 roll=-179.81 |a|=0.995 g heading=218.9 read=355 us peak=  8.49
+pitch=  0.93 filt=  2.43 rel=  0.30 roll=179.17 |a|=1.007 g heading=218.4 read=355 us peak=  8.49
+pitch=  3.09 filt=  2.38 rel=  0.24 roll=179.80 |a|=1.006 g heading=218.2 read=355 us peak=  8.49
+pitch=  2.32 filt=  2.18 rel=  0.05 roll=179.27 |a|=0.996 g heading=218.3 read=355 us peak=  8.49
+pitch=  0.20 filt=  2.12 rel= -0.02 roll=179.17 |a|=1.002 g heading=217.9 read=355 us peak=  8.49
+[stats] 201 samples in 2000 ms (100.5 Hz) | pitch mean 2.47 sd 0.865 deg | |a| mean 1.0003 sd 0.0036 g | read avg 355 max 369 us @ 400 kHz | overruns 0 | fails: status 0 data 0 mag 0
+[stats] shock: peak change 0.12 g, peak | |a|-1g | 0.02 g, shocks >2.0 g: 0 (total 0), saturated samples 0 | loop work max 523 us
+pitch=  3.16 filt=  2.87 rel=  0.74 roll=-179.18 |a|=1.005 g heading=217.8 read=355 us peak=  8.49
+pitch=  0.70 filt=  1.79 rel= -0.35 roll=-177.27 |a|=0.984 g heading=217.9 read=355 us peak=  8.49
+pitch= -0.11 filt= -0.08 rel= -2.21 roll=-175.53 |a|=0.987 g heading=218.4 read=355 us peak=  8.49
+pitch= -0.47 filt= -0.63 rel= -2.76 roll=-176.88 |a|=1.004 g heading=218.6 read=355 us peak=  8.49
+pitch= -1.47 filt= -0.63 rel= -2.77 roll=-175.81 |a|=0.999 g heading=219.0 read=355 us peak=  8.49
+pitch= -2.95 filt= -1.85 rel= -3.98 roll=-172.93 |a|=0.985 g heading=219.1 read=355 us peak=  8.49
+pitch= -1.43 filt= -2.07 rel= -4.20 roll=-174.59 |a|=0.998 g heading=219.3 read=355 us peak=  8.49
+pitch=  2.46 filt=  0.07 rel= -2.06 roll=-169.59 |a|=0.976 g heading=219.3 read=355 us peak=  8.49
+pitch= -3.15 filt= -5.28 rel= -7.41 roll=-173.93 |a|=0.961 g heading=219.1 read=355 us peak= -9.39
+pitch= -0.85 filt=  2.97 rel=  0.84 roll=-179.53 |a|=1.006 g heading=218.9 read=355 us peak= -9.39
+pitch=  3.43 filt=  2.57 rel=  0.44 roll=179.58 |a|=1.006 g heading=218.7 read=355 us peak= -9.39
+pitch=  2.46 filt=  2.21 rel=  0.08 roll=179.83 |a|=1.003 g heading=218.8 read=355 us peak= -9.39
+pitch=  1.60 filt=  2.12 rel= -0.01 roll=179.63 |a|=0.995 g heading=218.9 read=355 us peak= -9.39
+pitch=  1.65 filt=  2.16 rel=  0.03 roll=179.66 |a|=1.003 g heading=218.9 read=355 us peak= -9.39
+pitch=  5.28 filt=  2.81 rel=  0.67 roll=178.24 |a|=1.008 g heading=218.6 read=355 us peak= -9.39
+pitch=  6.35 filt=  4.54 rel=  2.40 roll=176.27 |a|=1.060 g heading=217.8 read=355 us peak= -9.39
+pitch= -0.57 filt=  1.08 rel= -1.05 roll=-177.73 |a|=0.996 g heading=218.1 read=355 us peak= -9.39
+pitch= -1.12 filt= -0.66 rel= -2.79 roll=-174.88 |a|=0.983 g heading=218.2 read=355 us peak= -9.39
+pitch=  3.07 filt=  0.04 rel= -2.10 roll=-174.54 |a|=1.006 g heading=218.2 read=355 us peak= -9.39
+pitch= -0.09 filt= -1.10 rel= -3.23 roll=-174.24 |a|=1.004 g heading=218.4 read=355 us peak= -9.39
+[stats] 200 samples in 2000 ms (100.0 Hz) | pitch mean 0.71 sd 4.560 deg | |a| mean 1.0025 sd 0.0734 g | read avg 355 max 367 us @ 400 kHz | overruns 0 | fails: status 0 data 0 mag 0
+[stats] shock: peak change 1.59 g, peak | |a|-1g | 0.70 g, shocks >2.0 g: 0 (total 0), saturated samples 0 | loop work max 526 us
+pitch=  1.06 filt=  0.32 rel= -1.81 roll=-173.31 |a|=0.993 g heading=218.6 read=355 us peak= -9.39
+pitch= -2.03 filt= -0.87 rel= -3.00 roll=-171.75 |a|=0.987 g heading=218.8 read=355 us peak= -9.39
+pitch=  3.60 filt=  1.86 rel= -0.27 roll=-162.38 |a|=0.938 g heading=218.6 read=355 us peak= -9.39
+pitch= 23.06 filt=  8.45 rel=  6.32 roll=153.60 |a|=1.045 g heading=218.0 read=355 us peak=-14.82
+pitch=  4.75 filt=  2.42 rel=  0.29 roll=-179.83 |a|=1.009 g heading=218.2 read=355 us peak=-14.82
+pitch=  1.52 filt=  1.93 rel= -0.20 roll=-179.89 |a|=0.999 g heading=218.2 read=355 us peak=-14.82
+pitch=  1.62 filt=  1.97 rel= -0.16 roll=179.61 |a|=0.994 g heading=217.9 read=355 us peak=-14.82
+pitch=  1.72 filt=  2.02 rel= -0.11 roll=179.80 |a|=0.998 g heading=218.2 read=355 us peak=-14.82
+pitch=  1.82 filt=  2.01 rel= -0.12 roll=179.52 |a|=1.000 g heading=218.2 read=355 us peak=-14.82
+pitch=  1.92 filt=  2.06 rel= -0.07 roll=179.64 |a|=0.995 g heading=218.0 read=355 us peak=-14.82
+pitch=  2.80 filt=  2.15 rel=  0.02 roll=179.85 |a|=1.004 g heading=218.0 read=355 us peak=-14.82
+pitch=  2.33 filt=  2.29 rel=  0.16 roll=179.28 |a|=0.988 g heading=217.7 read=355 us peak=-14.82
+pitch=  4.04 filt=  1.92 rel= -0.21 roll=179.54 |a|=1.006 g heading=217.7 read=355 us peak=-14.82
+pitch=  3.12 filt=  3.02 rel=  0.89 roll=178.90 |a|=1.015 g heading=217.7 read=355 us peak=-14.82
+pitch=  0.87 filt=  1.46 rel= -0.67 roll=-179.20 |a|=1.008 g heading=217.8 read=355 us peak=-14.82
+pitch= -3.02 filt= -0.72 rel= -2.86 roll=-176.12 |a|=0.994 g heading=218.3 read=355 us peak=-14.82
+pitch= -1.62 filt= -1.44 rel= -3.57 roll=-173.24 |a|=0.994 g heading=218.5 read=355 us peak=-14.82
+pitch=  4.47 filt=  3.33 rel=  1.19 roll=-170.15 |a|=0.993 g heading=218.3 read=355 us peak=-14.82
+pitch=  2.21 filt=  1.33 rel= -0.80 roll=-168.20 |a|=0.984 g heading=218.3 read=355 us peak=-14.82
+pitch=  7.47 filt=  5.38 rel=  3.24 roll=-162.19 |a|=0.961 g heading=218.0 read=355 us peak=-14.82
+[stats] 201 samples in 2000 ms (100.5 Hz) | pitch mean 1.40 sd 6.295 deg | |a| mean 1.0016 sd 0.0707 g | read avg 356 max 370 us @ 400 kHz | overruns 0 | fails: status 0 data 0 mag 0
+[stats] shock: peak change 1.42 g, peak | |a|-1g | 0.75 g, shocks >2.0 g: 0 (total 0), saturated samples 0 | loop work max 526 us
+[shock] #1 at 1225052 ms: change 2.98 g between samples, |a| 2.76 g
+pitch= -3.80 filt=  0.70 rel= -1.43 roll=145.78 |a|=0.881 g heading=217.5 read=355 us peak=-14.82
+pitch= -0.32 filt=  2.80 rel=  0.67 roll=-179.91 |a|=0.994 g heading=217.3 read=355 us peak=-14.82
+pitch=  3.05 filt=  2.30 rel=  0.17 roll=179.55 |a|=1.001 g heading=217.6 read=355 us peak=-14.82
+pitch=  2.85 filt=  2.16 rel=  0.03 roll=179.66 |a|=1.002 g heading=217.6 read=355 us peak=-14.82
+pitch=  2.18 filt=  2.08 rel= -0.05 roll=179.66 |a|=0.996 g heading=217.7 read=355 us peak=-14.82
+pitch=  1.96 filt=  2.01 rel= -0.12 roll=179.62 |a|=0.999 g heading=217.6 read=355 us peak=-14.82
+pitch=  2.23 filt=  2.11 rel= -0.02 roll=179.46 |a|=0.998 g heading=217.6 read=355 us peak=-14.82
+pitch=  2.22 filt=  2.07 rel= -0.06 roll=179.72 |a|=0.999 g heading=217.6 read=355 us peak=-14.82
+pitch=  0.77 filt=  1.92 rel= -0.22 roll=178.93 |a|=0.996 g heading=217.3 read=355 us peak=-14.82
+pitch=  2.50 filt=  2.22 rel=  0.09 roll=174.95 |a|=1.029 g heading=217.5 read=355 us peak=-14.82
+pitch=  0.98 filt=  1.93 rel= -0.21 roll=178.40 |a|=1.019 g heading=217.7 read=355 us peak=-14.82
+pitch=  0.76 filt= -1.38 rel= -3.51 roll=-175.80 |a|=0.987 g heading=218.4 read=355 us peak=-14.82
+pitch=  7.97 filt=  5.27 rel=  3.14 roll=-173.07 |a|=1.012 g heading=218.2 read=355 us peak=-14.82
+pitch=  2.93 filt=  2.60 rel=  0.47 roll=-169.65 |a|=0.987 g heading=218.2 read=355 us peak=-14.82
+pitch=  2.83 filt=  2.00 rel= -0.14 roll=-169.52 |a|=0.987 g heading=218.2 read=355 us peak=-14.82
+pitch=  0.73 filt=  1.13 rel= -1.00 roll=-163.22 |a|=0.931 g heading=217.7 read=355 us peak=-14.82
+[shock] #2 at 1226678 ms: change 2.13 g between samples, |a| 2.57 g
+pitch=-20.08 filt= -1.09 rel= -3.22 roll=-171.54 |a|=1.178 g heading=216.9 read=355 us peak=-16.29
+pitch= -0.36 filt=  1.24 rel= -0.89 roll=179.55 |a|=1.002 g heading=217.2 read=355 us peak=-16.29
+pitch=  2.88 filt=  2.19 rel=  0.06 roll=179.91 |a|=1.006 g heading=217.0 read=355 us peak=-16.29
+pitch=  2.46 filt=  2.18 rel=  0.05 roll=179.64 |a|=0.999 g heading=217.2 read=355 us peak=-16.29
+[stats] 201 samples in 2000 ms (100.5 Hz) | pitch mean 1.62 sd 8.836 deg | |a| mean 1.0151 sd 0.1927 g | read avg 356 max 370 us @ 400 kHz | overruns 0 | fails: status 0 data 0 mag 0
+[stats] shock: peak change 2.98 g, peak | |a|-1g | 1.76 g, shocks >2.0 g: 2 (total 2), saturated samples 0 | loop work max 739 us
+pitch=  2.04 filt=  2.14 rel=  0.00 roll=179.78 |a|=1.002 g heading=217.1 read=355 us peak=-16.29
+pitch=  2.26 filt=  2.15 rel=  0.02 roll=179.69 |a|=1.000 g heading=217.1 read=355 us peak=-16.29
+pitch=  2.19 filt=  2.13 rel= -0.00 roll=179.73 |a|=0.998 g heading=216.8 read=355 us peak=-16.29
+pitch=  2.06 filt=  2.10 rel= -0.04 roll=179.76 |a|=1.007 g heading=217.6 read=355 us peak=-16.29
+pitch=  2.16 filt=  2.16 rel=  0.02 roll=179.69 |a|=0.998 g heading=217.3 read=355 us peak=-16.29
+pitch=  2.05 filt=  2.08 rel= -0.05 roll=179.79 |a|=1.004 g heading=216.8 read=355 us peak=-16.29
+pitch=  2.18 filt=  2.14 rel=  0.01 roll=179.78 |a|=0.997 g heading=216.9 read=355 us peak=-16.29
+pitch=  2.11 filt=  2.16 rel=  0.03 roll=179.75 |a|=1.001 g heading=217.2 read=355 us peak=-16.29
+pitch=  2.10 filt=  2.07 rel= -0.06 roll=179.69 |a|=1.004 g heading=217.1 read=355 us peak=-16.29
+pitch=  2.08 filt=  2.12 rel= -0.01 roll=179.80 |a|=1.003 g heading=216.9 read=355 us peak=-16.29
+pitch=  2.00 filt=  2.12 rel= -0.01 roll=179.67 |a|=1.003 g heading=217.2 read=355 us peak=-16.29
+pitch=  2.19 filt=  2.15 rel=  0.02 roll=179.75 |a|=0.998 g heading=216.9 read=355 us peak=-16.29
+pitch=  1.92 filt=  2.10 rel= -0.03 roll=179.80 |a|=0.999 g heading=217.1 read=355 us peak=-16.29
+pitch=  2.14 filt=  2.14 rel=  0.01 roll=179.87 |a|=1.004 g heading=217.1 read=355 us peak=-16.29
+pitch=  2.11 filt=  2.12 rel= -0.02 roll=179.71 |a|=1.002 g heading=217.0 read=355 us peak=-16.29
+pitch=  1.96 filt=  2.09 rel= -0.05 roll=179.79 |a|=1.003 g heading=216.9 read=355 us peak=-16.29
+pitch=  2.16 filt=  2.14 rel=  0.01 roll=179.82 |a|=0.999 g heading=217.1 read=355 us peak=-16.29
+pitch=  2.12 filt=  2.13 rel= -0.01 roll=179.78 |a|=1.001 g heading=217.0 read=355 us peak=-16.29
+pitch=  2.25 filt=  2.13 rel= -0.00 roll=179.77 |a|=0.998 g heading=217.0 read=355 us peak=-16.29
+pitch=  2.19 filt=  2.17 rel=  0.04 roll=179.65 |a|=1.006 g heading=217.1 read=355 us peak=-16.29
+[stats] 200 samples in 2000 ms (100.0 Hz) | pitch mean 2.12 sd 0.082 deg | |a| mean 1.0000 sd 0.0027 g | read avg 355 max 362 us @ 400 kHz | overruns 0 | fails: status 0 data 0 mag 0
+[stats] shock: peak change 0.01 g, peak | |a|-1g | 0.01 g, shocks >2.0 g: 0 (total 2), saturated samples 0 | loop work max 515 us
+pitch=  2.22 filt=  2.14 rel=  0.01 roll=179.80 |a|=1.002 g heading=217.2 read=355 us peak=-16.29
+pitch=  2.03 filt=  2.10 rel= -0.03 roll=179.61 |a|=1.001 g heading=217.1 read=355 us peak=-16.29
+pitch=  2.01 filt=  2.12 rel= -0.01 roll=179.72 |a|=1.003 g heading=217.0 read=355 us peak=-16.29
+pitch=  2.06 filt=  2.13 rel=  0.00 roll=179.72 |a|=1.003 g heading=216.9 read=355 us peak=-16.29
+pitch=  2.10 filt=  2.12 rel= -0.01 roll=179.79 |a|=1.002 g heading=216.9 read=355 us peak=-16.29
+pitch=  2.20 filt=  2.13 rel= -0.00 roll=179.72 |a|=0.999 g heading=217.1 read=355 us peak=-16.29
+pitch=  2.22 filt=  2.16 rel=  0.03 roll=179.78 |a|=1.000 g heading=217.1 read=355 us peak=-16.29
+pitch=  2.08 filt=  2.10 rel= -0.04 roll=179.72 |a|=1.003 g heading=217.3 read=355 us peak=-16.29
+pitch=  2.24 filt=  2.11 rel= -0.02 roll=179.66 |a|=1.001 g heading=217.0 read=355 us peak=-16.29
+

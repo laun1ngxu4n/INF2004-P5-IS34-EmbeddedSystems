@@ -1,0 +1,21 @@
+(25 Oct 2026, parts_check v3.2, laptop USB, HC-SR04 5 V variant powered from Grove 5 3.3 V.
+Part-check section as pasted in chat; the [live] lines that followed showed no changes and are omitted.)
+---- part checks ----
+[imu] LSM303D at 0x1D (WHO_AM_I 0x49), accel + mag on one address: configured
+[imu] |a| = 0.899 g over 20 reads (expect ~1.0 g when still)
+[sonar] ping 1: 353 mm
+[sonar] ping 2: 356 mm
+[sonar] ping 3: 356 mm
+[sonar] ping 4: 356 mm
+[sonar] ping 5: 356 mm
+[servo] left 45 ... right 45 ... centre (nominal pulses) - did it move both ways?
+[led] red ... green ... blue ... off - both LEDs, right colours?
+[buzzer] two beeps (silent? check the buzzer mute switch on the board)
+[vbat] GP28 pin 0.065 V (sd 0.006). Divider ratio unknown: measure the battery with a meter and set VBAT_DIVIDER = V_batt / V_pin
+---- summary ----
+  IMU            OK
+  Ultrasonic     OK
+  Servo          LOOK/LISTEN
+  NeoPixels      LOOK/LISTEN
+  Buzzer         LOOK/LISTEN
+  Battery sense  OK

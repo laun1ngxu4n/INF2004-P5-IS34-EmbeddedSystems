@@ -1,0 +1,404 @@
+[2026-10-25 15:23:53.624] [level] L=0 C=0 B=0 | edges 86/82/80 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 52/40/32 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:23:53.629] [level] L=0 C=0 B=0 | edges 86/82/80 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 52/39/32 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:23:53.629] [level] L=0 C=0 B=0 | edges 86/82/80 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 52/39/32 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:23:53.629] [level] L=0 C=0 B=0 | edges 86/82/80 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 51/39/32 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:23:53.629] [level] L=0 C=0 B=0 | edges 86/82/80 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 51/39/32 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:23:53.629] [level] L=0 C=0 B=0 | edges 86/82/80 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 51/39/32 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:23:53.629] [level] L=0 C=0 B=0 | edges 86/82/80 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 51/39/32 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:23:53.643] [level] L=0 C=0 B=0 | edges 86/82/80 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 51/39/32 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:23:53.643] [level] L=0 C=0 B=0 | edges 86/82/80 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 51/38/31 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:23:53.643] [level] L=0 C=0 B=0 | edges 86/82/80 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 50/38/31 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:23:53.643] [level] L=0 C=0 B=0 | edges 86/82/80 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 50/38/31 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:23:53.643] [level] L=0 C=0 B=0 | edges 86/82/80 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 50/38/31 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:23:53.658] [level] L=0 C=0 B=0 | edges 86/82/80 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 50/38/31 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:23:53.658] [level] L=0 C=0 B=0 | edges 86/82/80 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 50/38/31 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:23:53.658] [level] L=0 C=0 B=0 | edges 86/82/80 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 50/38/31 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:23:53.658] [level] L=0 C=0 B=0 | edges 86/82/80 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 49/38/31 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:23:53.688] [level] L=0 C=0 B=0 | edges 86/82/80 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 49/38/31 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:23:54.188] [level] L=0 C=0 B=0 | edges 86/82/80 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 49/37/31 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:23:54.688] [level] L=0 C=0 B=0 | edges 86/82/80 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 49/37/30 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:23:55.189] [level] L=0 C=0 B=0 | edges 86/82/80 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 49/37/30 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:23:55.688] [level] L=0 C=0 B=0 | edges 86/82/80 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 49/37/30 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:23:56.188] [level] L=0 C=0 B=0 | edges 86/82/80 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 48/37/30 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:23:56.689] [level] L=0 C=0 B=0 | edges 86/82/80 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 48/37/30 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:23:57.188] [level] L=0 C=0 B=0 | edges 86/82/80 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 48/37/30 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:23:57.688] [level] L=0 C=0 B=0 | edges 86/82/80 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 48/37/30 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:23:58.188] [level] L=0 C=0 B=0 | edges 86/82/80 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 48/36/30 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:23:58.688] [level] L=0 C=0 B=0 | edges 86/82/80 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 48/36/30 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:23:59.187] [level] L=0 C=0 B=0 | edges 86/82/80 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 48/36/30 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:23:59.688] [level] L=0 C=0 B=0 | edges 86/82/80 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 47/36/30 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:00.188] [level] L=0 C=0 B=0 | edges 86/82/80 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 47/36/29 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:00.688] [level] L=0 C=0 B=0 | edges 86/82/80 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 47/36/29 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:01.188] [level] L=0 C=0 B=0 | edges 86/82/80 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 47/36/29 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:01.688] [level] L=0 C=0 B=0 | edges 86/82/80 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 47/36/29 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:02.188] [level] L=0 C=0 B=0 | edges 86/82/80 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 47/36/29 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:02.688] [level] L=0 C=0 B=0 | edges 86/82/80 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 47/35/29 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:03.188] [level] L=0 C=0 B=0 | edges 86/82/80 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 46/35/29 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:03.688] [level] L=0 C=0 B=0 | edges 86/82/80 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 46/35/29 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:04.188] [level] L=0 C=0 B=0 | edges 86/82/80 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 46/35/29 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:04.689] [level] L=0 C=0 B=0 | edges 86/82/80 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 46/35/29 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:05.188] [level] L=0 C=0 B=0 | edges 86/82/80 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 46/35/29 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:05.688] [level] L=0 C=0 B=0 | edges 86/82/80 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 46/35/28 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:05.933] [edge]  293745950 us  BARCODE 0->1  previous level lasted 27813985 us
+[2026-10-25 15:24:06.188] [level] L=0 C=0 B=1 | edges 86/82/81 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 46/35/29 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:06.688] [level] L=0 C=0 B=1 | edges 86/82/81 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 45/35/29 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:07.188] [level] L=0 C=0 B=1 | edges 86/82/81 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 45/35/29 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:07.688] [level] L=1 C=1 B=1 | edges 87/83/81 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 45/35/29 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:08.188] [level] L=1 C=1 B=1 | edges 87/83/81 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 45/35/29 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:08.688] [level] L=1 C=1 B=1 | edges 87/83/81 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 46/35/30 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:09.188] [level] L=1 C=1 B=1 | edges 87/83/81 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 46/35/30 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:09.688] [level] L=1 C=1 B=1 | edges 87/83/81 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 46/35/30 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:10.188] [level] L=1 C=1 B=1 | edges 87/83/81 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 46/35/30 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:10.688] [level] L=1 C=1 B=1 | edges 87/83/81 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 46/36/30 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:11.188] [level] L=1 C=1 B=1 | edges 87/83/81 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 46/36/31 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:11.688] [level] L=1 C=1 B=1 | edges 87/83/81 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 47/36/31 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:12.188] [level] L=1 C=1 B=1 | edges 87/83/81 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 47/36/31 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:12.688] [level] L=1 C=1 B=1 | edges 87/83/81 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 47/36/31 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:13.188] [level] L=1 C=1 B=1 | edges 87/83/81 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 47/37/31 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:13.688] [level] L=1 C=1 B=1 | edges 87/83/81 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 47/37/32 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:14.188] [level] L=1 C=1 B=1 | edges 87/83/81 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 47/37/32 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:14.688] [level] L=1 C=1 B=1 | edges 87/83/81 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 47/37/32 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:15.188] [level] L=1 C=1 B=1 | edges 87/83/81 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 48/37/32 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:15.689] [level] L=1 C=1 B=1 | edges 87/83/81 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 48/37/32 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:16.189] [level] L=1 C=1 B=1 | edges 87/83/81 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 48/38/32 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:16.688] [level] L=1 C=1 B=1 | edges 87/83/81 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 48/38/33 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:17.189] [level] L=1 C=1 B=1 | edges 87/83/81 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 48/38/33 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:17.689] [level] L=1 C=1 B=1 | edges 87/83/81 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 48/38/33 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:18.188] [level] L=1 C=1 B=1 | edges 87/83/81 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 48/38/33 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:18.688] [level] L=1 C=1 B=1 | edges 87/83/81 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 49/38/33 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:19.189] [level] L=0 C=0 B=1 | edges 88/84/81 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 48/38/34 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:19.425] [edge]  307237433 us  BARCODE 1->0  previous level lasted 13491483 us
+[2026-10-25 15:24:19.689] [level] L=0 C=0 B=0 | edges 88/84/82 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 48/38/34 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:19.706] [edge]  307518889 us  BARCODE 0->1  previous level lasted   281456 us
+[2026-10-25 15:24:19.855] [edge]  307667653 us  BARCODE 1->0  previous level lasted   148764 us
+[2026-10-25 15:24:20.189] [level] L=0 C=0 B=0 | edges 88/84/84 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 48/38/34 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:20.689] [level] L=0 C=0 B=0 | edges 88/84/84 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 48/38/33 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:21.189] [level] L=0 C=0 B=0 | edges 88/84/84 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 48/38/33 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:21.689] [level] L=0 C=0 B=0 | edges 88/84/84 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 48/38/33 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:22.188] [level] L=0 C=0 B=0 | edges 88/84/84 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 48/38/33 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:22.689] [level] L=0 C=0 B=0 | edges 88/84/84 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 48/38/33 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:23.189] [level] L=0 C=0 B=0 | edges 88/84/84 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 47/38/33 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:23.689] [level] L=0 C=0 B=0 | edges 88/84/84 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 47/37/33 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:24.189] [level] L=0 C=0 B=0 | edges 88/84/84 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 47/37/33 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:24.689] [level] L=0 C=0 B=0 | edges 88/84/84 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 47/37/33 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:25.189] [level] L=0 C=0 B=0 | edges 88/84/84 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 47/37/33 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:25.689] [level] L=0 C=0 B=0 | edges 88/84/84 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 47/37/33 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:26.045] [toggle] LEFT/CENTER edge printing ON
+[2026-10-25 15:24:26.189] [level] L=0 C=0 B=0 | edges 88/84/84 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 47/37/33 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:26.688] [level] L=0 C=0 B=0 | edges 88/84/84 | chatter 0/0/0 | min pulse us 7889/9620/21582 | %high(samples) 47/37/32 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:26.930] [reset] statistics cleared
+[2026-10-25 15:24:27.188] [level] L=0 C=0 B=0 | edges 0/0/0 | chatter 0/0/0 | min pulse us 0/0/0 | %high(samples) 0/0/0 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:27.688] [level] L=0 C=0 B=0 | edges 0/0/0 | chatter 0/0/0 | min pulse us 0/0/0 | %high(samples) 0/0/0 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:28.188] [level] L=0 C=0 B=0 | edges 0/0/0 | chatter 0/0/0 | min pulse us 0/0/0 | %high(samples) 0/0/0 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:28.689] [level] L=0 C=0 B=0 | edges 0/0/0 | chatter 0/0/0 | min pulse us 0/0/0 | %high(samples) 0/0/0 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:29.189] [level] L=0 C=0 B=0 | edges 0/0/0 | chatter 0/0/0 | min pulse us 0/0/0 | %high(samples) 0/0/0 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:29.495] [edge]  317307688 us  BARCODE 0->1  previous level lasted        0 us
+[2026-10-25 15:24:29.688] [level] L=0 C=0 B=1 | edges 0/0/1 | chatter 0/0/0 | min pulse us 0/0/0 | %high(samples) 0/0/7 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:29.732] [edge]  317544225 us  BARCODE 1->0  previous level lasted   236537 us
+[2026-10-25 15:24:30.071] [edge]  317884233 us  BARCODE 0->1  previous level lasted   340008 us
+[2026-10-25 15:24:30.189] [level] L=0 C=0 B=1 | edges 0/0/3 | chatter 0/0/0 | min pulse us 0/0/236537 | %high(samples) 0/0/10 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:30.688] [level] L=0 C=0 B=1 | edges 0/0/3 | chatter 0/0/0 | min pulse us 0/0/236537 | %high(samples) 0/0/22 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:30.743] [edge]  318556658 us  LEFT    0->1  previous level lasted        0 us
+[2026-10-25 15:24:30.774] [edge]  318586139 us  CENTER  0->1  previous level lasted        0 us
+[2026-10-25 15:24:30.931] [edge]  318743899 us  CENTER  1->0  previous level lasted   157760 us
+[2026-10-25 15:24:30.949] [edge]  318761283 us  LEFT    1->0  previous level lasted   204625 us
+[2026-10-25 15:24:31.188] [level] L=0 C=0 B=1 | edges 2/2/3 | chatter 0/0/0 | min pulse us 204625/157760/236537 | %high(samples) 4/3/31 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:31.689] [level] L=0 C=0 B=1 | edges 2/2/3 | chatter 0/0/0 | min pulse us 204625/157760/236537 | %high(samples) 4/3/38 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:32.077] [edge]  319890137 us  CENTER  0->1  previous level lasted  1146238 us
+[2026-10-25 15:24:32.118] [edge]  319930109 us  LEFT    0->1  previous level lasted  1168826 us
+[2026-10-25 15:24:32.188] [level] L=1 C=1 B=1 | edges 3/3/3 | chatter 0/0/0 | min pulse us 204625/157760/236537 | %high(samples) 5/5/44 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:32.253] [edge]  320066307 us  LEFT    1->0  previous level lasted   136198 us
+[2026-10-25 15:24:32.390] [edge]  320202973 us  LEFT    0->1  previous level lasted   136666 us
+[2026-10-25 15:24:32.688] [level] L=1 C=1 B=1 | edges 5/3/3 | chatter 0/0/0 | min pulse us 136198/157760/236537 | %high(samples) 11/13/49 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:32.895] [edge]  320707475 us  LEFT    1->0  previous level lasted   504502 us
+[2026-10-25 15:24:32.932] [edge]  320744779 us  LEFT    0->1  previous level lasted    37304 us
+[2026-10-25 15:24:33.189] [level] L=1 C=1 B=1 | edges 7/3/3 | chatter 0/0/0 | min pulse us 37304/157760/236537 | %high(samples) 17/20/53 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:33.689] [level] L=1 C=1 B=1 | edges 7/3/3 | chatter 0/0/0 | min pulse us 37304/157760/236537 | %high(samples) 23/26/57 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:34.016] [edge]  321829346 us  CENTER  1->0  previous level lasted  1939209 us
+[2026-10-25 15:24:34.098] [edge]  321910815 us  CENTER  0->1  previous level lasted    81469 us
+[2026-10-25 15:24:34.189] [level] L=1 C=1 B=1 | edges 7/5/3 | chatter 0/0/0 | min pulse us 37304/81469/236537 | %high(samples) 28/30/59 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:34.223] [edge]  322035563 us  CENTER  1->0  previous level lasted   124748 us
+[2026-10-25 15:24:34.277] [edge]  322089119 us  BARCODE 1->0  previous level lasted  4204886 us
+[2026-10-25 15:24:34.326] [edge]  322137956 us  CENTER  0->1  previous level lasted   102393 us
+[2026-10-25 15:24:34.495] [edge]  322307467 us  BARCODE 0->1  previous level lasted   218348 us
+[2026-10-25 15:24:34.592] [edge]  322404334 us  CENTER  1->0  previous level lasted   266378 us
+[2026-10-25 15:24:34.688] [level] L=1 C=0 B=1 | edges 7/8/5 | chatter 0/0/0 | min pulse us 37304/81469/218348 | %high(samples) 33/32/59 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:34.785] [edge]  322597517 us  CENTER  0->1  previous level lasted   193183 us
+[2026-10-25 15:24:34.822] [edge]  322633798 us  CENTER  1->0  previous level lasted    36281 us
+[2026-10-25 15:24:35.029] [edge]  322841540 us  CENTER  0->1  previous level lasted   207742 us
+[2026-10-25 15:24:35.134] [edge]  322946321 us  CENTER  1->0  previous level lasted   104781 us
+[2026-10-25 15:24:35.189] [level] L=1 C=0 B=1 | edges 7/12/5 | chatter 0/0/0 | min pulse us 37304/36281/218348 | %high(samples) 37/31/62 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:35.689] [level] L=1 C=0 B=1 | edges 7/12/5 | chatter 0/0/0 | min pulse us 37304/36281/218348 | %high(samples) 41/30/64 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:35.893] [edge]  323705643 us  LEFT    1->0  previous level lasted  2960864 us
+[2026-10-25 15:24:36.175] [edge]  323987194 us  LEFT    0->1  previous level lasted   281551 us
+[2026-10-25 15:24:36.189] [level] L=1 C=0 B=1 | edges 9/12/5 | chatter 0/0/0 | min pulse us 37304/36281/218348 | %high(samples) 41/28/66 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:36.191] [edge]  324004057 us  BARCODE 1->0  previous level lasted  1696590 us
+[2026-10-25 15:24:36.224] [edge]  324036081 us  CENTER  0->1  previous level lasted  1089760 us
+[2026-10-25 15:24:36.292] [edge]  324104490 us  CENTER  1->0  previous level lasted    68409 us
+[2026-10-25 15:24:36.434] [edge]  324246719 us  BARCODE 0->1  previous level lasted   242662 us
+[2026-10-25 15:24:36.492] [edge]  324303931 us  CENTER  0->1  previous level lasted   199441 us
+[2026-10-25 15:24:36.689] [level] L=1 C=1 B=1 | edges 9/15/7 | chatter 0/0/0 | min pulse us 37304/36281/218348 | %high(samples) 44/29/65 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:36.918] [edge]  324730669 us  CENTER  1->0  previous level lasted   426738 us
+[2026-10-25 15:24:37.150] [edge]  324962484 us  CENTER  0->1  previous level lasted   231815 us
+[2026-10-25 15:24:37.189] [level] L=1 C=1 B=1 | edges 9/17/7 | chatter 0/0/0 | min pulse us 37304/36281/218348 | %high(samples) 46/30/67 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:37.358] [edge]  325170171 us  CENTER  1->0  previous level lasted   207687 us
+[2026-10-25 15:24:37.468] [edge]  325279736 us  CENTER  0->1  previous level lasted   109565 us
+[2026-10-25 15:24:37.689] [level] L=1 C=1 B=1 | edges 9/19/7 | chatter 0/0/0 | min pulse us 37304/36281/218348 | %high(samples) 49/33/68 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:37.849] [edge]  325661069 us  CENTER  1->0  previous level lasted   381333 us
+[2026-10-25 15:24:37.953] [edge]  325765605 us  LEFT    1->0  previous level lasted  1778411 us
+[2026-10-25 15:24:38.135] [edge]  325947304 us  CENTER  0->1  previous level lasted   286235 us
+[2026-10-25 15:24:38.146] [edge]  325958555 us  LEFT    0->1  previous level lasted   192950 us
+[2026-10-25 15:24:38.189] [level] L=1 C=1 B=1 | edges 11/21/7 | chatter 0/0/0 | min pulse us 37304/36281/218348 | %high(samples) 49/33/70 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:38.672] [edge]  326484030 us  BARCODE 1->0  previous level lasted  2237311 us
+[2026-10-25 15:24:38.689] [level] L=1 C=1 B=0 | edges 11/21/8 | chatter 0/0/0 | min pulse us 37304/36281/218348 | %high(samples) 52/36/71 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:39.049] [edge]  326861466 us  CENTER  1->0  previous level lasted   914162 us
+[2026-10-25 15:24:39.189] [level] L=1 C=0 B=0 | edges 11/22/8 | chatter 0/0/0 | min pulse us 37304/36281/218348 | %high(samples) 54/37/68 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:39.550] [edge]  327362205 us  CENTER  0->1  previous level lasted   500739 us
+[2026-10-25 15:24:39.689] [level] L=1 C=1 B=0 | edges 11/23/8 | chatter 0/0/0 | min pulse us 37304/36281/218348 | %high(samples) 55/37/65 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:39.877] [edge]  327688887 us  CENTER  1->0  previous level lasted   326682 us
+[2026-10-25 15:24:40.001] [edge]  327812964 us  CENTER  0->1  previous level lasted   124077 us
+[2026-10-25 15:24:40.089] [edge]  327901046 us  CENTER  1->0  previous level lasted    88082 us
+[2026-10-25 15:24:40.148] [edge]  327960037 us  LEFT    1->0  previous level lasted  2001482 us
+[2026-10-25 15:24:40.189] [level] L=0 C=0 B=0 | edges 12/26/8 | chatter 0/0/0 | min pulse us 37304/36281/218348 | %high(samples) 57/38/63 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:40.689] [level] L=0 C=0 B=0 | edges 12/26/8 | chatter 0/0/0 | min pulse us 37304/36281/218348 | %high(samples) 55/36/60 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:41.189] [level] L=0 C=0 B=0 | edges 12/26/8 | chatter 0/0/0 | min pulse us 37304/36281/218348 | %high(samples) 53/35/58 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:41.689] [level] L=0 C=0 B=0 | edges 12/26/8 | chatter 0/0/0 | min pulse us 37304/36281/218348 | %high(samples) 51/34/56 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:42.189] [level] L=0 C=0 B=0 | edges 12/26/8 | chatter 0/0/0 | min pulse us 37304/36281/218348 | %high(samples) 49/33/54 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:42.689] [level] L=0 C=0 B=0 | edges 12/26/8 | chatter 0/0/0 | min pulse us 37304/36281/218348 | %high(samples) 48/32/53 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:43.189] [level] L=0 C=0 B=0 | edges 12/26/8 | chatter 0/0/0 | min pulse us 37304/36281/218348 | %high(samples) 46/31/51 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:43.689] [level] L=0 C=0 B=0 | edges 12/26/8 | chatter 0/0/0 | min pulse us 37304/36281/218348 | %high(samples) 45/30/49 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:44.189] [level] L=0 C=0 B=0 | edges 12/26/8 | chatter 0/0/0 | min pulse us 37304/36281/218348 | %high(samples) 43/29/48 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:44.689] [level] L=0 C=0 B=0 | edges 12/26/8 | chatter 0/0/0 | min pulse us 37304/36281/218348 | %high(samples) 42/28/47 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:44.985] [edge]  332796642 us  CENTER  0->1  previous level lasted  4895596 us
+[2026-10-25 15:24:45.069] [edge]  332881210 us  LEFT    0->1  previous level lasted  4921173 us
+[2026-10-25 15:24:45.087] [edge]  332899405 us  BARCODE 0->1  previous level lasted  6415375 us
+[2026-10-25 15:24:45.189] [level] L=1 C=1 B=1 | edges 13/27/9 | chatter 0/0/0 | min pulse us 37304/36281/218348 | %high(samples) 42/28/46 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:45.627] [edge]  333439064 us  LEFT    1->0  previous level lasted   557854 us
+[2026-10-25 15:24:45.689] [level] L=0 C=1 B=1 | edges 14/27/9 | chatter 0/0/0 | min pulse us 37304/36281/218348 | %high(samples) 43/30/47 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:45.782] [edge]  333594612 us  BARCODE 1->0  previous level lasted   695207 us
+[2026-10-25 15:24:45.983] [edge]  333794653 us  CENTER  1->0  previous level lasted   998011 us
+[2026-10-25 15:24:46.189] [level] L=0 C=0 B=0 | edges 14/28/10 | chatter 0/0/0 | min pulse us 37304/36281/218348 | %high(samples) 42/31/47 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:46.689] [level] L=0 C=0 B=0 | edges 14/28/10 | chatter 0/0/0 | min pulse us 37304/36281/218348 | %high(samples) 41/30/45 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:46.697] [edge]  334508964 us  BARCODE 0->1  previous level lasted   914352 us
+[2026-10-25 15:24:47.189] [level] L=0 C=0 B=1 | edges 14/28/11 | chatter 0/0/0 | min pulse us 37304/36281/218348 | %high(samples) 40/29/47 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:47.442] [edge]  335253064 us  BARCODE 1->0  previous level lasted   744100 us
+[2026-10-25 15:24:47.689] [level] L=0 C=0 B=0 | edges 14/28/12 | chatter 0/0/0 | min pulse us 37304/36281/218348 | %high(samples) 39/29/47 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:48.189] [level] L=0 C=0 B=0 | edges 14/28/12 | chatter 0/0/0 | min pulse us 37304/36281/218348 | %high(samples) 38/28/46 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:48.689] [level] L=0 C=0 B=0 | edges 14/28/12 | chatter 0/0/0 | min pulse us 37304/36281/218348 | %high(samples) 37/27/45 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:49.190] [level] L=0 C=0 B=0 | edges 14/28/12 | chatter 0/0/0 | min pulse us 37304/36281/218348 | %high(samples) 36/27/44 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:49.689] [level] L=0 C=0 B=0 | edges 14/28/12 | chatter 0/0/0 | min pulse us 37304/36281/218348 | %high(samples) 35/26/43 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:49.743] [toggle] LEFT/CENTER edge printing OFF
+[2026-10-25 15:24:50.189] [level] L=0 C=0 B=0 | edges 14/28/12 | chatter 0/0/0 | min pulse us 37304/36281/218348 | %high(samples) 35/25/42 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:50.560] [reset] statistics cleared
+[2026-10-25 15:24:50.689] [level] L=0 C=0 B=0 | edges 0/0/0 | chatter 0/0/0 | min pulse us 0/0/0 | %high(samples) 0/0/0 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:51.189] [level] L=0 C=0 B=0 | edges 0/0/0 | chatter 0/0/0 | min pulse us 0/0/0 | %high(samples) 0/0/0 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:51.689] [level] L=0 C=0 B=0 | edges 0/0/0 | chatter 0/0/0 | min pulse us 0/0/0 | %high(samples) 0/0/0 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:52.189] [level] L=0 C=0 B=0 | edges 0/0/0 | chatter 0/0/0 | min pulse us 0/0/0 | %high(samples) 0/0/0 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:52.689] [level] L=0 C=0 B=0 | edges 0/0/0 | chatter 0/0/0 | min pulse us 0/0/0 | %high(samples) 0/0/0 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:52.974] [edge]  340785718 us  BARCODE 0->1  previous level lasted        0 us
+[2026-10-25 15:24:53.190] [level] L=0 C=0 B=1 | edges 0/0/1 | chatter 0/0/0 | min pulse us 0/0/0 | %high(samples) 0/0/8 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:53.689] [level] L=0 C=0 B=1 | edges 0/0/1 | chatter 0/0/0 | min pulse us 0/0/0 | %high(samples) 0/0/22 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:54.189] [level] L=0 C=0 B=1 | edges 0/0/1 | chatter 0/0/0 | min pulse us 0/0/0 | %high(samples) 0/0/33 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:54.690] [level] L=1 C=0 B=1 | edges 1/2/1 | chatter 0/0/0 | min pulse us 0/370600/0 | %high(samples) 8/8/41 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:55.189] [level] L=0 C=1 B=1 | edges 2/3/1 | chatter 0/0/0 | min pulse us 394748/370600/0 | %high(samples) 8/9/47 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:55.689] [level] L=1 C=1 B=1 | edges 5/3/1 | chatter 0/0/0 | min pulse us 172112/370600/0 | %high(samples) 11/18/52 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:56.189] [level] L=1 C=1 B=1 | edges 5/3/1 | chatter 0/0/0 | min pulse us 172112/370600/0 | %high(samples) 19/25/57 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:56.689] [level] L=1 C=1 B=1 | edges 5/3/1 | chatter 0/0/0 | min pulse us 172112/370600/0 | %high(samples) 25/31/60 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:57.189] [level] L=1 C=1 B=1 | edges 7/3/1 | chatter 0/0/0 | min pulse us 13781/370600/0 | %high(samples) 31/36/63 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:57.688] [edge]  345499460 us  BARCODE 1->0  previous level lasted  4713742 us
+[2026-10-25 15:24:57.690] [level] L=1 C=0 B=0 | edges 7/4/2 | chatter 0/0/0 | min pulse us 13781/370600/4713742 | %high(samples) 36/39/66 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:58.127] [edge]  345938683 us  BARCODE 0->1  previous level lasted   439223 us
+[2026-10-25 15:24:58.190] [level] L=1 C=1 B=1 | edges 7/7/3 | chatter 0/0/0 | min pulse us 13781/90627/439223 | %high(samples) 40/39/62 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:58.393] [edge]  346204512 us  BARCODE 1->0  previous level lasted   265829 us
+[2026-10-25 15:24:58.689] [level] L=1 C=1 B=0 | edges 7/9/4 | chatter 0/0/0 | min pulse us 13781/90627/265829 | %high(samples) 44/40/61 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:58.938] [edge]  346749477 us  BARCODE 0->1  previous level lasted   544965 us
+[2026-10-25 15:24:59.189] [level] L=1 C=0 B=1 | edges 7/10/5 | chatter 0/0/0 | min pulse us 13781/90627/265829 | %high(samples) 47/43/60 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:24:59.300] [edge]  347112022 us  BARCODE 1->0  previous level lasted   362545 us
+[2026-10-25 15:24:59.345] [edge]  347156620 us  BARCODE 0->1  previous level lasted    44598 us
+[2026-10-25 15:24:59.597] [edge]  347408793 us  BARCODE 1->0  previous level lasted   252173 us
+[2026-10-25 15:24:59.673] [edge]  347484753 us  BARCODE 0->1  previous level lasted    75960 us
+[2026-10-25 15:24:59.689] [level] L=1 C=0 B=1 | edges 7/10/9 | chatter 0/0/0 | min pulse us 13781/90627/44598 | %high(samples) 50/40/61 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:00.190] [level] L=1 C=1 B=1 | edges 7/13/9 | chatter 0/0/0 | min pulse us 13781/59108/44598 | %high(samples) 52/40/63 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:00.690] [level] L=0 C=0 B=1 | edges 8/14/9 | chatter 0/0/0 | min pulse us 13781/59108/44598 | %high(samples) 52/39/65 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:00.719] [edge]  348531122 us  BARCODE 1->0  previous level lasted  1046369 us
+[2026-10-25 15:25:01.190] [level] L=1 C=1 B=0 | edges 9/15/10 | chatter 0/0/0 | min pulse us 13781/59108/44598 | %high(samples) 53/40/62 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:01.625] [edge]  349437110 us  BARCODE 0->1  previous level lasted   905988 us
+[2026-10-25 15:25:01.690] [level] L=1 C=1 B=1 | edges 9/17/11 | chatter 0/0/0 | min pulse us 13781/59108/44598 | %high(samples) 55/42/60 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:02.190] [level] L=1 C=0 B=1 | edges 9/18/11 | chatter 0/0/0 | min pulse us 13781/59108/44598 | %high(samples) 57/44/61 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:02.690] [level] L=1 C=0 B=1 | edges 9/20/11 | chatter 0/0/0 | min pulse us 13781/59108/44598 | %high(samples) 59/43/63 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:03.190] [level] L=1 C=0 B=1 | edges 11/20/11 | chatter 0/0/0 | min pulse us 13781/59108/44598 | %high(samples) 59/41/64 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:03.690] [level] L=0 C=0 B=1 | edges 12/20/11 | chatter 0/0/0 | min pulse us 13781/59108/44598 | %high(samples) 59/40/66 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:04.190] [level] L=1 C=0 B=1 | edges 13/22/11 | chatter 0/0/0 | min pulse us 13781/59108/44598 | %high(samples) 59/39/67 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:04.610] [edge]  352421876 us  BARCODE 1->0  previous level lasted  2984766 us
+[2026-10-25 15:25:04.690] [level] L=1 C=1 B=0 | edges 13/23/12 | chatter 0/0/0 | min pulse us 13781/59108/44598 | %high(samples) 60/40/68 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:05.189] [level] L=1 C=0 B=0 | edges 13/24/12 | chatter 0/0/0 | min pulse us 13781/59108/44598 | %high(samples) 61/39/65 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:05.690] [level] L=1 C=1 B=0 | edges 13/25/12 | chatter 0/0/0 | min pulse us 13781/59108/44598 | %high(samples) 63/38/63 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:06.190] [level] L=0 C=0 B=0 | edges 14/26/12 | chatter 0/0/0 | min pulse us 13781/59108/44598 | %high(samples) 64/38/61 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:06.690] [level] L=0 C=0 B=0 | edges 14/26/12 | chatter 0/0/0 | min pulse us 13781/59108/44598 | %high(samples) 62/37/59 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:07.190] [level] L=0 C=0 B=0 | edges 14/26/12 | chatter 0/0/0 | min pulse us 13781/59108/44598 | %high(samples) 60/36/57 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:07.690] [level] L=0 C=0 B=0 | edges 14/26/12 | chatter 0/0/0 | min pulse us 13781/59108/44598 | %high(samples) 58/35/56 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:08.189] [level] L=0 C=0 B=0 | edges 14/26/12 | chatter 0/0/0 | min pulse us 13781/59108/44598 | %high(samples) 56/34/54 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:08.690] [level] L=0 C=0 B=0 | edges 14/26/12 | chatter 0/0/0 | min pulse us 13781/59108/44598 | %high(samples) 55/33/53 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:09.190] [level] L=0 C=0 B=0 | edges 14/26/12 | chatter 0/0/0 | min pulse us 13781/59108/44598 | %high(samples) 53/32/51 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:09.690] [level] L=0 C=0 B=0 | edges 14/26/12 | chatter 0/0/0 | min pulse us 13781/59108/44598 | %high(samples) 52/31/50 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:10.190] [level] L=0 C=0 B=0 | edges 14/26/12 | chatter 0/0/0 | min pulse us 13781/59108/44598 | %high(samples) 51/30/49 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:10.690] [level] L=0 C=0 B=0 | edges 14/26/12 | chatter 0/0/0 | min pulse us 13781/59108/44598 | %high(samples) 49/30/47 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:11.190] [level] L=0 C=0 B=0 | edges 14/26/12 | chatter 0/0/0 | min pulse us 13781/59108/44598 | %high(samples) 48/29/46 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:11.690] [level] L=0 C=0 B=0 | edges 14/26/12 | chatter 0/0/0 | min pulse us 13781/59108/44598 | %high(samples) 47/28/45 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:12.117] [edge]  359928832 us  BARCODE 0->1  previous level lasted  7506956 us
+[2026-10-25 15:25:12.190] [level] L=0 C=1 B=1 | edges 14/27/13 | chatter 0/0/0 | min pulse us 13781/59108/44598 | %high(samples) 46/28/44 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:12.690] [level] L=1 C=1 B=1 | edges 15/27/13 | chatter 0/0/0 | min pulse us 13781/59108/44598 | %high(samples) 47/29/46 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:13.190] [level] L=0 C=1 B=1 | edges 16/27/13 | chatter 0/0/0 | min pulse us 13781/59108/44598 | %high(samples) 47/31/47 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:13.349] [edge]  361160391 us  BARCODE 1->0  previous level lasted  1231559 us
+[2026-10-25 15:25:13.689] [level] L=0 C=0 B=0 | edges 16/28/14 | chatter 0/0/0 | min pulse us 13781/59108/44598 | %high(samples) 46/31/46 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:14.190] [level] L=0 C=0 B=0 | edges 16/28/14 | chatter 0/0/0 | min pulse us 13781/59108/44598 | %high(samples) 45/30/45 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:14.690] [level] L=0 C=0 B=0 | edges 16/28/14 | chatter 0/0/0 | min pulse us 13781/59108/44598 | %high(samples) 44/29/44 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:15.190] [level] L=0 C=0 B=0 | edges 16/28/14 | chatter 0/0/0 | min pulse us 13781/59108/44598 | %high(samples) 43/29/44 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:15.690] [level] L=0 C=0 B=0 | edges 16/28/14 | chatter 0/0/0 | min pulse us 13781/59108/44598 | %high(samples) 42/28/43 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:16.190] [level] L=0 C=0 B=0 | edges 16/28/14 | chatter 0/0/0 | min pulse us 13781/59108/44598 | %high(samples) 42/28/42 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:16.360] [toggle] LEFT/CENTER edge printing ON
+[2026-10-25 15:25:16.690] [level] L=0 C=0 B=0 | edges 16/28/14 | chatter 0/0/0 | min pulse us 13781/59108/44598 | %high(samples) 41/27/41 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:17.025] [reset] statistics cleared
+[2026-10-25 15:25:17.190] [level] L=0 C=0 B=0 | edges 0/0/0 | chatter 0/0/0 | min pulse us 0/0/0 | %high(samples) 0/0/0 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:17.690] [level] L=0 C=0 B=0 | edges 0/0/0 | chatter 0/0/0 | min pulse us 0/0/0 | %high(samples) 0/0/0 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:18.190] [level] L=0 C=0 B=0 | edges 0/0/0 | chatter 0/0/0 | min pulse us 0/0/0 | %high(samples) 0/0/0 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:18.690] [level] L=0 C=0 B=0 | edges 0/0/0 | chatter 0/0/0 | min pulse us 0/0/0 | %high(samples) 0/0/0 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:19.190] [level] L=0 C=0 B=0 | edges 0/0/0 | chatter 0/0/0 | min pulse us 0/0/0 | %high(samples) 0/0/0 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:19.405] [edge]  367216152 us  BARCODE 0->1  previous level lasted        0 us
+[2026-10-25 15:25:19.690] [level] L=0 C=0 B=1 | edges 0/0/1 | chatter 0/0/0 | min pulse us 0/0/0 | %high(samples) 0/0/10 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:20.190] [level] L=0 C=0 B=1 | edges 0/0/1 | chatter 0/0/0 | min pulse us 0/0/0 | %high(samples) 0/0/24 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:20.226] [edge]  368037626 us  CENTER  0->1  previous level lasted        0 us
+[2026-10-25 15:25:20.283] [edge]  368094083 us  LEFT    0->1  previous level lasted        0 us
+[2026-10-25 15:25:20.405] [edge]  368215263 us  CENTER  1->0  previous level lasted   177637 us
+[2026-10-25 15:25:20.590] [edge]  368400975 us  LEFT    1->0  previous level lasted   306892 us
+[2026-10-25 15:25:20.690] [level] L=0 C=0 B=1 | edges 2/2/1 | chatter 0/0/0 | min pulse us 306892/177637/0 | %high(samples) 8/4/35 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:21.170] [edge]  368980845 us  CENTER  0->1  previous level lasted   765582 us
+[2026-10-25 15:25:21.189] [level] L=0 C=1 B=1 | edges 2/3/1 | chatter 0/0/0 | min pulse us 306892/177637/0 | %high(samples) 7/4/42 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:21.318] [edge]  369129166 us  LEFT    0->1  previous level lasted   728191 us
+[2026-10-25 15:25:21.542] [edge]  369353121 us  LEFT    1->0  previous level lasted   223955 us
+[2026-10-25 15:25:21.690] [level] L=0 C=1 B=1 | edges 4/3/1 | chatter 0/0/0 | min pulse us 223955/177637/0 | %high(samples) 11/14/48 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:21.916] [edge]  369726751 us  LEFT    0->1  previous level lasted   373630 us
+[2026-10-25 15:25:22.053] [edge]  369864108 us  CENTER  1->0  previous level lasted   883263 us
+[2026-10-25 15:25:22.059] [edge]  369870934 us  LEFT    1->0  previous level lasted   144183 us
+[2026-10-25 15:25:22.106] [edge]  369917665 us  CENTER  0->1  previous level lasted    53557 us
+[2026-10-25 15:25:22.190] [level] L=0 C=1 B=1 | edges 6/5/1 | chatter 0/0/0 | min pulse us 144183/53557/0 | %high(samples) 13/22/53 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:22.236] [edge]  370047168 us  LEFT    0->1  previous level lasted   176234 us
+[2026-10-25 15:25:22.610] [edge]  370421045 us  LEFT    1->0  previous level lasted   373877 us
+[2026-10-25 15:25:22.655] [edge]  370464911 us  LEFT    0->1  previous level lasted    43866 us
+[2026-10-25 15:25:22.690] [level] L=1 C=1 B=1 | edges 9/5/1 | chatter 0/0/0 | min pulse us 43866/53557/0 | %high(samples) 19/29/57 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:23.183] [edge]  370993967 us  CENTER  1->0  previous level lasted  1076302 us
+[2026-10-25 15:25:23.190] [level] L=1 C=0 B=1 | edges 9/6/1 | chatter 0/0/0 | min pulse us 43866/53557/0 | %high(samples) 25/34/61 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:23.194] [edge]  371005113 us  BARCODE 1->0  previous level lasted  3788961 us
+[2026-10-25 15:25:23.292] [edge]  371102686 us  CENTER  0->1  previous level lasted   108719 us
+[2026-10-25 15:25:23.690] [level] L=1 C=1 B=0 | edges 9/7/2 | chatter 0/0/0 | min pulse us 43866/53557/3788961 | %high(samples) 31/38/56 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:24.190] [level] L=1 C=1 B=0 | edges 9/7/2 | chatter 0/0/0 | min pulse us 43866/53557/3788961 | %high(samples) 36/42/52 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:24.267] [edge]  372077510 us  BARCODE 0->1  previous level lasted  1072397 us
+[2026-10-25 15:25:24.384] [edge]  372195194 us  CENTER  1->0  previous level lasted  1092508 us
+[2026-10-25 15:25:24.477] [edge]  372287606 us  CENTER  0->1  previous level lasted    92412 us
+[2026-10-25 15:25:24.536] [edge]  372346708 us  CENTER  1->0  previous level lasted    59102 us
+[2026-10-25 15:25:24.633] [edge]  372443654 us  CENTER  0->1  previous level lasted    96946 us
+[2026-10-25 15:25:24.690] [level] L=1 C=1 B=1 | edges 9/11/3 | chatter 0/0/0 | min pulse us 43866/53557/1072397 | %high(samples) 40/43/54 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:24.735] [edge]  372546093 us  CENTER  1->0  previous level lasted   102439 us
+[2026-10-25 15:25:24.768] [edge]  372578932 us  LEFT    1->0  previous level lasted  2114021 us
+[2026-10-25 15:25:24.966] [edge]  372776640 us  LEFT    0->1  previous level lasted   197708 us
+[2026-10-25 15:25:24.982] [edge]  372793030 us  CENTER  0->1  previous level lasted   246937 us
+[2026-10-25 15:25:25.003] [edge]  372814335 us  BARCODE 1->0  previous level lasted   736825 us
+[2026-10-25 15:25:25.082] [edge]  372893032 us  CENTER  1->0  previous level lasted   100002 us
+[2026-10-25 15:25:25.166] [edge]  372976780 us  BARCODE 0->1  previous level lasted   162445 us
+[2026-10-25 15:25:25.190] [level] L=1 C=0 B=1 | edges 11/14/5 | chatter 0/0/0 | min pulse us 43866/53557/162445 | %high(samples) 41/42/55 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:25.217] [edge]  373027977 us  CENTER  0->1  previous level lasted   134945 us
+[2026-10-25 15:25:25.690] [level] L=1 C=1 B=1 | edges 11/15/5 | chatter 0/0/0 | min pulse us 43866/53557/162445 | %high(samples) 44/45/58 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:26.190] [level] L=1 C=1 B=1 | edges 11/15/5 | chatter 0/0/0 | min pulse us 43866/53557/162445 | %high(samples) 47/48/60 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:26.403] [edge]  374214052 us  CENTER  1->0  previous level lasted  1186075 us
+[2026-10-25 15:25:26.514] [edge]  374324851 us  LEFT    1->0  previous level lasted  1548211 us
+[2026-10-25 15:25:26.553] [edge]  374363711 us  LEFT    0->1  previous level lasted    38860 us
+[2026-10-25 15:25:26.607] [edge]  374418776 us  CENTER  0->1  previous level lasted   204724 us
+[2026-10-25 15:25:26.664] [edge]  374474685 us  CENTER  1->0  previous level lasted    55909 us
+[2026-10-25 15:25:26.691] [level] L=1 C=0 B=1 | edges 13/18/5 | chatter 0/0/0 | min pulse us 38860/53557/162445 | %high(samples) 50/48/62 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:26.728] [edge]  374538411 us  LEFT    1->0  previous level lasted   174700 us
+[2026-10-25 15:25:26.986] [edge]  374796455 us  LEFT    0->1  previous level lasted   258044 us
+[2026-10-25 15:25:27.002] [edge]  374812975 us  CENTER  0->1  previous level lasted   338290 us
+[2026-10-25 15:25:27.084] [edge]  374895011 us  CENTER  1->0  previous level lasted    82036 us
+[2026-10-25 15:25:27.190] [level] L=1 C=0 B=1 | edges 15/20/5 | chatter 0/0/0 | min pulse us 38860/53557/162445 | %high(samples) 50/47/64 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:27.255] [edge]  375066319 us  CENTER  0->1  previous level lasted   171308 us
+[2026-10-25 15:25:27.433] [edge]  375244271 us  BARCODE 1->0  previous level lasted  2267491 us
+[2026-10-25 15:25:27.690] [level] L=1 C=1 B=0 | edges 15/21/6 | chatter 0/0/0 | min pulse us 38860/53557/162445 | %high(samples) 52/49/63 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:28.190] [level] L=1 C=1 B=0 | edges 15/21/6 | chatter 0/0/0 | min pulse us 38860/53557/162445 | %high(samples) 54/51/60 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:28.287] [edge]  376097460 us  CENTER  1->0  previous level lasted  1031141 us
+[2026-10-25 15:25:28.414] [edge]  376225218 us  CENTER  0->1  previous level lasted   127758 us
+[2026-10-25 15:25:28.684] [edge]  376494983 us  CENTER  1->0  previous level lasted   269765 us
+[2026-10-25 15:25:28.690] [level] L=1 C=0 B=0 | edges 15/24/6 | chatter 0/0/0 | min pulse us 38860/53557/162445 | %high(samples) 56/52/58 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:28.996] [edge]  376806821 us  LEFT    1->0  previous level lasted  2010366 us
+[2026-10-25 15:25:29.191] [level] L=0 C=0 B=0 | edges 16/24/6 | chatter 0/0/0 | min pulse us 38860/53557/162445 | %high(samples) 56/50/55 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:29.690] [level] L=0 C=0 B=0 | edges 16/24/6 | chatter 0/0/0 | min pulse us 38860/53557/162445 | %high(samples) 54/48/53 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:30.190] [level] L=0 C=0 B=0 | edges 16/24/6 | chatter 0/0/0 | min pulse us 38860/53557/162445 | %high(samples) 52/46/51 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:30.690] [level] L=0 C=0 B=0 | edges 16/24/6 | chatter 0/0/0 | min pulse us 38860/53557/162445 | %high(samples) 50/44/49 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:31.190] [level] L=0 C=0 B=0 | edges 16/24/6 | chatter 0/0/0 | min pulse us 38860/53557/162445 | %high(samples) 48/43/47 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:31.690] [level] L=0 C=0 B=0 | edges 16/24/6 | chatter 0/0/0 | min pulse us 38860/53557/162445 | %high(samples) 47/41/46 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:32.190] [level] L=0 C=0 B=0 | edges 16/24/6 | chatter 0/0/0 | min pulse us 38860/53557/162445 | %high(samples) 45/40/44 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:32.691] [level] L=0 C=0 B=0 | edges 16/24/6 | chatter 0/0/0 | min pulse us 38860/53557/162445 | %high(samples) 44/39/43 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:33.190] [level] L=0 C=0 B=0 | edges 16/24/6 | chatter 0/0/0 | min pulse us 38860/53557/162445 | %high(samples) 42/37/42 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:33.690] [level] L=0 C=0 B=0 | edges 16/24/6 | chatter 0/0/0 | min pulse us 38860/53557/162445 | %high(samples) 41/36/40 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:34.190] [level] L=0 C=0 B=0 | edges 16/24/6 | chatter 0/0/0 | min pulse us 38860/53557/162445 | %high(samples) 40/35/39 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:34.446] [edge]  382257015 us  BARCODE 0->1  previous level lasted  7012744 us
+[2026-10-25 15:25:34.469] [edge]  382279725 us  CENTER  0->1  previous level lasted  5784742 us
+[2026-10-25 15:25:34.540] [edge]  382351228 us  LEFT    0->1  previous level lasted  5544407 us
+[2026-10-25 15:25:34.690] [level] L=1 C=1 B=1 | edges 17/25/7 | chatter 0/0/0 | min pulse us 38860/53557/162445 | %high(samples) 39/35/39 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:35.190] [level] L=1 C=1 B=1 | edges 17/25/7 | chatter 0/0/0 | min pulse us 38860/53557/162445 | %high(samples) 41/37/41 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:35.246] [edge]  383056247 us  LEFT    1->0  previous level lasted   705019 us
+[2026-10-25 15:25:35.423] [edge]  383233344 us  CENTER  1->0  previous level lasted   953619 us
+[2026-10-25 15:25:35.520] [edge]  383330213 us  BARCODE 1->0  previous level lasted  1073198 us
+[2026-10-25 15:25:35.690] [level] L=0 C=0 B=0 | edges 18/26/8 | chatter 0/0/0 | min pulse us 38860/53557/162445 | %high(samples) 40/37/42 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:36.190] [level] L=0 C=0 B=0 | edges 18/26/8 | chatter 0/0/0 | min pulse us 38860/53557/162445 | %high(samples) 39/36/41 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:36.690] [level] L=0 C=0 B=0 | edges 18/26/8 | chatter 0/0/0 | min pulse us 38860/53557/162445 | %high(samples) 38/35/40 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:37.190] [level] L=0 C=0 B=0 | edges 18/26/8 | chatter 0/0/0 | min pulse us 38860/53557/162445 | %high(samples) 37/35/39 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:37.690] [level] L=0 C=0 B=0 | edges 18/26/8 | chatter 0/0/0 | min pulse us 38860/53557/162445 | %high(samples) 36/34/38 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:38.190] [level] L=0 C=0 B=0 | edges 18/26/8 | chatter 0/0/0 | min pulse us 38860/53557/162445 | %high(samples) 35/33/37 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:38.690] [level] L=0 C=0 B=0 | edges 18/26/8 | chatter 0/0/0 | min pulse us 38860/53557/162445 | %high(samples) 35/32/36 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:39.190] [level] L=0 C=0 B=0 | edges 18/26/8 | chatter 0/0/0 | min pulse us 38860/53557/162445 | %high(samples) 34/31/35 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:39.690] [level] L=0 C=0 B=0 | edges 18/26/8 | chatter 0/0/0 | min pulse us 38860/53557/162445 | %high(samples) 33/31/34 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:40.191] [level] L=0 C=0 B=0 | edges 18/26/8 | chatter 0/0/0 | min pulse us 38860/53557/162445 | %high(samples) 32/30/33 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:40.691] [level] L=0 C=0 B=0 | edges 18/26/8 | chatter 0/0/0 | min pulse us 38860/53557/162445 | %high(samples) 32/29/33 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:41.191] [level] L=0 C=0 B=0 | edges 18/26/8 | chatter 0/0/0 | min pulse us 38860/53557/162445 | %high(samples) 31/29/32 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:41.335] [toggle] LEFT/CENTER edge printing OFF
+[2026-10-25 15:25:41.691] [level] L=0 C=0 B=0 | edges 18/26/8 | chatter 0/0/0 | min pulse us 38860/53557/162445 | %high(samples) 30/28/31 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:41.853] [reset] statistics cleared
+[2026-10-25 15:25:42.191] [level] L=0 C=0 B=0 | edges 0/0/0 | chatter 0/0/0 | min pulse us 0/0/0 | %high(samples) 0/0/0 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:42.691] [level] L=0 C=0 B=0 | edges 0/0/0 | chatter 0/0/0 | min pulse us 0/0/0 | %high(samples) 0/0/0 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:43.191] [level] L=0 C=0 B=0 | edges 0/0/0 | chatter 0/0/0 | min pulse us 0/0/0 | %high(samples) 0/0/0 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:43.516] [edge]  391326871 us  BARCODE 0->1  previous level lasted        0 us
+[2026-10-25 15:25:43.691] [level] L=0 C=0 B=1 | edges 0/0/1 | chatter 0/0/0 | min pulse us 0/0/0 | %high(samples) 0/0/9 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:43.754] [edge]  391564163 us  BARCODE 1->0  previous level lasted   237292 us
+[2026-10-25 15:25:44.105] [edge]  391914667 us  BARCODE 0->1  previous level lasted   350504 us
+[2026-10-25 15:25:44.191] [level] L=0 C=0 B=1 | edges 0/0/3 | chatter 0/0/0 | min pulse us 0/0/237292 | %high(samples) 0/0/13 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:44.691] [level] L=0 C=0 B=1 | edges 0/0/3 | chatter 0/0/0 | min pulse us 0/0/237292 | %high(samples) 0/0/29 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:45.191] [level] L=1 C=1 B=1 | edges 1/1/3 | chatter 0/0/0 | min pulse us 0/0/237292 | %high(samples) 1/1/39 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:45.692] [level] L=0 C=0 B=1 | edges 2/2/3 | chatter 0/0/0 | min pulse us 255214/178497/237292 | %high(samples) 6/4/47 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:46.192] [level] L=1 C=1 B=1 | edges 5/3/3 | chatter 0/0/0 | min pulse us 69532/178497/237292 | %high(samples) 12/13/53 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:46.691] [level] L=1 C=1 B=1 | edges 5/3/3 | chatter 0/0/0 | min pulse us 69532/178497/237292 | %high(samples) 21/22/58 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:47.191] [level] L=1 C=1 B=1 | edges 5/3/3 | chatter 0/0/0 | min pulse us 69532/178497/237292 | %high(samples) 28/29/62 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:47.354] [edge]  395164463 us  BARCODE 1->0  previous level lasted  3249796 us
+[2026-10-25 15:25:47.582] [edge]  395392245 us  BARCODE 0->1  previous level lasted   227782 us
+[2026-10-25 15:25:47.691] [level] L=1 C=1 B=1 | edges 5/5/5 | chatter 0/0/0 | min pulse us 69532/78364/227782 | %high(samples) 34/34/61 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:48.191] [level] L=1 C=1 B=1 | edges 5/7/5 | chatter 0/0/0 | min pulse us 69532/78364/227782 | %high(samples) 40/36/64 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:48.691] [level] L=1 C=0 B=1 | edges 5/8/5 | chatter 0/0/0 | min pulse us 69532/78364/227782 | %high(samples) 44/33/67 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:49.191] [level] L=0 C=0 B=1 | edges 8/10/5 | chatter 0/0/0 | min pulse us 36456/78364/227782 | %high(samples) 47/32/69 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:49.380] [edge]  397190816 us  BARCODE 1->0  previous level lasted  1798571 us
+[2026-10-25 15:25:49.512] [edge]  397322585 us  BARCODE 0->1  previous level lasted   131769 us
+[2026-10-25 15:25:49.691] [level] L=1 C=1 B=1 | edges 11/13/7 | chatter 0/0/0 | min pulse us 30396/65857/131769 | %high(samples) 48/33/69 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:50.191] [level] L=1 C=0 B=1 | edges 13/16/7 | chatter 0/0/0 | min pulse us 30396/12172/131769 | %high(samples) 50/33/71 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:50.691] [level] L=1 C=0 B=1 | edges 13/16/7 | chatter 0/0/0 | min pulse us 30396/12172/131769 | %high(samples) 53/31/73 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:51.191] [level] L=1 C=1 B=1 | edges 15/17/7 | chatter 0/0/0 | min pulse us 30396/12172/131769 | %high(samples) 53/30/74 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:51.558] [edge]  399368300 us  BARCODE 1->0  previous level lasted  2045715 us
+[2026-10-25 15:25:51.691] [level] L=1 C=0 B=0 | edges 15/20/8 | chatter 0/0/0 | min pulse us 30396/12172/131769 | %high(samples) 55/32/74 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:52.191] [level] L=1 C=0 B=0 | edges 15/22/8 | chatter 0/0/0 | min pulse us 30396/12172/131769 | %high(samples) 57/33/70 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:52.691] [level] L=1 C=0 B=0 | edges 15/22/8 | chatter 0/0/0 | min pulse us 30396/12172/131769 | %high(samples) 59/31/67 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:53.191] [level] L=0 C=0 B=0 | edges 16/22/8 | chatter 0/0/0 | min pulse us 30396/12172/131769 | %high(samples) 60/30/64 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:53.691] [level] L=0 C=0 B=0 | edges 16/22/8 | chatter 0/0/0 | min pulse us 30396/12172/131769 | %high(samples) 58/29/61 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:54.191] [level] L=0 C=0 B=0 | edges 16/22/8 | chatter 0/0/0 | min pulse us 30396/12172/131769 | %high(samples) 55/28/59 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:54.691] [level] L=0 C=0 B=0 | edges 16/22/8 | chatter 0/0/0 | min pulse us 30396/12172/131769 | %high(samples) 53/27/57 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:55.191] [level] L=0 C=0 B=0 | edges 16/22/8 | chatter 0/0/0 | min pulse us 30396/12172/131769 | %high(samples) 51/25/54 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:55.691] [level] L=0 C=0 B=0 | edges 16/22/8 | chatter 0/0/0 | min pulse us 30396/12172/131769 | %high(samples) 49/25/52 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:56.191] [level] L=0 C=0 B=0 | edges 16/22/8 | chatter 0/0/0 | min pulse us 30396/12172/131769 | %high(samples) 47/24/51 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:56.692] [level] L=0 C=0 B=0 | edges 16/22/8 | chatter 0/0/0 | min pulse us 30396/12172/131769 | %high(samples) 46/23/49 | ambiguous 0 | edges dropped 0 (gaps seen 0)
+[2026-10-25 15:25:57.191] [level] L=0 C=0 B=0 | edges 16/22/8 | chatter 0/0/0 | min pulse us 30396/12172/131769 | %high(samples) 44/22/47 | ambiguous 0 | edges dropped 0 (gaps seen 0)

@@ -1,0 +1,5 @@
+build/
+tests/wifi_mqtt/wifi_config.h
+*.uf2
+.vscode/
+__pycache__/

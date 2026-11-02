@@ -50,6 +50,14 @@ IMPORT ID	flg_mission;
    S5_SERVO_LEFT_HIGH to 0 (the Stage 3 test shows it). */
 #define S5_SERVO_US_PER_DEG	11	/* bring-up nominal 11.1 */
 #define S5_SERVO_LEFT_HIGH	1
+/* Servo travel: never more than this either side of straight ahead (the
+   wires at the back limit it), and at most S5_SERVO_DEG_STEP degrees per
+   20 ms servo frame (full speed broke the horn, Stage 3 run, 2 Nov).
+   The scan covers the whole travel in 5 degree rays. */
+#define S5_SERVO_HALF_DEG	40	/* 25 never saw past a box's edge (the
+					   sonar beam is about 30 deg wide);
+					   route the cables for 40 */
+#define S5_SERVO_DEG_STEP	2	/* = 100 deg/s */
 /* Sonar beam: each edge is seen this many degrees early (the cone),
    so edges are pulled in by it.  Tune with S5-O01 known widths. */
 #define S5_BEAM_HALF_DEG	6
@@ -83,7 +91,9 @@ IMPORT void	obstacle_scan(OBSTACLE_PROFILE *p);
 /* Combine two scans (O5): mean width, uncertainty includes their spread */
 IMPORT void	obstacle_combine(const OBSTACLE_PROFILE *a, const OBSTACLE_PROFILE *b,
 				 OBSTACLE_PROFILE *out);
-IMPORT void	servo_set_angle(INT deg);	/* 30..150, 90 = ahead */
+IMPORT void	servo_set_angle(INT deg);	/* 90 = ahead, clamped to 90 +/-
+						   S5_SERVO_HALF_DEG; blocks while it
+						   turns (slowly) */
 IMPORT INT	sonar_ping_mm(void);		/* blocking 60 ms; mm, SONAR_OPEN or SONAR_FAULT */
 
 /* ---- Mission ------------------------------------------------------- */

@@ -1,6 +1,6 @@
 # P5-IS34 test status checklist
 
-Last updated: 2 Nov 2026 (commit `bcbcce9`). How to run each test:
+Last updated: 2 Nov 2026. How to run each test:
 [TESTING_GUIDE.md](TESTING_GUIDE.md). Formal results:
 [testing/](testing/) `TEST_LOG.md` files.
 
@@ -16,7 +16,7 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
 | 2A | Line following + junctions | B3 | 🟡 follows well, 3 m not shown yet |
 | 2B | Barcodes | B3 | 🟡 partial reads, no full decode yet |
 | 2C | Junction moves from barcodes | B3 + B5 | ⬜ needs 2B |
-| 3 | Obstacle: sonar, servo, width, bypass | B5 | ⬜ |
+| 3 | Obstacle: sonar, servo, width, bypass | B5 | 🟡 servo + sonar work; width and bypass not shown |
 | 4 | IMU + ramp height | B4 | ⬜ |
 | 5 | Telemetry + MQTT | B1 | ⬜ |
 | 6 | Whole course | all | ⬜ |
@@ -74,10 +74,26 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
 
 ## Stage 3: obstacle (`TEST_STAGE=3`)
 
-- [ ] ⬜ Servo direction (LEFT, then RIGHT)
-- [ ] ⬜ Sonar live view; covered/unplugged ECHO must stop the run
-- [ ] ⬜ S5-O01 width: 15 tries, 100/150/200 mm obstacles
-- [ ] ⬜ S5-O02 bypass: no contact, back on the line within 500 mm
+### What works
+- [x] ✅ Servo on **GP14** (servo header 3). It was plugged into GP15
+  (header 4) at first and did not move.
+- [x] ✅ Servo direction: centre, LEFT, RIGHT correct (`S5_SERVO_LEFT_HIGH 1`)
+- [x] ✅ Servo turns slowly now (2 deg per 20 ms): full speed broke the horn
+- [x] ✅ Sonar live view: steady readings (about +/- 10 mm), follows a hand
+
+### Not done yet
+- [ ] 🟡 **S5-O01** width, now 6 tries (any 3 flat boxes, 2 each, real width
+  by ruler, box about 250 mm ahead, nothing else within 50 cm). With the
+  scan at +/- 25 deg the sonar never saw past a box's edge (beam is about
+  30 deg wide), so no width came out. Scan widened to **+/- 40 deg: not
+  tested on the robot yet.** Route the cables at the back first so they
+  do not pull at 40 deg.
+- [ ] ⬜ **S5-O02** bypass: box on the line, robot stops, scans, drives round
+  the clear side, back on the line. Pass = no contact, within 300 mm of the
+  line, back on it within 500 mm. Needs S5-O01 working (with no clear side
+  found it stops with "no clear side").
+- [ ] ⬜ Sonar fault: cover or unplug ECHO during S5-O02; the robot must stop
+  with "ultrasonic not answering"
 
 ## Stage 4: ramp (`TEST_STAGE=4`)
 

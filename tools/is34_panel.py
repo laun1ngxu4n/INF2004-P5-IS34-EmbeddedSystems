@@ -23,6 +23,7 @@ import argparse
 import math
 import os
 import queue
+import random
 import subprocess
 import time
 import tkinter as tk
@@ -84,10 +85,14 @@ class Panel:
         root.minsize(620, 520)
         self._build()
 
+        # A name of its own: the broker drops a client when another one logs
+        # in with the same name, so two panels with one name kept kicking
+        # each other off once a second
+        cid = f"is34-panel-{os.getpid()}-{random.randrange(1 << 16):04x}"
         try:                            # paho 2.x
-            self.cli = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id="is34-panel")
+            self.cli = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id=cid)
         except AttributeError:          # paho 1.x
-            self.cli = mqtt.Client(client_id="is34-panel")
+            self.cli = mqtt.Client(client_id=cid)
         self.cli.on_connect = self._on_connect
         self.cli.on_disconnect = lambda c, u, *rest: self.q.put(("conn", False))
         self.cli.on_message = lambda c, u, m: self.q.put(

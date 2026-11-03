@@ -69,6 +69,8 @@ IMPORT ID	flg_mission;
 #define SONAR_FAULT		(-2)
 
 IMPORT void	obstacle_watch(BOOL on);	/* forward watch during line following */
+IMPORT void	obstacle_idle_ping(BOOL on);	/* mission image: ping for the panel while
+						   Mission is IDLE (never during manoeuvres) */
 IMPORT BOOL	obstacle_sensor_fault(void);	/* 5 pings in a row without ECHO */
 IMPORT INT	obstacle_front_mm(void);	/* last forward reading, -1 = none */
 

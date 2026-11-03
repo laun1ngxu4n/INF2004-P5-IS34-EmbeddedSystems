@@ -41,6 +41,7 @@ LOCAL volatile UW	echo_rise_us;
 LOCAL volatile UW	echo_width_us;
 LOCAL volatile BOOL	echo_rose, echo_done;
 LOCAL volatile BOOL	watch;
+LOCAL volatile BOOL	idle_ping = TRUE;	/* Mission IDLE: ping for the panel */
 LOCAL volatile BOOL	scanning;
 LOCAL volatile INT	front_mm = FAR;
 LOCAL volatile BOOL	sensor_fault;
@@ -118,6 +119,7 @@ EXPORT void servo_set_angle(INT deg)
 }
 
 EXPORT void obstacle_watch(BOOL on)	{ watch = on; }
+EXPORT void obstacle_idle_ping(BOOL on)	{ idle_ping = on; }
 EXPORT INT obstacle_front_mm(void)	{ return front_mm; }
 EXPORT BOOL obstacle_sensor_fault(void)	{ return sensor_fault; }
 
@@ -302,9 +304,11 @@ EXPORT void obstacle_task(INT stacd, void *exinf)
 #if !APP_TEST
 			/* Idle: keep pinging ahead so the laptop panel shows a live
 			   distance; Mission is told nothing until the watch is on.
-			   Not in test images: their tests turn the servo and ping
-			   themselves. */
-			if (!scanning) {
+			   Only while Mission is IDLE: in a manoeuvre Mission pings
+			   itself (ahead_clear) and two pings at once corrupt each
+			   other's echo.  Not in test images: their tests turn the
+			   servo and ping themselves. */
+			if (!scanning && idle_ping) {
 				if (pinged) front_mm = echo_mm();
 				if (servo_now != 90) servo_set_angle(90);
 				trigger();

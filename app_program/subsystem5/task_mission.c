@@ -30,6 +30,7 @@
 #define D_MAX_MM		150	/* deepest expected obstacle (A9) */
 #define MARGIN_MM		50
 #define REJOIN_ENABLE_MM	60	/* line events back on after this */
+#define LINE_NEAR_MM		100	/* bypass: line accepted from y_off - this */
 
 #define M_IDLE		0
 #define M_CAL		1
@@ -64,6 +65,7 @@ EXPORT const char *mission_state_name(void)
 LOCAL void set_state(INT s)
 {
 	mstate = s;
+	obstacle_idle_ping(s == M_IDLE);
 	tele_set_state(mission_state_name());
 }
 
@@ -296,7 +298,10 @@ LOCAL void on_obstacle(void)
 	/* leg 6: drive back toward the line until the centre sensor sees it */
 	odo0 = motion_odometer();
 	if (motion_drive(S5_FOLLOW_SPEED, y_off + 200) < E_OK) goto fail;
-	while (!line_center_black()) {
+	/* Black only counts near where the line should be: on the tiled
+	   floor the grout reads black too */
+	while (!line_center_black() ||
+	       S2_COUNTS_TO_MM(motion_odometer() - odo0) < y_off - LINE_NEAR_MM) {
 		MOTION_STATUS st;
 
 		motion_get_status(&st);

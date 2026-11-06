@@ -1,16 +1,20 @@
-# Prebuilt images (1 Nov, after the review fixes and the Stage 1 run)
+# Prebuilt images (rebuilt 6 Nov: new junction logic, Stage 4 fixes)
 
 Built from this repo with Pico SDK 2.3.1 (GCC 15.2), 0 warnings, S2_TRACK_MM 123.
-**Stage 1 passed on the robot (1 Nov); Stages 2-6 not run on the
-robot yet.** Flash: hold BOOTSEL, plug in USB, drag the file onto RPI-RP2.
+Status of each stage: `../TEST_STATUS.md`. The 6 Nov junction logic (left
+branches from the barcode sensor, T ends, steering hold) is **not run on
+the robot yet**; it expects B 40 mm behind C and 70 mm left, and S about
+15 mm from C (`../app_program/subsystem3/subsystem3.h`).
+Flash: hold BOOTSEL, plug in USB, drag the file onto RPI-RP2.
 Steps for each: `../TESTING_GUIDE.md`.
 
 | File | Same as `make ...` in `build_make` | What it does |
 |---|---|---|
 | `is34_test_stage1.uf2` | `TEST=1 TEST_STAGE=1` | Stage 0 auto tests, then motion: turns, slow speed, STOP |
-| `is34_test_stage2.uf2` | `TEST=1 TEST_STAGE=2` | then IR view, line + junctions, barcodes, course with the TEST mapping |
+| `is34_test_stage2.uf2` | `TEST=1 TEST_STAGE=2` | then IR view, line + junctions, one place at a time (S3-L03..L07), barcodes, course with the TEST mapping |
+| `is34_test_stage2_analog.uf2` | same, with `S3_BARCODE_ANALOG 1` | the same, barcode sensor on its analogue output: **power it from 3V3**, AO to GP28 |
 | `is34_test_stage3.uf2` | `TEST=1 TEST_STAGE=3` | then servo check, sonar view, 15 width scans, course (bypass) |
-| `is34_test_stage4.uf2` | `TEST=1 TEST_STAGE=4` | then IMU check, tilt view, 10 ramp runs |
+| `is34_test_stage4.uf2` | `TEST=1 TEST_STAGE=4` | then IMU check, tilt view, 5 ramp runs |
 | `is34_test_stage6.uf2` | `TEST=1 TEST_STAGE=6` | then the whole course with the TEST mapping A=L, B=R, C=F, D=U |
 | `is34_normal_no_wifi.uf2` | (plain `make`) | the mission image without MQTT: START button runs it, but with no mapping it stops at the first junction after a barcode |
 

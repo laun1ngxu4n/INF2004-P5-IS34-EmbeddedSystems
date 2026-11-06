@@ -97,6 +97,10 @@ EXPORT ID motion_follow(INT speed_mm_s)
 	return cmd_post(CMD_FOLLOW, speed_mm_s, 0);
 }
 
+LOCAL volatile INT	follow_limit;	/* 0 = none */
+
+EXPORT void motion_follow_limit(INT speed_mm_s)	{ follow_limit = speed_mm_s; }
+
 EXPORT void motion_halt(void)
 {
 	(void)cmd_post(CMD_HALT, 0, 0);
@@ -268,6 +272,10 @@ EXPORT void motion_task(INT stacd, void *exinf)
 			float	t_l, t_r;
 			float	cap = absf((float)cur.speed);
 			BOOL	off = !line_centre_on();
+
+			if (follow_limit > 0 && cap > (float)follow_limit) {
+				cap = (float)follow_limit;
+			}
 
 			if (fphase == SCAN_READ) {
 				if (barcode_seq() != scan_seq ||

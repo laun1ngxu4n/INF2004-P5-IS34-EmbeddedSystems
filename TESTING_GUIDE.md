@@ -114,13 +114,28 @@ send the log (a motor or encoder wire differs from bring-up).
 
 ### Stage 2: line, junctions, barcodes (`_test_s2`), owner B3 (+B5)
 
-1. **IR view (15 s)**: slide black tape under each sensor; L, C and B
+0. **Before flashing: sensor layout** (see `subsystem3/subsystem3.h`).
+   C rides on the tape, S just right of it: **C to S about 15 mm, centre
+   to centre** (S just past the tape edge). B is 40 mm behind C and 70 mm
+   left; if you move it, change `S3_BAR_AHEAD_MM` / `S3_BAR_LEFT_MM`
+   (behind = negative) and rebuild.
+1. **IR view (15 s)**: slide black tape under each sensor; S, C and B
    must each change. Nothing changes = sensor or pot.
 2. **2A, S3-L01 / S3-L02**: robot on the line, START, let it run (up to
    60 s). Pass L01: `[TEST] S3-L01 PASS` = at least 3 m followed with no
    line lost, and you saw it stay on the line. L02: printed junction count = real count (write both down).
+   Each junction prints `[S3] junction N at X mm, branch right / left /
+   both sides`; at the end `junctions this run: right R, left L, both B`.
    If it wobbles off the line on curves: `STEER_SMALL` / `STEER_HARD` in
    `subsystem3/task_line.c`.
+   **One place at a time (S3-L03..L07)**: then 5 short runs, each
+   prompts where to put the robot: 20 cm before a left branch, a right
+   branch, a T end; the start of the tightest right curve and left curve.
+   Each prints its own PASS/FAIL. No such place on the track: START, then
+   STOP at once, and write "not on the track" in the log.
+   Left branches: every first bar under B prints `B patch 19.8 mm (...)`;
+   a left branch must show about 20 mm. Nothing printed = B does not pass
+   over the branch (move B, or its pot).
 3. **2B, S3-B01..B03**: before each run **write down the codes on the
    track in the order the robot meets them**; 3 runs, forwards and
    backwards. Each prints `[S3] barcode X` or `READ_FAIL`. Pass: the printed

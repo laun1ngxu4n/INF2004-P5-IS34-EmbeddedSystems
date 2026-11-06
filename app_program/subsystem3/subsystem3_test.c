@@ -41,7 +41,7 @@ LOCAL void ir_live(void)
 		  "over black; 'B edges/s' must read 0 in both (turn its pot)\n");
 	for (t = 0; t < 3000; t++) {
 		UW now = (app_gpio_get(PIN_IR_LEFT) << 2) | (app_gpio_get(PIN_IR_CENTER) << 1) |
-			 app_gpio_get(PIN_IR_BARCODE);
+			 (barcode_black() ? (UW)IR_BLACK : (UW)!IR_BLACK);
 		if (now != prev) {
 			tm_printf((UB*)"[S3] S %d  C %d  B %d\n", (INT)((now >> 2) & 1u),
 				  (INT)((now >> 1) & 1u), (INT)(now & 1u));
@@ -50,16 +50,28 @@ LOCAL void ir_live(void)
 		if (t % 100 == 99) {
 			/* the interrupt sees every flicker; the 10 ms view above does not */
 			UW e2 = barcode_edges();
+			INT raw, wl, bl;
+
 			tm_printf((UB*)"[S3] B edges/s %d (B now %d)\n", (INT)(e2 - e1),
 				  (INT)(now & 1u));
+			if (barcode_adc(&raw, &wl, &bl)) {
+				tm_printf((UB*)"[S3] B analogue %d (white level %d, black "
+					  "level %d, need a gap of %d)\n", raw, wl, bl,
+					  S3_BAR_MIN_SPAN);
+			}
 			e1 = e2;
 		}
 		tk_dly_tsk(10);
 	}
 }
 
-/* Follow the line for up to secs; print junctions, barcodes, line lost */
-LOCAL INT follow_and_watch(INT secs, INT *junc, INT *lost, INT *codes_ok, INT *codes_fail)
+/* Junctions seen in the last follow_and_watch(), by branch side */
+LOCAL INT	j_right, j_left, j_both;
+
+/* Follow the line for up to secs (and up to max_mm, 0 = no limit); print
+   junctions, barcodes, line lost */
+LOCAL INT follow_and_watch(INT secs, INT max_mm, INT *junc, INT *lost,
+			   INT *codes_ok, INT *codes_fail)
 {
 	W		odo0 = motion_odometer();
 	UW		e0 = barcode_edges();
@@ -70,9 +82,13 @@ LOCAL INT follow_and_watch(INT secs, INT *junc, INT *lost, INT *codes_ok, INT *c
 	UW		lc_prev = 0xFFu;
 	INT		dn, dw[40], ph = 0, k;
 	UW		dseq = barcode_debug(&dn, dw, 40);
+	W		mo;
+	INT		mw;
+	UW		mseq = barcode_mark(&mo, &mw);
 
 	barcode_last(&r);
 	seq = r.seq;
+	j_right = j_left = j_both = 0;
 	line_set_enabled(TRUE);
 	tm_printf((UB*)"[S3] at start: S %d  C %d (want S 0, C 1: centre on the "
 		  "line, side sensor just right of it on white)\n",
@@ -83,6 +99,9 @@ LOCAL INT follow_and_watch(INT secs, INT *junc, INT *lost, INT *codes_ok, INT *c
 		UW lc;
 
 		tk_dly_tsk(10);
+		if (max_mm > 0 && S2_COUNTS_TO_MM(motion_odometer() - odo0) >= max_mm) {
+			break;
+		}
 		/* Trace what the line sensors see: every change, first 150 */
 		lc = ((app_gpio_get(PIN_IR_LEFT) == IR_BLACK) << 1) |
 		     (app_gpio_get(PIN_IR_CENTER) == IR_BLACK);
@@ -95,9 +114,16 @@ LOCAL INT follow_and_watch(INT secs, INT *junc, INT *lost, INT *codes_ok, INT *c
 		}
 		jn = line_junctions();
 		if (jn != j0 + (UW)*junc) {
+			INT sd = line_junction_sides();
+
 			(*junc)++;
-			tm_printf((UB*)"[S3] junction %d at %d mm\n", *junc,
-				  (INT)S2_COUNTS_TO_MM(motion_odometer()));
+			if (sd == (JUNC_SIDE_S | JUNC_SIDE_B)) j_both++;
+			else if (sd == JUNC_SIDE_B) j_left++;
+			else j_right++;
+			tm_printf((UB*)"[S3] junction %d at %d mm, branch %s\n", *junc,
+				  (INT)S2_COUNTS_TO_MM(motion_odometer() - odo0),
+				  (sd == (JUNC_SIDE_S | JUNC_SIDE_B)) ? "both sides (crossroads or T end)" :
+				  (sd == JUNC_SIDE_B) ? "left (seen by B)" : "right (seen by S)");
 		}
 		if (line_state() != last_state) {
 			last_state = line_state();
@@ -125,6 +151,15 @@ LOCAL INT follow_and_watch(INT secs, INT *junc, INT *lost, INT *codes_ok, INT *c
 				tm_printf((UB*)"\n");
 			}
 		}
+		/* first bars under B: a left arm if about one tape wide */
+		if (barcode_mark(&mo, &mw) != mseq) {
+			mseq = barcode_mark(&mo, &mw);
+			tm_printf((UB*)"[S3] %d mm: B patch %d.%d mm (%s)\n",
+				  (INT)S2_COUNTS_TO_MM(mo - odo0), mw / 10, mw % 10,
+				  (mw >= S3_JUNC_MIN_MM * 10 && mw <= S3_JUNC_MAX_MM * 10) ?
+				  "tape width: a left arm, if C was on the line there" :
+				  "not tape width: grout or a barcode bar, not a junction");
+		}
 		barcode_last(&r);
 		if (r.seq != seq) {
 			seq = r.seq;
@@ -141,8 +176,10 @@ LOCAL INT follow_and_watch(INT secs, INT *junc, INT *lost, INT *codes_ok, INT *c
 		}
 	}
 	motion_halt();
-	tm_printf((UB*)"[S3] barcode sensor (GP2): %d edges this run "
+	tm_printf((UB*)"[S3] barcode sensor B: %d edges this run "
 		  "(0 = it never saw black)\n", (INT)(barcode_edges() - e0));
+	tm_printf((UB*)"[S3] junctions this run: right %d, left %d, both sides %d\n",
+		  j_right, j_left, j_both);
 	return (INT)S2_COUNTS_TO_MM(motion_odometer() - odo0);	/* mm followed */
 }
 
@@ -160,11 +197,52 @@ EXPORT void subsystem3_stage_test(void)
 	test_wait_start("S3-L01 / S3-L02: robot on the line. It follows for up to "
 			"60 s (let it run; STOP only if it goes wrong); count the "
 			"junctions you see.");
-	dist = follow_and_watch(60, &junc, &lost, &ok, &fail);
+	dist = follow_and_watch(60, 0, &junc, &lost, &ok, &fail);
 	tm_printf((UB*)"[S3-L01] followed %d mm, line lost %d times; [S3-L02] "
 		  "junctions counted %d (write down the real number)\n", dist, lost, junc);
 	TEST_CHECK("S3-L01", lost == 0 && dist >= 3000,
 		   "followed at least 3 m without LINE_LOST");
+
+	/* One kind of place at a time: the robot drives at most max_mm, so
+	   only that place is in the run.  No such place on the track: press
+	   STOP straight after START (the check then fails: write "not on
+	   the track" in the log). */
+	{
+		static const struct {
+			const char *id, *where, *pass;
+			INT max_mm, want_r, want_l, want_b;
+		} pl[] = {
+			{"S3-L03", "about 20 cm before a branch to the LEFT (the line "
+			 "goes on), no barcode next to it", "exactly 1 junction, branch left",
+			 450, 0, 1, 0},
+			{"S3-L04", "about 20 cm before a branch to the RIGHT (the line "
+			 "goes on)", "exactly 1 junction, branch right",
+			 450, 1, 0, 0},
+			{"S3-L05", "about 20 cm before a T end (the line stops at a cross "
+			 "bar with arms both ways)", "exactly 1 junction, both sides",
+			 450, 0, 0, 1},
+			{"S3-L06", "at the start of the tightest RIGHT curve with no "
+			 "branches", "no junction and no line lost", 1200, 0, 0, 0},
+			{"S3-L07", "at the start of the tightest LEFT curve with no "
+			 "branches", "no junction and no line lost", 1200, 0, 0, 0},
+		};
+		INT i;
+
+		tm_printf((UB*)"\n[DRIVE] --- Stage 2A: one place at a time ---\n");
+		for (i = 0; i < (INT)(sizeof(pl) / sizeof(pl[0])); i++) {
+			INT j = 0, l = 0, o = 0, f = 0;
+
+			tm_printf((UB*)"\n[DRIVE] %s: robot on the line %s. It drives at "
+				  "most %d mm. Pass: %s.\n", pl[i].id, pl[i].where,
+				  pl[i].max_mm, pl[i].pass);
+			test_wait_start("Robot placed as above (no such place: START, "
+					"then STOP at once).");
+			follow_and_watch(30, pl[i].max_mm, &j, &l, &o, &f);
+			TEST_CHECK(pl[i].id, l == 0 && j_right == pl[i].want_r &&
+				   j_left == pl[i].want_l && j_both == pl[i].want_b,
+				   pl[i].pass);
+		}
+	}
 
 	tm_printf((UB*)"\n[DRIVE] --- Stage 2B: barcodes. Before each run write "
 		  "down the codes on the track in the order the robot meets them; "
@@ -174,7 +252,7 @@ EXPORT void subsystem3_stage_test(void)
 		tm_printf((UB*)"\n[DRIVE] S3-B01..B03 barcodes, run %d of 3\n", k);
 		test_wait_start("Put the robot on the line before a stretch with barcodes "
 				"(both directions over the runs). Up to 40 s.");
-		follow_and_watch(40, &j, &l, &ok, &fail);
+		follow_and_watch(40, 0, &j, &l, &ok, &fail);
 	}
 	tm_printf((UB*)"[S3-B01..B03] decoded %d, READ_FAIL %d (write down which "
 		  "codes were on the track)\n", ok, fail);

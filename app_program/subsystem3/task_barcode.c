@@ -72,12 +72,147 @@ LOCAL void bar_edge(UINT pin, UW events)
 	ring_w = w + 1;
 }
 
+#if !S3_BARCODE_ANALOG
+
 EXPORT ER barcode_hw_init(void)
 {
 	ER er = app_gpio_input(PIN_IR_BARCODE, FALSE);
 
 	return (er < E_OK) ? er : app_gpio_irq_add(PIN_IR_BARCODE, APP_GPIO_BOTH, bar_edge);
 }
+EXPORT BOOL barcode_black(void)	{ return app_gpio_get(PIN_IR_BARCODE) == IR_BLACK; }
+EXPORT BOOL barcode_adc(INT *raw, INT *white, INT *black)
+{
+	*raw = *white = *black = 0;
+	return FALSE;
+}
+
+#else	/* S3_BARCODE_ANALOG */
+
+/* AO on GP28, sampled by the ADC at 2 kHz (0.075 mm apart at 150 mm/s).
+   The interrupt turns the samples into black/white with hysteresis and
+   stores each change exactly like a GP2 edge, so the decoder below is the
+   same for both inputs.  The kernel's sample ADC driver ("adca") is not
+   used by the application; its interrupt handler is replaced here. */
+#define ADC_REG(o)	(0x4004C000u + (o))
+#define ADC_CS		ADC_REG(0x00)
+#define ADC_FCS		ADC_REG(0x08)
+#define ADC_FIFO	ADC_REG(0x0C)
+#define ADC_DIV		ADC_REG(0x10)
+#define ADC_INTE	ADC_REG(0x18)
+#define CS_EN		(1u << 0)
+#define CS_START_MANY	(1u << 3)
+#define CS_READY	(1u << 8)
+#define FCS_EN		(1u << 0)
+#define FCS_EMPTY	(1u << 8)
+#define FCS_THRESH(n)	((UW)(n) << 24)
+#define INTNO_ADC_FIFO	22
+#define INTPRI_ADC	2		/* below the GPIO edges (1) */
+#define ADC_RATE_HZ	2000
+#define ENV_SH		4		/* levels kept x16 */
+#define ENV_UP_SH	3		/* follow a new extreme in ~8 samples */
+#define ENV_DECAY_SH	15		/* forget it over ~16 s */
+
+LOCAL volatile INT	adc_raw;
+LOCAL INT		env_w = -1, env_b = -1;	/* white / black level x16 */
+LOCAL volatile UB	adc_lvl = !IR_BLACK;
+
+/* bigger = blacker, whichever way the module is wired */
+#define BLACKNESS(v)	(S3_BAR_BLACK_HIGH ? (v) : 4095 - (v))
+
+LOCAL void adc_sample(INT v)
+{
+	INT	b = BLACKNESS(v) << ENV_SH;
+	UB	lvl = adc_lvl;
+
+	adc_raw = v;
+	if (env_w < 0) env_w = env_b = b;
+	/* black level: rises fast to a new darkest, sinks very slowly */
+	if (b > env_b) env_b += (b - env_b) >> ENV_UP_SH;
+	else env_b -= (env_b - b) >> ENV_DECAY_SH;
+	/* white level: the same the other way */
+	if (b < env_w) env_w -= (env_w - b) >> ENV_UP_SH;
+	else env_w += (b - env_w) >> ENV_DECAY_SH;
+
+	if (S3_BAR_ADC_ON > 0) {
+		INT x = BLACKNESS(v);
+		if (lvl != IR_BLACK && x >= BLACKNESS(S3_BAR_ADC_ON)) lvl = IR_BLACK;
+		else if (lvl == IR_BLACK && x <= BLACKNESS(S3_BAR_ADC_OFF)) lvl = !IR_BLACK;
+	} else {
+		INT span = (env_b - env_w) >> ENV_SH;
+		INT mid = (env_b + env_w) >> (ENV_SH + 1);
+		INT hyst = span / 6;
+		INT x = BLACKNESS(v);
+
+		if (span < S3_BAR_MIN_SPAN) lvl = !IR_BLACK;	/* never seen black */
+		else if (lvl != IR_BLACK && x > mid + hyst) lvl = IR_BLACK;
+		else if (lvl == IR_BLACK && x < mid - hyst) lvl = !IR_BLACK;
+	}
+	if (lvl != adc_lvl) {
+		UW w = ring_w;
+
+		adc_lvl = lvl;
+		if (!paused) {
+			ring[w & (RING - 1)].odo = motion_odometer();
+			ring[w & (RING - 1)].level = lvl;
+			ring_w = w + 1;
+		}
+	}
+}
+
+LOCAL void adc_inthdr(UINT intno)
+{
+	while ((in_w(ADC_FCS) & FCS_EMPTY) == 0u) {
+		adc_sample((INT)(in_w(ADC_FIFO) & 0x0FFFu));
+	}
+	ClearInt(intno);
+}
+
+EXPORT ER barcode_hw_init(void)
+{
+	T_DINT	dint;
+	ER	er;
+
+	app_hw_release(RESETS_RESET_ADC);
+	/* GP28 as an analogue pin: no digital input, no pulls */
+	out_w(GPIO_CTRL(PIN_IR_BARCODE_AO), 31);		/* FUNCSEL null */
+	clr_w(GPIO(PIN_IR_BARCODE_AO), GPIO_IE | GPIO_PUE | GPIO_PDE);
+	set_w(GPIO(PIN_IR_BARCODE_AO), GPIO_OD);
+
+	out_w(ADC_CS, ((UW)S3_BAR_ADC_CH << 12) | CS_EN);
+	while ((in_w(ADC_CS) & CS_READY) == 0u) {
+		;
+	}
+	out_w(ADC_DIV, (UW)(48000000 / ADC_RATE_HZ - 1) << 8);	/* clk_adc 48 MHz */
+	out_w(ADC_FCS, FCS_EN | FCS_THRESH(1));
+	while ((in_w(ADC_FCS) & FCS_EMPTY) == 0u) (void)in_w(ADC_FIFO);
+
+	dint.intatr = TA_HLNG;
+	dint.inthdr = (FP)adc_inthdr;
+	er = tk_def_int(INTNO_ADC_FIFO, &dint);
+	if (er < E_OK) return er;
+	ClearInt(INTNO_ADC_FIFO);
+	out_w(ADC_INTE, 1u);
+	EnableInt(INTNO_ADC_FIFO, INTPRI_ADC);
+	set_w(ADC_CS, CS_START_MANY);
+	return E_OK;
+}
+EXPORT BOOL barcode_black(void)	{ return adc_lvl == IR_BLACK; }
+EXPORT BOOL barcode_adc(INT *raw, INT *white, INT *black)
+{
+	INT w = env_w, b = env_b;
+
+	*raw = adc_raw;
+	*white = (w < 0) ? 0 : (w >> ENV_SH);
+	*black = (b < 0) ? 0 : (b >> ENV_SH);
+	if (!S3_BAR_BLACK_HIGH) {
+		*white = 4095 - *white;
+		*black = 4095 - *black;
+	}
+	return TRUE;
+}
+
+#endif	/* S3_BARCODE_ANALOG */
 
 EXPORT BOOL barcode_busy(void)	{ return busy; }
 EXPORT UW barcode_edges(void)	{ return ring_w; }
@@ -101,6 +236,41 @@ EXPORT UW barcode_debug(INT *n, INT *w_mm10, INT max)
 	APP_UNLOCK(s);
 	return dbg_seq;
 }
+/* Single black patches (left branches, grout lines) */
+LOCAL W			mark_odo;
+LOCAL INT		mark_w;		/* 0.1 mm */
+LOCAL volatile UW	mark_seq;
+
+EXPORT UW barcode_mark(W *centre_odo, INT *width_mm10)
+{
+	UINT	s;
+	UW	q;
+
+	APP_LOCK(s);
+	*centre_odo = mark_odo;
+	*width_mm10 = mark_w;
+	q = mark_seq;
+	APP_UNLOCK(s);
+	return q;
+}
+
+/* The first bar of a run has just ended at end_odo, w counts wide.
+   Published at once, not after the quiet gap, so a left branch is known
+   while there is still room to turn (B sits behind C).  Every first bar
+   is published (also a barcode's narrow start bar and grout lines); the
+   line task keeps only the ones about one tape wide.  No Code 39 bar is
+   that wide (wide bars measured 10.5 mm). */
+LOCAL void mark_pub(W end_odo, W w)
+{
+	UINT	s;
+
+	APP_LOCK(s);
+	mark_odo = end_odo - w / 2;	/* driving forward: centre is behind */
+	mark_w = (INT)(w * S2_UM_PER_COUNT / 100);
+	mark_seq++;
+	APP_UNLOCK(s);
+}
+
 EXPORT UW barcode_seq(void)	{ return seq_now; }
 EXPORT void barcode_pause(BOOL on)	{ paused = on; }
 
@@ -221,6 +391,7 @@ EXPORT void barcode_task(INT stacd, void *exinf)
 				if (w_ < 0) w_ = -w_;			\
 				if (n < MAX_ELEM) elem[n++] = w_;	\
 				else too_long = TRUE;			\
+				if (n == 1) mark_pub((pos), w_);	\
 				prev_odo = (pos);			\
 			}						\
 		}							\

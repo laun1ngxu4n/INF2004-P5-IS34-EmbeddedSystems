@@ -136,9 +136,13 @@ An outside review of the stage tests found real problems, fixed:
   `motion_drive(speed, mm)`, `motion_turn(deg)` (+ = left, spin on the
   spot), `motion_follow(speed)`, `motion_halt()`. Every command times out
   at 2x expected + 1 s. GP21 STOP interrupt -> `app_stop_request`.
-- **Stage 2 (S3)**: line logic in `task_line.c` (left sensor beside the
-  line, centre over it); junction = both black for 8-45 mm, then left
-  white again. Barcode: each GP2 edge stamped with the odometer (bar
+- **Stage 2 (S3)**: line logic in `task_line.c` (side sensor S just
+  right of the line, centre C over it; `S3_SIDE -1`). Junctions (6 Nov):
+  right branch = S black for 12-28 mm with the steering held, C still on;
+  left branch = the barcode sensor B (40 mm behind C, 70 mm left) sees a
+  patch about one tape wide where C was on the line before and after;
+  T end = both arms with the line ending; one arm = a corner, followed.
+  Mission turns 115 mm after where C crossed the junction centre. Barcode: each GP2 edge stamped with the odometer (bar
   widths in distance, so speed does not matter), chatter < 0.5 mm merged,
   end of code after 40 mm quiet, Code 39 table (A-Z, 0-9, symbols),
   3 widest of 9 = wide, `*` start check, reversed if needed. Mapping
@@ -217,13 +221,14 @@ Week 6 document section by section: what to change, add or drop.
 |---|---|---|---|
 | Track width | `S2_TRACK_MM` | 123 mm (from S2-M02 angles, 1 Nov) | ruler, or S2-M02 angles |
 | Speed controller | `FF_*`, `KP`, `KI` in `task_motion.c` | FF 1.25/mm/s + 80, KP 1, KI 6 (per mille) | wobble or sluggish speed |
-| Line steering | `STEER_SMALL/HARD` in `task_line.c` | 40 / 110 mm/s | S3-L01 |
-| Junction length | `S3_JUNC_MIN/MAX_MM` | 8-45 mm | S3-L02 |
-| Sensor to axle | `S3_SENSOR_TO_AXLE_MM` | 60 mm | ruler; junction turns land off the line |
+| Line steering | `STEER_SMALL/HARD` in `task_line.c` | 25 / 40 mm/s (2 Nov) | S3-L01 |
+| Junction length | `S3_JUNC_MIN/MAX_MM` | 12-28 mm (tape 20 mm, 6 Nov) | S3-L02..L07 |
+| Sensor to axle | `S3_SENSOR_TO_AXLE_MM` | 115 mm (measured 6 Nov) | junction turns land off the line |
+| Barcode sensor position | `S3_BAR_AHEAD_MM`, `S3_BAR_LEFT_MM` | -40 (behind) / 70 mm (measured 6 Nov) | S3-L03, S3-L05 |
 | Barcode speed | `S2_SPEED_BARCODE` | 150 mm/s | S3-B03 |
 | Servo direction / scale | `S5_SERVO_LEFT_HIGH`, `S5_SERVO_US_PER_DEG` | 1 / 11 | Stage 3 servo check |
 | Sonar cone pull-in | `S5_BEAM_HALF_DEG` | 6 deg | S5-O01 |
-| Robot size | `S2_ROBOT_WIDTH_MM/LENGTH_MM` | 150 / 200 | ruler |
+| Robot size | `S2_ROBOT_WIDTH_MM/LENGTH_MM` | 170 / 200 (6 Nov; front bar not measured) | ruler |
 | IMU L | `S4_L_MM` | 80 | ruler (secondary estimate only) |
 
 ## 9. Not built / open

@@ -35,11 +35,33 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
   and **keeps the letter until the next junction**.
 
 ### Junctions
-- Seen when S and C are both black briefly, then S goes white while C
-  stays black.
-- No letter kept: straight on. Letter in the mapping: drives 50 mm (wheels
-  over the junction), spins on the spot (left +90, right -90, U-turn 180,
-  each wheel 120 mm/s), then follows again (junction and line-lost
+- **Right branch (S):** coming from normal following (C on, S off), S
+  goes black too. The steering is then **held straight** for up to 28 mm.
+  S white again by itself within 12-28 mm (one 20 mm tape width) with C
+  still on = a branch. Drifting toward the line or a curve to the right
+  keeps S black longer, so it is not a junction, and the steering then
+  corrects as usual. (Without the hold, every small correction looked
+  like a branch: the false junctions of 2 Nov.)
+- **Left branch (B):** the barcode sensor B (**40 mm behind** C, 70 mm
+  left) sees a black patch 12-28 mm long (reported as soon as B leaves
+  it), and at that same place C was on the line from 20 mm before to
+  30 mm after. The line task remembers where C was off the line, by
+  distance, to check this. Barcode bars (narrow 3.5, wide 10.5 mm) and
+  grout lines are thinner: they do not count. Reported about 50 mm after
+  C crossed it; Mission then drives the rest of the 115 mm.
+- Right and left within 40 mm of each other: one crossroads.
+- **Line ends at a cross bar (T):** S saw the right arm and C went white:
+  the robot drives **straight on** (no creeping and turning) for up to
+  80 mm so B can reach the left arm. B sees it, with C off the line after
+  it: a junction. Only one arm (a corner): not a junction, the robot
+  then steers round as usual (about 80 mm later than before for a right
+  corner).
+- After a barcode that means L, R or U: follows at 100 mm/s (not 150)
+  until the junction.
+- No letter kept: straight on. Letter in the mapping: drives until the
+  wheels are over the junction centre (115 mm after C crossed it, measured
+  with the wheel encoders), spins on the spot (left +90, right -90, U-turn
+  180, each wheel 120 mm/s), then follows again (junction and line-lost
   detection off for the first 60 mm).
 - Letter not in the mapping: stops, "no mapping for barcode E".
 
@@ -100,8 +122,16 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
   braking) looks like tilt. The jolt filter helps but cannot remove it all.
 
 **Behaviour**
-- Follows only the line's right edge; a line that branches to the right
-  can look like a junction. Weaving can give **false junctions**.
+- Follows the line's right edge. Junctions on the right are seen by S,
+  on the left by B. A left branch is only seen if there is **at least
+  40 mm of white** between it and any barcode or other mark next to the
+  line (otherwise they read as one code). A plain corner (the line itself
+  turns) is followed, not taken as a junction.
+- Curves: followed as before. A right curve or drift cannot fake a right
+  branch (steering hold), a left curve cannot reach B (70 mm left). A
+  branch that is itself on a curve may be missed, and on a curve the turn
+  point (drives straight 115 mm) is less accurate. **Not tried on the
+  robot yet.**
 - Line lost = stop. It does not search for the line again.
 - The bypass is a fixed rectangle planned for boxes up to 200 mm wide and
   150 mm deep; it assumes nothing else is next to the obstacle.
@@ -141,7 +171,9 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
 | Robot length (`S2_ROBOT_LENGTH_MM`) | 200 mm (150 body + IR/barcode bar in front, **bar not measured**) | bypass: how far past |
 | Line sensors to wheel axle (`S3_SENSOR_TO_AXLE_MM`) | 115 mm (was a guess of 60) | where it spins at a junction |
 | Axle to front support, L (`S4_L_MM`) | 80 mm | hump height = L x sin(tilt) |
-| Tape width, C to S gap | **not measured** | false junctions |
+| Tape width (`S3_TAPE_MM`) | 20 mm | junction length window 12-28 mm |
+| Barcode sensor B from C (`S3_BAR_AHEAD_MM`, `S3_BAR_LEFT_MM`) | **40 mm behind**, 70 mm left (corrected 6 Nov, was "40 ahead, 50 left") | left junctions |
+| C to S gap, centre to centre (`S3_S_GAP_MM`, build guide only) | about 30 mm in the photo; **set it to 15 mm** (S just past the tape edge) | steering: wider than the tape, the tape fits between C and S and the robot turns the wrong way first |
 | Real junction count on the track | **not measured** | S3-L02 |
 
 **Tests short of their target**
@@ -149,6 +181,9 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
   followed without losing the line).
 - [ ] S3-L02: junction count vs the real count.
 - [ ] Junction turns with the measured 115 mm sensor-to-axle distance
-  (was 60): it now drives 105 mm before spinning, not tried on the robot.
+  (was 60), measured from the junction centre: not tried on the robot.
+- [ ] Left junctions seen by B, T ends, crossroads merged, steering hold
+  against false junctions, slower approach after a barcode (6 Nov): not
+  tried on the robot (S3-L03..L07).
 - [ ] S1-T02: remote START/STOP 3 of 5 rounds (all passed).
 - [ ] Stage 1 and later results not yet written into the `testing/*/TEST_LOG.md` tables.

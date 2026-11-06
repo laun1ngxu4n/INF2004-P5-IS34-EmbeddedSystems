@@ -16,6 +16,11 @@ Define a test here before running it. Test IDs never change.
 | S3-U04 | barcode_task: longest interval <= 35 ms | | auto | same | `[TEST] S3-U04 PASS` |
 | S3-L01 | *planned (Stage 2)* Follow the track | FR1 | manual | 3 laps of the practice track (test image: up to 60 s) | at least 3 m followed with no line loss, seen on the track |
 | S3-L02 | *planned (Stage 2)* Detect the cross-junction | FR11 | manual | 10 passes | 10/10 detected, no false junctions |
+| S3-L03 | *planned (Stage 2)* Left branch seen by the barcode sensor B (6 Nov logic) | FR11 | auto + manual | Stage 2 image, "one place at a time": robot 20 cm before a left branch, drives at most 450 mm | `[TEST] S3-L03 PASS`: exactly 1 junction, branch left |
+| S3-L04 | *planned (Stage 2)* Right branch with the steering hold | FR11 | auto + manual | same, 20 cm before a right branch | `[TEST] S3-L04 PASS`: exactly 1 junction, branch right |
+| S3-L05 | *planned (Stage 2)* T end (line stops at a cross bar) | FR11 | auto + manual | same, 20 cm before a T end; the robot drives straight on up to 80 mm past it | `[TEST] S3-L05 PASS`: exactly 1 junction, both sides |
+| S3-L06 | *planned (Stage 2)* No false junction on a right curve | FR11, A3 | auto + manual | same, start of the tightest right curve, drives at most 1.2 m | `[TEST] S3-L06 PASS`: no junction, no line lost |
+| S3-L07 | *planned (Stage 2)* No false junction on a left curve | FR11, A3 | auto + manual | same, tightest left curve | `[TEST] S3-L07 PASS`: no junction, no line lost |
 | S3-B01 | *planned (Stage 2)* Decode every A-Z barcode | TEAM.md 7.1 B1 | manual | drive over each test card at barcode speed, 3 passes each | correct character on every pass |
 | S3-B02 | *planned* Decode reversed | B2 | manual | same cards, robot driving the other way | same character as forward |
 | S3-B03 | *planned* Thin barcode at barcode speed (new sensor) | B3, B4 | manual | "A small" card, 10 passes, starting at the S2-M03 speed; slow down until 10/10 | 10/10 correct; record the speed used |

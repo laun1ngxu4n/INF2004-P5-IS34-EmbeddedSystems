@@ -26,6 +26,9 @@
 #include "../subsystem4/subsystem4.h"
 
 #define S5_FOLLOW_SPEED		S2_SPEED_BARCODE	/* B4: slow everywhere */
+#define S5_APPROACH_SPEED	100	/* barcode read, its junction not yet:
+					   slower, so weaving is less likely
+					   and the junction is not overrun */
 #define REVERSE_MM		80	/* second scan position (O5) */
 #define D_MAX_MM		150	/* deepest expected obstacle (A9) */
 #define MARGIN_MM		50
@@ -107,6 +110,7 @@ LOCAL void halt(const char *why)
 	UB msg[TELE_TEXT_MAX];
 
 	motion_halt();
+	motion_follow_limit(0);
 	obstacle_watch(FALSE);
 	line_set_enabled(FALSE);
 	set_state(M_IDLE);
@@ -143,6 +147,7 @@ LOCAL void start_run(void)
 		for (t = 0; t < 200 && !imu_calibrated(); t++) tk_dly_tsk(10);
 	}
 	pending = 0;
+	motion_follow_limit(0);
 	tk_clr_flg(flg_mission, 0);
 	if (motion_follow(S5_FOLLOW_SPEED) < E_OK) {
 		halt("STOP still set");
@@ -167,6 +172,9 @@ LOCAL void on_barcode(void)
 	}
 	pending = r.ch;
 	m = barcode_move_for(r.ch);
+	/* a turn is coming: approach its junction slowly */
+	motion_follow_limit((m == MOVE_LEFT || m == MOVE_RIGHT || m == MOVE_UTURN) ?
+			    S5_APPROACH_SPEED : 0);
 	tm_sprintf(msg, (const UB*)"barcode %c%s (narrow %d.%d mm, wide %d.%d mm) -> %s",
 		   r.ch, r.reversed ? " read backwards" : "",
 		   r.narrow_mm10 / 10, r.narrow_mm10 % 10, r.wide_mm10 / 10, r.wide_mm10 % 10,
@@ -182,15 +190,19 @@ LOCAL void on_junction(void)
 	UB	msg[TELE_TEXT_MAX];
 	UB	ch = pending;
 	INT	m = (ch != 0) ? barcode_move_for(ch) : MOVE_FORWARD;
-	INT	deg;
+	INT	deg, sides = line_junction_sides(), to_go;
 
+	motion_follow_limit(0);
 	if (ch != 0 && m == MOVE_NONE) {
 		tm_sprintf(msg, (const UB*)"no mapping for barcode %c", ch);
 		halt((const char*)msg);
 		return;
 	}
 	pending = 0;
-	tm_sprintf(msg, (const UB*)"junction %d: %s (barcode %c)", (INT)line_junctions(),
+	tm_sprintf(msg, (const UB*)"junction %d (branch %s): %s (barcode %c)",
+		   (INT)line_junctions(),
+		   (sides == (JUNC_SIDE_S | JUNC_SIDE_B)) ? "both sides" :
+		   (sides == JUNC_SIDE_B) ? "left" : (S3_SIDE < 0) ? "right" : "left",
 		   (m == MOVE_LEFT) ? "LEFT" : (m == MOVE_RIGHT) ? "RIGHT" :
 		   (m == MOVE_UTURN) ? "U-TURN" : "FORWARD", (ch != 0) ? ch : '-');
 	say(msg);
@@ -200,8 +212,13 @@ LOCAL void on_junction(void)
 	line_set_enabled(FALSE);
 	obstacle_watch(FALSE);
 	deg = (m == MOVE_LEFT) ? 90 : (m == MOVE_RIGHT) ? -90 : 180;
-	/* wheels over the junction centre, then spin */
-	if (!mv(motion_drive(S5_FOLLOW_SPEED, S3_SENSOR_TO_AXLE_MM - 10)) ||
+	/* wheels over the junction centre, then spin.  The line task says
+	   where C crossed the centre: a left branch is reported later than
+	   a right one (B must see the white after it), so measure from there. */
+	to_go = S3_SENSOR_TO_AXLE_MM -
+		(INT)S2_COUNTS_TO_MM(motion_odometer() - line_junction_odo());
+	if ((to_go > 0 && !mv(motion_drive(S5_FOLLOW_SPEED, to_go))) ||
+	    (to_go < 0 && !mv(motion_drive(-S5_FOLLOW_SPEED, -to_go))) ||
 	    !mv(motion_turn(deg)) || !resume_follow()) {
 		halt("junction move did not finish");
 		return;

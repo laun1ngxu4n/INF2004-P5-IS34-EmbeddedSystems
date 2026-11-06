@@ -72,6 +72,10 @@ IMPORT ID	motion_turn(INT deg);				/* + = left (CCW) */
 IMPORT ID	motion_follow(INT speed_mm_s);	/* follow the line (IF-03 steering from
 						   line_steer_mm_s()) until another command */
 IMPORT void	motion_halt(void);				/* stop, no STOP reason */
+/* Line following: never faster than this (0 = no limit).  Changes the
+   speed of a running follow without restarting it (a new motion_follow
+   would start from 0 and cancel a barcode rescan). */
+IMPORT void	motion_follow_limit(INT speed_mm_s);
 IMPORT void	motion_get_status(MOTION_STATUS *st);
 IMPORT INT	motion_scan_phase(void);		/* 0 none, 1 backing up, 2 rescanning */
 

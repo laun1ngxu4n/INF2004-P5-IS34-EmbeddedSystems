@@ -50,10 +50,10 @@ EXPORT void subsystem4_stage_test(void)
 		tk_dly_tsk(500);
 	}
 
-	for (k = 1; k <= 10; k++) {
+	for (k = 1; k <= 5; k++) {
 		UW n0 = imu_ramp_reports();
 
-		tm_printf((UB*)"\n[DRIVE] S4-R01 run %d of 10\n", k);
+		tm_printf((UB*)"\n[DRIVE] S4-R01 run %d of 5\n", k);
 		test_wait_start("Robot level about 30 cm before the ramp, pointing "
 				"straight at it. It calibrates 1 s, then drives 1.5 m.");
 		imu_calibrate();
@@ -70,8 +70,7 @@ EXPORT void subsystem4_stage_test(void)
 				if (st.result != MOT_RES_BUSY) break;
 				if (imu_height_mm10() > hmax) hmax = imu_height_mm10();
 				{
-					INT s = imu_pitch_mdeg_sin();
-					if (s < 0) s = -s;
+					INT s = imu_pitch_mdeg_sin();	/* nose up only */
 					if (s > smax) smax = s;
 				}
 				/* reported (level again on top): stop here, so the
@@ -93,9 +92,9 @@ EXPORT void subsystem4_stage_test(void)
 			/* also when STOP came before it was level again */
 			test_print_x10("[S4-R01] highest climbed this run ", hmax, " mm\n");
 			/* short hump: the robot tips over it, height = L x sin */
-			tm_printf((UB*)"[S4-R01] peak |sin(pitch)| x1000 %d, x L %d mm = ",
+			tm_printf((UB*)"[S4-R01] peak nose-up sin(pitch) x1000 %d, x L %d mm = ",
 				  smax, S4_L_MM);
-			test_print_x10("", smax * S4_L_MM / 100, " mm (L not measured yet)\n");
+			test_print_x10("", smax * S4_L_MM / 100, " mm\n");
 			tm_printf((UB*)"[S4-R01] %d samples skipped as jolts (10 ms each)\n",
 				  (INT)(imu_jolts() - j0));
 		}

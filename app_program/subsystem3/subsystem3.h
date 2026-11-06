@@ -34,7 +34,8 @@
 #define S3_SIDE			(-1)
 
 /* Geometry, NOT MEASURED YET: set from the robot */
-#define S3_SENSOR_TO_AXLE_MM	60	/* line sensors in front of the wheel axle */
+#define S3_SENSOR_TO_AXLE_MM	115	/* line sensors in front of the wheel axle,
+					   measured 6 Nov (was a guess of 60) */
 
 /* IF-03: steering for Motion, mm/s added to the right wheel and taken
    from the left (+ = turn left).  Latest value only. */

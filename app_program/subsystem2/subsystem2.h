@@ -85,8 +85,10 @@ IMPORT W	motion_odometer(void);
 #define S2_COUNTS_TO_MM(c)	((c) * S2_UM_PER_COUNT / 1000)
 
 /* Robot body (NOT MEASURED YET, used by obstacle bypass and junctions) */
-#define S2_ROBOT_WIDTH_MM	150	/* outside of the wheels */
-#define S2_ROBOT_LENGTH_MM	200	/* front bumper to back */
+#define S2_ROBOT_WIDTH_MM	170	/* 130 measured (6 Nov) + the barcode arm
+					   sticking out 17 mm, counted both sides */
+#define S2_ROBOT_LENGTH_MM	200	/* body 150 measured (6 Nov) + the IR /
+					   barcode bar in front (not measured) */
 
 /* Private to subsystem 2, shared between its own .c files */
 IMPORT ID	tid_motion;

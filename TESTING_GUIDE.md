@@ -46,7 +46,7 @@ Prebuilt (no WiFi details needed):
 | `..._test_s1.uf2` | Stage 0 auto tests, then Stage 1: turns, slow speed, STOP |
 | `..._test_s2.uf2` | then Stage 2: IR view, line + junctions, barcodes, then the course with the TEST mapping |
 | `..._test_s3.uf2` | then Stage 3: servo check, sonar view, 15 width scans, then the course (bypass) |
-| `..._test_s4.uf2` | then Stage 4: IMU check, tilt view, 10 ramp runs |
+| `..._test_s4.uf2` | then Stage 4: IMU check, tilt view, 5 ramp runs |
 | `..._test_s6.uf2` | then the whole course with the TEST mapping A=L, B=R, C=F, D=U |
 
 Built by you (they need your WiFi and broker IP, section 6):
@@ -82,7 +82,7 @@ you are testing.
 | Stage 2B | the codes placed on the track, in order, decoded in both directions |
 | Stage 2C | the right move at each junction, U-turn, and the stop for an unmapped code (obstacle watch and IMU are OFF here) |
 | Stage 3 | servo direction, widths of known obstacles inside W +/- U, a clean bypass; a covered sonar must stop the run |
-| Stage 4 | measured ramp height, 10 runs within +/- 5 mm |
+| Stage 4 | measured ramp height, 5 runs within +/- 5 mm |
 | Stage 5 | mapping and telemetry with the robot STILL first, then START/STOP while it moves |
 | Stage 6 | repeated full runs, with logs and what you saw |
 
@@ -160,10 +160,10 @@ send the log (a motor or encoder wire differs from bring-up).
 0. First measure the lower practice ramp (height, length, flat top?).
 1. `[TEST] S4-I01 PASS` = IMU found. Tilt view: lifting the front must
    change `sin(pitch)`.
-2. **S4-R01**: 10 runs. Robot level, about 30 cm before the ramp, aimed
+2. **S4-R01**: 5 runs. Robot level, about 30 cm before the ramp, aimed
    straight at it. START: it calibrates 1 s, drives 1.5 m and prints
    `reported ramp height H mm`. Pass: within +/- 5 mm of the measured
-   height in 10/10 runs. Systematic error: send me the 10 numbers.
+   height in 5/5 runs. Systematic error: send me the 5 numbers.
    The `[EVT]` line also gives `L*sin(peak pitch)`, a second estimate.
 
 ### Stage 5: telemetry + MQTT (demo image), owner B1

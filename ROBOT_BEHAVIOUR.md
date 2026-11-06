@@ -57,7 +57,7 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
 - Drives round on a rectangle, pinging before each long leg:
   1. turn 90 to the clear side
   2. out: half of max(width + U, 200 mm) + half the robot width + 50 mm
-     (about 225 mm for a 150 mm box)
+     (about 235 mm for a 150 mm box)
   3. turn back; past: distance to the box + 150 mm (deepest expected box)
      + robot length + 50 mm (about 730 mm)
   4. turn 90 toward the line; drive until C sees it (gives up 200 mm past
@@ -65,10 +65,15 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
   5. wheels onto the line, turn 90 to face the old direction, follow.
 
 ### Ramp / hump (IMU)
-- Climbed height = distance driven x sin(tilt), all the time.
-- Readings during jolts are skipped (|acceleration| more than 5 % off 1 g).
-- Climbed 8 mm or more and then level (under about 1.7 deg) for 100 mm:
-  reports `ramp peak height H mm`; no second report for the next 600 mm.
+- Climbed height = distance driven x sin(tilt), all the time. Tilt is
+  measured from the "driving level", which follows the tilt slowly (about
+  5 s) while it is within about 3.4 deg, so the chassis leaning a little
+  while driving does not count as a climb.
+- The IMU's own 50 Hz filter cuts motor vibration; readings during jolts
+  are skipped (|acceleration| more than 10 % off 1 g).
+- Climbed 8 mm or more (climbs only: nose-down dips are ignored) and then
+  level (under about 1.7 deg) for 100 mm: reports `ramp peak height H mm`
+  plus L x peak nose-up tilt; no second report for the next 600 mm.
 
 ### Always
 - STOP (button GP21, or the panel / Space bar): motors off at once, back to IDLE.
@@ -123,24 +128,27 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
 - [ ] Junction moves from barcodes (Stage 2C): needs barcodes first.
 - [ ] Obstacle width with the ±40 deg scan (S5-O01): not run.
 - [ ] Bypass (S5-O02) and the "cover the sonar" stop: never run.
-- [ ] Ramp height within ±5 mm (S4-R01): 10 mm hump read 18 and 66 mm;
-  jolt filter not tested.
+- [ ] Ramp height within ±5 mm (S4-R01): 2 of 7 runs on the 10 mm hump
+  passed (9.0 and 8.1 mm), 6 Nov. The hump was not held down and the IMU
+  cable dropped out twice; see TEST_STATUS.md Stage 4.
 - [ ] Whole course, 3 runs (SYS-01).
 
-**Not measured (the code uses guesses)**
+**Robot measurements** (measured 6 Nov unless marked)
 
-| Value | Guess | Affects |
+| Value | In the code | Affects |
 |---|---|---|
-| Robot width (`S2_ROBOT_WIDTH_MM`) | 150 mm | bypass: how far out |
-| Robot length (`S2_ROBOT_LENGTH_MM`) | 200 mm | bypass: how far past |
-| Line sensors to wheel axle (`S3_SENSOR_TO_AXLE_MM`) | 60 mm | where it spins at a junction |
+| Robot width (`S2_ROBOT_WIDTH_MM`) | 170 mm (130 body + 17 mm barcode arm, counted both sides) | bypass: how far out |
+| Robot length (`S2_ROBOT_LENGTH_MM`) | 200 mm (150 body + IR/barcode bar in front, **bar not measured**) | bypass: how far past |
+| Line sensors to wheel axle (`S3_SENSOR_TO_AXLE_MM`) | 115 mm (was a guess of 60) | where it spins at a junction |
 | Axle to front support, L (`S4_L_MM`) | 80 mm | hump height = L x sin(tilt) |
-| Tape width, C to S gap | unknown | false junctions |
-| Real junction count on the track | unknown | S3-L02 |
+| Tape width, C to S gap | **not measured** | false junctions |
+| Real junction count on the track | **not measured** | S3-L02 |
 
 **Tests short of their target**
 - [ ] S3-L01: 3 m of line following (track was only 1.2-2.1 m; about 2 m
   followed without losing the line).
 - [ ] S3-L02: junction count vs the real count.
+- [ ] Junction turns with the measured 115 mm sensor-to-axle distance
+  (was 60): it now drives 105 mm before spinning, not tried on the robot.
 - [ ] S1-T02: remote START/STOP 3 of 5 rounds (all passed).
 - [ ] Stage 1 and later results not yet written into the `testing/*/TEST_LOG.md` tables.

@@ -27,7 +27,15 @@
    sample more than this far from the calibrated |a| is a jolt, not tilt:
    keep the last pitch (Stage 4 run, 2 Nov: hitting a 10 mm hump read as
    up to 40 deg) */
-#define JOLT_FRAC	0.05f
+#define JOLT_FRAC	0.10f	/* 0.05 skipped 30-48% of all samples while
+				   driving on the flat floor (Stage 4 run, 6 Nov) */
+/* Driving level: driving tilts the chassis a little (motor torque on the
+   caster), which read as -2..-4 deg on the flat floor and drifted the
+   height -10 mm before the hump (6 Nov).  While the tilt is within
+   BASE_WIN of it, the level follows the tilt slowly (about 5 s); on a
+   ramp or hump (10 mm hump: about 0.12) it stays put. */
+#define BASE_K		0.002f
+#define BASE_WIN	0.060f	/* about 3.4 deg */
 
 IMPORT void	imu_i2c_init(void);
 IMPORT ER	imu_i2c_read(UB addr, UB reg, UB *buf, INT n);
@@ -59,7 +67,10 @@ LOCAL BOOL chip_setup(void)
 		return FALSE;
 	}
 	return imu_i2c_write(IMU_ADDR, 0x20, 0x6F) == E_OK &&	/* CTRL1: 100 Hz, BDU, XYZ */
-	       imu_i2c_write(IMU_ADDR, 0x21, 0x08) == E_OK &&	/* CTRL2: +/-4 g */
+	       imu_i2c_write(IMU_ADDR, 0x21, 0xC8) == E_OK &&	/* CTRL2: +/-4 g, 50 Hz
+								   anti-alias filter (was
+								   773 Hz: motor vibration
+								   folded into the tilt) */
 	       imu_i2c_write(IMU_ADDR, 0x24, 0x70) == E_OK &&	/* CTRL5 */
 	       imu_i2c_write(IMU_ADDR, 0x25, 0x20) == E_OK &&	/* CTRL6 */
 	       imu_i2c_write(IMU_ADDR, 0x26, 0x00) == E_OK;	/* CTRL7: no HPF */
@@ -71,6 +82,7 @@ EXPORT void imu_task(INT stacd, void *exinf)
 	float	cal_s = 0.0f, cal_c = 0.0f, s0 = 0.0f, c0 = 1.0f;
 	float	cal_m = 0.0f, m0 = 0.0f;		/* |a| when level and still */
 	float	sin_f = 0.0f, h = 0.0f, peak = 0.0f, peak_sin = 0.0f;
+	float	base = 0.0f, tilt = 0.0f;	/* driving level; sin_f - base */
 	W	odo_prev;
 	INT	flat_mm10 = 0;
 	INT	quiet_mm10 = 0;		/* distance left before another report */
@@ -125,7 +137,7 @@ EXPORT void imu_task(INT stacd, void *exinf)
 					cal_request = FALSE;
 					calibrated = TRUE;
 					h = peak = peak_sin = 0.0f;
-					sin_f = 0.0f;
+					sin_f = base = tilt = 0.0f;
 				}
 				goto done;
 			}
@@ -134,7 +146,11 @@ EXPORT void imu_task(INT stacd, void *exinf)
 			if (app_absf(mag - m0) <= JOLT_FRAC * m0) {
 				rel = sp * c0 - cp * s0;
 				sin_f += LPF_K * (rel - sin_f);
-				sin_x1000 = (INT)(sin_f * 1000.0f);
+				if (app_absf(sin_f - base) < BASE_WIN) {
+					base += BASE_K * (sin_f - base);
+				}
+				tilt = sin_f - base;
+				sin_x1000 = (INT)(tilt * 1000.0f);
 			} else {
 				jolts++;
 			}
@@ -146,25 +162,28 @@ EXPORT void imu_task(INT stacd, void *exinf)
 			float	ds = (float)(odo - odo_prev) * S2_UM_PER_COUNT / 1000.0f;
 
 			odo_prev = odo;
-			h += ds * sin_f;
+			h += ds * tilt;
 			height_mm10 = (INT)(h * 10.0f);
-			if (app_absf(h) > app_absf(peak)) peak = h;
-			if (app_absf(sin_f) > app_absf(peak_sin)) peak_sin = sin_f;
+			/* climbs only: a nose-down dip (rear wheels on the
+			   hump, or coming off it) is not a ramp (6 Nov run 1
+			   reported a -56 mm dip as 56 mm) */
+			if (h > peak) peak = h;
+			if (tilt > peak_sin) peak_sin = tilt;
 
 			if (quiet_mm10 > 0) {
 				quiet_mm10 -= (INT)(app_absf(ds) * 10.0f);
 			}
-			if (app_absf(sin_f) < FLAT_SIN) {
+			if (app_absf(tilt) < FLAT_SIN) {
 				flat_mm10 += (INT)(app_absf(ds) * 10.0f);
 			} else {
 				flat_mm10 = 0;
 			}
 			if (flat_mm10 > FLAT_MM * 10) {
-				INT p10 = (INT)(app_absf(peak) * 10.0f);
+				INT p10 = (INT)(peak * 10.0f);
 
 				if (p10 >= REPORT_MIN_MM10 && quiet_mm10 <= 0) {
 					UB	msg[TELE_TEXT_MAX];
-					INT	l10 = (INT)(app_absf(peak_sin) * S4_L_MM * 10.0f);
+					INT	l10 = (INT)(peak_sin * S4_L_MM * 10.0f);
 
 					ramp_peak_mm10 = p10;
 					ramp_reports++;
@@ -172,7 +191,7 @@ EXPORT void imu_task(INT stacd, void *exinf)
 						"ramp peak height %d.%d mm (L*sin(peak pitch) "
 						"%d.%d mm, peak sin %d/1000)",
 						p10 / 10, p10 % 10, l10 / 10, l10 % 10,
-						(INT)(app_absf(peak_sin) * 1000.0f));
+						(INT)(peak_sin * 1000.0f));
 					tele_event(msg);
 					quiet_mm10 = QUIET_AFTER_MM * 10;
 				}

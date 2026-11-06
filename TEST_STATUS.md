@@ -1,6 +1,6 @@
 # P5-IS34 test status checklist
 
-Last updated: 2 Nov 2026. How to run each test:
+Last updated: 6 Nov 2026. How to run each test:
 [TESTING_GUIDE.md](TESTING_GUIDE.md). Formal results:
 [testing/](testing/) `TEST_LOG.md` files. What the robot does, its limits
 and everything still open: [ROBOT_BEHAVIOUR.md](ROBOT_BEHAVIOUR.md).
@@ -18,7 +18,7 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
 | 2B | Barcodes | B3 | 🟡 partial reads, no full decode yet |
 | 2C | Junction moves from barcodes | B3 + B5 | ⬜ needs 2B |
 | 3 | Obstacle: sonar, servo, width, bypass | B5 | 🟡 servo + sonar work; width and bypass not shown |
-| 4 | IMU + ramp height | B4 | 🟡 IMU works; height reads too high on the hump |
+| 4 | IMU + ramp height | B4 | 🟡 2 of 7 runs within ±5 mm on the 10 mm hump; hump not held down |
 | 5 | Telemetry + MQTT | B1 | ✅ passed 2 Nov (START/STOP 3 of 5 rounds) |
 | 6 | Whole course | all | ⬜ |
 
@@ -67,7 +67,14 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
 - [ ] ⬜ **S5-B01 / S5-B02** (2C): right move at each junction, U-turn, stop on
   an unmapped code
 
+- [ ] ⬜ Junction turns with the **measured** sensor-to-axle distance of 115 mm
+  (the code had a guess of 60): it now drives 105 mm past the junction
+  before spinning. Re-check on the robot.
+
 ### Unknowns to measure
+- Measured 6 Nov: line sensors 115 mm in front of the axle, body 130 x
+  150 mm, barcode arm sticks out 17 mm (see ROBOT_BEHAVIOUR.md)
+- Still to measure: how far the IR/barcode bar sticks out in front
 - Tape width, and the gap between C and the side sensor
 - Where the barcode sensor sits relative to C (in front, behind, beside),
   and whether it passes over the bars while C follows the line
@@ -111,21 +118,43 @@ than the robot, so the robot tips over it instead of driving up a slope.
   L x peak tilt for every run
 
 ### Not done yet
-- [ ] 🟡 **S4-R01** height within ±5 mm. 3 runs over the 10 mm hump read 18.3,
-  66.0 and no report (L x peak tilt: 15.6, 52.0, 18.6 mm). Cause: hitting the
-  hump jolts the robot and the accelerometer (no gyro) reads the jolt as
-  tilt (up to 40 deg; the hump can only tilt it about 7 deg).
-  **Fix built, not tested on the robot:** readings where |a| is more than
-  5% off the calibrated 1 g are skipped as jolts (`JOLT_FRAC`,
-  `task_imu.c`); each run prints how many were skipped. If tilt then
-  sticks near 0 with hundreds skipped, loosen `JOLT_FRAC`.
-- [ ] ⬜ **Measure L** (`S4_L_MM`, now a guess of 80): wheel axle centre to where
-  the front support touches the floor. For a short hump the height is
-  L x peak sin(pitch); if that is steady near 10 mm it should become the
-  main report.
-- [ ] ⬜ Tape the hump down for the runs (a loose block can be pushed along)
-- Note for B4: a hard STOP can give a false ramp report (braking tilts
-  the robot); the jolt filter should help with this too
+- [ ] 🟡 **S4-R01** height within ±5 mm, now **5 runs** (was 10).
+
+  **Runs 2 Nov** (old code): 18.3, 66.0, none. Jolts were read as tilt.
+
+  **Runs 6 Nov, batch 1** (jolt filter 5 %): 49.6, none, none. Problems
+  found in the log and fixed:
+  - the IMU's anti-alias filter was 773 Hz, so motor vibration showed as
+    tilt (-2..-4 deg on the flat floor) -> now 50 Hz (`CTRL2 0xC8`)
+  - the 5 % jolt filter skipped 30-48 % of all readings, and the height kept
+    adding up with the frozen tilt -> now 10 %
+  - driving tilts the chassis a little, so the height drifted -10 mm before
+    the hump -> tilt is now measured from a slowly following "driving level"
+
+  **Runs 6 Nov, batch 2** (fixes above): 27.4, none, **9.0 ✅**
+  (L x tilt 10.6). Jolts skipped dropped to 14-215 per run.
+
+  **Runs 6 Nov, batch 3**: 56.2 (a -56 mm **dip** reported as a climb), none,
+  **8.1 ✅** (L x tilt 12.1), none; run 5 not done. **Fixed, not run yet:**
+  only climbs are reported now (nose-down dips ignored), and L x tilt uses
+  the nose-up peak only.
+
+  Still wrong on the robot side (not code):
+  - **The hump is not held down.** A 10 mm hump with L = 80 mm can tilt the
+    robot at most sin 0.125 (7 deg); failed runs peaked at 0.23-0.48, so the
+    block slid, flipped or got under the robot. Hold it (fingertips on both
+    ends, Blu-tack or a rubber mat under it).
+  - **"IMU read failed" twice** in batch 3, once mid-run: reseat the Grove
+    cable at both ends.
+  - Check the IMU board is fixed firmly to the chassis (a loose board
+    wobbles on every bump).
+  - The hump showed up at 450-1340 mm into the runs, not about 300 mm:
+    check the start distance and that the robot drives straight at it.
+  - Ask: is this block the lab's lower practice ramp? An accelerometer
+    cannot measure a hump much shorter than the robot reliably; a real
+    slope is much easier.
+- [x] ✅ **L measured: 80 mm** (`S4_L_MM`), same as the guess
+- Note for B4: a hard STOP can give a false ramp report (braking tilt)
 
 ## Stage 5: telemetry + MQTT (demo image)
 

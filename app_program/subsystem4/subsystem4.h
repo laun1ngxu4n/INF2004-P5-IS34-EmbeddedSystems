@@ -29,7 +29,7 @@
  * Safety (collision, stall) is not in the essentials plan: safety_task
  * stays the Stage 0 timing stub.
  */
-#define S4_L_MM			80	/* axle to front support, NOT MEASURED */
+#define S4_L_MM			80	/* axle to front support, measured 6 Nov */
 
 IMPORT BOOL	imu_ok(void);			/* chip found and configured */
 IMPORT void	imu_calibrate(void);		/* robot level and still: 1 s */

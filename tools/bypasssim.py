@@ -19,6 +19,21 @@ Two rejoin methods:
        leg 4 watches only once the sensors are past the back of a 150 mm
        deep box (a junction's side line under the box is not the line),
        and the first scan is where the forward watch stopped.
+  S    (task_mission.c since 8 Nov): as J, but on leg 4 the sonar looks
+       90 deg toward the box; 3 pings without its side face = past; on
+       until the axle is half the robot's width + MARGIN past the box's
+       back (last echo, less 10 deg of the beam); only then the line
+       sensors count.  Never saw the box: as J.  Box depth is no longer
+       assumed (J assumes at most 150 mm).
+
+    python tools/bypasssim.py S      (or any of OLD NEW J S)
+
+Results S alone (8 Nov): 474/486 ordinary cases, junctions under the box
+54/54 each, box depth 60 / 150 / 250 / 350 mm: 36/36 each (closest 88 /
+95 / 105 / 62 mm); nothing touched the box (closest 56 mm).  J on the
+same depths: 36 / 36 / 20 (16 hit the box) / 0 (all hit).  Without the
+10 deg beam allowance S stopped later and missed more tight curves
+behind the box (R300: 33/54).
 
 Results (8 Nov, tape 1600 mm on past the curve): OLD 36/486 (straight
 24/54: the narrow window misses the line once spins are a few degrees
@@ -47,6 +62,11 @@ DT = 0.01
 SONAR_AHEAD = 120.0          # sonar in front of the axle
 TRIP_MM = 250
 SCAN_FROM_MM = 350
+BEAM_DEG = 15                # sonar beam half width
+SIDE_RANGE = 1000.0
+SIDE_SEEN_PAST_LINE_MM = 50  # S: an echo nearer than the line + this is the box
+SIDE_BEAM_DEG = 10           # S: allowance for the beam (true half width here: BEAM_DEG)
+SIDE_EXTRA_MM = 300          # S: drive on at most this past x_pass while beside it
 SCAN_NEAR_MM = 220           # J: first scan where it stopped, at least this far
 REVERSE_MM = 100
 D_MAX_MM = 150
@@ -110,6 +130,30 @@ class Robot:
             if self.w.bx0 <= px <= self.w.bx1 and self.w.by0 - 20 <= py <= self.w.by1 + 20:
                 best = t
                 break
+        return best
+
+    def side_sonar(self, side):
+        """sonar turned 90 deg to one side (+1 left): nearest box face within
+        the beam (+-BEAM_DEG), or None.  Optimistic: every ray that meets
+        the box echoes (a real flat face square to the beam does)."""
+        ox = self.x + SONAR_AHEAD * math.cos(self.h)
+        oy = self.y + SONAR_AHEAD * math.sin(self.h)
+        best = None
+        for a in range(-BEAM_DEG, BEAM_DEG + 1, 3):
+            ang = self.h + side * math.pi / 2 + math.radians(a)
+            dx, dy = math.cos(ang), math.sin(ang)
+            t0, t1 = 0.0, SIDE_RANGE
+            for o, dd, lo, hi in ((ox, dx, self.w.bx0, self.w.bx1), (oy, dy, self.w.by0, self.w.by1)):
+                if abs(dd) < 1e-9:
+                    if not lo <= o <= hi:
+                        t0, t1 = 1, 0
+                    continue
+                ta, tb = (lo - o) / dd, (hi - o) / dd
+                if ta > tb:
+                    ta, tb = tb, ta
+                t0, t1 = max(t0, ta), min(t1, tb)
+            if t0 <= t1 and (best is None or t0 < best):
+                best = t0
         return best
 
     def check_hit(self):
@@ -232,7 +276,7 @@ def bypass(rb, method, rng, scan_err):
     # J (9 Nov): scan where the forward watch stopped (at least
     # SCAN_NEAR_MM away), then REVERSE_MM back
     d = rb.sonar() or TRIP_MM
-    first = SCAN_NEAR_MM if method == 'J' else SCAN_FROM_MM
+    first = SCAN_NEAR_MM if method in ('J', 'S') else SCAN_FROM_MM
     if first - d > 10:
         rb.drive(-(first - d))
     rb.drive(-REVERSE_MM)
@@ -260,6 +304,8 @@ def bypass(rb, method, rng, scan_err):
     rb.turn(sgn * 90)
     rb.drive(y_off)
     rb.turn(-sgn * 90)
+    if method == 'S':
+        return bypass_side(rb, sgn, front, y_off, x_pass)
     if method == 'OLD':
         rb.drive(x_pass)
         rb.turn(-sgn * 90)
@@ -287,6 +333,11 @@ def bypass(rb, method, rng, scan_err):
         done, found = rb.drive(y_off + 400, stop_on=any_black)
         if not found:
             return 'not found'
+    return rejoin(rb, sgn, y_off)
+
+
+def rejoin(rb, sgn, y_off, found=True):
+    """leg 7: wheels onto the line, spin toward the old direction"""
     # wheels onto the line, then spin toward the old direction until a
     # line sensor finds the tape (ignore the first 20 deg)
     rb.drive(AHEAD)
@@ -300,6 +351,60 @@ def bypass(rb, method, rng, scan_err):
     if not ok:
         return 'spin found nothing'
     return 'rejoined'
+
+
+def bypass_side(rb, sgn, front, y_off, x_pass):
+    """S (since 8 Nov): leg 4 with the sonar turned 90 deg toward the box.
+    The box's side face echoes while the robot is beside it; 3 pings in a
+    row without it = past.  Then on until the axle is half the robot's
+    width + MARGIN past the last echo (the box's back, give or take the
+    beam), and only from there the line sensors count.  Never saw the box:
+    as J (fixed D_MAX_MM).  Still beside it at x_pass + SIDE_EXTRA_MM:
+    stop (box too long)."""
+    side = -sgn
+    thr = y_off + SIDE_SEEN_PAST_LINE_MM
+    st = dict(n=0, seen=False, last=0.0, dlast=0.0, miss=0, past=False, stop=None, why=None)
+    sensors_fixed = front + SONAR_AHEAD - AHEAD + 30 + D_MAX_MM
+
+    def leg4(r, done):
+        st['n'] += 1
+        if st['n'] % 6 == 0:                     # a ping every 60 ms
+            d = r.side_sonar(side)
+            if d is not None and d < thr:
+                st['seen'], st['last'], st['dlast'], st['miss'] = True, done, d, 0
+            elif st['seen'] and not st['past']:
+                st['miss'] += 1
+                if st['miss'] >= 3:
+                    st['past'] = True
+                    # the box's back: where the sonar was at the last echo,
+                    # less SIDE_BEAM_DEG of the beam at that distance
+                    back = st['last'] + SONAR_AHEAD - st['dlast'] * math.tan(math.radians(SIDE_BEAM_DEG))
+                    st['stop'] = back + ROBOT_W / 2 + MARGIN_MM
+        never = not st['seen'] and done > front + D_MAX_MM + 60
+        watch = st['past'] or (never and done >= sensors_fixed)
+        if watch and any(r.black_lr()):
+            st['why'] = 'line'
+            return True
+        if st['past'] and done >= st['stop']:
+            st['why'] = 'past'
+            return True
+        if never and done >= x_pass:
+            st['why'] = 'past'
+            return True
+        return False
+
+    done, halted = rb.drive(x_pass + SIDE_EXTRA_MM, stop_on=leg4)
+    if not halted:
+        return 'box too long'
+    if st['why'] == 'past':
+        rb.turn(-sgn * 90)
+
+        def any_black(r, d):
+            return d >= 20 and any(r.black_lr())
+        done, found = rb.drive(y_off + 400, stop_on=any_black)
+        if not found:
+            return 'not found'
+    return rejoin(rb, sgn, y_off)
 
 
 def shapes():
@@ -357,7 +462,8 @@ def main():
     rng = random.Random(5)
     SH = shapes()
     global MARGIN_MM
-    for method in ('OLD', 'NEW', 'J'):
+    only = sys.argv[1:] or ['OLD', 'NEW', 'J', 'S']
+    for method in only:
         MARGIN_MM = 70 if method == 'OLD' else 100
         tot = ok = hits = 0
         per = {}
@@ -396,6 +502,26 @@ def main():
                                 jper[name][2][r] = jper[name][2].get(r, 0) + 1
         print('   junctions: ' + '  '.join(f'{k}: {v[0]}/{v[1]}' + (f' {v[2]}' if v[2] else '')
                                        for k, v in jper.items()))
+        # box depth: 150 mm is only the team's assumption (A9)
+        dper = {}
+        for d_box in (60, 150, 250, 350):
+            for name in ('straight', 'L500 +0', 'R500 +0'):
+                for w_box in (100, 200):
+                    for mis in (-0.01, 0.01):
+                        for te in (-0.05, 0.0, 0.05):
+                            r, rb = scenario(SH[name], method, rng, w_box=w_box, d_box=d_box,
+                                             mismatch=mis, turn_err=te)
+                            k = f'{d_box} deep'
+                            dper.setdefault(k, [0, 0, {}, []])
+                            dper[k][0] += r == 'ok'
+                            dper[k][1] += 1
+                            if r != 'ok':
+                                dper[k][2][r] = dper[k][2].get(r, 0) + 1
+                            if r == 'ok':
+                                dper[k][3].append(rb.min_clear)
+        print('   depth: ' + '  '.join(f'{k}: {v[0]}/{v[1]}' + (f' {v[2]}' if v[2] else '')
+                                     + (f' (closest {min(v[3]):.0f})' if v[3] else '')
+                                     for k, v in dper.items()))
 
 
 if __name__ == '__main__':

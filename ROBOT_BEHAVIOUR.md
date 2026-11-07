@@ -158,16 +158,30 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
   1. turn 90 to the clear side
   2. out: half of max(width + U, 200 mm) + half the robot width + 100 mm
      (about 285 mm for a 150 mm box)
-  3. turn back; past: distance to the box + 150 mm (deepest expected box)
-     + robot length + 100 mm (about 800 mm from the 350 mm scan
-     position: the axle ends about 180 mm past the back of a 150 mm deep
-     box, half the robot's width plus 100 mm, so it can turn and drive
-     back to the line without touching it). **The line sensors watch on
-     this leg** once they are past the back of a 150 mm deep box: a line
-     that curves toward this side behind the box is met here (`line met
-     behind the box`), and the robot goes straight to step 5. Not
-     before: 8 Nov the box stood on a junction, this leg met the
-     junction's side line beside the box and the robot followed it away.
+  3. turn back, and **the sonar turns 90 deg toward the box** (side
+     look, since 8 Nov). It pings every 60 ms while driving: the box's
+     side face echoes while the robot is beside it; 3 pings in a row
+     without it = past the box's back, **whatever its depth** (`side
+     look: box beside for N mm, past it M mm along`). It drives on until
+     its axle is half the robot's width + 100 mm past the box's back
+     (the last echo, less 10 deg of the beam), so it can turn and drive
+     back to the line without touching it. At most 300 mm further than
+     the old fixed distance, and never closer than 100 mm to whatever the
+     sonar saw straight ahead before the leg: still beside the box then,
+     it stops ("still beside the box ... box too long?"). A sonar fault
+     counts as "box still there". **The line sensors watch on this leg**
+     only once it is past the box: a line that curves toward this side
+     behind the box is met here (`line met behind the box`), and the
+     robot goes straight to step 5. Not before: 8 Nov the box stood on a
+     junction, this leg met the junction's side line beside the box and
+     the robot followed it away.
+     The side look never saw the box (an angled face can reflect the
+     echo away): as before, it assumes a box at most 150 mm deep (team
+     assumption A9) and drives distance to the box + 150 + robot length
+     + 100 mm. `tools/bypasssim.py S`: box depths 60-350 mm all 36/36,
+     closest 62 mm; the fixed distance hit 16 of 36 boxes 250 mm deep and
+     all 350 mm deep. Sonar position 120 mm in front of the axle
+     (`S5_SONAR_TO_AXLE_MM`, not measured).
   4. otherwise turn 90 toward the line and drive until a line sensor sees
      black, anywhere (gives up 400 mm past where the line should be)
   5. wheels onto the line (115 mm on); if a line sensor already sees the

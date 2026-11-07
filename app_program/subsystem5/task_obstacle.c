@@ -102,6 +102,9 @@ LOCAL INT echo_mm(void)
 	return (INT)(echo_width_us * 174u / 1000u);	/* 0.348 mm/us at 28 C, / 2 */
 }
 
+EXPORT void sonar_ping_start(void)	{ trigger(); }
+EXPORT INT sonar_ping_result(void)	{ return echo_mm(); }
+
 EXPORT INT sonar_ping_mm(void)
 {
 	INT mm;
@@ -126,10 +129,13 @@ LOCAL void servo_write(INT deg)
 
 /* Walk there S5_SERVO_DEG_STEP per 20 ms frame: a full-speed jump broke
    the servo horn */
+/* turning limit: the scan's, or the side look's if that is larger */
+#define SERVO_LIMIT	((S5_SERVO_SIDE_DEG > S5_SERVO_HALF_DEG) ? S5_SERVO_SIDE_DEG : S5_SERVO_HALF_DEG)
+
 EXPORT void servo_set_angle(INT deg)
 {
-	if (deg < SCAN_FROM) deg = SCAN_FROM;
-	if (deg > SCAN_TO) deg = SCAN_TO;
+	if (deg < 90 - SERVO_LIMIT) deg = 90 - SERVO_LIMIT;
+	if (deg > 90 + SERVO_LIMIT) deg = 90 + SERVO_LIMIT;
 	while (servo_now != deg) {
 		INT next = servo_now + ((deg > servo_now) ? S5_SERVO_DEG_STEP : -S5_SERVO_DEG_STEP);
 
@@ -137,6 +143,13 @@ EXPORT void servo_set_angle(INT deg)
 		servo_write(next);
 		tk_dly_tsk(20);
 	}
+}
+
+EXPORT void servo_look_side(INT side)
+{
+	INT left = S5_SERVO_LEFT_HIGH ? 1 : -1;
+
+	servo_set_angle(90 + side * left * S5_SERVO_SIDE_DEG);
 }
 
 EXPORT void obstacle_watch(BOOL on)	{ watch = on; }

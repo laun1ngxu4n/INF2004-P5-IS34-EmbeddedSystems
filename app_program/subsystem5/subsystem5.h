@@ -63,6 +63,15 @@ IMPORT ID	flg_mission;
 					   sonar beam is about 30 deg wide);
 					   route the cables for 40 */
 #define S5_SERVO_DEG_STEP	2	/* = 100 deg/s */
+/* Side look (8 Nov): on the leg past the box the sonar turns this far
+   toward the box and watches its side face, so the robot knows when it is
+   really past (any depth) instead of assuming a 150 mm deep box.  90 =
+   square to the side face (a flat face only echoes back to a beam
+   roughly square to it).  Needs the cables at the back to allow it both
+   ways (Stage 3 servo check); 0 = no side look (the fixed 150 mm). */
+#define S5_SERVO_SIDE_DEG	90
+#define S5_SONAR_TO_AXLE_MM	120	/* sonar in front of the wheel axle
+					   (NOT MEASURED: measure and fix) */
 /* Sonar beam: each edge is seen this many degrees early (the cone),
    so edges are pulled in by it.  Tune with S5-O01 known widths. */
 #define S5_BEAM_HALF_DEG	6
@@ -105,9 +114,16 @@ IMPORT void	obstacle_scan(OBSTACLE_PROFILE *p);
 IMPORT void	obstacle_combine(const OBSTACLE_PROFILE *a, const OBSTACLE_PROFILE *b,
 				 OBSTACLE_PROFILE *out);
 IMPORT void	servo_set_angle(INT deg);	/* 90 = ahead, clamped to 90 +/-
-						   S5_SERVO_HALF_DEG; blocks while it
+						   the larger of S5_SERVO_HALF_DEG and
+						   S5_SERVO_SIDE_DEG; blocks while it
 						   turns (slowly) */
+IMPORT void	servo_look_side(INT side);	/* +1 left, -1 right, 0 ahead:
+						   S5_SERVO_SIDE_DEG that way */
 IMPORT INT	sonar_ping_mm(void);		/* blocking 60 ms; mm, SONAR_OPEN or SONAR_FAULT */
+/* The same in two halves, so the caller can do other things in the 60 ms:
+   start, then read at least 60 ms later */
+IMPORT void	sonar_ping_start(void);
+IMPORT INT	sonar_ping_result(void);
 
 /* ---- Mission ------------------------------------------------------- */
 IMPORT const char *mission_state_name(void);

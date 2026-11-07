@@ -197,6 +197,12 @@ send the log (a motor or encoder wire differs from bring-up).
    robot ("ultrasonic not answering"); a scan ray with no ECHO counts as
    blocked, never as open space. Check it once: cover/unplug ECHO during
    S5-O02 and the robot must stop.
+   **Side look (8 Nov):** after the LEFT / RIGHT checks the servo turns
+   to **90 deg left, then 90 deg right** (square to the robot's side).
+   Check the wires have slack both ways; if it cannot go that far, set
+   `S5_SERVO_SIDE_DEG` lower (0 = no side look) and rebuild. Then 8 s
+   of `[S5] right N mm`: hold a box side-on about 20 cm to the right
+   (about 200 mm), then take it away (`-1` or far).
 3. **S5-O01 width**: 3 tries, obstacle about **250 mm** straight ahead
    (where the forward watch stops and the bypass scans first, since 8
    Nov). Use 3 flat boxes of
@@ -219,7 +225,11 @@ send the log (a motor or encoder wire differs from bring-up).
    line sensor finds it). New lines: `line met behind the box` (it
    curved toward the robot) or `line found N mm after the last turn`.
    Try a box standing on a T or X junction too (the 8 Nov fix): it must
-   come back to the line it came along, not the side line.
+   come back to the line it came along, not the side line. On the leg
+   past the box the sonar looks at the box: expect `side look: box
+   beside for N mm, past it M mm along` (N about the box's depth + 10
+   cm). Try a deep box too (25-30 cm front to back). `side look never
+   saw the box` means it fell back to the fixed 150 mm: say so.
 
 ### Stage 4: ramp height (`_test_s4`), owner B4
 

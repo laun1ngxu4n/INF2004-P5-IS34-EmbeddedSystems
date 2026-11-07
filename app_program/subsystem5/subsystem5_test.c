@@ -57,6 +57,23 @@ EXPORT void subsystem5_stage_test(void)
 			"wires at the back still have slack?");
 	servo_set_angle(90 - S5_SERVO_HALF_DEG);
 	test_wait_start("Servo check: now it should point RIGHT. Wires still slack?");
+	if (S5_SERVO_SIDE_DEG > 0) {
+		/* the side look on the leg past the box (8 Nov) */
+		servo_look_side(+1);
+		test_wait_start("Side look: it should now point STRAIGHT LEFT (90 deg, "
+				"square to the robot's side). Wires slack, nothing "
+				"pulling? If it cannot go that far, lower "
+				"S5_SERVO_SIDE_DEG (0 = no side look) and rebuild.");
+		servo_look_side(-1);
+		test_wait_start("Side look: now STRAIGHT RIGHT (90 deg). Wires still "
+				"slack?");
+		tm_printf((UB*)"[S5] side distance for 8 s: hold a box side-on about "
+			  "20 cm to the right, then take it away\n");
+		for (t = 0; t < 25; t++) {
+			tm_printf((UB*)"[S5] right %d mm\n", sonar_ping_mm());
+			tk_dly_tsk(270);
+		}
+	}
 	servo_set_angle(90);
 
 	tm_printf((UB*)"[S5] forward distance for 10 s: move your hand in front\n");

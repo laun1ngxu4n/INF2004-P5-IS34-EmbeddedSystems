@@ -278,6 +278,113 @@ LOCAL INT drive_until_line(INT dist_mm, INT from_mm)
 	}
 }
 
+/* Leg 4, past the box (8 Nov).  With the side look the sonar turns 90 deg
+   toward the box and pings every 60 ms while the robot drives: the box's
+   side face echoes while the robot is beside it, and SIDE_MISS_PINGS in
+   a row without it = past its back, whatever its depth.  The robot goes
+   on until its axle is half its width + MARGIN_MM past the last echo
+   (room to turn and drive back to the line), and only from there do the
+   line sensors count (a junction's side line beside the box is not the
+   line).  Until 8 Nov: a fixed distance for a box up to 150 mm deep
+   (D_MAX_MM, team assumption A9); tools/bypasssim.py: a 250 mm deep box
+   was hit that way.  The side look never saw the box: that fixed
+   distance.  A sonar fault counts as "box still there" (never past by
+   mistake).
+   1 = line met, 0 = past the box (turn back to the line), -1 = halted */
+#define SIDE_SEEN_PAST_LINE_MM	50	/* an echo nearer than the line + this
+					   is the box */
+#define SIDE_MISS_PINGS		3
+#define SIDE_EXTRA_MM		300	/* on at most this past x_pass while
+					   still beside the box */
+#define SIDE_BEAM_TAN_X1000	176	/* tan 10 deg: the beam (about +-15 deg)
+					   still hears the box's back corner
+					   after the sonar has passed it; take
+					   back 10 deg of that (bypasssim: tight
+					   curves behind the box missed without) */
+LOCAL INT pass_box(INT sgn, INT front, INT y_off, INT x_pass)
+{
+	UB	msg[TELE_TEXT_MAX];
+	BOOL	side = (S5_SERVO_SIDE_DEG > 0), seen = FALSE, past = FALSE;
+	BOOL	never = FALSE, line_on;
+	INT	thr = y_off + SIDE_SEEN_PAST_LINE_MM;
+	INT	line_from = front + D_MAX_MM + 30;	/* without the side look */
+	INT	first = 0, last = 0, dlast = 0, miss = 0, stop_at = 0, dist, done, d, r = -1;
+	UW	t_ping;
+	W	odo0;
+	MOTION_STATUS st;
+
+	/* how far it may go: the way ahead must be clear */
+	dist = x_pass + (side ? SIDE_EXTRA_MM : 0);
+	d = sonar_ping_mm();
+	if (d == SONAR_FAULT || (d >= 0 && d - MARGIN_MM < x_pass)) {
+		halt("bypass leg 4 blocked");
+		return -1;
+	}
+	if (d >= 0 && d - MARGIN_MM < dist) dist = d - MARGIN_MM;
+
+	if (side) servo_look_side(-sgn);		/* the box is on the other side */
+	odo0 = motion_odometer();
+	if (motion_drive(S5_FOLLOW_SPEED, dist) < E_OK) goto out;
+	sonar_ping_start();
+	t_ping = app_time_us();
+	while (1) {
+		if (app_stop_reasons() != 0u) goto out;
+		done = (INT)S2_COUNTS_TO_MM(motion_odometer() - odo0);
+
+		if (side && app_time_us() - t_ping >= 60000u) {
+			d = sonar_ping_result();
+			sonar_ping_start();
+			t_ping = app_time_us();
+			if (d == SONAR_FAULT || (d >= 0 && d < thr)) {
+				if (!seen) first = done;
+				seen = TRUE;
+				last = done;
+				if (d >= 0) dlast = d;
+				miss = 0;
+			} else if (seen && !past && ++miss >= SIDE_MISS_PINGS) {
+				past = TRUE;
+				/* the box's back: where the sonar was at the
+				   last echo, less a little of the beam */
+				stop_at = last + S5_SONAR_TO_AXLE_MM -
+					  dlast * SIDE_BEAM_TAN_X1000 / 1000 +
+					  S2_ROBOT_WIDTH_MM / 2 + MARGIN_MM;
+				tm_sprintf(msg, (const UB*)"side look: box beside for %d mm, "
+					   "past it %d mm along", last - first, done);
+				say(msg);
+			}
+			if (!seen && !never && done > front + D_MAX_MM + 60) {
+				never = TRUE;
+				say((const UB*)"side look never saw the box: assuming "
+				    "it is at most 150 mm deep");
+			}
+		}
+		line_on = past || ((!side || never) && done >= line_from);
+		if (line_on && line_any_black()) { r = 1; break; }
+		if (past && done >= stop_at) { r = 0; break; }
+		if (never && done >= x_pass) { r = 0; break; }
+		motion_get_status(&st);
+		if (st.result != MOT_RES_BUSY) {
+			if (st.result != MOT_RES_DONE) goto out;
+			if (!side) { r = 0; break; }	/* drove x_pass */
+			motion_halt();
+			servo_set_angle(90);
+			halt(past ? "no room past the box" :
+			     "still beside the box at the end of the leg (box too long?)");
+			return -1;
+		}
+		tk_dly_tsk(5);
+	}
+	motion_halt();
+	wait_still();
+	if (side) servo_set_angle(90);
+	return r;
+out:
+	motion_halt();
+	if (side) servo_set_angle(90);
+	halt("bypass step did not finish");
+	return -1;
+}
+
 /* Spin slowly by up to deg; stop when a line sensor sees black after
    SPIN_IGNORE_DEG.  1 = found, 0 = turned it all, -1 = failed */
 LOCAL INT spin_until_line(INT deg)
@@ -400,21 +507,20 @@ LOCAL void on_obstacle(void)
 		   (sgn > 0) ? "LEFT" : "RIGHT", w_plan, y_off, x_pass);
 	say(msg);
 
-	/* legs 1-4.  The leg past the box watches the line sensors once
-	   they are past the back of the deepest box (D_MAX_MM): a line that
-	   curves toward this side behind the box is met there.  Not before:
-	   8 Nov the box stood on a junction and this leg met the junction's
-	   side line beside the box ("line met beside the box, 599 mm along"
-	   = 14 cm past its front) and followed it away (tools/bypasssim.py,
-	   boxes on a junction).  Until 8 Nov it watched from the box's front. */
+	/* legs 1-4.  The leg past the box (pass_box) watches the line
+	   sensors once the robot is past the box's back: a line that curves
+	   toward this side behind the box is met there.  Not before: 8 Nov
+	   the box stood on a junction and this leg met the junction's side
+	   line beside the box ("line met beside the box, 599 mm along" = 14
+	   cm past its front) and followed it away (tools/bypasssim.py, boxes
+	   on a junction).  Until 8 Nov it watched from the box's front. */
 	if (!mv(motion_turn(sgn * 90))) goto fail;
 	if (!ahead_clear(y_off)) { halt("bypass leg 2 blocked"); return; }
 	if (!mv(motion_drive(S5_FOLLOW_SPEED, y_off))) goto fail;
 	if (!mv(motion_turn(-sgn * 90))) goto fail;
-	if (!ahead_clear(x_pass)) { halt("bypass leg 4 blocked"); return; }
 	odo0 = motion_odometer();
-	found = drive_until_line(x_pass, p.front_mm + D_MAX_MM + 30);
-	if (found < 0) goto fail;
+	found = pass_box(sgn, p.front_mm, y_off, x_pass);
+	if (found < 0) return;			/* halted, reason given */
 	if (found) {
 		tm_sprintf(msg, (const UB*)"line met behind the box, %d mm along",
 			   (INT)S2_COUNTS_TO_MM(motion_odometer() - odo0));

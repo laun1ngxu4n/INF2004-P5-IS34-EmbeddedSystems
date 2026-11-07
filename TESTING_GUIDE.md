@@ -128,11 +128,13 @@ send the log (a motor or encoder wire differs from bring-up).
    both sides`; at the end `junctions this run: right R, left L, both B`.
    If it wobbles off the line on curves: `STEER_SMALL` / `STEER_HARD` in
    `subsystem3/task_line.c`.
-   **One place at a time (S3-L03..L07)**: then 5 short runs, each
+   **One place at a time (S3-L03..L09)**: then 7 short runs, each
    prompts where to put the robot: 20 cm before a left branch, a right
-   branch, a T end; the start of the tightest right curve and left curve.
-   Each prints its own PASS/FAIL. No such place on the track: START, then
-   STOP at once, and write "not on the track" in the log.
+   branch, a T end; the start of the tightest right curve and left curve;
+   20 cm before a gap in the line (track 2); and on a straight with a
+   black card held under S once it moves (it must stop with `LINE SENSOR
+   FAULT`). Each prints its own PASS/FAIL. No such place on the track:
+   START, then STOP at once, and write "not on the track" in the log.
    Left branches: every first bar under B prints `B patch 19.8 mm (...)`;
    a left branch must show about 20 mm. Nothing printed = B does not pass
    over the branch (move B, or its pot).

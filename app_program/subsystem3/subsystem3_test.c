@@ -132,6 +132,14 @@ LOCAL INT follow_and_watch(INT secs, INT max_mm, INT *junc, INT *lost,
 				tm_printf((UB*)"[S3] LINE LOST, stopping\n");
 				break;
 			}
+			if (last_state == LINE_FAULT) {
+				(*lost)++;
+				tm_printf((UB*)"[S3] LINE SENSOR FAULT: %s, stopping\n",
+					  (line_fault() == LINE_FAULT_S) ?
+					  "S black too long (stuck black?)" :
+					  "C did not change for 3 m (stuck?)");
+				break;
+			}
 		}
 		/* What the barcode reader is doing */
 		if (motion_scan_phase() != ph) {
@@ -176,6 +184,7 @@ LOCAL INT follow_and_watch(INT secs, INT max_mm, INT *junc, INT *lost,
 		}
 	}
 	motion_halt();
+	line_set_enabled(FALSE);	/* the next run starts clean */
 	tm_printf((UB*)"[S3] barcode sensor B: %d edges this run "
 		  "(0 = it never saw black)\n", (INT)(barcode_edges() - e0));
 	tm_printf((UB*)"[S3] junctions this run: right %d, left %d, both sides %d\n",
@@ -211,6 +220,7 @@ EXPORT void subsystem3_stage_test(void)
 		static const struct {
 			const char *id, *where, *pass;
 			INT max_mm, want_r, want_l, want_b;
+			BOOL want_fault;	/* TRUE: must stop with LINE_FAULT_S */
 		} pl[] = {
 			{"S3-L03", "about 20 cm before a branch to the LEFT (the line "
 			 "goes on), no barcode next to it", "exactly 1 junction, branch left",
@@ -225,6 +235,13 @@ EXPORT void subsystem3_stage_test(void)
 			 "branches", "no junction and no line lost", 1200, 0, 0, 0},
 			{"S3-L07", "at the start of the tightest LEFT curve with no "
 			 "branches", "no junction and no line lost", 1200, 0, 0, 0},
+			{"S3-L08", "about 20 cm before a GAP in the line (track 2), "
+			 "after a straight", "drives across, no line lost, no junction",
+			 450, 0, 0, 0},
+			{"S3-L09", "on a straight. Once it moves, hold a black card "
+			 "under S (the RIGHT line sensor) and keep it there (walk along)",
+			 "stops with LINE SENSOR FAULT (S black too long) within "
+			 "about 20 cm", 1000, 0, 0, 0, TRUE},
 		};
 		INT i;
 
@@ -238,9 +255,14 @@ EXPORT void subsystem3_stage_test(void)
 			test_wait_start("Robot placed as above (no such place: START, "
 					"then STOP at once).");
 			follow_and_watch(30, pl[i].max_mm, &j, &l, &o, &f);
-			TEST_CHECK(pl[i].id, l == 0 && j_right == pl[i].want_r &&
-				   j_left == pl[i].want_l && j_both == pl[i].want_b,
-				   pl[i].pass);
+			if (pl[i].want_fault) {
+				TEST_CHECK(pl[i].id, line_state() == LINE_FAULT &&
+					   line_fault() == LINE_FAULT_S, pl[i].pass);
+			} else {
+				TEST_CHECK(pl[i].id, l == 0 && j_right == pl[i].want_r &&
+					   j_left == pl[i].want_l && j_both == pl[i].want_b,
+					   pl[i].pass);
+			}
 		}
 	}
 

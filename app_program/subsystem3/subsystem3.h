@@ -88,7 +88,12 @@ IMPORT INT	line_steer_mm_s(void);
 #define LINE_ON		0	/* centre on the line */
 #define LINE_SEARCH	1	/* centre lost, steering back */
 #define LINE_LOST	2	/* lost for more than S3_LOST_MM */
+#define LINE_FAULT	3	/* a line sensor looks stuck (line_fault() says
+				   which); Mission stops as for LINE_LOST */
 IMPORT INT	line_state(void);
+#define LINE_FAULT_C	1	/* C did not change for S3_STUCK_C_MM */
+#define LINE_FAULT_S	2	/* S black for S3_STUCK_S_MM */
+IMPORT INT	line_fault(void);		/* LINE_FAULT_... or 0 */
 IMPORT UW	line_junctions(void);		/* junctions seen since boot */
 IMPORT W	line_junction_odo(void);	/* last junction's centre, where C
 						   crossed it (odometer counts) */

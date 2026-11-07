@@ -59,8 +59,12 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
   1.2-2.1 m only because the track was too short. **Needs a 3 m line.**
 - [ ] 🟡 **S3-L02** junction count = real count. Side-to-side movement can
   give false junctions; count the real ones and compare.
-- [ ] ⬜ **S3-L03..L07** (new, 6 Nov logic): left branch, right branch, T end,
-  right curve, left curve, one place at a time; each prints PASS/FAIL.
+- [ ] ⬜ **S3-L03..L09** (new, 6-7 Nov logic): left branch, right branch, T end,
+  right curve, left curve, gap (track 2), stuck S (black card under S);
+  one place at a time, each prints PASS/FAIL. The track photos are in
+  `docs/track/`: track 3 (foam tiles) has tight curves (about 15 cm)
+  and an X crossing, but no single branch or T end unless tiles are
+  turned to make one.
 - [ ] 🟡 **S3-B01..B03** barcodes: best run read 7 of the 29 bars of `*F*`
   correctly ("3.3 3.2 10.0 3.5 9.9 3.8 2.6" mm), then steering moved the
   sensor off the bars. Latest build drives straight during the slow read:

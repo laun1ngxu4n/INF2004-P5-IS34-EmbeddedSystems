@@ -11,6 +11,9 @@
  *	  centre white, left white   left of the line (or lost): steer right,
  *	                             LINE_LOST after S3_LOST_MM
  *	This needs S just beside the tape edge (S3_S_GAP_MM in subsystem3.h).
+ *	Gap in the line (after straight following): straight on S3_GAP_MM.
+ *	Stuck sensor (S black S3_STUCK_S_MM, or C unchanged S3_STUCK_C_MM of
+ *	driving): LINE_FAULT, Mission stops.
  *
  *	Junctions (see subsystem3.h), the line goes on after them:
  *	  S side branch: coming from "C only", both black for about one tape
@@ -56,19 +59,31 @@
 #define S3_ARM_OFF_MM		(S3_TAPE_MM)		/* C leaves at half a tape
 							   + the filter delay */
 #define S3_ARM_AFTER_MM		(S3_TAPE_MM + 10)
+/* Gap in the line: C leaves it while S stays white, after S3_GAP_STRAIGHT_MM
+   of straight following: drive straight on for up to S3_GAP_MM before
+   searching (searching turns away from S, which is wrong over a gap). */
+#define S3_GAP_MM		40
+#define S3_GAP_STRAIGHT_MM	50
+/* Stuck sensor (while driving; distance only, so standing still never
+   trips it): S black this far = stuck black (the robot would circle or
+   spin for ever); C unchanged this far = stuck (black: drives off). */
+#define S3_STUCK_S_MM		200
+#define S3_STUCK_C_MM		3000
 /* T end: the right arm waits this long for B (behind: until B is past) */
 #define S3_TEND_KEEP_MM		(((S3_BAR_AHEAD_MM < 0) ? -S3_BAR_AHEAD_MM : 0) + 40)
 
 LOCAL volatile INT	steer;
 LOCAL volatile INT	state = LINE_ON;
 LOCAL volatile UW	junctions;
-LOCAL volatile BOOL	enabled = TRUE;
+LOCAL volatile BOOL	enabled = FALSE;	/* until a start (Mission or a test) */
 LOCAL volatile BOOL	centre_on = TRUE;	/* filtered centre sensor */
 LOCAL volatile W	junc_odo;		/* last junction centre (C) */
 LOCAL volatile INT	junc_sides;
 
 EXPORT INT line_steer_mm_s(void)	{ return steer; }
 EXPORT INT line_state(void)		{ return state; }
+LOCAL volatile INT	fault_why;
+EXPORT INT line_fault(void)		{ return fault_why; }
 EXPORT UW line_junctions(void)		{ return junctions; }
 EXPORT BOOL line_center_black(void)	{ return app_gpio_get(PIN_IR_CENTER) == IR_BLACK; }
 EXPORT void line_set_enabled(BOOL on)	{ enabled = on; }
@@ -172,7 +187,7 @@ EXPORT void line_task(INT stacd, void *exinf)
 {
 	W	lost_from = 0, both_from = 0;
 	INT	search_n = 0;		/* periods spent searching */
-	BOOL	both = FALSE, was_enabled = TRUE, both_clean = FALSE;
+	BOOL	both = FALSE, was_enabled = FALSE, both_clean = FALSE;
 	INT	last_side = 0;		/* +1 line last seen to the left, -1 right */
 	UW	stable = 1u, cand = 1u;	/* filtered sensor pattern: bit 1 side, bit 0 centre */
 	INT	cand_n = 0, out = 0;
@@ -183,6 +198,10 @@ EXPORT void line_task(INT stacd, void *exinf)
 	W	mc;
 	INT	mw;
 	UW	mark_seen = barcode_mark(&mc, &mw);
+	BOOL	gap = FALSE;		/* driving straight over a gap */
+	W	gap_from = 0, straight_from = 0;
+	BOOL	c_raw_prev = FALSE, s_black = FALSE;
+	W	c_same_from = 0, s_black_from = 0;
 
 	(void)stacd; (void)exinf;
 	hist_reset(motion_odometer(), TRUE);
@@ -209,6 +228,14 @@ EXPORT void line_task(INT stacd, void *exinf)
 			tend_s = tend_b = bpend = FALSE;
 			hist_reset(odo, (pat & 1u) != 0u);
 			mark_seen = barcode_mark(&mc, &mw);	/* drop old patches */
+			gap = FALSE;
+			straight_from = c_same_from = odo;
+			c_raw_prev = c;
+			s_black = FALSE;
+			if (state == LINE_FAULT) {	/* a new start: check again */
+				state = LINE_ON;
+				fault_why = 0;
+			}
 		}
 		was_enabled = enabled;
 
@@ -244,6 +271,19 @@ EXPORT void line_task(INT stacd, void *exinf)
 		   waits for C to get past */
 		hold_t = enabled && tend_s && (S3_BAR_AHEAD_MM < 0 || bpend);
 
+		/* Gap: straight from "C only" to both white, after straight
+		   following.  (A drift right also looks like this; 40 mm
+		   straight on at a 5 deg drift adds 3.5 mm.)  Ends when either
+		   sensor sees black, or after S3_GAP_MM: then the usual search. */
+		if (enabled && !gap && !fc && !fl && prev_stable == 1u && !tend_s &&
+		    odo - straight_from >= MM(S3_GAP_STRAIGHT_MM)) {
+			gap = TRUE;
+			gap_from = odo;
+		}
+		if (gap && (fc || fl || !enabled || odo - gap_from >= MM(S3_GAP_MM))) {
+			gap = FALSE;
+		}
+
 		/* Steering, from the filtered pattern */
 		if (fc && !fl) {
 			s = 0;
@@ -260,7 +300,7 @@ EXPORT void line_task(INT stacd, void *exinf)
 			   saw it to the left */
 			s = (last_side > 0) ? STEER_HARD : -STEER_HARD;
 		}
-		if (hold_t) s = 0;
+		if (hold_t || gap) s = 0;
 		/* Build a turn up gently (STEER_STEP per period), but ease off
 		   at once: ramping down too kept the robot turning after the
 		   centre had found the line again, and it swung across
@@ -280,12 +320,15 @@ EXPORT void line_task(INT stacd, void *exinf)
 			out = target;
 		}
 		steer = out;
+		if (stable != 1u || out != 0) straight_from = odo;
 		/* Motion slows to a creep while C is off the line; not while
-		   driving straight on at a T end */
-		centre_on = fc || hold_t;
+		   driving straight on at a T end or over a gap */
+		centre_on = fc || hold_t || gap;
 
-		/* Lost / found */
-		if (c || l) {
+		/* Lost / found (a fault stays until the next start) */
+		if (state == LINE_FAULT) {
+			;
+		} else if (c || l) {
 			lost_from = odo;
 			search_n = 0;
 			if (state != LINE_ON) {
@@ -300,6 +343,32 @@ EXPORT void line_task(INT stacd, void *exinf)
 			   searching, which adds no distance */
 			state = LINE_LOST;
 			tk_set_flg(flg_mission, MSN_FLG_LINE_LOST);
+		}
+
+		/* Stuck sensor, from the raw readings, while following */
+		if (c != c_raw_prev) {
+			c_raw_prev = c;
+			c_same_from = odo;
+		}
+		if (l && !s_black) {
+			s_black = TRUE;
+			s_black_from = odo;
+		} else if (!l) {
+			s_black = FALSE;
+		}
+		if (enabled && state != LINE_FAULT) {
+			INT why = 0;
+
+			if (s_black && odo - s_black_from > MM(S3_STUCK_S_MM)) {
+				why = LINE_FAULT_S;
+			} else if (odo - c_same_from > MM(S3_STUCK_C_MM)) {
+				why = LINE_FAULT_C;
+			}
+			if (why != 0) {
+				fault_why = why;
+				state = LINE_FAULT;
+				tk_set_flg(flg_mission, MSN_FLG_LINE_LOST);
+			}
 		}
 
 		if (!enabled) {			/* turning, bypassing: no junctions */

@@ -388,7 +388,12 @@ EXPORT void mission_task(INT stacd, void *exinf)
 		} else if (mstate == M_RUN) {
 			/* barcode first: a code just before a junction counts */
 			if ((ptn & MSN_FLG_BARCODE) != 0u) on_barcode();
-			if ((ptn & MSN_FLG_OBSTACLE) != 0u) {
+			if (line_state() == LINE_FAULT) {
+				/* a stuck line sensor: nothing it says can be trusted */
+				halt((line_fault() == LINE_FAULT_S) ?
+				     "line sensor S black too long (stuck black? check its pot and cable)" :
+				     "line sensor C did not change for 3 m (stuck? check its pot and cable)");
+			} else if ((ptn & MSN_FLG_OBSTACLE) != 0u) {
 				on_obstacle();
 			} else if ((ptn & MSN_FLG_JUNCTION) != 0u) {
 				on_junction();

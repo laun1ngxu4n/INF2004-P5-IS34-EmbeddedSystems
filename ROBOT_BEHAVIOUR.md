@@ -23,6 +23,13 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
 - C off the line: slows to 20 % (about 30 mm/s) and turns back on the spot.
 - **Line lost**: C off the line for more than 250 mm or 4 s. It stops and
   reports "line lost".
+- **Gap in the line**: if C leaves the line while S stays white, after at
+  least 50 mm of straight following, it drives straight on for up to
+  40 mm before searching (searching turns away from S, which is wrong
+  over a gap).
+- **Stuck line sensor**: S black for more than 200 mm of driving, or C not
+  changing for 3 m of driving: it stops and reports which sensor. A
+  robot standing still never trips this.
 
 ### Barcodes (Code 39, barcode sensor B)
 - Inside a barcode: 50 mm/s.
@@ -113,6 +120,22 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
   setting matters, and it shifts when the robot is handled.
 - The barcode sensor is not very sensitive; bars only read reliably at
   low speed and straight across.
+- **IR: what can go wrong** (and what covers it):
+
+  | Risk | Covered by |
+  |---|---|
+  | Pot set wrong, or shifted by handling | nothing in code: IR live view before every session |
+  | Paper and foam reflect differently | nothing in code (analogue B learns its levels): live view on each surface |
+  | Room light, sunlight, glossy tape | nothing: try once near a window |
+  | Sensor stuck black | stop after 200 mm (S) or 3 m (C) of driving |
+  | Sensor stuck white / cable out | "line lost" stop |
+  | Tape between C and S (gap too wide) | build: S about 15 mm from C |
+  | Tight curves (about 15 cm on the foam track) | slow to 20 % and turn when C is off; S3-L06/L07 |
+  | Gap in the line | straight on 40 mm; S3-L08 |
+  | Branch met while correcting, or at an angle, or on a curve | may be missed; S3-L02 count |
+  | Foam tile joins, grout, marks about 20 mm under B | could look like a left arm; watch `B patch` prints |
+  | Another track line within 70 mm of the robot's path | B could see it as a left arm; watch `B patch` prints |
+  | Barcode under 40 mm from a left branch | both lost |
 - Sonar beam is about 30 deg wide: it "sees" a box well past its edge, so
   widths are only as good as the beam correction (`S5_BEAM_HALF_DEG`).
   Round or soft objects reflect badly.
@@ -133,6 +156,8 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
   point (drives straight 115 mm) is less accurate. **Not tried on the
   robot yet.**
 - Line lost = stop. It does not search for the line again.
+- A gap longer than about 40 mm, or a gap right after a curve (no 50 mm
+  of straight before it), is not crossed: it searches and may stop.
 - The bypass is a fixed rectangle planned for boxes up to 200 mm wide and
   150 mm deep; it assumes nothing else is next to the obstacle.
 - A ramp is only reported once the robot is level again for 100 mm. On a
@@ -185,5 +210,7 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
 - [ ] Left junctions seen by B, T ends, crossroads merged, steering hold
   against false junctions, slower approach after a barcode (6 Nov): not
   tried on the robot (S3-L03..L07).
+- [ ] Gap crossing and stuck-sensor stop (7 Nov): not tried on the robot
+  (S3-L08, S3-L09).
 - [ ] S1-T02: remote START/STOP 3 of 5 rounds (all passed).
 - [ ] Stage 1 and later results not yet written into the `testing/*/TEST_LOG.md` tables.

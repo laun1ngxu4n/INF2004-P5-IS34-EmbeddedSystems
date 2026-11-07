@@ -14,9 +14,9 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
 |---|---|---|---|
 | 0 | RTOS timing, all 8 tasks | B1 | ✅ passed 26 Oct |
 | 1 | Motion + STOP | B2 | ✅ passed 1 Nov |
-| 2A | Line following + junctions | B3 | 🟡 follows well (7 Nov, third run); 3 m, X crossing and left branch not shown yet |
-| 2B | Barcodes | B3 | 🟡 partial reads, no full decode yet; S3-B00 straight read to run next |
-| 2C | Junction moves from barcodes | B3 + B5 | ⬜ needs 2B; mapping now picked in the panel (8 Nov) |
+| 2A | Line following + junctions | B3 | 🟡 follows well; crossings now detected while correcting (8 Nov); 3 m run, X crossing / left branch tests not shown |
+| 2B | Barcodes | B3 | 🟡 F and A decode, driving straight and while following (8 Nov); not every pass (paper not taped down); forgiving decode added, not run yet |
+| 2C | Junction moves from barcodes | B3 + B5 | 🟡 first U-turn from a barcode 8 Nov (spun ~190 deg, fixed, not run); left/right moves and the unmapped stop not shown |
 | 3 | Obstacle: sonar, servo, width, bypass | B5 | ✅ bypass passed 8 Nov (box on a junction, no contact, back on the line); width reads somewhat wide (planned for anyway) |
 | 4 | IMU + ramp height | B4 | 🟡 2 of 7 runs within ±5 mm on the 10 mm hump; hump not held down |
 | 5 | Telemetry + MQTT | B1 | ✅ passed 2 Nov (START/STOP 3 of 5 rounds) |

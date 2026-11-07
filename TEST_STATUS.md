@@ -281,6 +281,16 @@ than the robot, so the robot tips over it instead of driving up a slope.
   - Ask: is this block the lab's lower practice ramp? An accelerometer
     cannot measure a hump much shorter than the robot reliably; a real
     slope is much easier.
+  **Run 7 Nov (over WiFi), two humps in one run:** crossed at about
+  230-480 mm and 830-1400 mm, **neither reported**: the tilt went mostly
+  nose-down (-120 and -196: the drive wheels climbing after the front
+  support, plus braking on impact, which the accelerometer reads as
+  tilt), 157 readings skipped as jolts (1.6 s with the tilt held), and
+  the 0.5 s trace missed the short nose-up (peak 302, L x sin 24 mm: a
+  jolt, not the 10 mm hump). **Changed the same day:** start 20 cm before
+  the ramp, the run ends 30 cm after the last one, each ramp printed as a
+  bump (nose-up / nose-down peaks, L x sin, climb, jolts) with a 10 ms
+  trace while on it. Not run yet.
 - [x] ✅ **L measured: 80 mm** (`S4_L_MM`), same as the guess
 - Note for B4: a hard STOP can give a false ramp report (braking tilt)
 

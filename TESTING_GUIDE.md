@@ -213,11 +213,15 @@ send the log (a motor or encoder wire differs from bring-up).
 0. First measure the lower practice ramp (height, length, flat top?).
 1. `[TEST] S4-I01 PASS` = IMU found. Tilt view: lifting the front must
    change `sin(pitch)`.
-2. **S4-R01**: 5 runs. Robot level, about 30 cm before the ramp, aimed
-   straight at it. START: it calibrates 1 s, drives 1.5 m and prints
-   `reported ramp height H mm`. Pass: within +/- 5 mm of the measured
-   height in 5/5 runs. Systematic error: send me the 5 numbers.
-   The `[EVT]` line also gives `L*sin(peak pitch)`, a second estimate.
+2. **S4-R01**: 5 runs. Robot level, about 20 cm before the (first) ramp,
+   aimed straight at it; one or two ramps in a run are fine. **Hold each
+   ramp down.** START: it calibrates 1 s, then drives until 30 cm after
+   the last ramp (at most 1.5 m). For every ramp it prints `[S4] bump N:
+   from-to mm, nose-up peak, nose-down peak, L x sin(up) H mm, climbed C
+   mm, J readings skipped as jolts`, and while on it a `[S4T]` line every
+   10 ms. Pass: L x sin(up) (a hump shorter than the robot) or the
+   reported ramp height (a real slope) within +/- 5 mm of the measured
+   height. Send the log and the measured heights.
 
 ### Stage 5: telemetry + MQTT (demo image), owner B1
 

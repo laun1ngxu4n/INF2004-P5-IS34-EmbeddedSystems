@@ -15,6 +15,7 @@
  *	file's size_t workaround -- tm/tmonitor.h alone is namespace-safe here.
  */
 
+#include <string.h>
 #include "lwip/apps/mqtt.h"
 #include "lwip/ip_addr.h"
 #include "lwip/timeouts.h"
@@ -105,8 +106,12 @@ static void incoming_data_cb(void *arg, const u8_t *data, u16_t len, u8_t flags)
 
 	if((flags & MQTT_DATA_FLAG_LAST) != 0) {
 		rx_data[rx_len] = '\0';
-		tm_printf((UB*)"mqtt: RX [%s] \"%s\"%s\n", rx_topic, rx_data,
-			  rx_truncated? " (truncated)": "");
+		if(rx_topic[0] != MQTT_TOPIC[0] ||
+		   strcmp(rx_topic, MQTT_TOPIC) != 0 ||
+		   strcmp((const char *)rx_data, "hb 0") == 0) {
+			tm_printf((UB*)"mqtt: RX [%s] \"%s\"%s\n", rx_topic, rx_data,
+				  rx_truncated? " (truncated)": "");
+		}
 		app_mqtt_rx(rx_topic, rx_data, rx_len);
 	}
 }
@@ -138,8 +143,13 @@ static void heartbeat_timeout(void *arg)
 	(void)arg;
 
 	if(mqtt_client_is_connected(client)) {
+		/* P5-IS34: only the first one is printed: one pair every 5 s
+		 * filled the robot log (is34/log) */
+		if(count == 0) {
+			tm_printf((UB*)"mqtt: TX [" MQTT_TOPIC "] \"hb 0\" (heartbeat "
+				  "every %d s, not printed)\n", MQTT_UTK_HEARTBEAT_MS / 1000);
+		}
 		len = tm_sprintf(payload, (const UB*)"hb %u", count++);
-		tm_printf((UB*)"mqtt: TX [" MQTT_TOPIC "] \"%s\"\n", payload);
 		(void)mqtt_publish(client, MQTT_TOPIC, payload, (u16_t)len,
 				   0 /* qos */, 0 /* retain */,
 				   publish_done_cb, NULL);
@@ -151,20 +161,35 @@ static void heartbeat_timeout(void *arg)
 	sys_timeout(MQTT_UTK_HEARTBEAT_MS, heartbeat_timeout, NULL);
 }
 
-/* P5-IS34: publish one queued application message per poll */
+/* P5-IS34: publish one queued application message per poll.  A message
+ * mqtt_publish() refuses (ERR_MEM: its output buffer is still full while
+ * TCP waits for the laptop's ACK over the hotspot) is kept and offered
+ * again on the next poll instead of being dropped: on 7 Nov about one
+ * robot log message in 20 was lost that way.  Given up after
+ * IS34_RETRY_MAX polls (the link is gone; mqtt.c reconnects). */
+#define IS34_RETRY_MAX          30      /* x IS34_PUMP_MS = 3 s */
+
 static void is34_pump_timeout(void *arg)
 {
 	static char	topic[IS34_TOPIC_MAX];	/* static: off the WiFi task stack */
 	static UB	payload[IS34_PAYLOAD_MAX];
-	int		len;
+	static int	len = 0;		/* > 0: a message waiting */
+	static int	tries = 0;
+	err_t		err;
 
 	(void)arg;
 	if(mqtt_client_is_connected(client)) {
-		len = app_mqtt_tx(topic, sizeof(topic), payload, sizeof(payload));
+		if(len <= 0) {
+			len = app_mqtt_tx(topic, sizeof(topic), payload, sizeof(payload));
+			tries = 0;
+		}
 		if(len > 0) {
-			(void)mqtt_publish(client, topic, payload, (u16_t)len,
+			err = mqtt_publish(client, topic, payload, (u16_t)len,
 					   0 /* qos */, 0 /* retain */,
 					   publish_done_cb, NULL);
+			if(err == ERR_OK || ++tries >= IS34_RETRY_MAX) {
+				len = 0;
+			}
 		}
 	}
 	sys_timeout(IS34_PUMP_MS, is34_pump_timeout, NULL);

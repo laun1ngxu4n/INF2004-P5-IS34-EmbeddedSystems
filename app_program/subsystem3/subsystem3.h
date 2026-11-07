@@ -42,9 +42,12 @@
 					   modules); the live view shows it */
 /* Fixed thresholds (raw 0..4095): 0 = learn them from the white and black
    levels seen (the live view prints them to copy here).  From the 7 Nov
-   live view: white 250-570, black about 4040; it suggested 2496 / 1718. */
-#define S3_BAR_ADC_ON		2500	/* black from here (above, if BLACK_HIGH) */
-#define S3_BAR_ADC_OFF		1700	/* white again from here */
+   live view: white 170-570, tape about 4040.  But printed bars read much
+   greyer (S3-B00, 7 Nov: wide bars peaked at only 2400-3300, narrow ones
+   did not reach 2100 at all), so 2500 / 1700 lost bars: lowered to sit
+   just above the whitest white. */
+#define S3_BAR_ADC_ON		1300	/* black from here (above, if BLACK_HIGH) */
+#define S3_BAR_ADC_OFF		800	/* white again from here (white up to 570) */
 #define S3_BAR_MIN_SPAN		400	/* learned: black-white gap needed before
 					   anything counts as black */
 

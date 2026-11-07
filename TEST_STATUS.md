@@ -106,10 +106,27 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
   "A small") and one at the follow speed 120 mm/s: with no reread, the
   first bars are met at that speed, so run 4 matters too. Prints the elements, the decode
   and (analogue) each bar's darkest and each space's lightest reading;
-  `!` marks a bar that never reached 2500 or a space that never dropped
-  below 1700. Run this before S3-B01..B03: it separates sensor and
-  decoder problems from steering problems. Each Stage 2 section (2A,
-  B00, 2B, 2C) now asks first: START = run it, STOP = skip it.
+  `!` marks a bar that never reached black (`S3_BAR_ADC_ON`) or a space
+  that never got back to white (`S3_BAR_ADC_OFF`). Run this before
+  S3-B01..B03: it separates sensor and decoder problems from steering
+  problems. Each Stage 2 section (2A, B00, 2B, 2C) now asks first:
+  START = run it, STOP = skip it.
+  - **7 Nov, first run over WiFi (`robot_log_20261107_1509`), run 1
+    FAIL:** 17 bars and spaces instead of 29, with spaces of 24 and 30
+    mm inside the code (a code has none over ~11 mm). Paper reads 170-220,
+    but the printed wide bars peaked at only 2400-3300 (tape: ~4000), two
+    of them under the 2500 threshold, and the narrow bars evidently never
+    reached the profile's 2100 split. Bars came out narrow (2.2 mm narrow,
+    6-8 mm wide; 3.3 / 10 expected). So the print is grey to the IR sensor,
+    and/or B sits too high and blurs the bars. **Thresholds lowered to 1300
+    / 800 the same day**; check B's height above the floor (TCRT5000 best
+    about 2-4 mm) and whether the cards are inkjet (dye inks can be nearly
+    invisible to IR; laser prints read black).
+  - The robot log over WiFi lost about 1 message in 20 (`[panel: N log
+    messages lost]`): the robot dropped a message whenever lwIP's MQTT
+    buffer was still full. Fixed the same day: it keeps it and sends it
+    on the next poll. The heartbeat lines (every 5 s) are no longer
+    printed.
 - [ ] 🟡 **S3-B01..B03** barcodes: best run read 7 of the 29 bars of `*F*`
   correctly ("3.3 3.2 10.0 3.5 9.9 3.8 2.6" mm), then steering moved the
   sensor off the bars. Latest build drives straight during the slow read:

@@ -127,10 +127,11 @@ send the log (a motor or encoder wire differs from bring-up).
    the tape: L 0 and R 0.
    **B is on its analogue output since 7 Nov** (AO to GP28, module on
    **3V3, not 5 V**); every image is built that way (`S3_BARCODE_ANALOG 1`)
-   with fixed thresholds from the 7 Nov live view (black from 2500, white
-   below 1700). B's pot does nothing. The live view prints the lowest and
-   highest reading each second: white must stay under 1700 everywhere
-   (paper, foam, tile joins), black over 2500. If not, send the lines to
+   with fixed thresholds (black from 1300, white below 800: printed bars
+   read much greyer than tape, S3-B00 on 7 Nov). B's pot does nothing.
+   The live view prints the lowest and highest reading each second:
+   white (paper, foam) must stay under 800, printed bars over 1300. If
+   not, send the lines to
    B3. B shows 1 over white = `S3_BAR_BLACK_HIGH 0`. Back to the digital
    D0 on GP2: `S3_BARCODE_ANALOG 0` and rebuild every image.
 2. **2A, S3-L01 / S3-L02**: robot on the line, START, let it run (up to
@@ -164,8 +165,8 @@ send the log (a motor or encoder wire differs from bring-up).
    still reads). Each prints `code ended, N elements
    (mm): ...` (groups of 10 = one character), the decode, and a `B
    profile`: every bar `B` and space `s` with its width and its darkest
-   or lightest reading. `!` = a bar that never reached black (2500) or a
-   space that never got back to white (1700): the sensor's spot is wider
+   or lightest reading. `!` = a bar that never reached black (1300) or a
+   space that never got back to white (800): the sensor's spot is wider
    than that bar or space. Then B must be lower (closer to the floor), or
    the thresholds moved: send the log to B3. Pass: `S3-B00 PASS` on runs
    1-3.

@@ -3,6 +3,9 @@
     python tools/sonarcheck.py robot_log.txt [more logs]
     python tools/sonarcheck.py testing/subsystem5/scans_7nov.txt
 
+Then it combines scans 1+2, 3+4, ... (a log's scans come in pairs: near,
+then 100 mm further back) the way obstacle_combine does.
+
 For each scan it prints the width with the old rule (until 8 Nov: within
 IN_MM of the straight-ahead distance) and with the "geometry" rule that
 task_obstacle.c side_edge uses since 8 Nov:
@@ -29,13 +32,22 @@ GEO_TOL_FRAC = 0.04
 CENTRE_DEG = 10          # within this, any echo near front is the box
 
 
+LABELS = []              # per scan: 1 / 2 from a "... scan 1" line before it, else None
+
+
 def parse(paths):
     scans = []
     for p in paths:
+        label = None
         for line in open(p, encoding='utf-8', errors='replace'):
             if '[SCAN] rays' in line:
                 pairs = re.findall(r'(-?\d+):(-?\d+)', line.split(':', 1)[1])
                 scans.append([(int(a), int(b)) for a, b in pairs])
+                LABELS.append(label)
+                label = None
+            else:
+                m = re.search(r'scan ([12])\s*$', line)
+                label = int(m.group(1)) if m else None
     return scans
 
 
@@ -87,6 +99,31 @@ def edges(rays, rule):
     return front, res
 
 
+def pairs(scans):
+    """scans 1+2, 3+4, ...: combined as obstacle_combine does since 8 Nov
+    (each edge from the scan that saw it; both saw it: the nearer scan's)"""
+    print()
+    print('pairs (nearer scan first), geometry rule, combined:')
+    n = 0
+    while n < len(scans) - 1:
+        if LABELS[n] is not None and (LABELS[n] != 1 or LABELS[n + 1] != 2):
+            n += 1                       # labelled file: a try with one scan only
+            continue
+        ra, rb = edges(scans[n], 'geometry'), edges(scans[n + 1], 'geometry')
+        n += 2
+        if ra is None or rb is None:
+            continue
+        out = {}
+        for side in ('L', 'R'):
+            ea, eb = ra[1][side][0], rb[1][side][0]
+            out[side] = ea if ea is not None else eb     # the first (nearer) scan's
+        if out['L'] is None or out['R'] is None:
+            txt = 'an edge seen by neither scan'
+        else:
+            txt = f"{out['L'] - out['R']:4.0f} mm (L {out['L']:.0f} R {out['R']:.0f})"
+        print(f'scans {n - 1:2d}+{n:2d} (front {ra[0]} / {rb[0]}): {txt}')
+
+
 def main():
     scans = parse(sys.argv[1:])
     print(f'{len(scans)} scans')
@@ -108,6 +145,7 @@ def main():
                 txt = f'{l - rr:4.0f} mm'
             out.append(txt)
         print(f'scan {n:2d} front {rays[len(rays)//2][1]:5d}:  old rule {out[0]:28s} geometry {out[1]}')
+    pairs(scans)
 
 
 if __name__ == '__main__':

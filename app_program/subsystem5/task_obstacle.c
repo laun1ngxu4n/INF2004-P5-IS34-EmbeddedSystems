@@ -310,11 +310,12 @@ LOCAL void pick_edge(INT ea, INT ua, BOOL sa, BOOL ca, INT eb, INT ub, BOOL sb, 
 		     INT *e, INT *u, BOOL *seen, BOOL *clear)
 {
 	if (sa && sb) {
-		INT half = (ea > eb) ? (ea - eb) / 2 : (eb - ea) / 2;
-
-		*e = (ea + eb) / 2;
-		*u = (ua + ub) / 2;
-		if (half > *u) *u = half;
+		/* both saw it: the nearer scan's (a).  On the 7 Nov scans the
+		   nearer of each pair always read narrower, nearer the ruler
+		   (until 8 Nov: the mean, uncertainty half the difference) */
+		(void)eb; (void)ub;
+		*e = ea;
+		*u = ua;
 		*seen = TRUE;
 		*clear = ca && cb;
 	} else if (sa || sb) {

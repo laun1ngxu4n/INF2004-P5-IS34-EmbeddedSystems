@@ -117,12 +117,17 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
 - While running: one ping straight ahead every 60 ms.
 - **Two readings in a row closer than 250 mm**: stop, wait until still.
 - No echo 5 times in a row (0.3 s): stops, "ultrasonic not answering".
-- **Backs up until the obstacle is about 350 mm away** (since 7 Nov: from
-  where it stops, 200-250 mm, a 200 mm box plus the sonar beam's ~30 deg
-  width fills the whole +-40 deg scan and its edges are never seen).
-- Scan 1: servo **40 deg left to 40 deg right in 5 deg steps** (17 rays),
-  turning slowly (2 deg per 20 ms), 5 pings per ray, median. About 6 s.
-- **Reverses 100 mm more**, scan 2 (from about 450 mm).
+- **Scan 1 from where it stopped** (200-250 mm; it backs up only if
+  nearer than 220 mm): servo **40 deg left to 40 deg right in 5 deg
+  steps** (17 rays), turning slowly (2 deg per 20 ms), 5 pings per ray,
+  median. About 6 s.
+- **Reverses 100 mm**, scan 2 (from about 350 mm).
+- Why from so near (8 Nov): with the width rule below the near scans are
+  the better ones. On the 29 real scans of 7 Nov every pair read narrower
+  from nearer; first scans 200-280 mm away combined to 138-242 mm for the
+  14.5-23 cm boxes, from about 350 mm to 218-303 mm. 7-8 Nov it first
+  backed up to 350 mm (the old width rule saw a near box across the whole
+  sweep), about 210 mm of reversing in all; now 100 mm.
 - How the width comes out: each ray gives a point (distance x sin(angle)
   to the side). A ray is "on the obstacle" when its distance fits a flat
   face square to the robot: front / cos(angle) (within 15 mm + 4 %; within
@@ -139,10 +144,10 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
   nor something else. On the 21 scans of 7 Nov (`tools/sonarcheck.py`):
   both edges found in all 21 (old rule: 6); the clean scans unchanged (218
   / 138 / 168 mm for the 20 / 14.5 / 15 cm boxes); the rest 100-340 mm.
-- Each edge is taken from the scan(s) that saw past it; a scan the
-  obstacle filled to the end of its travel says nothing about that side.
-  Reports `obstacle width W +/- U mm` (± from the 5 deg step, the beam and
-  the difference between the scans).
+- Each edge is taken from the scan that saw past it; both did: the
+  nearer scan's (scan 1). A scan the obstacle filled to the end of its
+  travel says nothing about that side. Reports `obstacle width W +/- U mm`
+  (± from the 5 deg step and the beam).
 - Plans for at least 200 mm and **at most 300 mm** of width (instructor:
   10-20 cm), and never more than 200 mm out from the line to the box edge,
   whatever the scan says.
@@ -154,10 +159,15 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
   2. out: half of max(width + U, 200 mm) + half the robot width + 100 mm
      (about 285 mm for a 150 mm box)
   3. turn back; past: distance to the box + 150 mm (deepest expected box)
-     + robot length + 100 mm (about 900 mm from the 450 mm scan
-     position). **The line sensors watch on this leg** once they are past
-     the box's front: a line that curves toward this side behind the box
-     is met here, and the robot goes straight to step 5.
+     + robot length + 100 mm (about 800 mm from the 350 mm scan
+     position: the axle ends about 180 mm past the back of a 150 mm deep
+     box, half the robot's width plus 100 mm, so it can turn and drive
+     back to the line without touching it). **The line sensors watch on
+     this leg** once they are past the back of a 150 mm deep box: a line
+     that curves toward this side behind the box is met here (`line met
+     behind the box`), and the robot goes straight to step 5. Not
+     before: 8 Nov the box stood on a junction, this leg met the
+     junction's side line beside the box and the robot followed it away.
   4. otherwise turn 90 toward the line and drive until a line sensor sees
      black, anywhere (gives up 400 mm past where the line should be)
   5. wheels onto the line (115 mm on); if a line sensor already sees the
@@ -177,6 +187,12 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
   after the last turn: just inside). The new way: 471, nothing touched
   the box. Margin 70 -> 100 mm: with spins 5 % off the robot passed a
   200 mm box 21 mm away at 70, 42 mm at 100. Not run on the robot yet.
+  **8 Nov, boxes on junctions** (the sim's side lines under the box, T
+  left / T right / X): the line watch from the box's front followed the
+  side line in most runs (5-45 of 54 right); watching only past a 150 mm
+  deep box: 54/54 each. Ordinary cases 471/486 (476 before: a few 300 mm
+  curves starting right behind the box are met too late). A junction
+  side line within about 35 cm behind the box still fools it (0/54).
 
 ### Ramp / hump (IMU)
 - Climbed height = distance driven x sin(tilt), all the time. Tilt is

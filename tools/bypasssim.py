@@ -15,10 +15,18 @@ Two rejoin methods:
        (wheels on the line); unless a sensor already sees the tape, spin
        toward the old direction until one does; follow.  Margin 100 mm.
 
-Results (8 Nov): OLD 36/486 (straight 24/54: the narrow window misses
-the line once spins are a few degrees off; curves 12/432), NEW 471/486,
-nothing touched the box (closest 44 mm).  The rest: lines that turn 90
-deg away right behind the box (not found) and a few off-line ends.
+  J    (since 8 Nov, after a box standing on a junction): as NEW, but
+       leg 4 watches only once the sensors are past the back of a 150 mm
+       deep box (a junction's side line under the box is not the line),
+       and the first scan is where the forward watch stopped.
+
+Results (8 Nov, tape 1600 mm on past the curve): OLD 36/486 (straight
+24/54: the narrow window misses the line once spins are a few degrees
+off), NEW 476/486, J 471/486 (a few 300 mm curves right behind the box
+met too late); nothing touched the box (closest 44 mm).  Boxes on a
+junction (side line under the box: T left, T right, X), 54 runs each:
+NEW 20 / 45 / 5 (followed the side line), J 54 / 54 / 54.  A side line
+200 mm behind the box: 0/54 for all (it looks like the line turning).
 
 Robot model as in tools/linesim.py (track 123 mm, line sensors 115 mm
 ahead at +-15 mm, wheel lag and delay, wheel mismatch).  Spins and
@@ -39,6 +47,7 @@ DT = 0.01
 SONAR_AHEAD = 120.0          # sonar in front of the axle
 TRIP_MM = 250
 SCAN_FROM_MM = 350
+SCAN_NEAR_MM = 220           # J: first scan where it stopped, at least this far
 REVERSE_MM = 100
 D_MAX_MM = 150
 MARGIN_MM = 100              # task_mission.c (70 until 8 Nov)
@@ -55,15 +64,19 @@ BODY = (-60.0, 135.0, -65.0, 82.0)   # x rear, x front, y right, y left (B arm l
 
 
 class World:
-    def __init__(self, path, box_x, box_w, box_d, box_yc, window):
+    def __init__(self, path, box_x, box_w, box_d, box_yc, window, branches=()):
         self.path = path
         self.bx0, self.bx1 = box_x, box_x + box_d
         self.by0, self.by1 = box_yc - box_w / 2, box_yc + box_w / 2
         self.window = window
+        self.branches = branches             # side lines: (x, y0, y1), across the track
 
     def black(self, px, py):
         if self.bx0 <= px <= self.bx1 and self.by0 <= py <= self.by1:
             return False                     # under the box: no tape seen
+        for bx, y0, y1 in self.branches:
+            if abs(px - bx) <= self.window / 2 and min(y0, y1) <= py <= max(y0, y1):
+                return True
         return self.path.near(px, py)[0] <= self.window / 2
 
 
@@ -215,10 +228,13 @@ class Robot:
 def bypass(rb, method, rng, scan_err):
     """the mission's on_obstacle, after the forward watch stopped it"""
     w = rb.w
-    # back up to scan from SCAN_FROM_MM, then REVERSE_MM more
+    # NEW: back up to scan from SCAN_FROM_MM, then REVERSE_MM more.
+    # J (9 Nov): scan where the forward watch stopped (at least
+    # SCAN_NEAR_MM away), then REVERSE_MM back
     d = rb.sonar() or TRIP_MM
-    if SCAN_FROM_MM - d > 0:
-        rb.drive(-(SCAN_FROM_MM - d))
+    first = SCAN_NEAR_MM if method == 'J' else SCAN_FROM_MM
+    if first - d > 10:
+        rb.drive(-(first - d))
     rb.drive(-REVERSE_MM)
     front = rb.sonar() or 450
     # measured edges (robot frame, + = left), with error
@@ -256,7 +272,11 @@ def bypass(rb, method, rng, scan_err):
         rb.turn(sgn * 90)
         return 'rejoined'
     # NEW: leg 4 watches for the line once the sensors are past the box front
+    # J: ... past the back of the deepest box (a side line of a junction
+    # under the box is not the line: 8 Nov, the robot followed one)
     sensors_past = front + SONAR_AHEAD - AHEAD + 30
+    if method == 'J':
+        sensors_past += D_MAX_MM
     def any_after(r, done):
         return done >= sensors_past and any(r.black_lr())
     done, found = rb.drive(x_pass, stop_on=any_after)
@@ -292,11 +312,16 @@ def shapes():
 
 
 def scenario(shape, method, rng, w_box=150, d_box=100, yc=0.0, mismatch=0.0, turn_err=0.0,
-             window=12, scan_err=25):
+             window=12, scan_err=25, junction=None):
     pre = 1200.0
-    segs = [('S', pre + d_box)] + shape + [('S', 1000)]
+    segs = [('S', pre + d_box)] + shape + [('S', 1600)]   # 1000 until 8 Nov: some good runs ended past the tape's end
     path = Path(segs)
-    world = World(path, pre, w_box, d_box, yc, window)
+    branches = []
+    if junction:
+        where, sides = junction           # x of the side line from the box front; 'L', 'R', 'LR'
+        for sd in sides:
+            branches.append((pre + where, 0.0, 800.0 if sd == 'L' else -800.0))
+    world = World(path, pre, w_box, d_box, yc, window, branches)
     rb = Robot(world, rng, mismatch, turn_err)
     rb.x, rb.y = 300.0 - AHEAD, 0.0
     p = dict(BASE); p.update(NEW)
@@ -320,11 +345,19 @@ def scenario(shape, method, rng, w_box=150, d_box=100, yc=0.0, mismatch=0.0, tur
     return 'ok', rb
 
 
+JUNCTIONS = {
+    # the box on a junction: its side line(s) under the box (8 Nov)
+    'T-L under': (50, 'L'), 'T-R under': (50, 'R'), 'X under': (50, 'LR'),
+    # a junction just behind the box (side line 200 mm past its back)
+    'X 200 behind': (100 + 200, 'LR'),
+}
+
+
 def main():
     rng = random.Random(5)
     SH = shapes()
     global MARGIN_MM
-    for method in ('OLD', 'NEW'):
+    for method in ('OLD', 'NEW', 'J'):
         MARGIN_MM = 70 if method == 'OLD' else 100
         tot = ok = hits = 0
         per = {}
@@ -347,6 +380,22 @@ def main():
         print(f'{method} (margin {MARGIN_MM}): ok {ok}/{tot}, touched the box {hits}, closest pass '
               f'{min(clear) if clear else 0:.0f} mm')
         print('   ' + '  '.join(f'{k}: {v[0]}/{v[1]}' for k, v in per.items()))
+        # boxes on a junction, straight line on
+        jper = {}
+        for name, j in JUNCTIONS.items():
+            for w_box in (100, 150, 200):
+                for yc in (-20, 0, 20):
+                    for mis in (-0.01, 0.01):
+                        for te in (-0.05, 0.0, 0.05):
+                            r, rb = scenario(SH['straight'], method, rng, w_box=w_box, yc=yc,
+                                             mismatch=mis, turn_err=te, junction=j)
+                            jper.setdefault(name, [0, 0, {}])
+                            jper[name][0] += r == 'ok'
+                            jper[name][1] += 1
+                            if r != 'ok':
+                                jper[name][2][r] = jper[name][2].get(r, 0) + 1
+        print('   junctions: ' + '  '.join(f'{k}: {v[0]}/{v[1]}' + (f' {v[2]}' if v[2] else '')
+                                       for k, v in jper.items()))
 
 
 if __name__ == '__main__':

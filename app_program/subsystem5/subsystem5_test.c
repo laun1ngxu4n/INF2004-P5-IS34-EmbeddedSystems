@@ -68,9 +68,10 @@ EXPORT void subsystem5_stage_test(void)
 	for (k = 1; k <= 3; k++) {
 		tm_printf((UB*)"\n[DRIVE] S5-O01 width, try %d of 3 (a different box "
 			  "each time, 10-20 cm wide; STOP ends early)\n", k);
-		test_wait_start("Box about 350 mm straight ahead of the sensor (where "
-				"the bypass scans from), flat face to it, nothing else "
-				"within 60 cm. Write down its real width (ruler).");
+		test_wait_start("Box about 250 mm straight ahead of the sensor (where "
+				"the forward watch stops and the bypass scans first), "
+				"flat face to it, nothing else within 60 cm. Write down "
+				"its real width (ruler).");
 		obstacle_scan(&a);
 		motion_drive(-S2_SPEED_BARCODE, 100);	/* as the bypass does */
 		do {

@@ -314,8 +314,25 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
   ignored (`tools/sonarcheck.py` on the 21 real scans: both edges in 21,
   old rule 6; 100-340 mm instead of up to 500+). The plan is capped at
   300 mm wide / 200 mm out from the line.
+- **8 Nov, third Stage 3 run (`ultrason` log 3), the geometry rule on the
+  robot:** S5-O01 widths 221 / 273 / 267 mm (box at about 26 cm instead
+  of 35; scan 1 alone 205 / 354 / 225); START gave the TEST mapping as
+  planned. **Bypass:** width 287 mm, planned 300, went round RIGHT (out
+  383, past 906), no contact, but `line met beside the box, 599 mm
+  along`: the box stood on a junction, the leg alongside the box met the
+  junction's side line (sensors 14 cm past the box's front) and the robot
+  followed it away. **Fixed 8 Nov, not run yet:** that leg watches only
+  past the back of a 150 mm deep box (`tools/bypasssim.py`, boxes on T/X
+  junctions: 5-45 of 54 -> 54/54 each; ordinary straight and curved
+  lines 471/486 instead of 476: a few 300 mm curves that start right
+  behind the box are now met later and missed). Also:
+  scan 1 from where it stops, then 100 mm back (was: back to 350 mm, then
+  100 more), and an edge both scans saw is taken from the nearer one
+  (every pair read narrower from nearer). Still not handled: a junction
+  side line on the bypass side within about 35 cm behind the box (looks
+  the same as the line itself turning 90 deg there).
 - [ ] 🟡 **S5-O01** width, 3 tries (3 flat boxes, one each, real width
-  by ruler, box about 350 mm ahead, nothing else within 60 cm). With the
+  by ruler, box about 250 mm ahead, nothing else within 60 cm). With the
   scan at +/- 25 deg the sonar never saw past a box's edge (beam is about
   30 deg wide), so no width came out. Scan widened to **+/- 40 deg: not
   tested on the robot yet.** Route the cables at the back first so they

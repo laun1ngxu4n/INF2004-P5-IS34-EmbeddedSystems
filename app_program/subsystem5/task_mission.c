@@ -29,13 +29,16 @@
 #define S5_APPROACH_SPEED	100	/* barcode read, its junction not yet:
 					   slower, so weaving is less likely
 					   and the junction is not overrun */
-/* Scan positions (O5).  The forward watch stops the robot 20-25 cm from
-   the obstacle: from there a 20 cm box, with the sonar beam's ~30 deg
-   width, fills the whole +-40 deg scan and its edges are never seen
-   ("no clear side").  So it backs up until the obstacle is SCAN_FROM_MM
-   away, scans, backs up REVERSE_MM more and scans again: a 20 cm box is
-   about +-16 / +-13 deg from there. */
-#define SCAN_FROM_MM		350
+/* Scan positions (O5).  First scan where the forward watch stopped (20-25
+   cm from the obstacle; backs up only if nearer than SCAN_NEAR_MM), then
+   back REVERSE_MM and scan again.  Until 8 Nov it first backed up to 350
+   mm, because from 20-25 cm the old width rule saw the box across the
+   whole sweep.  With the geometry rule (task_obstacle.c) the near scans
+   are the better ones: on the 29 real scans of 7 Nov, 200-280 mm away
+   read 138-240 mm for 14.5-23 cm boxes, 340-380 mm away 206-293, 450+
+   away 225-346; every pair of scans read narrower from nearer.  And it
+   backs up 100 mm instead of about 210. */
+#define SCAN_NEAR_MM		220
 #define REVERSE_MM		100	/* second scan position */
 #define D_MAX_MM		150	/* deepest expected obstacle (A9) */
 #define MARGIN_MM		100	/* 50 until 7 Nov, then 70: tools/bypasssim.py
@@ -328,12 +331,12 @@ LOCAL void on_obstacle(void)
 	tm_sprintf(msg, (const UB*)"obstacle ahead at %d mm: scanning", obstacle_front_mm());
 	say(msg);
 
-	/* back up to scan from SCAN_FROM_MM */
+	/* first scan from here, unless it stopped nearer than SCAN_NEAR_MM */
 	{
 		INT d = sonar_ping_mm();
-		INT back = SCAN_FROM_MM - ((d >= 0) ? d : S5_TRIP_MM);
+		INT back = SCAN_NEAR_MM - ((d >= 0) ? d : S5_TRIP_MM);
 
-		if (back > 0) {
+		if (back > 10) {
 			if (!mv(motion_drive(-S5_FOLLOW_SPEED, back))) {
 				halt("reverse for the 1st scan did not finish");
 				return;
@@ -398,20 +401,22 @@ LOCAL void on_obstacle(void)
 	say(msg);
 
 	/* legs 1-4.  The leg past the box watches the line sensors once
-	   they are past the box's front: a line that curves toward this
-	   side behind the box is met there (tools/bypasssim.py: the old
-	   fixed rectangle got 36 of 486 runs, straight and curved lines; this
-	   471, nothing touched the box) */
+	   they are past the back of the deepest box (D_MAX_MM): a line that
+	   curves toward this side behind the box is met there.  Not before:
+	   8 Nov the box stood on a junction and this leg met the junction's
+	   side line beside the box ("line met beside the box, 599 mm along"
+	   = 14 cm past its front) and followed it away (tools/bypasssim.py,
+	   boxes on a junction).  Until 8 Nov it watched from the box's front. */
 	if (!mv(motion_turn(sgn * 90))) goto fail;
 	if (!ahead_clear(y_off)) { halt("bypass leg 2 blocked"); return; }
 	if (!mv(motion_drive(S5_FOLLOW_SPEED, y_off))) goto fail;
 	if (!mv(motion_turn(-sgn * 90))) goto fail;
 	if (!ahead_clear(x_pass)) { halt("bypass leg 4 blocked"); return; }
 	odo0 = motion_odometer();
-	found = drive_until_line(x_pass, p.front_mm + 30);
+	found = drive_until_line(x_pass, p.front_mm + D_MAX_MM + 30);
 	if (found < 0) goto fail;
 	if (found) {
-		tm_sprintf(msg, (const UB*)"line met beside the box, %d mm along",
+		tm_sprintf(msg, (const UB*)"line met behind the box, %d mm along",
 			   (INT)S2_COUNTS_TO_MM(motion_odometer() - odo0));
 		say(msg);
 	} else {

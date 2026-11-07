@@ -197,8 +197,9 @@ send the log (a motor or encoder wire differs from bring-up).
    robot ("ultrasonic not answering"); a scan ray with no ECHO counts as
    blocked, never as open space. Check it once: cover/unplug ECHO during
    S5-O02 and the robot must stop.
-3. **S5-O01 width**: 3 tries, obstacle about **350 mm** straight ahead
-   (where the bypass scans from since 7 Nov). Use 3 flat boxes of
+3. **S5-O01 width**: 3 tries, obstacle about **250 mm** straight ahead
+   (where the forward watch stops and the bypass scans first, since 8
+   Nov). Use 3 flat boxes of
    different widths (about 100-200 mm), one try each. Each try also
    prints which scan saw each edge (`edge seen by scan 1 L 1 R 1 ...`). Each try scans,
    reverses 100 mm, scans again and prints
@@ -215,8 +216,10 @@ send the log (a motor or encoder wire differs from bring-up).
    use the TEST mapping `A=L,B=R,C=F,D=U` (it reminds you every 10 s);
    then START again to run. Start on a straight stretch; since 8
    Nov the line behind the box may also curve (the robot spins until a
-   line sensor finds it). New lines: `line met beside the box` (it
+   line sensor finds it). New lines: `line met behind the box` (it
    curved toward the robot) or `line found N mm after the last turn`.
+   Try a box standing on a T or X junction too (the 8 Nov fix): it must
+   come back to the line it came along, not the side line.
 
 ### Stage 4: ramp height (`_test_s4`), owner B4
 

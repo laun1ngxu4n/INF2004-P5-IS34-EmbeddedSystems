@@ -180,12 +180,39 @@ send the log (a motor or encoder wire differs from bring-up).
    Each code is read in **one pass** (no backing up since 7 Nov): it
    slows to 50 mm/s on the first bar and holds the steering straight
    while B is over the bars. A missed code is not read again.
-5. **2C, S5-B01 / S5-B02**: Mission takes over with the TEST mapping (A=L,
-   B=R, C=F, D=U), with obstacle watch and IMU **off** (they are tested in
-   Stages 3 and 4). START: it follows the line, reads barcodes and does
-   the move at the next junction (`[EVT] junction ...`). Check a U-turn
-   barcode too (D). For S5-B02 use a code not in the mapping (e.g. E):
+5. **2C, S5-B01 / S5-B02**: Mission takes over, with obstacle watch and
+   IMU **off** (they are tested in Stages 3 and 4). It first needs a
+   mapping: pick and send one in the panel (below), or just press START
+   for the TEST mapping (A=L, B=R, C=F, D=U); USB-only images always use
+   the TEST mapping. START again: it follows the line, reads barcodes and
+   does the move at the next junction (`[EVT] junction ...`). Check a
+   U-turn barcode too. For S5-B02 use a code not in the mapping (e.g. E):
    it must stop at the junction with "no mapping for barcode E".
+
+#### Barcode mapping (panel)
+
+What a barcode means is not built into the robot: before a run you tell
+it which **4 barcodes** mean **turn left, turn right, go straight and
+U-turn**. It stores the last barcode it read and does that move **at the
+next junction** (the U-turn too: instructor brief, TEAM.md 7.1 B6).
+
+In the panel (`python tools/is34_panel.py`), box "Barcode mapping":
+1. Under each move pick its barcode letter (A-Z or 0-9). Each move needs
+   a different letter. If the instructor gives you a line like
+   `K=L,Q=R,X=F,M=U` or "K left, Q right, X straight, M U-turn", paste it
+   in "or paste one" and press Use: the four boxes fill in.
+   "Test set: A B C D" = A left, B right, C straight, D U-turn.
+2. Press **Send mapping to robot**. The robot answers (`OK ...` in green,
+   or why it refused) and the line next to it shows what the robot has:
+   green "(same)" = ready. "(different: press Send)" or "no mapping yet":
+   send again (it forgets the mapping when it restarts).
+3. While it runs, every barcode it reads shows as an event, e.g. `barcode
+   K -> LEFT at next junction`, then `junction 3 (crossing): LEFT
+   (barcode K)`.
+
+The panel remembers the last mapping you picked
+(`tools/is34_panel_mapping.txt`). On the wire it is the message
+`K=L,Q=R,X=F,M=U` on `is34/cmd/map` (barcode=move, L R F U).
 
 ### Stage 3: obstacle (`_test_s3`), owner B5
 
@@ -223,7 +250,7 @@ send the log (a motor or encoder wire differs from bring-up).
    Over WiFi (`images/wifi/is34_test_stage3_wifi.uf2`) this part first
    waits for a mapping: send one from the panel, or press START once to
    use the TEST mapping `A=L,B=R,C=F,D=U` (it reminds you every 10 s);
-   then START again to run. Start on a straight stretch; since 8
+   then START again to run (**mapping: see "Barcode mapping" below**). Start on a straight stretch; since 8
    Nov the line behind the box may also curve (the robot spins until a
    line sensor finds it). New lines: `line met behind the box` (it
    curved toward the robot) or `line found N mm after the last turn`.

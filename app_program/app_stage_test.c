@@ -80,8 +80,8 @@ EXPORT void app_course_test(BOOL obstacles, BOOL imu)
 		UW	remote = tele_start_count();
 		INT	t = 0;
 
-		tm_printf((UB*)"[DRIVE] send the mapping from the PC (panel: Send "
-			  "mapping), or press START to use the TEST mapping "
+		tm_printf((UB*)"[DRIVE] send the mapping from the PC (panel: Barcode "
+			  "mapping box), or press START to use the TEST mapping "
 			  "A=L,B=R,C=F,D=U\n");
 		while (barcode_mapping_text(map, sizeof(map)) == 0) {
 			if (tele_start_count() != remote || button_down(PIN_START)) {
@@ -90,8 +90,8 @@ EXPORT void app_course_test(BOOL obstacles, BOOL imu)
 				break;
 			}
 			if (++t % 100 == 0) {
-				tm_printf((UB*)"[DRIVE] still waiting for a mapping (panel: "
-					  "Send mapping) or START for the TEST mapping\n");
+				tm_printf((UB*)"[DRIVE] still waiting for a mapping (panel: Barcode "
+					  "mapping box) or START for the TEST mapping\n");
 			}
 			tk_dly_tsk(100);
 		}

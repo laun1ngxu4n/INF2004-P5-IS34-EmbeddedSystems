@@ -1,6 +1,6 @@
 # P5-IS34 test status checklist
 
-Last updated: 6 Nov 2026. How to run each test:
+Last updated: 8 Nov 2026. How to run each test:
 [TESTING_GUIDE.md](TESTING_GUIDE.md). Formal results:
 [testing/](testing/) `TEST_LOG.md` files. What the robot does, its limits
 and everything still open: [ROBOT_BEHAVIOUR.md](ROBOT_BEHAVIOUR.md).
@@ -16,8 +16,8 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
 | 1 | Motion + STOP | B2 | ✅ passed 1 Nov |
 | 2A | Line following + junctions | B3 | 🟡 follows well (7 Nov, third run); 3 m, X crossing and left branch not shown yet |
 | 2B | Barcodes | B3 | 🟡 partial reads, no full decode yet; S3-B00 straight read to run next |
-| 2C | Junction moves from barcodes | B3 + B5 | ⬜ needs 2B |
-| 3 | Obstacle: sonar, servo, width, bypass | B5 | 🟡 servo + sonar work; width and bypass not shown |
+| 2C | Junction moves from barcodes | B3 + B5 | ⬜ needs 2B; mapping now picked in the panel (8 Nov) |
+| 3 | Obstacle: sonar, servo, width, bypass | B5 | ✅ bypass passed 8 Nov (box on a junction, no contact, back on the line); width reads somewhat wide (planned for anyway) |
 | 4 | IMU + ramp height | B4 | 🟡 2 of 7 runs within ±5 mm on the 10 mm hump; hump not held down |
 | 5 | Telemetry + MQTT | B1 | ✅ passed 2 Nov (START/STOP 3 of 5 rounds) |
 | 6 | Whole course | all | ⬜ |
@@ -355,28 +355,28 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
   is still the 150 mm assumption. **Side look switched off** (the
   obstacle is 9 x 13 cm x 19-20 cm high, so at most 130 mm deep; bypasssim
   with it: no contact either way round, closest 35 mm, junctions 27/27).
-- [ ] 🟡 **S5-O01** width, 3 tries (3 flat boxes, one each, real width
-  by ruler, box about 250 mm ahead, nothing else within 60 cm). With the
-  scan at +/- 25 deg the sonar never saw past a box's edge (beam is about
-  30 deg wide), so no width came out. Scan widened to **+/- 40 deg: not
-  tested on the robot yet.** Route the cables at the back first so they
-  do not pull at 40 deg.
-- [ ] ⬜ **S5-O02** bypass: box on the line, robot stops, scans, drives round
-  the clear side, back on the line. Pass = no contact, within 300 mm of the
-  line, back on it within 500 mm. Needs S5-O01 working (with no clear side
-  found it stops with "no clear side").
-- [ ] ⬜ Before the ±40 deg scan: **route the servo cables at the back** so
-  they do not pull at 40 deg (the horn already broke once at full speed)
-- [ ] ⬜ Forward watch while following: a box on the line, the robot must
-  stop **before** about 250 mm (2 readings in a row), part of S5-O02
+- **Stage 3 called done by the team, 8 Nov.**
+- [ ] 🟡 **S5-O01** width: works (both edges found every time since the
+  geometry rule), but reads wide from further away: the 9 cm obstacle
+  read 186 mm from 218 mm, 91 mm from 98 mm. Harmless for the bypass
+  (it plans for at least 200 mm). Real widths of the tries were not
+  recorded, so the pass mark (true width inside W +/- U) is not shown.
+- [x] ✅ **S5-O02** bypass, 8 Nov (log 4), with the box **on a junction**:
+  stopped at 194 mm, went round RIGHT, `line found 188 mm after the last
+  turn`, `bypass done`, followed on. No contact. (7 Nov the first bypass
+  also rejoined; the junction run before the 8 Nov fix followed the
+  side line away.)
+- [x] ✅ Servo at +/- 40 deg: cables hold (8 Nov runs). 90 deg has no
+  clearance (side look built, off).
+- [x] ✅ Forward watch while following: stopped at 194-245 mm in every
+  bypass run (limit 250)
+- [x] ✅ "Bypass leg blocked": 7 Nov a wrong 445 mm detour met something
+  in the room and stopped with "bypass leg 4 blocked"
 - [ ] ⬜ "No clear side": boxes or a wall on both sides of the obstacle;
   must stop with "no clear side", not drive into one
 - [ ] ⬜ "Bypass leg blocked": something in the way of a bypass leg; it
   pings before each long leg and must stop with "bypass leg N blocked"
-- [ ] ⬜ Back on the line after the bypass: the robot drives back toward
-  the line until C sees it (floor grout only counts near where the line
-  should be); then the normal line checks (junctions, stuck sensor) start
-  again after 60 mm
+- [x] ✅ Back on the line after the bypass (8 Nov, also from a junction)
 - [ ] ⬜ Sonar fault: cover or unplug ECHO during S5-O02; the robot must stop
   with "ultrasonic not answering"
 

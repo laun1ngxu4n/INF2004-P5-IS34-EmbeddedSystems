@@ -36,3 +36,6 @@ images/wifi/
 # Robot logs saved by the panel
 tools/is34_*_robot.txt
 tools/robot_log_*.txt
+
+# Last barcode mapping picked in the panel
+tools/is34_panel_mapping.txt

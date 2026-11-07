@@ -4,7 +4,9 @@ P5-IS34 robot control panel (laptop side of Stage 5 / the demo).
 
 Shows the robot's 1 s status line (is34/telemetry), its live sensor
 readings (is34/sensors, every 0.5 s) and every event
-(is34/event, is34/ack/map), and sends START, STOP and the 4-pair mapping
+(is34/event, is34/ack/map), and sends START, STOP and the barcode mapping
+(picked in the "Barcode mapping" box: which barcode means left, right,
+straight, U-turn at the next junction)
 (is34/cmd/start, is34/cmd/stop, is34/cmd/map).  Everything shown is also
 written to a log file next to this script (is34_<date>_<time>.log).
 
@@ -51,6 +53,44 @@ FIELDS = [                      # (telemetry key, label)
     ("map", "Mapping"), ("ramp_peak", "Ramp peak (mm)"), ("stop", "Stop reason"),
 ]
 STATE_COLOURS = {"IDLE": "#888888", "CAL": "#d9a400", "RUN": "#2a9d3a"}
+
+
+MOVES = [("L", "↰ Turn LEFT"), ("R", "↱ Turn RIGHT"), ("F", "↑ Go STRAIGHT"),
+         ("U", "↶ U-TURN")]
+CODE_CHARS = [chr(c) for c in range(ord("A"), ord("Z") + 1)] + [str(d) for d in range(10)]
+MAP_FILE = os.path.join(HERE, "is34_panel_mapping.txt")   # the last one picked
+MOVE_WORDS = {"L": "L", "LEFT": "L", "R": "R", "RIGHT": "R", "F": "F", "S": "F",
+              "STRAIGHT": "F", "FORWARD": "F", "U": "U", "UTURN": "U", "U-TURN": "U",
+              "UTURNS": "U", "BACK": "U"}
+
+
+def parse_mapping(text):
+    """'K=L,Q=R,X=F,M=U', 'K left, Q right, X straight, M u-turn',
+    'left=K ...' -> {'L': 'K', ...}, or an error message"""
+    import re
+    parts = [p for p in re.split(r"[,;\n]+", text.strip()) if p.strip()]
+    if len(parts) != 4:
+        return f"{len(parts)} pairs, need 4"
+    out = {}
+    for p in parts:
+        toks = [t for t in re.split(r"[\s=:>\-]+", p.strip().upper().replace("U-TURN", "UTURN"))
+                if t]
+        if len(toks) != 2:
+            return f"'{p.strip()}' is not one barcode and one move"
+        a, b = toks
+        # the robot's own format is barcode=move; a whole word is always the move
+        if b in MOVE_WORDS and a in CODE_CHARS:
+            ch, mv = a, MOVE_WORDS[b]
+        elif a in MOVE_WORDS and len(b) == 1 and b in CODE_CHARS:
+            ch, mv = b, MOVE_WORDS[a]
+        else:
+            return f"'{p.strip()}' is not one barcode and one move"
+        if mv in out:
+            return f"two barcodes for the same move ({mv})"
+        out[mv] = ch
+    if len(set(out.values())) != 4:
+        return "the same barcode twice"
+    return out
 
 
 def parse_status(text):
@@ -143,16 +183,50 @@ class Panel:
                   font=("Segoe UI", 16, "bold"), width=14,
                   command=self.stop).pack(side="left", padx=8, pady=6)
 
-        mp = ttk.Frame(self.root, padding=(8, 0))
-        mp.pack(fill="x")
-        ttk.Label(mp, text="Mapping (4 pairs, L R F U)").pack(side="left")
-        self.map_var = tk.StringVar(value="K=L,Q=R,X=F,M=U")
-        ent = ttk.Entry(mp, textvariable=self.map_var, width=24)
-        ent.pack(side="left", padx=4)
-        ent.bind("<Return>", lambda e: self.send_map())
-        ttk.Button(mp, text="Send mapping", command=self.send_map).pack(side="left")
-        self.ack_lbl = ttk.Label(mp, text="")
+        # Barcode mapping: pick which barcode means which move, send it.
+        # The robot stores the latest barcode it reads and does its move at
+        # the NEXT junction (U-turn too: instructor brief, TEAM.md 7.1 B6).
+        mp = ttk.LabelFrame(self.root, padding=6, text=(
+            "Barcode mapping: after reading a barcode, the robot does this at the NEXT junction"))
+        mp.pack(fill="x", padx=8)
+        saved = self._load_mapping()
+        self.map_combo = {}
+        for col, (mv, label) in enumerate(MOVES):
+            f = ttk.Frame(mp)
+            f.grid(row=0, column=col, padx=(0, 18), sticky="w")
+            ttk.Label(f, text=label, font=("Segoe UI", 10, "bold")).pack(anchor="w")
+            r = ttk.Frame(f)
+            r.pack(anchor="w")
+            ttk.Label(r, text="barcode").pack(side="left")
+            cb = ttk.Combobox(r, values=CODE_CHARS, width=3, state="readonly",
+                              font=("Segoe UI", 12, "bold"))
+            cb.set(saved[mv])
+            cb.pack(side="left", padx=4)
+            cb.bind("<<ComboboxSelected>>", lambda e: self._map_changed())
+            self.map_combo[mv] = cb
+        r2 = ttk.Frame(mp)
+        r2.grid(row=1, column=0, columnspan=4, sticky="w", pady=(6, 0))
+        tk.Button(r2, text="Send mapping to robot", bg="#1565c0", fg="white",
+                  font=("Segoe UI", 10, "bold"), command=self.send_map).pack(side="left")
+        ttk.Button(r2, text="Test set: A B C D",
+                   command=lambda: self._set_map(dict(L="A", R="B", F="C", U="D"))
+                   ).pack(side="left", padx=6)
+        ttk.Label(r2, text="or paste one (e.g. K=L,Q=R,X=F,M=U):").pack(side="left", padx=(10, 2))
+        self.map_var = tk.StringVar()
+        ent = ttk.Entry(r2, textvariable=self.map_var, width=20)
+        ent.pack(side="left")
+        ent.bind("<Return>", lambda e: self._paste_map())
+        ttk.Button(r2, text="Use", command=self._paste_map).pack(side="left", padx=2)
+        r3 = ttk.Frame(mp)
+        r3.grid(row=2, column=0, columnspan=4, sticky="w", pady=(4, 0))
+        self.map_msg = tk.Label(r3, text="", anchor="w")
+        self.map_msg.pack(side="left")
+        self.robot_map_lbl = tk.Label(r3, text="robot: no mapping yet", fg="#b00020")
+        self.robot_map_lbl.pack(side="left", padx=12)
+        self.ack_lbl = ttk.Label(r3, text="")
         self.ack_lbl.pack(side="left", padx=8)
+        self.robot_map = ""
+        self._map_changed()
 
         st = ttk.LabelFrame(self.root, text="Status (every 1 s)", padding=8)
         st.pack(fill="x", padx=8, pady=6)
@@ -246,9 +320,78 @@ class Panel:
     def stop(self):
         self.publish("is34/cmd/stop", "now")
 
+    # ---- barcode mapping ---------------------------------------------------
+    def _map_choice(self):
+        """{'L': 'A', ...} from the four boxes"""
+        return {mv: self.map_combo[mv].get() for mv, _ in MOVES}
+
+    def _map_text(self):
+        """the robot's format 'A=L,B=R,C=F,D=U', or None if two moves share a barcode"""
+        ch = self._map_choice()
+        if len(set(ch.values())) != 4:
+            return None
+        return ",".join(f"{ch[mv]}={mv}" for mv, _ in MOVES)
+
+    def _map_changed(self):
+        text = self._map_text()
+        if text is None:
+            self.map_msg.configure(text="each move needs a different barcode", fg="#b00020")
+        else:
+            self.map_msg.configure(text=f"will send: {text}", fg="#444444")
+            self._save_mapping()
+        self._show_robot_map()
+
+    def _set_map(self, choice):
+        for mv, _ in MOVES:
+            self.map_combo[mv].set(choice[mv])
+        self._map_changed()
+
+    def _paste_map(self):
+        choice = parse_mapping(self.map_var.get())
+        if isinstance(choice, str):
+            self.map_msg.configure(text=f"could not read that: {choice}", fg="#b00020")
+            return
+        self._set_map(choice)
+
+    def _show_robot_map(self):
+        """what the robot has (its status line), against what is picked here"""
+        have = self.robot_map
+        if not have or have == "none":
+            self.robot_map_lbl.configure(text="robot: no mapping yet (press Send)", fg="#b00020")
+            return
+        want = self._map_text()
+        same = want is not None and set(want.split(",")) == set(have.split(","))
+        self.robot_map_lbl.configure(
+            text=f"robot has: {have}" + ("  (same)" if same else "  (different: press Send)"),
+            fg="#2a9d3a" if same else "#d9a400")
+
+    def _load_mapping(self):
+        try:
+            with open(MAP_FILE, encoding="utf-8") as f:
+                choice = parse_mapping(f.read())
+            if isinstance(choice, dict):
+                return choice
+        except OSError:
+            pass
+        return dict(L="A", R="B", F="C", U="D")
+
+    def _save_mapping(self):
+        text = self._map_text()
+        if text:
+            try:
+                with open(MAP_FILE, "w", encoding="utf-8") as f:
+                    f.write(text + "\n")
+            except OSError:
+                pass
+
     def send_map(self):
+        text = self._map_text()
+        if text is None:
+            self.map_msg.configure(text="not sent: each move needs a different barcode",
+                                   fg="#b00020")
+            return
         self.ack_lbl.configure(text="waiting for the robot ...", foreground="#666666")
-        self.publish("is34/cmd/map", self.map_var.get().strip())
+        self.publish("is34/cmd/map", text)
 
     def save_robot_log(self):
         if not self.robot_text:
@@ -367,6 +510,10 @@ class Panel:
                     self.vals[key].configure(text=pretty(key, val))
             state = parse_status(text).get("state", "")
             self.vals["state"].configure(fg=STATE_COLOURS.get(state, "#b00020"))
+            robot_map = parse_status(text).get("map", "")
+            if robot_map != self.robot_map:
+                self.robot_map = robot_map
+                self._show_robot_map()
         elif topic == "is34/sensors":
             self.log.write(time.strftime("%H:%M:%S ") + f"{topic} {text}\n")
             self._sensors(parse_status(text))

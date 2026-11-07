@@ -94,6 +94,18 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
   read never ended). **Changed the same day:** the back-up-and-reread is
   removed; codes are read in one pass with the steering held straight
   only while B is over bars.
+- **7 Nov, after the IR mount was raised (`scuffed abit` log): the line
+  sensors no longer see the tape properly.** L05 (T end, passed twice
+  before) FAIL: L saw the T bar for 4 mm, R never; L01 lost the line at
+  557 mm after the tape went from L to R in 5 mm (the sensors only see
+  the middle of the tape now); 2B runs ended LINE LOST / LINE FAULT. **Re-
+  tune the L and R pots at the new height** (each must read 1 over the
+  whole 20 mm tape and 0 over white, live view), or lower the mount.
+  B: whitest 164, darkest 4083, fine. B thresholds raised to 700 / 1500
+  (team). The robot's own IMU reported ramps of 22 and 248 mm during 2B
+  (robot lifted / handled): ignore. S3-L10 (X crossing, the track has
+  them) failed again: both black for only 1 mm; retest once L/R are
+  re-tuned.
 - [ ] ⬜ **S3-L10, L03, L05..L09** (straddle logic, 7 Nov): X crossing, left
   branch, T end, right curve, left curve, gap (track 2), stuck R (black
   card under R); one place at a time, each prints PASS/FAIL. S3-L04

@@ -196,8 +196,8 @@ send the log (a motor or encoder wire differs from bring-up).
    robot ("ultrasonic not answering"); a scan ray with no ECHO counts as
    blocked, never as open space. Check it once: cover/unplug ECHO during
    S5-O02 and the robot must stop.
-3. **S5-O01 width**: 15 tries, obstacle about 250 mm straight ahead.
-   Use 100, 150 and 200 mm wide obstacles, 5 each. Each try scans,
+3. **S5-O01 width**: 6 tries, obstacle about 250 mm straight ahead.
+   Use 3 flat boxes of different widths (about 100-200 mm), 2 tries each. Each try scans,
    reverses 80 mm, scans again and prints
    `width W +/- U mm (scan 1 ..., scan 2 ...)` plus the raw rays
    (`[SCAN] rays ...`). Write down the real width. Pass: the real width
@@ -207,6 +207,10 @@ send the log (a motor or encoder wire differs from bring-up).
    twice, reports the width, drives round on the clear side and finds the
    line again (`[EVT] bypass done`). Pass: no contact, stays within 300 mm
    of the line, back on the line within 500 mm after the obstacle.
+   Over WiFi (`images/wifi/is34_test_stage3_wifi.uf2`) this part first
+   waits for a mapping: send any valid one from the panel (e.g.
+   `A=L,B=R,C=F,D=U`), then START. Use a straight stretch of line: the
+   robot must find the line again after going round.
 
 ### Stage 4: ramp height (`_test_s4`), owner B4
 

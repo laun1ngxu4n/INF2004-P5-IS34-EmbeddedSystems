@@ -115,12 +115,14 @@ send the log (a motor or encoder wire differs from bring-up).
 ### Stage 2: line, junctions, barcodes (`_test_s2`), owner B3 (+B5)
 
 0. **Before flashing: sensor layout** (see `subsystem3/subsystem3.h`).
-   C rides on the tape, S just right of it: **C to S about 15 mm, centre
-   to centre** (S just past the tape edge). B is 40 mm behind C and 70 mm
-   left; if you move it, change `S3_BAR_AHEAD_MM` / `S3_BAR_LEFT_MM`
-   (behind = negative) and rebuild.
-1. **IR view (30 s)**: slide black tape under each sensor; S, C and B
-   must each change. Nothing changes = sensor or pot.
+   The two line sensors **straddle the tape**: L (GP1) just left of it,
+   R (GP0) just right of it, about 30 mm apart centre to centre, the
+   tape centred between them (both white). B is 40 mm behind them and
+   70 mm left of L; if you move it, change `S3_BAR_AHEAD_MM` /
+   `S3_BAR_LEFT_MM` (behind = negative) and rebuild.
+1. **IR view (30 s)**: slide black tape under each sensor; L, R and B
+   must each change. Nothing changes = sensor or pot. Robot centred on
+   the tape: L 0 and R 0.
    **Which image depends on how B is wired:**
    - B's **D0 to GP2** (digital, as built): `is34_test_stage2.uf2`. Tune
      B's pot until `B edges/s` reads 0 held still over white and over black.
@@ -137,17 +139,19 @@ send the log (a motor or encoder wire differs from bring-up).
 2. **2A, S3-L01 / S3-L02**: robot on the line, START, let it run (up to
    60 s). Pass L01: `[TEST] S3-L01 PASS` = at least 3 m followed with no
    line lost, and you saw it stay on the line. L02: printed junction count = real count (write both down).
-   Each junction prints `[S3] junction N at X mm, branch right / left /
-   both sides`; at the end `junctions this run: right R, left L, both B`.
+   Each junction prints `[S3] junction N at X mm: crossing` or `: branch
+   left (seen by B)`; at the end `junctions this run: crossings C, left
+   branches L`. Start with the tape centred between L and R.
    If it wobbles off the line on curves: `STEER_SMALL` / `STEER_HARD` in
    `subsystem3/task_line.c`.
-   **One place at a time (S3-L03..L09)**: then 7 short runs, each
-   prompts where to put the robot: 20 cm before a left branch, a right
-   branch, a T end; the start of the tightest right curve and left curve;
-   20 cm before a gap in the line (track 2); and on a straight with a
-   black card held under S once it moves (it must stop with `LINE SENSOR
-   FAULT`). Each prints its own PASS/FAIL. No such place on the track:
-   START, then STOP at once, and write "not on the track" in the log.
+   **One place at a time**: then 7 short runs, each prompts where to put
+   the robot: 20 cm before the X crossing (S3-L10), a left-only branch
+   (L03), a T end (L05); the start of the tightest right curve (L06) and
+   left curve (L07); 20 cm before a gap in the line on track 2 (L08); and
+   on a straight with a black card held under R once it moves (L09, it
+   must stop with `LINE SENSOR FAULT`). Each prints its own PASS/FAIL. No
+   such place on the track: START, then STOP at once, and write "not on
+   the track" in the log.
    Left branches: every first bar under B prints `B patch 19.8 mm (...)`;
    a left branch must show about 20 mm. Nothing printed = B does not pass
    over the branch (move B, or its pot).

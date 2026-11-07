@@ -136,13 +136,14 @@ An outside review of the stage tests found real problems, fixed:
   `motion_drive(speed, mm)`, `motion_turn(deg)` (+ = left, spin on the
   spot), `motion_follow(speed)`, `motion_halt()`. Every command times out
   at 2x expected + 1 s. GP21 STOP interrupt -> `app_stop_request`.
-- **Stage 2 (S3)**: line logic in `task_line.c` (side sensor S just
-  right of the line, centre C over it; `S3_SIDE -1`). Junctions (6 Nov):
-  right branch = S black for 12-28 mm with the steering held, C still on;
-  left branch = the barcode sensor B (40 mm behind C, 70 mm left) sees a
-  patch about one tape wide where C was on the line before and after;
-  T end = both arms with the line ending; one arm = a corner, followed.
-  Mission turns 115 mm after where C crossed the junction centre. Barcode: each GP2 edge stamped with the odometer (bar
+- **Stage 2 (S3)**: line logic in `task_line.c`. Since 7 Nov the two
+  line sensors straddle the tape (L GP1 left, R GP0 right, about 30 mm
+  apart): both white = straight, one black = turn toward it (gentle,
+  then hard and slow after 25 mm), overshoot search after a long
+  correction, lost after 400 mm of white. Junctions: crossing = both
+  black 12-45 mm; left branch = the barcode sensor B (40 mm behind,
+  70 mm left) sees a patch about one tape wide where the robot drove
+  straight. Mission turns 115 mm after the junction centre. Barcode: each GP2 edge stamped with the odometer (bar
   widths in distance, so speed does not matter), chatter < 0.5 mm merged,
   end of code after 40 mm quiet, Code 39 table (A-Z, 0-9, symbols),
   3 widest of 9 = wide, `*` start check, reversed if needed. Mapping
@@ -222,7 +223,7 @@ Week 6 document section by section: what to change, add or drop.
 | Track width | `S2_TRACK_MM` | 123 mm (from S2-M02 angles, 1 Nov) | ruler, or S2-M02 angles |
 | Speed controller | `FF_*`, `KP`, `KI` in `task_motion.c` | FF 1.25/mm/s + 80, KP 1, KI 6 (per mille) | wobble or sluggish speed |
 | Line steering | `STEER_SMALL/HARD` in `task_line.c` | 25 / 40 mm/s (2 Nov) | S3-L01 |
-| Junction length | `S3_JUNC_MIN/MAX_MM` | 12-28 mm (tape 20 mm, 6 Nov) | S3-L02..L07 |
+| Junction length | `S3_JUNC_MIN_MM`, `S3_CROSS_MAX_MM` | 12-45 mm crossing (tape 20 mm) | S3-L02, L05, L10 |
 | Sensor to axle | `S3_SENSOR_TO_AXLE_MM` | 115 mm (measured 6 Nov) | junction turns land off the line |
 | Barcode sensor position | `S3_BAR_AHEAD_MM`, `S3_BAR_LEFT_MM` | -40 (behind) / 70 mm (measured 6 Nov) | S3-L03, S3-L05 |
 | Barcode speed | `S2_SPEED_BARCODE` | 150 mm/s | S3-B03 |

@@ -199,10 +199,9 @@ LOCAL void on_junction(void)
 		return;
 	}
 	pending = 0;
-	tm_sprintf(msg, (const UB*)"junction %d (branch %s): %s (barcode %c)",
+	tm_sprintf(msg, (const UB*)"junction %d (%s): %s (barcode %c)",
 		   (INT)line_junctions(),
-		   (sides == (JUNC_SIDE_S | JUNC_SIDE_B)) ? "both sides" :
-		   (sides == JUNC_SIDE_B) ? "left" : (S3_SIDE < 0) ? "right" : "left",
+		   ((sides & JUNC_SIDE_S) != 0) ? "crossing" : "branch left",
 		   (m == MOVE_LEFT) ? "LEFT" : (m == MOVE_RIGHT) ? "RIGHT" :
 		   (m == MOVE_UTURN) ? "U-TURN" : "FORWARD", (ch != 0) ? ch : '-');
 	say(msg);
@@ -213,8 +212,9 @@ LOCAL void on_junction(void)
 	obstacle_watch(FALSE);
 	deg = (m == MOVE_LEFT) ? 90 : (m == MOVE_RIGHT) ? -90 : 180;
 	/* wheels over the junction centre, then spin.  The line task says
-	   where C crossed the centre: a left branch is reported later than
-	   a right one (B must see the white after it), so measure from there. */
+	   where the line sensors crossed the centre: a left branch is
+	   reported later than a crossing (B is behind them), so measure
+	   from there. */
 	to_go = S3_SENSOR_TO_AXLE_MM -
 		(INT)S2_COUNTS_TO_MM(motion_odometer() - line_junction_odo());
 	if ((to_go > 0 && !mv(motion_drive(S5_FOLLOW_SPEED, to_go))) ||
@@ -312,12 +312,13 @@ LOCAL void on_obstacle(void)
 	if (!mv(motion_drive(S5_FOLLOW_SPEED, x_pass))) goto fail;
 	if (!mv(motion_turn(-sgn * 90))) goto fail;
 
-	/* leg 6: drive back toward the line until the centre sensor sees it */
+	/* leg 6: drive back toward the line until a line sensor sees it
+	   (driving square to it, both reach it together) */
 	odo0 = motion_odometer();
 	if (motion_drive(S5_FOLLOW_SPEED, y_off + 200) < E_OK) goto fail;
 	/* Black only counts near where the line should be: on the tiled
 	   floor the grout reads black too */
-	while (!line_center_black() ||
+	while (!line_any_black() ||
 	       S2_COUNTS_TO_MM(motion_odometer() - odo0) < y_off - LINE_NEAR_MM) {
 		MOTION_STATUS st;
 
@@ -390,9 +391,9 @@ EXPORT void mission_task(INT stacd, void *exinf)
 			if ((ptn & MSN_FLG_BARCODE) != 0u) on_barcode();
 			if (line_state() == LINE_FAULT) {
 				/* a stuck line sensor: nothing it says can be trusted */
-				halt((line_fault() == LINE_FAULT_S) ?
-				     "line sensor S black too long (stuck black? check its pot and cable)" :
-				     "line sensor C did not change for 3 m (stuck? check its pot and cable)");
+				halt((line_fault() == LINE_FAULT_ONE) ?
+				     "a line sensor black for 30 cm (stuck black? check its pot and cable)" :
+				     "both line sensors black for 15 cm (stuck, or a wide black area)");
 			} else if ((ptn & MSN_FLG_OBSTACLE) != 0u) {
 				on_obstacle();
 			} else if ((ptn & MSN_FLG_JUNCTION) != 0u) {

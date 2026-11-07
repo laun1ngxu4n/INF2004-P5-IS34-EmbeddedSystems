@@ -37,7 +37,8 @@ LOCAL void ir_live(void)
 	BOOL	ana = barcode_adc(&raw, &wl, &bl);
 
 	tm_printf((UB*)"\n[S3] IR live view for 30 s: slide black tape under each "
-		  "sensor. S C B = side (right of C), centre, barcode (1 = black)\n");
+		  "sensor. L R B = line sensor left of the tape, right of the tape, "
+		  "barcode (1 = black). Centred on the tape: L 0 and R 0\n");
 	if (!ana) {
 		tm_printf((UB*)"[S3] B on its DIGITAL output (GP2). Tune: hold it STILL "
 			  "over white, then STILL over black; 'B edges/s' must read 0 "
@@ -52,10 +53,11 @@ LOCAL void ir_live(void)
 			  "S3_BAR_BLACK_HIGH 0\n");
 	}
 	for (t = 0; t < 3000; t++) {
-		UW now = (app_gpio_get(PIN_IR_LEFT) << 2) | (app_gpio_get(PIN_IR_CENTER) << 1) |
-			 (barcode_black() ? (UW)IR_BLACK : (UW)!IR_BLACK);
+		UW now = ((UW)(app_gpio_get(PIN_IR_LINE_L) == IR_BLACK) << 2) |
+			 ((UW)(app_gpio_get(PIN_IR_LINE_R) == IR_BLACK) << 1) |
+			 (barcode_black() ? 1u : 0u);
 		if (now != prev) {
-			tm_printf((UB*)"[S3] S %d  C %d  B %d\n", (INT)((now >> 2) & 1u),
+			tm_printf((UB*)"[S3] L %d  R %d  B %d\n", (INT)((now >> 2) & 1u),
 				  (INT)((now >> 1) & 1u), (INT)(now & 1u));
 			prev = now;
 		}
@@ -99,8 +101,8 @@ LOCAL void ir_live(void)
 	}
 }
 
-/* Junctions seen in the last follow_and_watch(), by branch side */
-LOCAL INT	j_right, j_left, j_both;
+/* Junctions seen in the last follow_and_watch(), by kind */
+LOCAL INT	j_cross, j_left;
 
 /* Follow the line for up to secs (and up to max_mm, 0 = no limit); print
    junctions, barcodes, line lost */
@@ -122,12 +124,12 @@ LOCAL INT follow_and_watch(INT secs, INT max_mm, INT *junc, INT *lost,
 
 	barcode_last(&r);
 	seq = r.seq;
-	j_right = j_left = j_both = 0;
+	j_cross = j_left = 0;
 	line_set_enabled(TRUE);
-	tm_printf((UB*)"[S3] at start: S %d  C %d (want S 0, C 1: centre on the "
-		  "line, side sensor just right of it on white)\n",
-		  app_gpio_get(PIN_IR_LEFT) == IR_BLACK,
-		  app_gpio_get(PIN_IR_CENTER) == IR_BLACK);
+	tm_printf((UB*)"[S3] at start: L %d  R %d (want L 0, R 0: the tape centred "
+		  "between them)\n",
+		  app_gpio_get(PIN_IR_LINE_L) == IR_BLACK,
+		  app_gpio_get(PIN_IR_LINE_R) == IR_BLACK);
 	if (motion_follow(S2_SPEED_BARCODE) < E_OK) return 0;
 	for (t = 0; t < secs * 100 && !test_stop_pressed(); t++) {
 		UW lc;
@@ -137,10 +139,10 @@ LOCAL INT follow_and_watch(INT secs, INT max_mm, INT *junc, INT *lost,
 			break;
 		}
 		/* Trace what the line sensors see: every change, first 150 */
-		lc = ((app_gpio_get(PIN_IR_LEFT) == IR_BLACK) << 1) |
-		     (app_gpio_get(PIN_IR_CENTER) == IR_BLACK);
+		lc = ((UW)(app_gpio_get(PIN_IR_LINE_L) == IR_BLACK) << 1) |
+		     (UW)(app_gpio_get(PIN_IR_LINE_R) == IR_BLACK);
 		if (lc != lc_prev && traced < 150) {
-			tm_printf((UB*)"[S3T] %d mm  S %d  C %d  steer %d\n",
+			tm_printf((UB*)"[S3T] %d mm  L %d  R %d  steer %d\n",
 				  (INT)S2_COUNTS_TO_MM(motion_odometer() - odo0),
 				  (INT)(lc >> 1), (INT)(lc & 1u), line_steer_mm_s());
 			lc_prev = lc;
@@ -151,13 +153,13 @@ LOCAL INT follow_and_watch(INT secs, INT max_mm, INT *junc, INT *lost,
 			INT sd = line_junction_sides();
 
 			(*junc)++;
-			if (sd == (JUNC_SIDE_S | JUNC_SIDE_B)) j_both++;
-			else if (sd == JUNC_SIDE_B) j_left++;
-			else j_right++;
-			tm_printf((UB*)"[S3] junction %d at %d mm, branch %s\n", *junc,
+			if ((sd & JUNC_SIDE_S) != 0) j_cross++;
+			else j_left++;
+			tm_printf((UB*)"[S3] junction %d at %d mm: %s\n", *junc,
 				  (INT)S2_COUNTS_TO_MM(motion_odometer() - odo0),
-				  (sd == (JUNC_SIDE_S | JUNC_SIDE_B)) ? "both sides (crossroads or T end)" :
-				  (sd == JUNC_SIDE_B) ? "left (seen by B)" : "right (seen by S)");
+				  ((sd & JUNC_SIDE_S) != 0) ?
+				  "crossing (both line sensors black)" :
+				  "branch left (seen by B)");
 		}
 		if (line_state() != last_state) {
 			last_state = line_state();
@@ -169,9 +171,9 @@ LOCAL INT follow_and_watch(INT secs, INT max_mm, INT *junc, INT *lost,
 			if (last_state == LINE_FAULT) {
 				(*lost)++;
 				tm_printf((UB*)"[S3] LINE SENSOR FAULT: %s, stopping\n",
-					  (line_fault() == LINE_FAULT_S) ?
-					  "S black too long (stuck black?)" :
-					  "C did not change for 3 m (stuck?)");
+					  (line_fault() == LINE_FAULT_ONE) ?
+					  "one sensor black for 30 cm (stuck black?)" :
+					  "both black for 15 cm (stuck, or a wide black area)");
 				break;
 			}
 		}
@@ -199,7 +201,7 @@ LOCAL INT follow_and_watch(INT secs, INT max_mm, INT *junc, INT *lost,
 			tm_printf((UB*)"[S3] %d mm: B patch %d.%d mm (%s)\n",
 				  (INT)S2_COUNTS_TO_MM(mo - odo0), mw / 10, mw % 10,
 				  (mw >= S3_JUNC_MIN_MM * 10 && mw <= S3_JUNC_MAX_MM * 10) ?
-				  "tape width: a left arm, if C was on the line there" :
+				  "tape width: a left arm, if the robot drove straight there" :
 				  "not tape width: grout or a barcode bar, not a junction");
 		}
 		barcode_last(&r);
@@ -221,8 +223,8 @@ LOCAL INT follow_and_watch(INT secs, INT max_mm, INT *junc, INT *lost,
 	line_set_enabled(FALSE);	/* the next run starts clean */
 	tm_printf((UB*)"[S3] barcode sensor B: %d edges this run "
 		  "(0 = it never saw black)\n", (INT)(barcode_edges() - e0));
-	tm_printf((UB*)"[S3] junctions this run: right %d, left %d, both sides %d\n",
-		  j_right, j_left, j_both);
+	tm_printf((UB*)"[S3] junctions this run: crossings %d, left branches %d\n",
+		  j_cross, j_left);
 	return (INT)S2_COUNTS_TO_MM(motion_odometer() - odo0);	/* mm followed */
 }
 
@@ -253,29 +255,31 @@ EXPORT void subsystem3_stage_test(void)
 	{
 		static const struct {
 			const char *id, *where, *pass;
-			INT max_mm, want_r, want_l, want_b;
-			BOOL want_fault;	/* TRUE: must stop with LINE_FAULT_S */
+			INT max_mm, want_cross, want_left;
+			BOOL want_fault;	/* TRUE: must stop with LINE_FAULT_ONE */
 		} pl[] = {
-			{"S3-L03", "about 20 cm before a branch to the LEFT (the line "
-			 "goes on), no barcode next to it", "exactly 1 junction, branch left",
-			 450, 0, 1, 0},
-			{"S3-L04", "about 20 cm before a branch to the RIGHT (the line "
-			 "goes on)", "exactly 1 junction, branch right",
-			 450, 1, 0, 0},
+			/* S3-L04 (right-only branch) dropped 7 Nov: the track has
+			   none, and with the sensors straddling the tape it looks
+			   like an ordinary correction */
+			{"S3-L10", "about 20 cm before the X CROSSING (track 3), square "
+			 "to it", "exactly 1 junction, a crossing", 450, 1, 0},
+			{"S3-L03", "about 20 cm before a branch to the LEFT only (the "
+			 "line goes on), no barcode next to it",
+			 "exactly 1 junction, branch left", 450, 0, 1},
 			{"S3-L05", "about 20 cm before a T end (the line stops at a cross "
-			 "bar with arms both ways)", "exactly 1 junction, both sides",
-			 450, 0, 0, 1},
+			 "bar with arms both ways)", "exactly 1 junction, a crossing",
+			 450, 1, 0},
 			{"S3-L06", "at the start of the tightest RIGHT curve with no "
-			 "branches", "no junction and no line lost", 1200, 0, 0, 0},
+			 "branches", "no junction and no line lost", 1200, 0, 0},
 			{"S3-L07", "at the start of the tightest LEFT curve with no "
-			 "branches", "no junction and no line lost", 1200, 0, 0, 0},
+			 "branches", "no junction and no line lost", 1200, 0, 0},
 			{"S3-L08", "about 20 cm before a GAP in the line (track 2), "
 			 "after a straight", "drives across, no line lost, no junction",
-			 450, 0, 0, 0},
+			 450, 0, 0},
 			{"S3-L09", "on a straight. Once it moves, hold a black card "
-			 "under S (the RIGHT line sensor) and keep it there (walk along)",
-			 "stops with LINE SENSOR FAULT (S black too long) within "
-			 "about 20 cm", 1000, 0, 0, 0, TRUE},
+			 "under R (the RIGHT line sensor) and keep it there (walk along)",
+			 "stops with LINE SENSOR FAULT (one sensor black) within "
+			 "about 30 cm", 1000, 0, 0, TRUE},
 		};
 		INT i;
 
@@ -291,11 +295,10 @@ EXPORT void subsystem3_stage_test(void)
 			follow_and_watch(30, pl[i].max_mm, &j, &l, &o, &f);
 			if (pl[i].want_fault) {
 				TEST_CHECK(pl[i].id, line_state() == LINE_FAULT &&
-					   line_fault() == LINE_FAULT_S, pl[i].pass);
+					   line_fault() == LINE_FAULT_ONE, pl[i].pass);
 			} else {
-				TEST_CHECK(pl[i].id, l == 0 && j_right == pl[i].want_r &&
-					   j_left == pl[i].want_l && j_both == pl[i].want_b,
-					   pl[i].pass);
+				TEST_CHECK(pl[i].id, l == 0 && j_cross == pl[i].want_cross &&
+					   j_left == pl[i].want_left, pl[i].pass);
 			}
 		}
 	}

@@ -285,7 +285,7 @@ class Panel:
         dot = lambda c: "●" if c == "1" else "○"      # filled = black
         scan = {"0": "-", "1": "backing up", "2": "reading slowly"}.get(d.get("scan"), "?")
         self.sens["line"].configure(text=(
-            f"S {dot(ir[0:1])}  C {dot(ir[1:2])}  B {dot(ir[2:3])}\n"
+            f"L {dot(ir[0:1])}  R {dot(ir[1:2])}  B {dot(ir[2:3])}\n"
             f"steer {num('steer')} mm/s\n"
             f"in barcode: {'yes' if d.get('inbar') == '1' else 'no'}\n"
             f"rescan: {scan}"))

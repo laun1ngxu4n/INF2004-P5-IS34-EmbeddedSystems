@@ -171,8 +171,8 @@ LOCAL void sensor_line(void)
 
 	tm_sprintf(text, (const UB*)
 		"ir=%d%d%d steer=%d scan=%d inbar=%d front=%d tilt=%d h10=%d imu=%d",
-		(INT)(app_gpio_get(PIN_IR_LEFT) == IR_BLACK),
-		(INT)(app_gpio_get(PIN_IR_CENTER) == IR_BLACK),
+		(INT)(app_gpio_get(PIN_IR_LINE_L) == IR_BLACK),
+		(INT)(app_gpio_get(PIN_IR_LINE_R) == IR_BLACK),
 		(INT)barcode_black(),
 		line_steer_mm_s(), motion_scan_phase(), (INT)barcode_busy(),
 		obstacle_front_mm(), imu_pitch_mdeg_sin(), imu_height_mm10(),

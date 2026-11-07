@@ -271,7 +271,7 @@ EXPORT void motion_task(INT stacd, void *exinf)
 			float	steer = (float)line_steer_mm_s();	/* + = steer left */
 			float	t_l, t_r;
 			float	cap = absf((float)cur.speed);
-			BOOL	off = !line_centre_on();
+			BOOL	off = !line_on_track();
 
 			if (follow_limit > 0 && cap > (float)follow_limit) {
 				cap = (float)follow_limit;

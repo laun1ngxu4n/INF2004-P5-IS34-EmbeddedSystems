@@ -7,10 +7,10 @@
  *	files.  Other subsystems include it as "../subsystem3/subsystem3.h".
  *
  *	Stage 2:
- *	  Line (20 ms): IR_LEFT (GP0) sits left of the line, IR_CENTER (GP1)
- *	  over it (1 = black).  Steering goes to Motion through IF-03
- *	  (line_steer_mm_s, latest value only).  Junction = both black for a
- *	  short distance, then left white again while centre stays black.
+ *	  Line (20 ms): two sensors STRADDLE the tape, L (GP1) left of it and
+ *	  R (GP0) right of it, both white when centred (1 = black).  Steering
+ *	  goes to Motion through IF-03 (line_steer_mm_s, latest value only).
+ *	  Crossing = both black for about one tape width.
  *	  Barcode: GP2 edges are stamped with the encoder odometer in the
  *	  interrupt, so bar widths are distances, not times (TEAM.md 7.1 B3).
  *	  The decoder reads the full Code 39 table in both directions (B1, B2)
@@ -22,8 +22,10 @@
 
 #include "../app.h"
 
-#define PIN_IR_LEFT		0	/* the side (edge) sensor; see S3_SIDE */
-#define PIN_IR_CENTER		1
+/* Line sensors, straddling the tape (7 Nov; before that GP1 rode on the
+   tape and GP0 sat beside its right edge) */
+#define PIN_IR_LINE_L		1	/* left of the tape */
+#define PIN_IR_LINE_R		0	/* right of the tape */
 #define PIN_IR_BARCODE		2
 #define IR_BLACK		1	/* D0 level over black (bring-up) */
 
@@ -44,64 +46,59 @@
 #define S3_BAR_MIN_SPAN		400	/* learned: black-white gap needed before
 					   anything counts as black */
 
-/* Which side of the centre sensor the GP0 side sensor is mounted on,
-   seen from behind the robot: +1 left, -1 right.  On our robot it is on
-   the RIGHT (Stage 2 run, 1 Nov), so the line task follows the line's
-   right edge and every steering value is mirrored. */
-#define S3_SIDE			(-1)
-
 /* Geometry, measured 6 Nov */
 #define S3_SENSOR_TO_AXLE_MM	115	/* line sensors in front of the wheel axle
 					   (was a guess of 60) */
 #define S3_TAPE_MM		20	/* line tape width */
-/* C to S, sensor head centre to centre, sideways.  Not used by the code:
-   it is how the robot must be built.  With C on the tape, S must sit
-   just past the tape edge, so drifting one way puts S on the tape and
-   the other way takes C off it.  Wider than the tape, the tape can sit
-   BETWEEN C and S (both white), and the robot turns the wrong way first
-   (the side to side of the Stage 2 runs; about 30 mm in the 6 Nov photo). */
-#define S3_S_GAP_MM		15
-#define S3_BAR_AHEAD_MM		(-40)	/* barcode sensor B in front of C; it is
-					   BEHIND (6 Nov), so negative */
-#define S3_BAR_LEFT_MM		70	/* B left of C (clears the main line while
-					   the tape is narrower than 2 x this) */
+/* L to R, sensor head centre to centre, sideways.  Not used by the code:
+   it is how the robot must be built.  A little wider than the tape, so
+   both read white when centred, with a few mm to spare each side: about
+   30 mm for 20 mm tape (7 Nov).  Much wider = it wanders before it
+   corrects; narrower than the tape = both black all the time. */
+#define S3_LR_GAP_MM		30
+#define S3_BAR_AHEAD_MM		(-40)	/* barcode sensor B in front of the line
+					   sensors; it is BEHIND (6 Nov), so
+					   negative */
+#define S3_BAR_LEFT_MM		70	/* B left of the left line sensor */
 
-/* Junctions (details in task_line.c).  A branch on the S side: S black
-   for about one tape width while C stays on the line, with the steering
-   held (so drift and curves, which keep S black longer, do not count).
-   A branch on the LEFT: B (which also reads the barcodes) sees a black
-   patch about one tape width long, and at that place C was on the line
-   before and after it.  Both within S3_JUNC_MERGE_MM = one crossroads.
-   Line ending at a cross bar with both arms (T end) = a junction; one
-   arm only = a corner, just followed. */
+/* Junctions (details in task_line.c).
+   Crossing (X, crossroads, T end): L and R both black for about one tape
+   width (the tape is narrower than the L-R gap, so only a cross line
+   does that).  A branch to the LEFT only: B (which also reads the
+   barcodes) sees a black patch about one tape width long while the robot
+   was driving straight there.  A branch to the RIGHT only cannot be told
+   from a correction: the track has none (7 Nov).  Two within
+   S3_JUNC_MERGE_MM = one junction. */
 #define S3_JUNC_MIN_MM		(S3_TAPE_MM * 6 / 10)	/* tape width -40 % .. +40 % */
 #define S3_JUNC_MAX_MM		(S3_TAPE_MM * 14 / 10)
 #define S3_JUNC_MERGE_MM	40
-#define JUNC_SIDE_S		1	/* branch on the side sensor's side */
-#define JUNC_SIDE_B		2	/* branch on the left, seen by B */
+#define JUNC_SIDE_S		1	/* a crossing: both line sensors black */
+#define JUNC_SIDE_B		2	/* a left arm, seen by B */
 
 /* IF-03: steering for Motion, mm/s added to the right wheel and taken
    from the left (+ = turn left).  Latest value only. */
 IMPORT INT	line_steer_mm_s(void);
 
 /* Line state, for Mission and telemetry */
-#define LINE_ON		0	/* centre on the line */
-#define LINE_SEARCH	1	/* centre lost, steering back */
-#define LINE_LOST	2	/* lost for more than S3_LOST_MM */
+#define LINE_ON		0	/* following */
+#define LINE_SEARCH	1	/* overshot a tight curve: turning back */
+#define LINE_LOST	2	/* no line for too long */
 #define LINE_FAULT	3	/* a line sensor looks stuck (line_fault() says
 				   which); Mission stops as for LINE_LOST */
 IMPORT INT	line_state(void);
-#define LINE_FAULT_C	1	/* C did not change for S3_STUCK_C_MM */
-#define LINE_FAULT_S	2	/* S black for S3_STUCK_S_MM */
+#define LINE_FAULT_BOTH	1	/* both black for S3_STUCK_BOTH_MM */
+#define LINE_FAULT_ONE	2	/* one black for S3_STUCK_ONE_MM */
 IMPORT INT	line_fault(void);		/* LINE_FAULT_... or 0 */
 IMPORT UW	line_junctions(void);		/* junctions seen since boot */
-IMPORT W	line_junction_odo(void);	/* last junction's centre, where C
-						   crossed it (odometer counts) */
+IMPORT W	line_junction_odo(void);	/* last junction's centre, where the
+						   line sensors crossed it (odometer
+						   counts) */
 IMPORT INT	line_junction_sides(void);	/* its branches: JUNC_SIDE_S | _B */
 IMPORT void	line_set_enabled(BOOL on);	/* FALSE: no junction / lost events
 						   (during turns and bypasses) */
-IMPORT BOOL	line_center_black(void);	/* raw centre sensor */
-IMPORT BOOL	line_centre_on(void);		/* filtered centre sensor on the line */
+IMPORT BOOL	line_any_black(void);		/* raw: either line sensor on black */
+IMPORT BOOL	line_on_track(void);		/* FALSE while correcting hard or
+						   searching: Motion slows down */
 
 /* Barcode results */
 typedef struct {

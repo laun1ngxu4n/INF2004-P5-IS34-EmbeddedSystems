@@ -45,11 +45,11 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
 ### What works
 - [x] ✅ IR live view: S, C and B all respond; B prints edges per second
   so you can tune its pot
-- [x] ✅ Steering direction: the side sensor is on the RIGHT of C
-  (`S3_SIDE -1` in `subsystem3/subsystem3.h`)
-- [x] ✅ Line following: about 2 m straight without losing the line. A
-  little side to side, but it corrects on the spot and creeps forward when
-  off the line
+- [x] ✅ Steering direction (1 Nov): GP0 is the RIGHT sensor, GP1 the left
+  (now `PIN_IR_LINE_R` / `PIN_IR_LINE_L`)
+- [x] ✅ Line following (old edge following, 1-2 Nov): about 2 m straight
+  without losing the line, with side to side. **Replaced 7 Nov by the
+  straddle logic: re-run S3-L01 with it.**
 - [x] ✅ Barcode noise filter: ignores sensor flicker and single grout lines
 - [x] ✅ Rescan: on bar-space-bar the robot backs up 60 mm and reads forward
   slowly (seen working on the robot)
@@ -59,11 +59,12 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
   1.2-2.1 m only because the track was too short. **Needs a 3 m line.**
 - [ ] 🟡 **S3-L02** junction count = real count. Side-to-side movement can
   give false junctions; count the real ones and compare.
-- [ ] ⬜ **S3-L03..L09** (new, 6-7 Nov logic): left branch, right branch, T end,
-  right curve, left curve, gap (track 2), stuck S (black card under S);
-  one place at a time, each prints PASS/FAIL. The track photos are in
-  `docs/track/`: track 3 (foam tiles) has tight curves (about 15 cm)
-  and an X crossing, but no single branch or T end unless tiles are
+- [ ] ⬜ **S3-L10, L03, L05..L09** (straddle logic, 7 Nov): X crossing, left
+  branch, T end, right curve, left curve, gap (track 2), stuck R (black
+  card under R); one place at a time, each prints PASS/FAIL. S3-L04
+  (right-only branch) dropped: none on the track. Track photos in
+  `docs/track/`: track 3 (foam tiles) has tight curves (about 15 cm) and
+  an X crossing, but no left-only branch or T end unless tiles are
   turned to make one.
 - [ ] 🟡 **S3-B01..B03** barcodes: best run read 7 of the 29 bars of `*F*`
   correctly ("3.3 3.2 10.0 3.5 9.9 3.8 2.6" mm), then steering moved the
@@ -75,27 +76,25 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
 
 - [ ] ⬜ Junction turns with the **measured** sensor-to-axle distance of 115 mm
   (the code had a guess of 60): it spins when the wheels are 115 mm past
-  where C crossed the junction centre. Re-check on the robot (paused).
+  where the line sensors crossed the junction centre. Re-check on the
+  robot (paused).
 
-### Changed 6 Nov, not tried on the robot yet
-- Junction detection uses the filtered sensor readings (one flicker split
-  a crossing in two before).
-- **Left junctions** from the barcode sensor B (40 mm behind C, 70 mm
-  left): a patch 12-28 mm long (tape 20 mm), with C on the line at that
-  place before and after. The Stage 2 run prints `B patch 19.8 mm (...)`
-  for every first bar B sees (also grout and barcode start bars), and
-  `junction N at X mm, branch left / right / both sides`.
-- S junctions: steering held straight for up to 28 mm when S goes black
-  from normal following; a branch = S white again by itself within
-  12-28 mm (was 8-45 with no hold). Drift and right curves keep S black
-  longer, so they no longer count.
-- Crossroads: S and B within 40 mm = one junction. T end (line ends at a
-  cross bar): S sees the right arm, the robot drives straight on up to
-  80 mm until B has seen the left arm = a junction; one arm = a corner.
-- **Before the run: move S to 15 mm from C** (centre to centre); the photo
-  shows about 30 mm.
+### Changed 6-7 Nov, not tried on the robot yet
+- **Line sensors straddle the tape (7 Nov)**: L left of it, R right of
+  it, about 30 mm apart, both white when centred = straight. Replaces
+  the edge following (C on the tape, S beside it), which corrected
+  unevenly and turned the wrong way when the tape sat between them.
+- Crossing: L and R both black for 12-45 mm. The Stage 2 run prints
+  `junction N at X mm: crossing` or `: branch left (seen by B)`.
+- **Left junctions** from the barcode sensor B (40 mm behind, 70 mm left
+  of L): a patch 12-28 mm long (tape 20 mm) where the robot drove
+  straight before and after. It prints `B patch 19.8 mm (...)` for every
+  first bar B sees (also grout and barcode start bars).
+- Tight curves: gentle steering, then hard and slow after 25 mm black;
+  overshoot (60 mm white after a 30 mm correction) turns back toward the
+  last side seen.
 - To check on curves: no `junction` lines on curves without branches;
-  following on the sharpest right curve not worse than before.
+  smoother than the edge following.
 - After a barcode meaning L/R/U: 100 mm/s until the junction.
 - Barcode sensor on analogue (optional, `S3_BARCODE_ANALOG 1`): power it
   from **3V3**, AO to GP28, flash `..._test_s2_analog.uf2`, send the
@@ -109,7 +108,7 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
 - Still to measure: how far the IR/barcode bar sticks out in front
 - Tape width: 20 mm. Barcode sensor B: 40 mm **behind** C, 70 mm left
   (measured 6 Nov)
-- C to S gap: about 30 mm (photo), to be set to 15 mm
+- L to R gap: about 30 mm, tape centred between them (7 Nov)
 - Real number of junctions on the test track
 
 ## Stage 3: obstacle (`TEST_STAGE=3`)

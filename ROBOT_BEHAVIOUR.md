@@ -16,20 +16,30 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
 
 ### Line following
 - 150 mm/s everywhere (the whole course runs at the slow barcode speed).
-- Centre sensor C rides on the line, side sensor S sits just right of it:
-  the robot follows the line's right edge.
-- Steering: ±25 mm/s between the wheels for a small correction, ±40 mm/s
-  for a big one. It builds up gradually and eases off at once.
-- C off the line: slows to 20 % (about 30 mm/s) and turns back on the spot.
-- **Line lost**: C off the line for more than 250 mm or 4 s. It stops and
-  reports "line lost".
-- **Gap in the line**: if C leaves the line while S stays white, after at
-  least 50 mm of straight following, it drives straight on for up to
-  40 mm before searching (searching turns away from S, which is wrong
-  over a gap).
-- **Stuck line sensor**: S black for more than 200 mm of driving, or C not
-  changing for 3 m of driving: it stops and reports which sensor. A
-  robot standing still never trips this.
+- **The two line sensors straddle the tape** (since 7 Nov): L just left
+  of it, R just right of it, about 30 mm apart for the 20 mm tape, so
+  both read white when centred.
+  | L | R | Meaning | Does |
+  |---|---|---|---|
+  | white | white | centred, or a gap | straight |
+  | black | white | line moving left | turn left |
+  | white | black | line moving right | turn right |
+  | black | black | a cross line | straight (a crossing) |
+- A correction starts gentle (±25 mm/s between the wheels) and goes hard
+  (±40 mm/s) with the robot slowing to 20 % once the sensor has been black
+  for 25 mm: a tight curve. Steering builds up gradually and eases off at
+  once.
+- **Overshoot**: on a tight curve the tape can pass right under a sensor
+  and out the other side, which also reads "both white". After a long
+  correction (30 mm or more) and then 60 mm of white, it turns back
+  toward the side that saw the line last.
+- **Gaps** need nothing special: both white = straight on.
+- **Line lost**: 400 mm of white (no search), or 250 mm / 4 s of
+  searching. It stops and reports "line lost". So a line that ends is
+  driven past by up to 400 mm before it stops.
+- **Stuck line sensor**: one sensor black for 300 mm of driving, or both
+  black for 150 mm: it stops and says which. A robot standing still
+  never trips this.
 
 ### Barcodes (Code 39, barcode sensor B)
 - Inside a barcode: 50 mm/s.
@@ -42,31 +52,27 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
   and **keeps the letter until the next junction**.
 
 ### Junctions
-- **Right branch (S):** coming from normal following (C on, S off), S
-  goes black too. The steering is then **held straight** for up to 28 mm.
-  S white again by itself within 12-28 mm (one 20 mm tape width) with C
-  still on = a branch. Drifting toward the line or a curve to the right
-  keeps S black longer, so it is not a junction, and the steering then
-  corrects as usual. (Without the hold, every small correction looked
-  like a branch: the false junctions of 2 Nov.)
-- **Left branch (B):** the barcode sensor B (**40 mm behind** C, 70 mm
-  left) sees a black patch 12-28 mm long (reported as soon as B leaves
-  it), and at that same place C was on the line from 20 mm before to
-  30 mm after. The line task remembers where C was off the line, by
-  distance, to check this. Barcode bars (narrow 3.5, wide 10.5 mm) and
-  grout lines are thinner: they do not count. Reported about 50 mm after
-  C crossed it; Mission then drives the rest of the 115 mm.
-- Right and left within 40 mm of each other: one crossroads.
-- **Line ends at a cross bar (T):** S saw the right arm and C went white:
-  the robot drives **straight on** (no creeping and turning) for up to
-  80 mm so B can reach the left arm. B sees it, with C off the line after
-  it: a junction. Only one arm (a corner): not a junction, the robot
-  then steers round as usual (about 80 mm later than before for a right
-  corner).
+- **Crossing** (X, crossroads, T end): L and R both black for 12-45 mm
+  (one tape width, more when crossed at an angle). The tape is narrower
+  than the L-R gap, so the line itself never does that.
+- **Left branch** (an arm to the left only): the barcode sensor B
+  (**40 mm behind** the line sensors, 70 mm left of L) sees a black patch
+  12-28 mm long (reported as soon as B leaves it), and the robot was
+  driving straight before and after that place (L touching the arm
+  itself is allowed). The line task remembers where it was correcting,
+  by distance, to check this. On a curve it corrects all the time, so a
+  line B sees there does not count. Barcode bars (narrow 3.5, wide
+  10.5 mm) and grout lines are thinner. Reported about 50 mm after the
+  line sensors crossed it; Mission then drives the rest of the 115 mm.
+- **A branch to the right only** cannot be told from a correction (R
+  touches it like a curve): the track has none (7 Nov). It gives a small
+  jerk toward it.
+- A crossing and B's left arm within 40 mm: one junction.
 - After a barcode that means L, R or U: follows at 100 mm/s (not 150)
   until the junction.
 - No letter kept: straight on. Letter in the mapping: drives until the
-  wheels are over the junction centre (115 mm after C crossed it, measured
+  wheels are over the junction centre (115 mm after the line sensors
+  crossed it, measured
   with the wheel encoders), spins on the spot (left +90, right -90, U-turn
   180, each wheel 120 mm/s), then follows again (junction and line-lost
   detection off for the first 60 mm).
@@ -127,12 +133,13 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
   | Pot set wrong, or shifted by handling | nothing in code: IR live view before every session |
   | Paper and foam reflect differently | nothing in code (analogue B learns its levels): live view on each surface |
   | Room light, sunlight, glossy tape | nothing: try once near a window |
-  | Sensor stuck black | stop after 200 mm (S) or 3 m (C) of driving |
-  | Sensor stuck white / cable out | "line lost" stop |
-  | Tape between C and S (gap too wide) | build: S about 15 mm from C |
-  | Tight curves (about 15 cm on the foam track) | slow to 20 % and turn when C is off; S3-L06/L07 |
-  | Gap in the line | straight on 40 mm; S3-L08 |
-  | Branch met while correcting, or at an angle, or on a curve | may be missed; S3-L02 count |
+  | Sensor stuck black | stop after 300 mm (one) or 150 mm (both) of driving |
+  | Sensor stuck white / cable out | not detected: that side never corrects, the robot drifts off and stops with "line lost" |
+  | L-R gap wrong for the tape | build: about 30 mm for 20 mm tape, tape centred between them |
+  | Tight curves (about 15 cm on the foam track) | hard steering and slow after 25 mm; overshoot search; S3-L06/L07 |
+  | Gap in the line | straight on (up to 400 mm); S3-L08 |
+  | Left branch met while correcting, or on a curve | ignored (not trusted); S3-L03 |
+  | A branch to the right only | looks like a correction: not detected (none on the track) |
   | Foam tile joins, grout, marks about 20 mm under B | could look like a left arm; watch `B patch` prints |
   | Another track line within 70 mm of the robot's path | B could see it as a left arm; watch `B patch` prints |
   | Barcode under 40 mm from a left branch | both lost |
@@ -145,19 +152,17 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
   braking) looks like tilt. The jolt filter helps but cannot remove it all.
 
 **Behaviour**
-- Follows the line's right edge. Junctions on the right are seen by S,
-  on the left by B. A left branch is only seen if there is **at least
-  40 mm of white** between it and any barcode or other mark next to the
-  line (otherwise they read as one code). A plain corner (the line itself
-  turns) is followed, not taken as a junction.
-- Curves: followed as before. A right curve or drift cannot fake a right
-  branch (steering hold), a left curve cannot reach B (70 mm left). A
-  branch that is itself on a curve may be missed, and on a curve the turn
-  point (drives straight 115 mm) is less accurate. **Not tried on the
-  robot yet.**
-- Line lost = stop. It does not search for the line again.
-- A gap longer than about 40 mm, or a gap right after a curve (no 50 mm
-  of straight before it), is not crossed: it searches and may stop.
+- Line sensors straddle the tape. Crossings are seen by both; left
+  branches by B, and only if there is **at least 40 mm of white** between
+  the branch and any barcode or other mark next to the line (otherwise
+  they read as one code). Right-only branches are not detected.
+- Curves: corrections both ways the same. A curve tighter than the hard
+  steering at full speed (about 23 cm radius) relies on slowing to 20 %;
+  a very tight one can overshoot and needs the search. A branch on a
+  curve is ignored, and on a curve the turn point (drives straight
+  115 mm) is less accurate. **Not tried on the robot yet.**
+- Line lost = stop, after 400 mm of white (it cannot tell centred from
+  lost sooner) or a failed search.
 - The bypass is a fixed rectangle planned for boxes up to 200 mm wide and
   150 mm deep; it assumes nothing else is next to the obstacle.
 - A ramp is only reported once the robot is level again for 100 mm. On a
@@ -198,7 +203,7 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
 | Axle to front support, L (`S4_L_MM`) | 80 mm | hump height = L x sin(tilt) |
 | Tape width (`S3_TAPE_MM`) | 20 mm | junction length window 12-28 mm |
 | Barcode sensor B from C (`S3_BAR_AHEAD_MM`, `S3_BAR_LEFT_MM`) | **40 mm behind**, 70 mm left (corrected 6 Nov, was "40 ahead, 50 left") | left junctions |
-| C to S gap, centre to centre (`S3_S_GAP_MM`, build guide only) | about 30 mm in the photo; **set it to 15 mm** (S just past the tape edge) | steering: wider than the tape, the tape fits between C and S and the robot turns the wrong way first |
+| L to R gap, centre to centre (`S3_LR_GAP_MM`, build guide only) | about 30 mm, the tape centred between them (7 Nov) | steering; both white when centred |
 | Real junction count on the track | **not measured** | S3-L02 |
 
 **Tests short of their target**
@@ -207,10 +212,8 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
 - [ ] S3-L02: junction count vs the real count.
 - [ ] Junction turns with the measured 115 mm sensor-to-axle distance
   (was 60), measured from the junction centre: not tried on the robot.
-- [ ] Left junctions seen by B, T ends, crossroads merged, steering hold
-  against false junctions, slower approach after a barcode (6 Nov): not
-  tried on the robot (S3-L03..L07).
-- [ ] Gap crossing and stuck-sensor stop (7 Nov): not tried on the robot
-  (S3-L08, S3-L09).
+- [ ] Straddle line following (7 Nov), crossings, left junctions seen by
+  B, overshoot search, stuck-sensor stop, slower approach after a
+  barcode: not tried on the robot (S3-L03, L05..L10).
 - [ ] S1-T02: remote START/STOP 3 of 5 rounds (all passed).
 - [ ] Stage 1 and later results not yet written into the `testing/*/TEST_LOG.md` tables.

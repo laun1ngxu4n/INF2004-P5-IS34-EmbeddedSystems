@@ -1,17 +1,18 @@
-# Prebuilt images (rebuilt 6 Nov: new junction logic, Stage 4 fixes)
+# Prebuilt images (rebuilt 7 Nov: straddle line following)
 
 Built from this repo with Pico SDK 2.3.1 (GCC 15.2), 0 warnings, S2_TRACK_MM 123.
-Status of each stage: `../TEST_STATUS.md`. The 6 Nov junction logic (left
-branches from the barcode sensor, T ends, steering hold) is **not run on
-the robot yet**; it expects B 40 mm behind C and 70 mm left, and S about
-15 mm from C (`../app_program/subsystem3/subsystem3.h`).
+Status of each stage: `../TEST_STATUS.md`. The 7 Nov line following
+(sensors straddling the tape, crossings, left branches from the barcode
+sensor) is **not run on the robot yet**; it expects the two line sensors
+about 30 mm apart with the tape centred between them, and B 40 mm behind
+them and 70 mm left (`../app_program/subsystem3/subsystem3.h`).
 Flash: hold BOOTSEL, plug in USB, drag the file onto RPI-RP2.
 Steps for each: `../TESTING_GUIDE.md`.
 
 | File | Same as `make ...` in `build_make` | What it does |
 |---|---|---|
 | `is34_test_stage1.uf2` | `TEST=1 TEST_STAGE=1` | Stage 0 auto tests, then motion: turns, slow speed, STOP |
-| `is34_test_stage2.uf2` | `TEST=1 TEST_STAGE=2` | then IR view, line + junctions, one place at a time (S3-L03..L09), barcodes, course with the TEST mapping |
+| `is34_test_stage2.uf2` | `TEST=1 TEST_STAGE=2` | then IR view, line + junctions, one place at a time (S3-L03, L05..L10), barcodes, course with the TEST mapping |
 | `is34_test_stage2_analog.uf2` | same, with `S3_BARCODE_ANALOG 1` | the same, barcode sensor on its analogue output: **power it from 3V3**, AO to GP28 |
 | `is34_test_stage3.uf2` | `TEST=1 TEST_STAGE=3` | then servo check, sonar view, 6 width scans, course (bypass) |
 | `is34_test_stage4.uf2` | `TEST=1 TEST_STAGE=4` | then IMU check, tilt view, 5 ramp runs |

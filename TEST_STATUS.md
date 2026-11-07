@@ -106,6 +106,20 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
   (robot lifted / handled): ignore. S3-L10 (X crossing, the track has
   them) failed again: both black for only 1 mm; retest once L/R are
   re-tuned.
+- **7 Nov, after re-tuning the pots (`linefolo` log, last part):** L01
+  followed 3303 mm (a first) but shaky: 9 corrections per metre, **10
+  sweeps across the tape**, then both black (FAULT) at the end. L05 PASS,
+  L06 PASS (17 corrections per metre). L07 FAIL: 2 false left branches
+  on the curve (B over the curve's own tape). L03 FAIL: the real branch
+  (B patch 17 mm) rejected because the robot was correcting. L10 FAIL:
+  no crossing. Found in the trace: **the overshoot search fired on
+  straights** (after an ordinary 15-20 mm correction and 40 mm of white
+  it turned hard back and swept across the tape), and the 2-reading
+  filter made every correction 20-40 ms late. **Changed the same day,
+  not run yet:** search only after a correction that looks like a curve
+  (35 mm, or 15 mm twice on the same side); filter 1 reading; left branch
+  = heading turned under 30 deg in the 200 mm before it (encoders),
+  instead of "no correction just before".
 - [ ] ⬜ **S3-L10, L03, L05..L09** (straddle logic, 7 Nov): X crossing, left
   branch, T end, right curve, left curve, gap (track 2), stuck R (black
   card under R); one place at a time, each prints PASS/FAIL. S3-L04

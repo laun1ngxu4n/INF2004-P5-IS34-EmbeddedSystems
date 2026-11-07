@@ -18,9 +18,10 @@
  *	the 20 mm tape and the 5 mm clearance before the loop could react,
  *	both sensors black on every swing, never centred).
  *	Overshoot: on a tight curve the tape can pass right under a sensor
- *	and out the other side, which also reads "both white".  After a long
- *	correction (S3_LONG_CORR_MM) followed by S3_OVERSHOOT_MM of white, it
- *	turns back toward the side that saw the line last (LINE_SEARCH);
+ *	and out the other side, which also reads "both white".  After a
+ *	correction that looks like a curve (S3_VERY_LONG_MM, or S3_LONG_CORR_MM
+ *	on the same side as the one before) followed by S3_OVERSHOOT_MM of
+ *	white, it turns back toward the side that saw the line last (LINE_SEARCH);
  *	LINE_LOST after S3_LOST_MM or S3_LOST_MS of that.  Otherwise both
  *	white is straight on (gaps need nothing special).  But both white is
  *	also "no line at all": on a long straight, well centred, the robot
@@ -40,13 +41,10 @@
  *	  is narrower than the L-R gap, so the line itself only makes both
  *	  black when the robot sweeps across it at an angle, on a tight curve
  *	  while correcting: 2 false crossings on a curve on 7 Nov.
- *	  Left branch: B saw a patch about one tape wide, and the robot was
- *	  driving straight (no correction, no search) before that place.  B
- *	  is not level with the line sensors, so the corrections are kept by
- *	  distance (off_a/off_b) and looked up when B's patch arrives.  On
- *	  curves the robot corrects all the time, so a line seen by B there
- *	  does not count.  (After the arm L touches it and the robot turns a
- *	  little toward it, so after it is not checked.)
+ *	  Left branch: B saw a patch about one tape wide, and the robot's
+ *	  heading (wheel encoders) turned less than S3_ARM_TURN_DEG over the
+ *	  S3_ARM_HEAD_MM before it: on a curve B passes over the curve's own
+ *	  tape, which does not count.
  *	  Two within S3_JUNC_MERGE_MM are one junction.
  *	Mission is told through flg_mission (MSN_FLG_JUNCTION /
  *	MSN_FLG_LINE_LOST); line_junction_odo() says where the centre was.
@@ -67,11 +65,20 @@
 #define S3_LOW_PCT		35	/* ... and after S3_LOW_AFTER_MM of it */
 #define S3_LOW_AFTER_MM		35
 #define S3_SEARCH_PCT		20	/* searching (0 rocked in place, 2 Nov) */
-#define S3_FILTER_N	2	/* a sensor pattern counts only after this many
-				   readings in a row (2 = 40 ms, ~6 mm) */
-#define S3_LONG_CORR_MM		15	/* a correction this long may have let the
-					   tape slip out past the sensor (left
-					   curves, 7 Nov: 21-27 mm, then lost) */
+#define S3_FILTER_N	1	/* a sensor pattern counts only after this many
+				   readings in a row.  Was 2 (20-40 ms, 3-5 mm
+				   late at 120 mm/s): with the mount raised the
+				   sensors already see the tape late, and the
+				   corrections came too late (7 Nov) */
+#define S3_LONG_CORR_MM		15	/* a correction this long, on the same side
+					   as the one before it (a curve) ... */
+#define S3_VERY_LONG_MM		35	/* ... or this long on any side, may have let
+					   the tape slip out past the sensor (left
+					   curves, 7 Nov: 21-38 mm, then lost).  On a
+					   straight the corrections alternate L, R:
+					   15 mm alone fired the hard search there
+					   and swept the robot across the tape (10
+					   sweeps in S3-L01, 7 Nov) */
 #define S3_OVERSHOOT_MM		40	/* white this long after one: overshot */
 /* Crossing: no correction from both_from - S3_CROSS_BEFORE_MM to
    both_from - S3_CROSS_LEAD_MM (one sensor may reach an angled cross
@@ -92,12 +99,59 @@
 #define MM(mm)		((W)(mm) * 1000 / S2_UM_PER_COUNT)	/* mm -> counts */
 
 /* Left arm under B, centre at cc (where the line sensors crossed it):
-   no correction from cc - S3_ARM_BEFORE_MM to cc - S3_ARM_SELF_MM (L
-   touching the arm itself is allowed).  Decided once the line sensors
-   are S3_ARM_AFTER_MM past it (at once when B is behind). */
-#define S3_ARM_BEFORE_MM	40
-#define S3_ARM_SELF_MM		22	/* half a tape + the ~6 mm filter delay + margin */
+   the robot's heading (wheel encoders) turned less than S3_ARM_TURN_DEG
+   over the S3_ARM_HEAD_MM before cc.  On a curve B passes over the
+   curve's own tape (7 Nov, S3-L07: 2 false branches); the old rule (no
+   correction for 18 mm before it) let those through in short quiet
+   gaps, and rejected the real branch of S3-L03 because the robot
+   zigzagged there.  A 15 cm curve turns 76 deg in 200 mm; a zigzag on
+   a straight swings the heading but turns it little in the end.
+   Decided once the line sensors are S3_ARM_AFTER_MM past it (at once
+   when B is behind). */
+#define S3_ARM_HEAD_MM		200
+#define S3_ARM_TURN_DEG		30
 #define S3_ARM_AFTER_MM		20
+
+/* Heading history: right minus left encoder counts, every HEAD_STEP_MM
+   of driving (64 x 5 mm = 320 mm) */
+#define HEAD_N		64
+#define HEAD_STEP_MM	5
+LOCAL W		head_odo[HEAD_N], head_d[HEAD_N];
+LOCAL UW	head_n;
+
+LOCAL void head_step(W odo)
+{
+	MOTION_STATUS st;
+
+	if (head_n > 0u && odo - head_odo[(head_n - 1u) % HEAD_N] < MM(HEAD_STEP_MM)) {
+		return;
+	}
+	motion_get_status(&st);
+	head_odo[head_n % HEAD_N] = odo;
+	head_d[head_n % HEAD_N] = st.count_r - st.count_l;
+	head_n++;
+}
+
+/* Heading change (whole degrees, either way) from odometer a to now */
+LOCAL INT head_turn_deg(W a)
+{
+	UW	i, first = (head_n > HEAD_N) ? head_n - HEAD_N : 0u;
+	W	d0, d1, dd;
+
+	if (head_n == 0u) return 0;
+	d1 = head_d[(head_n - 1u) % HEAD_N];
+	d0 = head_d[first % HEAD_N];		/* oldest kept */
+	for (i = first; i < head_n; i++) {
+		if (head_odo[i % HEAD_N] >= a) {
+			d0 = head_d[i % HEAD_N];
+			break;
+		}
+	}
+	dd = d1 - d0;
+	if (dd < 0) dd = -dd;
+	/* counts -> mm of wheel difference -> radians over the track */
+	return (INT)((dd * S2_UM_PER_COUNT / 1000) * 573 / (S2_TRACK_MM * 10));
+}
 
 #define PAT_L		2u
 #define PAT_R		1u
@@ -216,6 +270,7 @@ EXPORT void line_task(INT stacd, void *exinf)
 	INT	last_side = 0;		/* +1 line last seen on the left, -1 right */
 	W	single_from = 0;	/* start of the current one-sensor stretch */
 	BOOL	long_corr = FALSE;	/* the last correction was long */
+	INT	corr_side = 0, corr_before = 0;	/* +1 L, -1 R: this and the last one */
 	W	white_from = 0;		/* start of the current all-white stretch */
 	BOOL	searching = FALSE;
 	W	search_from = 0;
@@ -260,6 +315,8 @@ EXPORT void line_task(INT stacd, void *exinf)
 			probe_none = FALSE;
 			before_both = 0u;
 			n_corr = n_sweep = 0u;
+			corr_side = corr_before = 0;
+			head_n = 0u;
 			hist_reset(odo);
 			mark_seen = barcode_mark(&mc, &mw);	/* drop old patches */
 			state = LINE_ON;
@@ -282,13 +339,17 @@ EXPORT void line_task(INT stacd, void *exinf)
 
 		/* Stretches start where the filtered pattern changed */
 		if (stable != prev) {
-			if ((prev == PAT_L || prev == PAT_R) &&
-			    odo - single_from >= MM(S3_LONG_CORR_MM)) {
-				long_corr = TRUE;	/* a long correction ended */
-			} else if (prev == PAT_L || prev == PAT_R) {
-				long_corr = FALSE;
+			if (prev == PAT_L || prev == PAT_R) {
+				W len = odo - single_from;
+
+				/* a long correction ended: maybe a curve */
+				long_corr = (len >= MM(S3_VERY_LONG_MM)) ||
+					    (len >= MM(S3_LONG_CORR_MM) &&
+					     corr_side == corr_before);
 			}
 			if (single) {
+				corr_before = corr_side;
+				corr_side = fl ? +1 : -1;
 				single_from = odo;
 				if (prev == 0u) n_corr++;
 				/* L, both, R (or R, both, L): swept right across */
@@ -380,6 +441,7 @@ EXPORT void line_task(INT stacd, void *exinf)
 			speed_pct = 100;
 		}
 		hist_step(odo, single || searching);
+		head_step(odo);
 
 		if (!enabled) {			/* turning, bypassing: no events */
 			bpend = FALSE;
@@ -447,10 +509,10 @@ EXPORT void line_task(INT stacd, void *exinf)
 			W cc = bpend_c;
 
 			bpend = FALSE;
-			if (quiet_over(cc - MM(S3_ARM_BEFORE_MM), cc - MM(S3_ARM_SELF_MM), odo)) {
+			if (head_turn_deg(cc - MM(S3_ARM_HEAD_MM)) < S3_ARM_TURN_DEG) {
 				junction_at(cc, JUNC_SIDE_B);
 			}
-			/* else on a curve or correcting there: not trusted */
+			/* else on a curve: B saw the curve's own tape */
 		}
 
 		app_timing_done(tmg_line);

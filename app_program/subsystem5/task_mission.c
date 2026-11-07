@@ -278,37 +278,41 @@ LOCAL INT drive_until_line(INT dist_mm, INT from_mm)
 	}
 }
 
-/* Leg 4, past the box (8 Nov).  With the side look the sonar turns 90 deg
-   toward the box and pings every 60 ms while the robot drives: the box's
-   side face echoes while the robot is beside it, and SIDE_MISS_PINGS in
-   a row without it = past its back, whatever its depth.  The robot goes
-   on until its axle is half its width + MARGIN_MM past the last echo
-   (room to turn and drive back to the line), and only from there do the
-   line sensors count (a junction's side line beside the box is not the
-   line).  Until 8 Nov: a fixed distance for a box up to 150 mm deep
-   (D_MAX_MM, team assumption A9); tools/bypasssim.py: a 250 mm deep box
-   was hit that way.  The side look never saw the box: that fixed
-   distance.  A sonar fault counts as "box still there" (never past by
-   mistake).
+/* Leg 4, past the box (8 Nov).  With the side look the sonar turns 40 deg
+   (the cables' limit) toward the box and pings every 60 ms while the
+   robot drives.  At 40 deg the beam's axis meets the box's side face at a
+   glancing angle (a flat face mostly reflects that away), but the side of
+   the beam hears the face at its square-on distance while the sonar is
+   beside it (the 7 Nov scans: 40 deg off a face still read its square-on
+   distance).  So an echo near lat_exp, the sideways distance to the box's
+   side face from the scan (SIDE_TOL_IN/OUT_MM), counts as the box.
+
+   Each such echo pushes the end of the leg to at least where the axle is
+   half the robot's width + MARGIN_MM past the point where it was heard;
+   never earlier than the fixed distance for a box up to 150 mm deep
+   (x_pass, D_MAX_MM, team assumption A9).  So the side look can only make
+   the leg longer: a stray echo makes it longer, a missed one changes
+   nothing, a side look that hears nothing is the fixed distance.  (Asking
+   "still beside it at x_pass?" was wrong: the sonar is 120 mm ahead of
+   the axle and had just passed a 350 mm deep box's back there.)  The line
+   sensors count from past a 150 mm deep box and not while the box is
+   beside (an echo in the last SIDE_MISS_PINGS): a junction's side line
+   beside the box is not the line (8 Nov run).  A sonar fault counts as an
+   echo.  tools/bypasssim.py S: box depths 60-350 mm all 36/36, closest 56
+   mm (fixed distance: 250 mm deep 16 of 36 hit, 350 mm all hit); with
+   half the side echoes missed still 53/54.
    1 = line met, 0 = past the box (turn back to the line), -1 = halted */
-#define SIDE_SEEN_PAST_LINE_MM	50	/* an echo nearer than the line + this
-					   is the box */
-#define SIDE_MISS_PINGS		3
-#define SIDE_EXTRA_MM		300	/* on at most this past x_pass while
-					   still beside the box */
-#define SIDE_BEAM_TAN_X1000	176	/* tan 10 deg: the beam (about +-15 deg)
-					   still hears the box's back corner
-					   after the sonar has passed it; take
-					   back 10 deg of that (bypasssim: tight
-					   curves behind the box missed without) */
-LOCAL INT pass_box(INT sgn, INT front, INT y_off, INT x_pass)
+#define SIDE_TOL_IN_MM		120	/* echo from lat_exp - this ... */
+#define SIDE_TOL_OUT_MM		80	/* ... to lat_exp + this = the box */
+#define SIDE_MISS_PINGS		5	/* no echo in this many = not beside */
+#define SIDE_EXTRA_MM		300	/* at most this past x_pass */
+LOCAL INT pass_box(INT sgn, INT front, INT lat_exp, INT x_pass)
 {
 	UB	msg[TELE_TEXT_MAX];
-	BOOL	side = (S5_SERVO_SIDE_DEG > 0), seen = FALSE, past = FALSE;
-	BOOL	never = FALSE, line_on;
-	INT	thr = y_off + SIDE_SEEN_PAST_LINE_MM;
-	INT	line_from = front + D_MAX_MM + 30;	/* without the side look */
-	INT	first = 0, last = 0, dlast = 0, miss = 0, stop_at = 0, dist, done, d, r = -1;
+	BOOL	side = (S5_SERVO_SIDE_DEG > 0), seen = FALSE, told = FALSE;
+	INT	line_from = front + D_MAX_MM + 30;
+	INT	first = 0, last = 0, miss = SIDE_MISS_PINGS, stop_at = x_pass;
+	INT	dist, done, d, r = -1;
 	UW	t_ping;
 	W	odo0;
 	MOTION_STATUS st;
@@ -335,48 +339,58 @@ LOCAL INT pass_box(INT sgn, INT front, INT y_off, INT x_pass)
 			d = sonar_ping_result();
 			sonar_ping_start();
 			t_ping = app_time_us();
-			if (d == SONAR_FAULT || (d >= 0 && d < thr)) {
+			if (d == SONAR_FAULT ||
+			    (d >= lat_exp - SIDE_TOL_IN_MM && d <= lat_exp + SIDE_TOL_OUT_MM)) {
 				if (!seen) first = done;
 				seen = TRUE;
 				last = done;
-				if (d >= 0) dlast = d;
 				miss = 0;
-			} else if (seen && !past && ++miss >= SIDE_MISS_PINGS) {
-				past = TRUE;
-				/* the box's back: where the sonar was at the
-				   last echo, less a little of the beam */
-				stop_at = last + S5_SONAR_TO_AXLE_MM -
-					  dlast * SIDE_BEAM_TAN_X1000 / 1000 +
-					  S2_ROBOT_WIDTH_MM / 2 + MARGIN_MM;
-				tm_sprintf(msg, (const UB*)"side look: box beside for %d mm, "
-					   "past it %d mm along", last - first, done);
-				say(msg);
+				if (last + S5_SONAR_TO_AXLE_MM + S2_ROBOT_WIDTH_MM / 2 +
+				    MARGIN_MM > stop_at) {
+					stop_at = last + S5_SONAR_TO_AXLE_MM +
+						  S2_ROBOT_WIDTH_MM / 2 + MARGIN_MM;
+				}
+			} else {
+				miss++;
 			}
-			if (!seen && !never && done > front + D_MAX_MM + 60) {
-				never = TRUE;
-				say((const UB*)"side look never saw the box: assuming "
-				    "it is at most 150 mm deep");
+			if (!told && done >= x_pass) {
+				told = TRUE;
+				if (!seen) {
+					say((const UB*)"side look heard nothing: assuming "
+					    "the box is at most 150 mm deep");
+				} else if (stop_at > x_pass) {
+					say((const UB*)"side look: box still beside, going on");
+				}
 			}
 		}
-		line_on = past || ((!side || never) && done >= line_from);
-		if (line_on && line_any_black()) { r = 1; break; }
-		if (past && done >= stop_at) { r = 0; break; }
-		if (never && done >= x_pass) { r = 0; break; }
+		if (done >= line_from && miss >= SIDE_MISS_PINGS && line_any_black()) {
+			r = 1;
+			break;
+		}
+		if (done >= stop_at) { r = 0; break; }
 		motion_get_status(&st);
 		if (st.result != MOT_RES_BUSY) {
 			if (st.result != MOT_RES_DONE) goto out;
 			if (!side) { r = 0; break; }	/* drove x_pass */
 			motion_halt();
 			servo_set_angle(90);
-			halt(past ? "no room past the box" :
-			     "still beside the box at the end of the leg (box too long?)");
+			halt((dist < x_pass + SIDE_EXTRA_MM) ?
+			     "box still beside, no room ahead to get past it" :
+			     "still beside the box 300 mm on (box too long?)");
 			return -1;
 		}
 		tk_dly_tsk(5);
 	}
 	motion_halt();
 	wait_still();
-	if (side) servo_set_angle(90);
+	if (side) {
+		servo_set_angle(90);
+		if (seen) {
+			tm_sprintf(msg, (const UB*)"side look: box heard from %d to %d "
+				   "mm along, leg %d mm (fixed %d)", first, last, done, x_pass);
+			say(msg);
+		}
+	}
 	return r;
 out:
 	motion_halt();
@@ -519,7 +533,9 @@ LOCAL void on_obstacle(void)
 	if (!mv(motion_drive(S5_FOLLOW_SPEED, y_off))) goto fail;
 	if (!mv(motion_turn(-sgn * 90))) goto fail;
 	odo0 = motion_odometer();
-	found = pass_box(sgn, p.front_mm, y_off, x_pass);
+	/* sideways from the robot to the box's side face, as the scan saw it */
+	found = pass_box(sgn, p.front_mm,
+			 y_off - sgn * ((sgn > 0) ? p.left_mm : p.right_mm), x_pass);
 	if (found < 0) return;			/* halted, reason given */
 	if (found) {
 		tm_sprintf(msg, (const UB*)"line met behind the box, %d mm along",

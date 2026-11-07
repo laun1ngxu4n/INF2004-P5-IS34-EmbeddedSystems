@@ -332,12 +332,15 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
   side line on the bypass side within about 35 cm behind the box (looks
   the same as the line itself turning 90 deg there).
 - **Added 8 Nov, not run yet: side look.** On the leg past the box the
-  sonar turns 90 deg toward it and watches its side face, so the robot
-  knows when it is past, for any depth, instead of assuming 150 mm
-  (another group does the same). `tools/bypasssim.py S`: depths 60-350
-  mm all 36/36 (fixed 150 mm: 250 mm deep 20/36 with 16 hits, 350 mm all
-  hit), ordinary cases 474/486, junctions under the box 54/54. Needs
-  the servo to reach 90 deg both ways (new Stage 3 servo check).
+  sonar turns 40 deg toward it (90 has no cable clearance) and listens
+  for its side face; every echo pushes the end of the leg further, never
+  shorter than the fixed 150 mm depth (another group does something
+  similar). `tools/bypasssim.py S`: depths 60-350 mm all 36/36 (fixed
+  only: 250 mm deep 16 of 36 hit, 350 mm all hit), ordinary cases and
+  junctions as before; 53/54 deep runs even with half the side echoes
+  missed. Relies on the side of the beam hearing a face beside the
+  robot: **new Stage 3 bench check** (`[S5] side N mm`, box beside the
+  robot about 20 cm out should read about 200).
 - [ ] 🟡 **S5-O01** width, 3 tries (3 flat boxes, one each, real width
   by ruler, box about 250 mm ahead, nothing else within 60 cm). With the
   scan at +/- 25 deg the sonar never saw past a box's edge (beam is about

@@ -20,20 +20,22 @@ Two rejoin methods:
        deep box (a junction's side line under the box is not the line),
        and the first scan is where the forward watch stopped.
   S    (task_mission.c since 8 Nov): as J, but on leg 4 the sonar looks
-       90 deg toward the box; 3 pings without its side face = past; on
-       until the axle is half the robot's width + MARGIN past the box's
-       back (last echo, less 10 deg of the beam); only then the line
-       sensors count.  Never saw the box: as J.  Box depth is no longer
-       assumed (J assumes at most 150 mm).
+       40 deg toward the box (the cables' limit) and listens for the box's
+       side face at its expected sideways distance.  Each echo pushes the
+       turning point to at least half the robot's width + MARGIN past
+       where it was heard; never earlier than J's.  A deep box no longer
+       gets hit (J assumes at most 150 mm).
 
     python tools/bypasssim.py S      (or any of OLD NEW J S)
 
-Results S alone (8 Nov): 474/486 ordinary cases, junctions under the box
-54/54 each, box depth 60 / 150 / 250 / 350 mm: 36/36 each (closest 88 /
-95 / 105 / 62 mm); nothing touched the box (closest 56 mm).  J on the
-same depths: 36 / 36 / 20 (16 hit the box) / 0 (all hit).  Without the
-10 deg beam allowance S stopped later and missed more tight curves
-behind the box (R300: 33/54).
+Results S alone (8 Nov): 471/486 ordinary cases (as J: the side look
+never shortens the leg), junctions under the box 54/54 each, box depth
+60 / 150 / 250 / 350 mm: 36/36 each (closest 73 / 74 / 69 / 56 mm).  J on
+the same depths: 36 / 36 / 20 (16 hit the box) / 0 (all hit).  Side
+echoes missed 50 % or 80 % of the time: 53/54 deep-box runs; never heard
+at all: as J.  (Before: a 90 deg look, impossible with the cables; then
+"still beside it at x_pass?", which turned a 350 mm deep box's body into
+it because the sonar is 120 mm ahead of the axle.)
 
 Results (8 Nov, tape 1600 mm on past the curve): OLD 36/486 (straight
 24/54: the narrow window misses the line once spins are a few degrees
@@ -64,8 +66,12 @@ TRIP_MM = 250
 SCAN_FROM_MM = 350
 BEAM_DEG = 15                # sonar beam half width
 SIDE_RANGE = 1000.0
-SIDE_SEEN_PAST_LINE_MM = 50  # S: an echo nearer than the line + this is the box
-SIDE_BEAM_DEG = 10           # S: allowance for the beam (true half width here: BEAM_DEG)
+SIDE_DEG = 40                # S: the side look (the cables allow 40, not 90)
+SIDE_TOL_IN_MM = 120         # S: echo from lat_exp - this ...
+SIDE_TOL_OUT_MM = 80         # ... to lat_exp + this = the box beside
+SIDE_MISS = 5                # S: pings in a row without it = past
+SIDE_DROP = 0.2              # model: square-on side echoes missed
+SIDE_STRAY = 0.5             # model: glancing echoes from the beam's axis
 SIDE_EXTRA_MM = 300          # S: drive on at most this past x_pass while beside it
 SCAN_NEAR_MM = 220           # J: first scan where it stopped, at least this far
 REVERSE_MM = 100
@@ -132,29 +138,40 @@ class Robot:
                 break
         return best
 
-    def side_sonar(self, side):
-        """sonar turned 90 deg to one side (+1 left): nearest box face within
-        the beam (+-BEAM_DEG), or None.  Optimistic: every ray that meets
-        the box echoes (a real flat face square to the beam does)."""
+    def ray_box(self, ang):
+        """distance from the sonar along ang to the box, or None"""
         ox = self.x + SONAR_AHEAD * math.cos(self.h)
         oy = self.y + SONAR_AHEAD * math.sin(self.h)
-        best = None
-        for a in range(-BEAM_DEG, BEAM_DEG + 1, 3):
-            ang = self.h + side * math.pi / 2 + math.radians(a)
-            dx, dy = math.cos(ang), math.sin(ang)
-            t0, t1 = 0.0, SIDE_RANGE
-            for o, dd, lo, hi in ((ox, dx, self.w.bx0, self.w.bx1), (oy, dy, self.w.by0, self.w.by1)):
-                if abs(dd) < 1e-9:
-                    if not lo <= o <= hi:
-                        t0, t1 = 1, 0
-                    continue
-                ta, tb = (lo - o) / dd, (hi - o) / dd
-                if ta > tb:
-                    ta, tb = tb, ta
-                t0, t1 = max(t0, ta), min(t1, tb)
-            if t0 <= t1 and (best is None or t0 < best):
-                best = t0
-        return best
+        dx, dy = math.cos(ang), math.sin(ang)
+        t0, t1 = 0.0, SIDE_RANGE
+        for o, dd, lo, hi in ((ox, dx, self.w.bx0, self.w.bx1), (oy, dy, self.w.by0, self.w.by1)):
+            if abs(dd) < 1e-9:
+                if not lo <= o <= hi:
+                    return None
+                continue
+            ta, tb = (lo - o) / dd, (hi - o) / dd
+            if ta > tb:
+                ta, tb = tb, ta
+            t0, t1 = max(t0, ta), min(t1, tb)
+        return t0 if t0 <= t1 else None
+
+    def side_sonar(self, side):
+        """sonar turned SIDE_DEG (40, the cables' limit) toward one side
+        (+1 left).  The beam's axis meets the box's side face at a glancing
+        angle, so a flat face mostly reflects it away; but the side of the
+        beam hears the face at its square-on distance while the sonar is
+        beside it (7 Nov scans: 40 deg off a face still read its square-on
+        distance).  Modelled: that square-on echo while the perpendicular
+        from the sonar meets the box, missing SIDE_DROP of the pings; else a
+        stray glancing echo from the beam's axis (SIDE_STRAY of the pings,
+        when the axis meets the box); else nothing."""
+        d = self.ray_box(self.h + side * math.pi / 2)
+        if d is not None and self.rng.random() >= SIDE_DROP:
+            return d
+        d = self.ray_box(self.h + side * math.radians(SIDE_DEG))
+        if d is not None and self.rng.random() < SIDE_STRAY:
+            return d
+        return None
 
     def check_hit(self):
         c, s = math.cos(self.h), math.sin(self.h)
@@ -305,7 +322,8 @@ def bypass(rb, method, rng, scan_err):
     rb.drive(y_off)
     rb.turn(-sgn * 90)
     if method == 'S':
-        return bypass_side(rb, sgn, front, y_off, x_pass)
+        edge = left if sgn > 0 else right
+        return bypass_side(rb, sgn, front, y_off, x_pass, y_off - sgn * edge)
     if method == 'OLD':
         rb.drive(x_pass)
         rb.turn(-sgn * 90)
@@ -353,42 +371,44 @@ def rejoin(rb, sgn, y_off, found=True):
     return 'rejoined'
 
 
-def bypass_side(rb, sgn, front, y_off, x_pass):
-    """S (since 8 Nov): leg 4 with the sonar turned 90 deg toward the box.
-    The box's side face echoes while the robot is beside it; 3 pings in a
-    row without it = past.  Then on until the axle is half the robot's
-    width + MARGIN past the last echo (the box's back, give or take the
-    beam), and only from there the line sensors count.  Never saw the box:
-    as J (fixed D_MAX_MM).  Still beside it at x_pass + SIDE_EXTRA_MM:
-    stop (box too long)."""
+def bypass_side(rb, sgn, front, y_off, x_pass, lat_exp):
+    """S (since 8 Nov): leg 4 with the sonar turned 40 deg toward the box.
+    An echo from lat_exp - SIDE_TOL_IN_MM to lat_exp + SIDE_TOL_OUT_MM
+    (lat_exp: the sideways distance to the box's side face, from the scan)
+    counts as "box beside"; beside = one in the last SIDE_MISS pings.  The
+    side look only makes the leg longer: it ends when the axle is half
+    the robot's width + MARGIN past the last such echo, and never before
+    the fixed turning point x_pass (a box up to 150 mm deep), so a stray
+    echo only makes it longer, a missed one changes nothing.  (8 Nov: "is
+    it still beside it at x_pass?" was wrong: the sonar, 120 mm ahead of
+    the axle, had just passed a 350 mm deep box's back there, the body
+    had not.)  Line sensors count from the fixed point, not while the box
+    is beside (an echo in the last SIDE_MISS pings).  Still going at
+    x_pass + SIDE_EXTRA_MM: stop (box too long)."""
     side = -sgn
-    thr = y_off + SIDE_SEEN_PAST_LINE_MM
-    st = dict(n=0, seen=False, last=0.0, dlast=0.0, miss=0, past=False, stop=None, why=None)
+    st = dict(n=0, seen=False, last=0.0, miss=SIDE_MISS, why=None)
+    rb.side_state = st
     sensors_fixed = front + SONAR_AHEAD - AHEAD + 30 + D_MAX_MM
 
     def leg4(r, done):
         st['n'] += 1
         if st['n'] % 6 == 0:                     # a ping every 60 ms
             d = r.side_sonar(side)
-            if d is not None and d < thr:
-                st['seen'], st['last'], st['dlast'], st['miss'] = True, done, d, 0
-            elif st['seen'] and not st['past']:
+            st.setdefault('pings', []).append((round(done), None if d is None else round(d)))
+            if d is not None and lat_exp - SIDE_TOL_IN_MM <= d <= lat_exp + SIDE_TOL_OUT_MM:
+                st['seen'], st['last'], st['miss'] = True, done, 0
+            else:
                 st['miss'] += 1
-                if st['miss'] >= 3:
-                    st['past'] = True
-                    # the box's back: where the sonar was at the last echo,
-                    # less SIDE_BEAM_DEG of the beam at that distance
-                    back = st['last'] + SONAR_AHEAD - st['dlast'] * math.tan(math.radians(SIDE_BEAM_DEG))
-                    st['stop'] = back + ROBOT_W / 2 + MARGIN_MM
-        never = not st['seen'] and done > front + D_MAX_MM + 60
-        watch = st['past'] or (never and done >= sensors_fixed)
-        if watch and any(r.black_lr()):
+        beside = st['miss'] < SIDE_MISS
+        if done >= sensors_fixed and not beside and any(r.black_lr()):
             st['why'] = 'line'
             return True
-        if st['past'] and done >= st['stop']:
-            st['why'] = 'past'
-            return True
-        if never and done >= x_pass:
+        # every echo of the box: the axle must get half the robot's width
+        # + MARGIN past where the sonar heard it; never less far than J
+        stop = x_pass
+        if st['seen']:
+            stop = max(stop, st['last'] + SONAR_AHEAD + ROBOT_W / 2 + MARGIN_MM)
+        if done >= stop:
             st['why'] = 'past'
             return True
         return False

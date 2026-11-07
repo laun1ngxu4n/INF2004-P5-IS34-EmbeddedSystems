@@ -64,12 +64,12 @@ IMPORT ID	flg_mission;
 					   route the cables for 40 */
 #define S5_SERVO_DEG_STEP	2	/* = 100 deg/s */
 /* Side look (8 Nov): on the leg past the box the sonar turns this far
-   toward the box and watches its side face, so the robot knows when it is
-   really past (any depth) instead of assuming a 150 mm deep box.  90 =
-   square to the side face (a flat face only echoes back to a beam
-   roughly square to it).  Needs the cables at the back to allow it both
-   ways (Stage 3 servo check); 0 = no side look (the fixed 150 mm). */
-#define S5_SERVO_SIDE_DEG	90
+   toward the box and listens for its side face, so the robot knows when
+   it is really past (any depth) instead of assuming a 150 mm deep box.
+   40 = the cables' limit (90, square to the face, has no clearance); the
+   side of the beam still hears the face (task_mission.c pass_box).
+   0 = no side look (the fixed 150 mm). */
+#define S5_SERVO_SIDE_DEG	40
 #define S5_SONAR_TO_AXLE_MM	120	/* sonar in front of the wheel axle
 					   (NOT MEASURED: measure and fix) */
 /* Sonar beam: each edge is seen this many degrees early (the cone),

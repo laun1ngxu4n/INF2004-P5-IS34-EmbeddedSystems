@@ -58,20 +58,19 @@ EXPORT void subsystem5_stage_test(void)
 	servo_set_angle(90 - S5_SERVO_HALF_DEG);
 	test_wait_start("Servo check: now it should point RIGHT. Wires still slack?");
 	if (S5_SERVO_SIDE_DEG > 0) {
-		/* the side look on the leg past the box (8 Nov) */
-		servo_look_side(+1);
-		test_wait_start("Side look: it should now point STRAIGHT LEFT (90 deg, "
-				"square to the robot's side). Wires slack, nothing "
-				"pulling? If it cannot go that far, lower "
-				"S5_SERVO_SIDE_DEG (0 = no side look) and rebuild.");
+		/* the side look on the leg past the box (8 Nov): does the side
+		   of the beam hear a box face beside the robot? */
 		servo_look_side(-1);
-		test_wait_start("Side look: now STRAIGHT RIGHT (90 deg). Wires still "
-				"slack?");
-		tm_printf((UB*)"[S5] side distance for 8 s: hold a box side-on about "
-			  "20 cm to the right, then take it away\n");
-		for (t = 0; t < 25; t++) {
-			tm_printf((UB*)"[S5] right %d mm\n", sonar_ping_mm());
-			tk_dly_tsk(270);
+		tm_printf((UB*)"[S5] side look check, 12 s: the sonar points %d deg "
+			  "right. Hold a box BESIDE the robot on the right, its face "
+			  "parallel to the robot's side (as when driving past it), "
+			  "about 20 cm out, level with the sonar: it should read "
+			  "about 200. Then slide it backwards past the sonar: the "
+			  "reading should go away once the box is behind it.\n",
+			  S5_SERVO_SIDE_DEG);
+		for (t = 0; t < 40; t++) {
+			tm_printf((UB*)"[S5] side %d mm\n", sonar_ping_mm());
+			tk_dly_tsk(240);
 		}
 	}
 	servo_set_angle(90);

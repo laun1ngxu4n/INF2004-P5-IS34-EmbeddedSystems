@@ -341,6 +341,18 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
   missed. Relies on the side of the beam hearing a face beside the
   robot: **new Stage 3 bench check** (`[S5] side N mm`, box beside the
   robot about 20 cm out should read about 200).
+- **8 Nov, fourth Stage 3 run (`ultrason` log 4): bypass worked.** Box
+  218 mm ahead: width 186 mm (scan 1; scan 2 from 320 mm: 334), went
+  round RIGHT (out 312, past 770), `line found 188 mm after the last
+  turn`, `bypass done`. S5-O01: 276 / 114 / 91 mm (boxes at 278 / 155 /
+  98 mm; real widths not sent). `tools/sonarcheck.py` gives the same
+  widths from the logged rays. **Side look did not hear the box's side:**
+  bench check (box beside the robot, sonar 40 deg right) read mostly
+  `-1`, once 222 and 275, otherwise 400-900 (the room). In the bypass it
+  heard the box from 184 to 297 mm along the leg, i.e. while approaching
+  the box's front corner (front at about 320), not beside it, so the leg
+  stayed the fixed 770 mm. At 40 deg the side face is not heard; depth
+  is still the 150 mm assumption.
 - [ ] 🟡 **S5-O01** width, 3 tries (3 flat boxes, one each, real width
   by ruler, box about 250 mm ahead, nothing else within 60 cm). With the
   scan at +/- 25 deg the sonar never saw past a box's edge (beam is about

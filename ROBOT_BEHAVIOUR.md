@@ -144,6 +144,17 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
   out about 190 deg with a plain 180 spin. No tape found in the search:
   back to the planned angle, "junction turn: no tape found".
 - Letter not in the mapping: stops, "no mapping for barcode E".
+- **Barcode close before a junction (8 Nov):** a code's letter only comes
+  about 80 mm after the line sensors passed its last bar (B is 40 mm
+  behind them, and a code ends after 40 mm with no bar). A junction
+  nearer than that used to come first (straight on) and the letter went
+  to the NEXT junction. Now a junction waits while B is still in a code
+  (the robot keeps following, at most 150 mm past the centre), takes the
+  letter, and backs up to the centre if it went past.
+- **Obstacle while reading a barcode (8 Nov):** the read is dropped
+  ("obstacle while reading a barcode: that read is dropped"); backing up
+  would have run B back over the bars. That letter is lost: keep
+  obstacles 30 cm or more after a barcode.
 
 ### Obstacles (ultrasonic on the servo)
 - While running: one ping straight ahead every 60 ms.

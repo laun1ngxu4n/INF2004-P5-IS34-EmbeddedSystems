@@ -250,6 +250,10 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
   **Fixed 8 Nov, not run yet:** cut-short repair (that read now decodes
   F; 0 wrong on the logs); junction spins end on the line (fast to 30 deg
   short, slow until a sensor touches the tape, 12 deg more).
+- **Edge cases fixed 8 Nov, not run yet:** a junction less than about 8
+  cm after a barcode used the letter at the NEXT junction (now it waits
+  for the read); an obstacle met mid-barcode garbled the read (now
+  dropped, reported).
 - [ ] 🟡 **S5-B01 / S5-B02** (2C): right move at each junction, U-turn, stop on
   an unmapped code
 

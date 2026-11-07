@@ -60,6 +60,10 @@
 LOCAL INT		mstate = M_IDLE;
 LOCAL volatile BOOL	armed = !APP_TEST;
 LOCAL UB		pending;		/* latest unconsumed barcode, 0 = none */
+LOCAL UW		bar_seen;		/* barcode result already handled */
+/* A junction waits at most this far past its centre for a barcode that
+   is still being read (see on_junction) */
+#define JUNC_WAIT_MM		150
 LOCAL BOOL		use_obstacles = TRUE;
 LOCAL BOOL		use_imu = TRUE;
 
@@ -167,6 +171,7 @@ LOCAL void start_run(void)
 	pending = 0;
 	motion_follow_limit(0);
 	barcode_reset();		/* nothing left over from before START */
+	bar_seen = barcode_seq();	/* ... nor its last result */
 	tk_clr_flg(flg_mission, 0);
 	if (motion_follow(S5_FOLLOW_SPEED) < E_OK) {
 		halt("STOP still set");
@@ -184,6 +189,8 @@ LOCAL void on_barcode(void)
 	INT		m;
 
 	barcode_last(&r);
+	if (r.seq == bar_seen) return;	/* handled already */
+	bar_seen = r.seq;
 	if (!r.ok) {
 		INT dn, dw[40], k;
 
@@ -250,9 +257,27 @@ LOCAL BOOL turn_onto_line(INT deg)
 LOCAL void on_junction(void)
 {
 	UB	msg[TELE_TEXT_MAX];
-	UB	ch = pending;
-	INT	m = (ch != 0) ? barcode_move_for(ch) : MOVE_FORWARD;
+	UB	ch;
+	INT	m;
 	INT	deg, sides = line_junction_sides(), to_go;
+	W	j0 = line_junction_odo();
+
+	/* A barcode just before the junction may still be being read: B is
+	   40 mm behind the line sensors, and a code only ends after 40 mm
+	   with no bar, so its letter comes about 80 mm after the line sensors
+	   passed its last bar.  A junction closer than that came first: no
+	   letter yet, straight on, and the letter was used at the NEXT
+	   junction.  Wait for the read (the robot keeps following), at most
+	   JUNC_WAIT_MM past the centre; the move below measures from the
+	   centre, so it backs up if it went past. */
+	while (barcode_busy() &&
+	       S2_COUNTS_TO_MM(motion_odometer() - j0) < JUNC_WAIT_MM) {
+		if (app_stop_reasons() != 0u) return;
+		tk_dly_tsk(10);
+	}
+	on_barcode();			/* a letter decoded meanwhile (once) */
+	ch = pending;
+	m = (ch != 0) ? barcode_move_for(ch) : MOVE_FORWARD;
 
 	motion_follow_limit(0);
 	if (ch != 0 && m == MOVE_NONE) {
@@ -492,6 +517,12 @@ LOCAL void on_obstacle(void)
 	motion_halt();
 	obstacle_watch(FALSE);
 	line_set_enabled(FALSE);
+	/* stopped in the middle of a barcode: the backing up would run B
+	   back over the bars and garble it; drop that read, say so */
+	if (barcode_busy()) {
+		barcode_reset();
+		say((const UB*)"obstacle while reading a barcode: that read is dropped");
+	}
 	wait_still();
 	if (obstacle_sensor_fault()) {
 		halt("ultrasonic not answering (no ECHO), not driving blind");

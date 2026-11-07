@@ -84,8 +84,12 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
   with wide >= 2 x narrow, the gaps between characters narrow, the
   damaged block as long as a character; (b) one narrow bar or space lost
   (blur merged two elements, 27 elements): each element is tried as
-  three, and the result must decode cleanly with both `*`. Reported as
-  `barcode A (one * damaged)` / `(a lost bar put back)`. Checked with
+  three, and the result must decode cleanly with both `*`; (c) cut short
+  (27-28 elements, 8 Nov: F's last narrow bar is printed weakly and was
+  missed with the space before it): one or two narrow elements added at
+  an end, must decode cleanly (ends cut off the logs' good reads: 33
+  right, 0 wrong). Reported as `barcode A (one * damaged)` / `(a lost bar
+  put back)` / `(a missing end bar put back)`. Checked with
   `tools/barcodecheck.py` and the robot's own C code on the PC: on the
   logs' good reads, every narrow element lost in turn: 117 recovered, 0
   wrong; start or stop replaced by noise: 988 right, 0 wrong; 20 000
@@ -132,8 +136,13 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
   wheels are over the junction centre (115 mm after the line sensors
   crossed it, measured
   with the wheel encoders), spins on the spot (left +90, right -90, U-turn
-  180, each wheel 120 mm/s), then follows again (junction and line-lost
-  detection off for the first 60 mm).
+  180), then follows again (junction and line-lost detection off for the
+  first 60 mm). **The spin ends on the new line (8 Nov):** fast (120
+  mm/s each wheel) to 30 deg short, then slowly (40 mm/s) until a line
+  sensor touches the tape (at most 30 deg past), then 12 deg more to
+  centre the tape between the sensors. The first U-turn on the robot came
+  out about 190 deg with a plain 180 spin. No tape found in the search:
+  back to the planned angle, "junction turn: no tape found".
 - Letter not in the mapping: stops, "no mapping for barcode E".
 
 ### Obstacles (ultrasonic on the servo)

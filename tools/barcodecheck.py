@@ -8,7 +8,9 @@ does since 8 Nov when that fails: one '*' damaged (the other '*' and the
 character decode with wide >= 2 x narrow, narrow gaps between characters,
 the damaged block as long as a character +-15 %), or one narrow element
 lost (27-28 elements: each element tried as wide-or-narrow + narrow +
-wide-or-narrow, must then decode cleanly).  Only a single answer counts.
+wide-or-narrow, must then decode cleanly), or cut short (27-28: one or
+two narrow elements added at an end, must decode cleanly; 8 Nov F's weak
+last bar).  Only a single answer counts.
 
 It prints the failed reads it can now decode, then three checks on the
 good reads in the logs: every narrow element lost in turn, the start or
@@ -94,6 +96,20 @@ def decode2(e, allow_one=True):
                         if r: res.add(r)
         if len(res) == 1: return res.pop(), 'repaired'
         if res: return None, f'ambiguous {sorted(res)}'
+    # cut short: a weak narrow bar (and the space before it) at an end not seen
+    if len(e) in (27, 28):
+        srt = sorted(e)
+        nar = statistics.median(srt[:len(srt) * 2 // 3])
+        res = set()
+        for k in (1, 2):
+            if len(e) + k < 29:
+                continue
+            for x in (e + [nar] * k, [nar] * k + e):
+                r = decode(x)
+                if r:
+                    res.add(r)
+        if len(res) == 1:
+            return res.pop(), 'cut short'
     return None, 'fail'
 
 if __name__ == '__main__':

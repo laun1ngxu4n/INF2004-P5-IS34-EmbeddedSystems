@@ -207,13 +207,44 @@ LOCAL void on_barcode(void)
 	tm_sprintf(msg, (const UB*)"barcode %c%s%s (narrow %d.%d mm, wide %d.%d mm) -> %s",
 		   r.ch, r.reversed ? " read backwards" : "",
 		   (r.fixed == BAR_FIX_STAR) ? " (one * damaged)" :
-		   (r.fixed == BAR_FIX_MERGED) ? " (a lost bar put back)" : "",
+		   (r.fixed == BAR_FIX_MERGED) ? " (a lost bar put back)" :
+		   (r.fixed == BAR_FIX_CUT) ? " (a missing end bar put back)" : "",
 		   r.narrow_mm10 / 10, r.narrow_mm10 % 10, r.wide_mm10 / 10, r.wide_mm10 % 10,
 		   (m == MOVE_LEFT) ? "LEFT at next junction" :
 		   (m == MOVE_RIGHT) ? "RIGHT at next junction" :
 		   (m == MOVE_FORWARD) ? "FORWARD at next junction" :
 		   (m == MOVE_UTURN) ? "U-TURN at next junction" : "NO MAPPING");
 	say(msg);
+}
+
+/* Junction turns end on the new line (8 Nov): a U-turn came out about
+   190 deg (spins run a few % over on this floor; Stage 1: 180 about 5
+   over).  Spin at the normal speed to TURN_SEARCH_DEG short of the move,
+   then slowly (SPIN_SPEED) until a line sensor touches the tape (at most
+   TURN_SEARCH_DEG past the move), then TURN_CENTRE_DEG more: the sensors
+   straddle the tape, so the first touch is at the leading sensor, about
+   12 deg (15 mm sensor offset + half the tape, at 115 mm) before the
+   tape is centred.  No tape found: back to the planned angle and follow
+   (the line task looks for it).  At an X the side arms are 90 deg away,
+   so the search (from 30 short) meets the arm it is turning to first. */
+#define TURN_SEARCH_DEG		30
+#define TURN_CENTRE_DEG		12
+LOCAL INT spin_line(INT deg, INT ignore);
+
+LOCAL BOOL turn_onto_line(INT deg)
+{
+	INT	sgn = (deg > 0) ? 1 : -1;
+	INT	a = deg * sgn;
+	INT	found;
+
+	if (!mv(motion_turn(sgn * (a - TURN_SEARCH_DEG)))) return FALSE;
+	found = spin_line(sgn * 2 * TURN_SEARCH_DEG, 0);
+	if (found < 0) return FALSE;
+	if (found) {
+		return mv(motion_turn(sgn * TURN_CENTRE_DEG));
+	}
+	say((const UB*)"junction turn: no tape found, back to the planned angle");
+	return mv(motion_turn(-sgn * TURN_SEARCH_DEG));
 }
 
 LOCAL void on_junction(void)
@@ -250,7 +281,7 @@ LOCAL void on_junction(void)
 		(INT)S2_COUNTS_TO_MM(motion_odometer() - line_junction_odo());
 	if ((to_go > 0 && !mv(motion_drive(S5_FOLLOW_SPEED, to_go))) ||
 	    (to_go < 0 && !mv(motion_drive(-S5_FOLLOW_SPEED, -to_go))) ||
-	    !mv(motion_turn(deg)) || !resume_follow()) {
+	    !turn_onto_line(deg) || !resume_follow()) {
 		halt("junction move did not finish");
 		return;
 	}
@@ -412,8 +443,8 @@ out:
 }
 
 /* Spin slowly by up to deg; stop when a line sensor sees black after
-   SPIN_IGNORE_DEG.  1 = found, 0 = turned it all, -1 = failed */
-LOCAL INT spin_until_line(INT deg)
+   ignore degrees.  1 = found, 0 = turned it all, -1 = failed */
+LOCAL INT spin_line(INT deg, INT ignore)
 {
 	MOTION_STATUS	st;
 	W		l0, r0;
@@ -432,7 +463,7 @@ LOCAL INT spin_until_line(INT deg)
 		if (dd < 0) dd = -dd;
 		/* counts -> mm of wheel difference -> degrees over the track */
 		turned = (INT)((dd * S2_UM_PER_COUNT / 1000) * 573 / (S2_TRACK_MM * 10));
-		if (turned >= SPIN_IGNORE_DEG && line_any_black()) {
+		if (turned >= ignore && line_any_black()) {
 			motion_halt();
 			wait_still();
 			return 1;
@@ -442,6 +473,11 @@ LOCAL INT spin_until_line(INT deg)
 		}
 		tk_dly_tsk(5);
 	}
+}
+
+LOCAL INT spin_until_line(INT deg)
+{
+	return spin_line(deg, SPIN_IGNORE_DEG);
 }
 
 LOCAL void on_obstacle(void)

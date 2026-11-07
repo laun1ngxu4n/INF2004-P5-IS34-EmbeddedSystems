@@ -134,10 +134,12 @@ typedef struct {
 	INT	narrow_mm10;	/* mean narrow element, 0.1 mm */
 	INT	wide_mm10;	/* mean wide element, 0.1 mm */
 	UB	fixed;		/* 0 clean read; BAR_FIX_STAR one '*' damaged;
-				   BAR_FIX_MERGED a lost narrow element put back */
+				   BAR_FIX_MERGED a lost narrow element put back;
+				   BAR_FIX_CUT a missing end bar put back */
 } BARCODE_RESULT;
 #define BAR_FIX_STAR	1
 #define BAR_FIX_MERGED	2
+#define BAR_FIX_CUT	3	/* a weak narrow bar at an end not seen */
 IMPORT void	barcode_last(BARCODE_RESULT *r);
 IMPORT BOOL	barcode_busy(void);		/* inside a barcode now (Motion slows) */
 IMPORT UW	barcode_edges(void);		/* barcode sensor edges since boot */

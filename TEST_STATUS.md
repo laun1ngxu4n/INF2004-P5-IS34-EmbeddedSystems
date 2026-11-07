@@ -241,7 +241,16 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
   **Added 8 Nov, not run yet: forgiving decode** (one `*` damaged, or one
   narrow element lost), 0 wrong on every test (`tools/barcodecheck.py`);
   the run-2 read now decodes (A), one older 27-element read too (A).
-- [ ] ⬜ **S5-B01 / S5-B02** (2C): right move at each junction, U-turn, stop on
+- **8 Nov, third Stage 2 run: first U-turn from a barcode.** `barcode F ->
+  U-TURN at next junction`, `junction 4 (crossing): U-TURN (barcode F)`;
+  the spin came out about 190 deg. Before it: START at the mapping prompt
+  took the TEST mapping (no F): "no mapping for barcode F", stop (as
+  designed); then a READ_FAIL of 27 elements = F with its weak last bar
+  missed. Reads inconsistent overall (team: the paper is not taped down).
+  **Fixed 8 Nov, not run yet:** cut-short repair (that read now decodes
+  F; 0 wrong on the logs); junction spins end on the line (fast to 30 deg
+  short, slow until a sensor touches the tape, 12 deg more).
+- [ ] 🟡 **S5-B01 / S5-B02** (2C): right move at each junction, U-turn, stop on
   an unmapped code
 
 - [ ] ⬜ Junction turns with the **measured** sensor-to-axle distance of 115 mm

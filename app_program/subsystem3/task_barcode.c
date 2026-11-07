@@ -578,6 +578,42 @@ LOCAL BOOL decode_merged(const W *e, INT n, BARCODE_RESULT *r)
 	return TRUE;
 }
 
+/* Cut short (8 Nov): F's last narrow bar is printed weakly (darkest 1839
+   against ~2900 for the others) and was not seen, with the space before
+   it: 27 elements, the first 27 of a good F.  27-28 elements: add one or
+   two narrow elements at the end, or at the start, and decode cleanly.
+   Logs' good reads with 1-2 elements cut off either end: 33 right, 0
+   wrong, 11 not read; 50 000 random 27-28 element patterns: 1 decoded. */
+LOCAL BOOL decode_truncated(const W *e, INT n, BARCODE_RESULT *r)
+{
+	W		x[31], nar, wid;
+	INT		k, side, j;
+	UB		found = 0;
+	BARCODE_RESULT	t, keep;
+
+	if (n != 27 && n != 28) return FALSE;
+	keep = *r;
+	nar_wid(e, n, &nar, &wid);
+	for (k = 1; k <= 2; k++) {
+		if (n + k < 29) continue;
+		for (side = 0; side < 2; side++) {
+			for (j = 0; j < n + k; j++) x[j] = nar;
+			for (j = 0; j < n; j++) x[(side == 0) ? j : j + k] = e[j];
+			t = *r;
+			if (decode(x, n + k, &t)) {
+				if (found != 0 && found != t.ch) return FALSE;	/* two answers */
+				found = t.ch;
+				keep = t;
+			}
+		}
+	}
+	if (found == 0) return FALSE;
+	keep.elements = n;
+	keep.fixed = BAR_FIX_CUT;
+	*r = keep;
+	return TRUE;
+}
+
 EXPORT void barcode_task(INT stacd, void *exinf)
 {
 	W	elem[MAX_ELEM];
@@ -707,8 +743,9 @@ EXPORT void barcode_task(INT stacd, void *exinf)
 					UINT		s;
 
 					if (!too_long && !decode(elem, n, &r) &&
-					    !decode_one_star(elem, n, &r)) {
-						(void)decode_merged(elem, n, &r);
+					    !decode_one_star(elem, n, &r) &&
+					    !decode_merged(elem, n, &r)) {
+						(void)decode_truncated(elem, n, &r);
 					}
 					r.seq = ++seq;
 					r.elements = n;

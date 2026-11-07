@@ -161,7 +161,7 @@ send the log (a motor or encoder wire differs from bring-up).
    **B** (70 mm left of the line sensors) is about 5 cm before the first
    bar, square to the bars; where the line is does not matter. Runs: a
    code; the same code from the other end; "A small" (all at 50 mm/s, the
-   speed inside a code); any code at the follow speed 120 mm/s (the robot
+   speed inside a code); any code at the follow speed (100 mm/s) (the robot
    only slows once B is on the first bar, so this shows whether the start
    still reads). Each prints `code ended, N elements
    (mm): ...` (groups of 10 = one character), the decode, and a `B

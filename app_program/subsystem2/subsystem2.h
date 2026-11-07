@@ -36,9 +36,11 @@
 
 /* Speeds used by the team (mm/s) */
 #define S2_SPEED_LINE		200	/* line following, design 10-25 cm/s */
-#define S2_SPEED_BARCODE	120	/* line following and over barcodes (TEAM.md
-					   7.1 B4).  150 ran past tight curves
-					   (Stage 2 run, 7 Nov) */
+#define S2_SPEED_BARCODE	100	/* line following and over barcodes (TEAM.md
+					   7.1 B4).  150 ran past tight curves, and
+					   120 too once the sensor mount was raised
+					   (they see the tape later): 100 since
+					   7 Nov */
 #define S2_SPEED_TURN		120	/* each wheel during a spin */
 
 /* Result of the last command */

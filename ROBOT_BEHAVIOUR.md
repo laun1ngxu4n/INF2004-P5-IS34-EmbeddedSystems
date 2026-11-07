@@ -15,7 +15,7 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
 4. **RUN**: line following starts.
 
 ### Line following
-- 120 mm/s everywhere (the whole course runs at the slow barcode speed;
+- 100 mm/s everywhere (since 7 Nov; the whole course runs at the slow barcode speed;
   150 ran past tight curves on 7 Nov).
 - **The two line sensors straddle the tape** (since 7 Nov): L just left
   of it, R just right of it, about 30 mm apart for the 20 mm tape, so
@@ -38,12 +38,9 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
   metre), M sweeps right across the tape`: sweeps should be 0.
 - **Overshoot**: on a tight curve the tape can pass right under a sensor
   and out the other side, which also reads "both white". After a
-  correction that looks like a curve (35 mm or more, or 15 mm or more on
-  the same side as the one before) and then 40 mm of white, it turns
-  back toward the side that saw the line last (searching at 20 %). On a
-  straight the corrections alternate L, R, so it does not fire there
-  (until 7 Nov a single 15 mm correction was enough: the hard search
-  then swept the robot across the tape, 10 times in one S3-L01).
+  correction of 15 mm or more and then 40 mm of white, it turns back
+  toward the side that saw the line last (searching at 20 %). (A
+  stricter rule tried on 7 Nov missed a left curve and drove off it.)
 - **Gaps** need nothing special: both white = straight on.
 - **Long straight, all white** (well centred, or no line at all: the two
   look the same): after 200 mm without touching the tape it steers very

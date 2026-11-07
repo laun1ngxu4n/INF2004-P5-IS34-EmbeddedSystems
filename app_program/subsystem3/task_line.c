@@ -18,10 +18,9 @@
  *	the 20 mm tape and the 5 mm clearance before the loop could react,
  *	both sensors black on every swing, never centred).
  *	Overshoot: on a tight curve the tape can pass right under a sensor
- *	and out the other side, which also reads "both white".  After a
- *	correction that looks like a curve (S3_VERY_LONG_MM, or S3_LONG_CORR_MM
- *	on the same side as the one before) followed by S3_OVERSHOOT_MM of
- *	white, it turns back toward the side that saw the line last (LINE_SEARCH);
+ *	and out the other side, which also reads "both white".  After a long
+ *	correction (S3_LONG_CORR_MM) followed by S3_OVERSHOOT_MM of white, it
+ *	turns back toward the side that saw the line last (LINE_SEARCH);
  *	LINE_LOST after S3_LOST_MM or S3_LOST_MS of that.  Otherwise both
  *	white is straight on (gaps need nothing special).  But both white is
  *	also "no line at all": on a long straight, well centred, the robot
@@ -70,15 +69,13 @@
 				   late at 120 mm/s): with the mount raised the
 				   sensors already see the tape late, and the
 				   corrections came too late (7 Nov) */
-#define S3_LONG_CORR_MM		15	/* a correction this long, on the same side
-					   as the one before it (a curve) ... */
-#define S3_VERY_LONG_MM		35	/* ... or this long on any side, may have let
-					   the tape slip out past the sensor (left
-					   curves, 7 Nov: 21-38 mm, then lost).  On a
-					   straight the corrections alternate L, R:
-					   15 mm alone fired the hard search there
-					   and swept the robot across the tape (10
-					   sweeps in S3-L01, 7 Nov) */
+#define S3_LONG_CORR_MM		15	/* a correction this long may have let the
+					   tape slip out past the sensor (left
+					   curves, 7 Nov: 17-38 mm, then lost).  A
+					   stricter rule (35 mm, or 15 twice on one
+					   side) tried on 7 Nov missed a left curve
+					   where R touched the tape once mid-curve:
+					   the robot drove 300 mm straight off it */
 #define S3_OVERSHOOT_MM		40	/* white this long after one: overshot */
 /* Crossing: no correction from both_from - S3_CROSS_BEFORE_MM to
    both_from - S3_CROSS_LEAD_MM (one sensor may reach an angled cross
@@ -270,7 +267,6 @@ EXPORT void line_task(INT stacd, void *exinf)
 	INT	last_side = 0;		/* +1 line last seen on the left, -1 right */
 	W	single_from = 0;	/* start of the current one-sensor stretch */
 	BOOL	long_corr = FALSE;	/* the last correction was long */
-	INT	corr_side = 0, corr_before = 0;	/* +1 L, -1 R: this and the last one */
 	W	white_from = 0;		/* start of the current all-white stretch */
 	BOOL	searching = FALSE;
 	W	search_from = 0;
@@ -315,7 +311,6 @@ EXPORT void line_task(INT stacd, void *exinf)
 			probe_none = FALSE;
 			before_both = 0u;
 			n_corr = n_sweep = 0u;
-			corr_side = corr_before = 0;
 			head_n = 0u;
 			hist_reset(odo);
 			mark_seen = barcode_mark(&mc, &mw);	/* drop old patches */
@@ -340,16 +335,10 @@ EXPORT void line_task(INT stacd, void *exinf)
 		/* Stretches start where the filtered pattern changed */
 		if (stable != prev) {
 			if (prev == PAT_L || prev == PAT_R) {
-				W len = odo - single_from;
-
 				/* a long correction ended: maybe a curve */
-				long_corr = (len >= MM(S3_VERY_LONG_MM)) ||
-					    (len >= MM(S3_LONG_CORR_MM) &&
-					     corr_side == corr_before);
+				long_corr = (odo - single_from >= MM(S3_LONG_CORR_MM));
 			}
 			if (single) {
-				corr_before = corr_side;
-				corr_side = fl ? +1 : -1;
 				single_from = odo;
 				if (prev == 0u) n_corr++;
 				/* L, both, R (or R, both, L): swept right across */
@@ -440,7 +429,10 @@ EXPORT void line_task(INT stacd, void *exinf)
 		} else {
 			speed_pct = 100;
 		}
-		hist_step(odo, single || searching);
+		/* the probe turns too: a crossing met while probing came at an
+		   angle (7 Nov: the probe found the line again at a slant and
+		   both black for 17 mm was taken as a crossing) */
+		hist_step(odo, single || searching || probe != 0);
 		head_step(odo);
 
 		if (!enabled) {			/* turning, bypassing: no events */

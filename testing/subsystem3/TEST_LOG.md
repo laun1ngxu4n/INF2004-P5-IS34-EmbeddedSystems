@@ -24,6 +24,7 @@ Define a test here before running it. Test IDs never change.
 | S3-L08 | *planned (Stage 2)* Gap in the line | A3 | auto + manual | same, 20 cm before the gap on track 2, drives at most 450 mm | `[TEST] S3-L08 PASS`: across, no line lost, no junction |
 | S3-L09 | *planned (Stage 2)* Stuck line sensor stop | safety | auto + manual | same, on a straight; once it moves hold a black card under R | `[TEST] S3-L09 PASS`: stops with LINE SENSOR FAULT (one sensor black) within about 300 mm |
 | S3-L10 | *planned (Stage 2)* X crossing (straddle logic, 7 Nov) | FR11 | auto + manual | same, 20 cm before the X crossing on track 3, square to it | `[TEST] S3-L10 PASS`: exactly 1 junction, a crossing |
+| S3-B00 | *planned (Stage 2)* Barcode read driving straight, no line following (7 Nov) | B1, B2, B3 | auto + manual | robot with B 5 cm before a code, square to it, drives 300 mm straight: a code, the same from the other end, "A small", one at the follow speed | `[TEST] S3-B00 PASS` on runs 1-3; no `!` in the B profile |
 | S3-B01 | *planned (Stage 2)* Decode every A-Z barcode | TEAM.md 7.1 B1 | manual | drive over each test card at barcode speed, 3 passes each | correct character on every pass |
 | S3-B02 | *planned* Decode reversed | B2 | manual | same cards, robot driving the other way | same character as forward |
 | S3-B03 | *planned* Thin barcode at barcode speed (new sensor) | B3, B4 | manual | "A small" card, 10 passes, starting at the S2-M03 speed; slow down until 10/10 | 10/10 correct; record the speed used |

@@ -124,6 +124,10 @@ IMPORT BOOL	barcode_black(void);		/* sensor sees black now (either input) */
    white / black levels, 0..4095.  FALSE in the digital build. */
 IMPORT BOOL	barcode_adc(INT *raw, INT *white, INT *black);
 IMPORT BOOL	barcode_candidate(void);	/* bar, space, bar seen: worth a rescan */
+IMPORT UW	barcode_cand_ends(void);	/* +1 each time such a run ends (read or
+						   not): a rescan is over */
+IMPORT BOOL	barcode_in_bars(void);		/* B is over bars now: hold the
+						   steering straight */
 IMPORT UW	barcode_seq(void);		/* +1 for every result published */
 IMPORT void	barcode_pause(BOOL on);		/* TRUE: ignore edges (backing up);
 						   FALSE: start a fresh read */

@@ -10,7 +10,10 @@
  *	    gap between characters), k >= 3 ("*X*");
  *	  - in each character the 3 widest of 9 are wide (Code 39 rule);
  *	  - the first character must be '*'.  If it is not, the elements are
- *	    reversed and decoded again: read backwards (B2).
+ *	    reversed and decoded again: read backwards (B2);
+ *	  - a stray mark within S3_QUIET_MM before or after the code (a tile
+ *	    join, grout) adds a bar and a space: the "*X*" is looked for at
+ *	    every bar in the run, not only at the first.
  *	Result: barcode_last(), and MSN_FLG_BARCODE to Mission.
  */
 
@@ -38,9 +41,12 @@ LOCAL volatile BOOL	busy;		/* inside a barcode (in_code) */
 LOCAL volatile INT	n_now;		/* clean elements so far in this one */
 LOCAL volatile BOOL	paused;		/* Motion is backing up: ignore edges */
 LOCAL volatile UW	seq_now;	/* results published so far */
+LOCAL volatile W	edge_pub;	/* odometer at the last clean edge */
+LOCAL volatile UW	cand_ends;	/* runs of >= S3_SCAN_MIN_ELEM that ended */
 
 #define S3_SCAN_MIN_ELEM	3	/* bar, space, bar: looks like a barcode
 					   start (a grout line or junction is 1) */
+#define S3_IN_BARS_MM		15	/* edge this recent = B over bars */
 
 LOCAL BARCODE_RESULT	last;
 LOCAL UB		map_ch[4];
@@ -222,6 +228,21 @@ EXPORT BOOL barcode_adc(INT *raw, INT *white, INT *black)
 EXPORT BOOL barcode_busy(void)	{ return busy; }
 EXPORT UW barcode_edges(void)	{ return ring_w; }
 EXPORT BOOL barcode_candidate(void)	{ return busy && n_now >= S3_SCAN_MIN_ELEM; }
+EXPORT UW barcode_cand_ends(void)	{ return cand_ends; }
+
+/* B is over bars now: an edge in the last S3_IN_BARS_MM (widest element
+   10.5 mm).  Motion holds the steering straight then: B sits 85 mm left
+   of the robot's centre, so any turn changes B's own speed over the bars
+   by +-50 % or more against the odometer, and the widths come out wrong. */
+EXPORT BOOL barcode_in_bars(void)
+{
+	W d;
+
+	if (!busy) return FALSE;
+	d = motion_odometer() - edge_pub;
+	if (d < 0) d = -d;
+	return d < (W)(S3_IN_BARS_MM * 1000 / S2_UM_PER_COUNT);
+}
 
 /* Debug (Stage 2 tests): the element widths of the last code that ended,
    even one too short to report, so a test can show what the sensor saw */
@@ -332,27 +353,32 @@ LOCAL UB decode_char(const W *e, W *narrow_sum, W *wide_sum)
 	return 0;
 }
 
-/* Decode n elements; fills r.  TRUE = valid "*...*" */
+/* Decode n elements; fills r.  TRUE = valid "*...*".  The code may start
+   at any bar (off even) and end before the last element: a stray mark
+   within S3_QUIET_MM of the code is part of the same run. */
 LOCAL BOOL decode(W *e, INT n, BARCODE_RESULT *r)
 {
-	INT	k, pass, i;
+	INT	k, pass, i, off;
 	W	ns = 0, ws = 0;
 
 	r->ok = FALSE;
 	r->elements = n;
-	if ((n + 1) % 10 != 0 || n < 29) {
+	if (n < 29) {
 		return FALSE;
 	}
-	k = (n + 1) / 10;
 	for (pass = 0; pass < 2; pass++) {
-		UB first, lastc;
+		for (off = 0; off + 29 <= n; off += 2) {
+			ns = ws = 0;
+			if (decode_char(&e[off], &ns, &ws) != '*') continue;
+			for (k = (n - off + 1) / 10; k >= 3; k--) {
+				UB ch;
 
-		ns = ws = 0;
-		first = decode_char(&e[0], &ns, &ws);
-		if (first == '*') {
-			lastc = decode_char(&e[(k - 1) * 10], &ns, &ws);
-			if (lastc == '*') {
-				UB ch = decode_char(&e[10], &ns, &ws);
+				ns = ws = 0;
+				(void)decode_char(&e[off], &ns, &ws);
+				if (decode_char(&e[off + (k - 1) * 10], &ns, &ws) != '*') {
+					continue;
+				}
+				ch = decode_char(&e[off + 10], &ns, &ws);
 				if (ch != 0 && ch != '*') {
 					r->ok = TRUE;
 					r->ch = ch;
@@ -400,6 +426,8 @@ EXPORT void barcode_task(INT stacd, void *exinf)
 					too_long = FALSE;		\
 					n = 0;				\
 					prev_odo = (pos);		\
+					edge_pub = (pos);		\
+					busy = TRUE;			\
 				}					\
 			} else {					\
 				W w_ = (pos) - prev_odo;		\
@@ -408,6 +436,7 @@ EXPORT void barcode_task(INT stacd, void *exinf)
 				else too_long = TRUE;			\
 				if (n == 1) mark_pub((pos), w_);	\
 				prev_odo = (pos);			\
+				edge_pub = (pos);			\
 			}						\
 		}							\
 	} while (0)
@@ -484,6 +513,7 @@ EXPORT void barcode_task(INT stacd, void *exinf)
 			if (gap < 0) gap = -gap;
 			if (S2_COUNTS_TO_MM(gap) > S3_QUIET_MM) {
 				in_code = FALSE;
+				if (n >= S3_SCAN_MIN_ELEM) cand_ends++;
 				{
 					INT	i;
 					UINT	s;

@@ -150,12 +150,30 @@ send the log (a motor or encoder wire differs from bring-up).
    Left branches: every first bar under B prints `B patch 19.8 mm (...)`;
    a left branch must show about 20 mm. Nothing printed = B does not pass
    over the branch (move B, or its pot).
-3. **2B, S3-B01..B03**: before each run **write down the codes on the
+   Each part of Stage 2 (2A, S3-B00, 2B, 2C) first asks: **START = run
+   it, STOP = skip it**, so you can go straight to the barcodes.
+3. **S3-B00, barcode read driving straight** (do this before 2B): 4 runs,
+   each drives 300 mm straight with no line following. Put the robot so
+   **B** (70 mm left of the line sensors) is about 5 cm before the first
+   bar, square to the bars; where the line is does not matter. Runs: a
+   code; the same code from the other end; "A small"; any code at the
+   follow speed (only to compare). Each prints `code ended, N elements
+   (mm): ...` (groups of 10 = one character), the decode, and a `B
+   profile`: every bar `B` and space `s` with its width and its darkest
+   or lightest reading. `!` = a bar that never reached black (2500) or a
+   space that never got back to white (1700): the sensor's spot is wider
+   than that bar or space. Then B must be lower (closer to the floor), or
+   the thresholds moved: send the log to B3. Pass: `S3-B00 PASS` on runs
+   1-3.
+4. **2B, S3-B01..B03**: before each run **write down the codes on the
    track in the order the robot meets them**; 3 runs, forwards and
    backwards. Each prints `[S3] barcode X` or `READ_FAIL`. Pass: the printed
    sequence equals your written one ("it decoded something" is not a pass). "A small" must read too
    (S3-B03): if it fails, lower `S2_SPEED_BARCODE` and rebuild.
-4. **2C, S5-B01 / S5-B02**: Mission takes over with the TEST mapping (A=L,
+   While following, a bar-space-bar makes it back up 60 mm and read
+   again at 40 mm/s; it holds the steering straight only while B is over
+   the bars (`rescan: ...` lines).
+5. **2C, S5-B01 / S5-B02**: Mission takes over with the TEST mapping (A=L,
    B=R, C=F, D=U), with obstacle watch and IMU **off** (they are tested in
    Stages 3 and 4). START: it follows the line, reads barcodes and does
    the move at the next junction (`[EVT] junction ...`). Check a U-turn

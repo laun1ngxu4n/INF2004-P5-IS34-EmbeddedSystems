@@ -14,8 +14,8 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
 |---|---|---|---|
 | 0 | RTOS timing, all 8 tasks | B1 | ✅ passed 26 Oct |
 | 1 | Motion + STOP | B2 | ✅ passed 1 Nov |
-| 2A | Line following + junctions | B3 | 🟡 follows well, 3 m not shown yet |
-| 2B | Barcodes | B3 | 🟡 partial reads, no full decode yet |
+| 2A | Line following + junctions | B3 | 🟡 follows well (7 Nov, third run); 3 m, X crossing and left branch not shown yet |
+| 2B | Barcodes | B3 | 🟡 partial reads, no full decode yet; S3-B00 straight read to run next |
 | 2C | Junction moves from barcodes | B3 + B5 | ⬜ needs 2B |
 | 3 | Obstacle: sonar, servo, width, bypass | B5 | 🟡 servo + sonar work; width and bypass not shown |
 | 4 | IMU + ramp height | B4 | 🟡 2 of 7 runs within ±5 mm on the 10 mm hump; hump not held down |
@@ -79,6 +79,20 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
   same day, not yet re-run:** gentle for 15 mm at full speed, then hard
   at 60 % / 35 %, steering ramp 10 per 20 ms; runs now print a wobble
   count (corrections per metre, sweeps across the tape).
+- **7 Nov, third run (gentle 15 mm, then hard and slower), `linefolo`
+  log: good, the team is happy with the following.** About 10
+  corrections per metre, 2-4 sweeps across the tape per run (was a
+  continuous zigzag). L01 890 mm, no line lost (stopped by hand, FAIL
+  only on the 3 m). **L05 PASS** (1 crossing), **L06 PASS** and **L07
+  PASS** (tightest right and left curve, no junction, no line lost),
+  **L08 PASS** (gap). L10 (X crossing) FAIL: 450 mm, no junction seen;
+  L03 skipped (no left-only branch); L09 not finished. B on analogue:
+  white 165-200 on this surface, black 2900-3945. On the L07 left curve B
+  saw 8-10 mm patches (tile joins?) and one false `bar-space-bar`: the
+  robot backed up and then drove straight for the rest of the run (the
+  read never ended). **Fixed the same day:** the slow read holds the
+  steering straight only while B is over bars, and ends once the bars
+  have passed.
 - [ ] ⬜ **S3-L10, L03, L05..L09** (straddle logic, 7 Nov): X crossing, left
   branch, T end, right curve, left curve, gap (track 2), stuck R (black
   card under R); one place at a time, each prints PASS/FAIL. S3-L04
@@ -86,6 +100,14 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
   `docs/track/`: track 3 (foam tiles) has tight curves (about 15 cm) and
   an X crossing, but no left-only branch or T end unless tiles are
   turned to make one.
+- [ ] ⬜ **S3-B00** (new 7 Nov): barcode read driving **straight**, no line
+  following: 4 runs (a code, the same code from the other end, "A small",
+  one at the follow speed to compare). Prints the elements, the decode
+  and (analogue) each bar's darkest and each space's lightest reading;
+  `!` marks a bar that never reached 2500 or a space that never dropped
+  below 1700. Run this before S3-B01..B03: it separates sensor and
+  decoder problems from steering problems. Each Stage 2 section (2A,
+  B00, 2B, 2C) now asks first: START = run it, STOP = skip it.
 - [ ] 🟡 **S3-B01..B03** barcodes: best run read 7 of the 29 bars of `*F*`
   correctly ("3.3 3.2 10.0 3.5 9.9 3.8 2.6" mm), then steering moved the
   sensor off the bars. Latest build drives straight during the slow read:

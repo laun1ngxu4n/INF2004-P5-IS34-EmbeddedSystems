@@ -15,7 +15,7 @@ Steps for each: `../TESTING_GUIDE.md`.
 | File | Same as `make ...` in `build_make` | What it does |
 |---|---|---|
 | `is34_test_stage1.uf2` | `TEST=1 TEST_STAGE=1` | Stage 0 auto tests, then motion: turns, slow speed, STOP |
-| `is34_test_stage2.uf2` | `TEST=1 TEST_STAGE=2` | then IR view, line + junctions, one place at a time (S3-L03, L05..L10), barcodes, course with the TEST mapping |
+| `is34_test_stage2.uf2` | `TEST=1 TEST_STAGE=2` | then IR view, line + junctions, one place at a time (S3-L03, L05..L10), straight barcode read (S3-B00), barcodes while following, course with the TEST mapping; each part can be skipped with STOP |
 | `is34_test_stage3.uf2` | `TEST=1 TEST_STAGE=3` | then servo check, sonar view, 6 width scans, course (bypass) |
 | `is34_test_stage4.uf2` | `TEST=1 TEST_STAGE=4` | then IMU check, tilt view, 5 ramp runs |
 | `is34_test_stage6.uf2` | `TEST=1 TEST_STAGE=6` | then the whole course with the TEST mapping A=L, B=R, C=F, D=U |

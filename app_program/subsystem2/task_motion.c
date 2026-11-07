@@ -157,7 +157,7 @@ EXPORT void motion_task(INT stacd, void *exinf)
 	UINT		s;
 	INT		fphase = SCAN_NONE;	/* barcode rescan, follow only */
 	W		scan_from = 0, cool_until = 0;
-	UW		scan_seq = 0;
+	UW		scan_seq = 0, scan_cend = 0;
 
 	(void)stacd; (void)exinf;
 	encoder_read(&prev_l, &prev_r, NULL);
@@ -256,6 +256,7 @@ EXPORT void motion_task(INT stacd, void *exinf)
 			if (S2_COUNTS_TO_MM(scan_from - motion_odometer()) >= S2_SCAN_BACK_MM) {
 				fphase = SCAN_READ;
 				scan_seq = barcode_seq();
+				scan_cend = barcode_cand_ends();
 				barcode_pause(FALSE);	/* fresh read from here */
 				v_prof = 0.0f;
 				pi_l.integ = pi_r.integ = 0.0f;
@@ -280,26 +281,35 @@ EXPORT void motion_task(INT stacd, void *exinf)
 
 			if (fphase == SCAN_READ) {
 				if (barcode_seq() != scan_seq ||
+				    barcode_cand_ends() != scan_cend ||
 				    S2_COUNTS_TO_MM(motion_odometer() - scan_from) >
 				    S2_SCAN_MAX_MM - S2_SCAN_BACK_MM) {
-					/* read (or nothing there): normal speed again,
-					   no new rescan for S2_SCAN_COOL_MM */
+					/* read, or the bars passed without a code (a
+					   false start: tile joins on a curve, 7 Nov),
+					   or nothing there: normal speed again, no new
+					   rescan for S2_SCAN_COOL_MM */
 					fphase = SCAN_NONE;
 					cool_until = motion_odometer() +
 						     S2_SCAN_COOL_MM * 1000 / S2_UM_PER_COUNT;
 				} else {
-					/* Straight across the bars: steering swung the
-					   barcode sensor off them and broke the read
-					   into pieces (Stage 2 run, 2 Nov) */
 					if (cap > (float)S2_SCAN_SPEED) cap = (float)S2_SCAN_SPEED;
-					steer = 0.0f;
-					off = FALSE;
-					pct = 100;
+					/* Straight while B is over the bars: a turn
+					   changes B's speed against the odometer (B is
+					   85 mm off centre) and swung it off the bars
+					   (2 Nov).  Between the bars and before them it
+					   follows the line as usual (until 7 Nov it drove
+					   straight the whole read: up to 340 mm off a
+					   curve after a false start). */
+					if (barcode_in_bars()) {
+						steer = 0.0f;
+						off = FALSE;
+						pct = 100;
+					}
 				}
 			}
 
 			/* Correcting: forward speed drops to what the line task
-			   asks (a correction 50 %, a long one 25 %, a search 20 %),
+			   asks (a long correction 60 %, then 35 %, a search 20 %),
 			   so the same steering turns much tighter and the robot
 			   does not run past the line (Stage 2 run, 7 Nov: the tape
 			   slipped out past the sensor on tight left curves).  Over a

@@ -32,6 +32,20 @@
 #define SETTLE_MS_DEG	3
 #define SETTLE_MIN_MS	60
 #define IN_MM		150		/* on the obstacle while |d - front| <= this */
+/* Geometry rule (8 Nov).  A flat face square to the robot is at
+   front / cos(angle) along a ray at that angle.  The HC-SR04 also hears
+   that face's echo from straight in front through the side of its beam,
+   so off to the side it often reports about the straight-ahead distance
+   while pointing past the box: whole +-40 deg sweeps read as "box" (7 Nov,
+   400-500 mm widths for 15-23 cm boxes).  A ray counts as on the box only
+   when its distance fits front / cos(angle); one much nearer is that
+   side-of-beam echo: neither the box nor something else.  Checked on the
+   21 scans of 7 Nov (tools/sonarcheck.py): both edges found in 21 (the old
+   rule 6), the clean scans unchanged (218 / 138 / 168 mm for 20 / 14.5 /
+   15 cm boxes). */
+#define GEO_TOL_MM	15
+#define GEO_TOL_PCT	4
+#define CENTRE_DEG	10		/* within this, any echo near front is the box */
 #define BG_MM		250		/* open space beyond front + this */
 #define FAR		SONAR_OPEN
 #define MAX_FRONT_MM	600		/* nothing nearer = no obstacle */
@@ -177,7 +191,16 @@ LOCAL void side_edge(const INT *d, const INT *phi, INT centre, INT dir, INT fron
 	BOOL	other = FALSE;
 
 	for (i = centre + dir; i >= 0 && i < NRAYS; i += dir) {
-		BOOL in = (d[i] >= 0) && (d[i] - front <= IN_MM) && (front - d[i] <= IN_MM);
+		INT	a = (phi[i] < 0) ? -phi[i] : phi[i];
+		INT	expd = (INT)((float)front / app_sin_deg((float)(90 - a)));
+		INT	tol = GEO_TOL_MM + expd * GEO_TOL_PCT / 100;
+		BOOL	near_front = (d[i] >= 0) && (d[i] - front <= IN_MM) &&
+				     (front - d[i] <= IN_MM);
+		BOOL	in = (d[i] >= 0) &&
+			     ((a <= CENTRE_DEG && near_front) ||
+			      (d[i] - expd <= tol && expd - d[i] <= tol));
+		BOOL	lobe = !in && d[i] >= 0 && d[i] < expd - tol &&
+			       d[i] >= front - IN_MM;	/* side-of-beam echo */
 
 		if (in && out_run < 2) {
 			last_in = i;
@@ -188,7 +211,7 @@ LOCAL void side_edge(const INT *d, const INT *phi, INT centre, INT dir, INT fron
 			out_run++;
 			/* past the edge: open space, or something else nearer? */
 			if (out_run >= 2 && (d[i] == SONAR_FAULT ||
-					     (d[i] >= 0 && d[i] < front + BG_MM))) {
+					     (d[i] >= 0 && d[i] < front + BG_MM && !lobe))) {
 				other = TRUE;		/* something nearer, or unknown */
 			}
 		}

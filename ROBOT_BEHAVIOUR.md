@@ -124,14 +124,28 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
   turning slowly (2 deg per 20 ms), 5 pings per ray, median. About 6 s.
 - **Reverses 100 mm more**, scan 2 (from about 450 mm).
 - How the width comes out: each ray gives a point (distance x sin(angle)
-  to the side). Rays within 150 mm of the straight-ahead distance are "on
-  the obstacle"; an edge lies between the last ray on it and the first of
-  two rays off it, pulled in by 6 deg for the beam's width
-  (`S5_BEAM_HALF_DEG`, tuned with S5-O01). Width = left edge - right edge.
+  to the side). A ray is "on the obstacle" when its distance fits a flat
+  face square to the robot: front / cos(angle) (within 15 mm + 4 %; within
+  10 deg of straight ahead, anything near the front distance). An edge lies
+  between the last ray on it and the first of two rays off it, pulled in by
+  6 deg for the beam's width (`S5_BEAM_HALF_DEG`). Width = left edge -
+  right edge.
+- Why "fits the face" (8 Nov): the sonar also hears a flat face's echo
+  from straight in front through the side of its beam, so pointing past
+  the box it often still reports about the straight-ahead distance. With
+  the old rule (within 150 mm of the front distance) whole +-40 deg sweeps
+  read as "box": widths of 400-500 mm for 15-23 cm boxes, and one detour
+  ran into the room. Such side-of-beam echoes now count as neither the box
+  nor something else. On the 21 scans of 7 Nov (`tools/sonarcheck.py`):
+  both edges found in all 21 (old rule: 6); the clean scans unchanged (218
+  / 138 / 168 mm for the 20 / 14.5 / 15 cm boxes); the rest 100-340 mm.
 - Each edge is taken from the scan(s) that saw past it; a scan the
   obstacle filled to the end of its travel says nothing about that side.
   Reports `obstacle width W +/- U mm` (± from the 5 deg step, the beam and
   the difference between the scans).
+- Plans for at least 200 mm and **at most 300 mm** of width (instructor:
+  10-20 cm), and never more than 200 mm out from the line to the box edge,
+  whatever the scan says.
 - Picks the side that is clear beyond the edge (if both, the nearer edge);
   neither clear (something else there, or no scan saw past the edge):
   stops, "no clear side".

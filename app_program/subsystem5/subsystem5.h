@@ -43,7 +43,12 @@ IMPORT ID	flg_mission;
 /* ---- Obstacle Scanner ---------------------------------------------- */
 
 #define S5_TRIP_MM		250	/* stop for an obstacle closer than this */
-#define S5_MAX_WIDTH_MM		200	/* largest expected obstacle (O7) */
+#define S5_MAX_WIDTH_MM		200	/* largest expected obstacle (O7): the
+					   bypass always plans for at least this */
+#define S5_PLAN_MAX_MM		300	/* ... and never for more: a scan that
+					   says 500 mm is wrong (instructor: 10-20
+					   cm), and the detour it asked for ran into
+					   the room (7 Nov, "leg 4 blocked") */
 
 /* Servo: pulse = 1500 us + (angle - 90) x S5_SERVO_US_PER_DEG.  Angle 90 =
    straight ahead.  If 150 points RIGHT instead of left, set

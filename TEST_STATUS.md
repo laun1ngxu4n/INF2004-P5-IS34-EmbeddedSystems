@@ -300,6 +300,20 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
   tape instead of a fixed 90 deg turn. Old way 36/486 (straights 24/54:
   spin errors moved the line out of its 100 mm window), new 471/486, no
   contact with the box. Side margin 70 -> 100 mm.
+- **7 Nov, second Stage 3 run (`ultrason` log 2):** the bypass part
+  waited for a mapping that was not sent (START pressed many times; looked
+  like a crash: fixed, it reminds every 10 s and START takes the TEST
+  mapping). Then: a floor X junction made it lose the line once; the
+  next bypass measured the box as **502 mm** (both scans heard it across
+  the whole sweep), planned 445 mm out and stopped with **"bypass leg 4
+  blocked"** (something in the room within 1 m). A spin came out about
+  96 deg. Restarted there, it followed the floor's lines (START = follow
+  from here). Box widths used: 20, 14.5, 15 and 23 cm.
+  **Fixed 8 Nov, not run yet:** a ray only counts as on the box when its
+  distance fits a flat face (front / cos angle); side-of-beam echoes are
+  ignored (`tools/sonarcheck.py` on the 21 real scans: both edges in 21,
+  old rule 6; 100-340 mm instead of up to 500+). The plan is capped at
+  300 mm wide / 200 mm out from the line.
 - [ ] 🟡 **S5-O01** width, 3 tries (3 flat boxes, one each, real width
   by ruler, box about 350 mm ahead, nothing else within 60 cm). With the
   scan at +/- 25 deg the sonar never saw past a box's edge (beam is about

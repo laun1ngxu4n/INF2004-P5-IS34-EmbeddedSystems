@@ -381,10 +381,16 @@ LOCAL void on_obstacle(void)
 	/* O7: plan for at least the largest expected obstacle */
 	w_plan = p.width_mm + p.unc_mm;
 	if (w_plan < S5_MAX_WIDTH_MM) w_plan = S5_MAX_WIDTH_MM;
+	if (w_plan > S5_PLAN_MAX_MM) w_plan = S5_PLAN_MAX_MM;
 	yc = (p.left_mm + p.right_mm) / 2;
 	edge_plan = yc + sgn * w_plan / 2;
 	edge_meas = ((sgn > 0) ? p.left_mm : p.right_mm) + sgn * p.unc_mm;
 	if (sgn * edge_meas > sgn * edge_plan) edge_plan = edge_meas;
+	/* never further out than the largest planned box, sitting on the
+	   line give or take 50 mm */
+	if (sgn * edge_plan > S5_PLAN_MAX_MM / 2 + 50) {
+		edge_plan = sgn * (S5_PLAN_MAX_MM / 2 + 50);
+	}
 	y_off = sgn * edge_plan + S2_ROBOT_WIDTH_MM / 2 + MARGIN_MM;
 	x_pass = p.front_mm + D_MAX_MM + S2_ROBOT_LENGTH_MM + MARGIN_MM;
 	tm_sprintf(msg, (const UB*)"bypass %s: planned width %d mm, out %d mm, past %d mm",

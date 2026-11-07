@@ -68,8 +68,12 @@ IMPORT ID	flg_mission;
    it is really past (any depth) instead of assuming a 150 mm deep box.
    40 = the cables' limit (90, square to the face, has no clearance); the
    side of the beam still hears the face (task_mission.c pass_box).
-   0 = no side look (the fixed 150 mm). */
-#define S5_SERVO_SIDE_DEG	40
+   0 = no side look (the fixed 150 mm).
+   OFF since 8 Nov: on the robot the side face was not heard at 40 deg
+   (bench check mostly -1; in a bypass only the box's front corner while
+   approaching), and the obstacle is 9 x 13 cm (at most 130 mm deep,
+   inside the fixed 150 mm).  40 turns it back on. */
+#define S5_SERVO_SIDE_DEG	0
 #define S5_SONAR_TO_AXLE_MM	120	/* sonar in front of the wheel axle
 					   (NOT MEASURED: measure and fix) */
 /* Sonar beam: each edge is seen this many degrees early (the cone),

@@ -161,7 +161,12 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
   3. turn back and drive past the box: at least distance to the box +
      150 mm (a box up to 150 mm deep, team assumption A9) + robot length
      + 100 mm (about 800 mm from the 350 mm scan position).
-     **Side look (since 8 Nov):** on this leg the sonar turns 40 deg
+     **Side look: built but OFF** (`S5_SERVO_SIDE_DEG 0`, 8 Nov): on the
+     robot it did not hear the box's side at 40 deg (bench check mostly
+     no echo; in a bypass only the front corner while approaching), and
+     the obstacle is 9 x 13 cm, inside the fixed 150 mm (bypasssim with
+     that box: no contact either way round, closest 35 mm; on junctions
+     27/27). With `S5_SERVO_SIDE_DEG 40`: on this leg the sonar turns 40 deg
      toward the box (the cables' limit) and pings every 60 ms. At 40 deg
      the beam's axis glances off the box's side face, but the side of the
      beam hears the face at its square-on distance while the sonar is

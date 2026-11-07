@@ -197,7 +197,8 @@ send the log (a motor or encoder wire differs from bring-up).
    robot ("ultrasonic not answering"); a scan ray with no ECHO counts as
    blocked, never as open space. Check it once: cover/unplug ECHO during
    S5-O02 and the robot must stop.
-   **Side look check (8 Nov), 12 s of `[S5] side N mm`:** the sonar
+   **Side look check** (only when `S5_SERVO_SIDE_DEG` is not 0; off
+   since 8 Nov, so it is skipped), 12 s of `[S5] side N mm`: the sonar
    points 40 deg right. Hold a box **beside** the robot on the right, its
    face parallel to the robot's side (as when driving past it), about 20
    cm out, level with the sonar: it should read about 200. Then slide it

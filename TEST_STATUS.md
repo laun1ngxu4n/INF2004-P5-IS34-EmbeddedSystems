@@ -352,7 +352,9 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
   heard the box from 184 to 297 mm along the leg, i.e. while approaching
   the box's front corner (front at about 320), not beside it, so the leg
   stayed the fixed 770 mm. At 40 deg the side face is not heard; depth
-  is still the 150 mm assumption.
+  is still the 150 mm assumption. **Side look switched off** (the
+  obstacle is 9 x 13 cm x 19-20 cm high, so at most 130 mm deep; bypasssim
+  with it: no contact either way round, closest 35 mm, junctions 27/27).
 - [ ] 🟡 **S5-O01** width, 3 tries (3 flat boxes, one each, real width
   by ruler, box about 250 mm ahead, nothing else within 60 cm). With the
   scan at +/- 25 deg the sonar never saw past a box's edge (beam is about

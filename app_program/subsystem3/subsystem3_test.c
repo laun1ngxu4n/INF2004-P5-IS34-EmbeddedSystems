@@ -32,13 +32,25 @@ EXPORT void subsystem3_test(void)
 
 LOCAL void ir_live(void)
 {
-	INT	t;
+	INT	t, raw, wl, bl, lo = 4095, hi = 0;
 	UW	prev = 0xFFu, e1 = barcode_edges();
+	BOOL	ana = barcode_adc(&raw, &wl, &bl);
 
 	tm_printf((UB*)"\n[S3] IR live view for 30 s: slide black tape under each "
-		  "sensor. S C B = side (right of C), centre, barcode (1 = black)\n"
-		  "[S3] Barcode sensor tune: hold it STILL over white, then STILL "
-		  "over black; 'B edges/s' must read 0 in both (turn its pot)\n");
+		  "sensor. S C B = side (right of C), centre, barcode (1 = black)\n");
+	if (!ana) {
+		tm_printf((UB*)"[S3] B on its DIGITAL output (GP2). Tune: hold it STILL "
+			  "over white, then STILL over black; 'B edges/s' must read 0 "
+			  "in both (turn its pot)\n");
+	} else {
+		tm_printf((UB*)"[S3] B on its ANALOGUE output (GP28, module on 3V3): its "
+			  "pot does nothing here. Pass B over white, over black tape (it "
+			  "reads 0 until it has seen black once), and over a grout line or "
+			  "tile join. Each second: the lowest and highest reading. At the "
+			  "end: thresholds to copy into subsystem3.h. B reads 1 over "
+			  "WHITE = this module's output is lower over black: set "
+			  "S3_BAR_BLACK_HIGH 0\n");
+	}
 	for (t = 0; t < 3000; t++) {
 		UW now = (app_gpio_get(PIN_IR_LEFT) << 2) | (app_gpio_get(PIN_IR_CENTER) << 1) |
 			 (barcode_black() ? (UW)IR_BLACK : (UW)!IR_BLACK);
@@ -47,21 +59,43 @@ LOCAL void ir_live(void)
 				  (INT)((now >> 1) & 1u), (INT)(now & 1u));
 			prev = now;
 		}
+		if (ana) {
+			(void)barcode_adc(&raw, &wl, &bl);
+			if (raw < lo) lo = raw;
+			if (raw > hi) hi = raw;
+		}
 		if (t % 100 == 99) {
 			/* the interrupt sees every flicker; the 10 ms view above does not */
 			UW e2 = barcode_edges();
-			INT raw, wl, bl;
 
 			tm_printf((UB*)"[S3] B edges/s %d (B now %d)\n", (INT)(e2 - e1),
 				  (INT)(now & 1u));
-			if (barcode_adc(&raw, &wl, &bl)) {
-				tm_printf((UB*)"[S3] B analogue %d (white level %d, black "
-					  "level %d, need a gap of %d)\n", raw, wl, bl,
-					  S3_BAR_MIN_SPAN);
+			if (ana) {
+				tm_printf((UB*)"[S3] B analogue now %d, this second %d..%d "
+					  "(learned white %d, black %d; they must differ by "
+					  "%d or more)\n", raw, lo, hi, wl, bl, S3_BAR_MIN_SPAN);
+				lo = 4095;
+				hi = 0;
 			}
 			e1 = e2;
 		}
 		tk_dly_tsk(10);
+	}
+	if (ana) {
+		(void)barcode_adc(&raw, &wl, &bl);
+		if (bl - wl >= S3_BAR_MIN_SPAN || wl - bl >= S3_BAR_MIN_SPAN) {
+			/* black from 60 % of the way from white to black, white
+			   again below 40 %: grout should stay under 40 % */
+			tm_printf((UB*)"[S3] B thresholds from what it saw: "
+				  "S3_BAR_ADC_ON %d, S3_BAR_ADC_OFF %d. Grout or a tile "
+				  "join must stay on the white side of OFF (see the "
+				  "readings above); if not, tell B3 before using them\n",
+				  wl + (bl - wl) * 6 / 10, wl + (bl - wl) * 4 / 10);
+		} else {
+			tm_printf((UB*)"[S3] B has not seen enough contrast (white %d, "
+				  "black %d): check AO is on GP28, the module is on 3V3, "
+				  "and pass it over black tape\n", wl, bl);
+		}
 	}
 }
 

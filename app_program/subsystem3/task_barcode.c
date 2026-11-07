@@ -111,7 +111,12 @@ EXPORT BOOL barcode_adc(INT *raw, INT *white, INT *black)
 #define ADC_RATE_HZ	2000
 #define ENV_SH		4		/* levels kept x16 */
 #define ENV_UP_SH	3		/* follow a new extreme in ~8 samples */
-#define ENV_DECAY_SH	15		/* forget it over ~16 s */
+#define ENV_DECAY_SH	20		/* forget it over ~9 min.  B is beside the
+					   line and sees black only at barcodes and
+					   branches: forgetting in 16 s (shift 15)
+					   lost the black level within a minute of
+					   driving, then a darker tile join could be
+					   learned as "black". */
 
 LOCAL volatile INT	adc_raw;
 LOCAL INT		env_w = -1, env_b = -1;	/* white / black level x16 */

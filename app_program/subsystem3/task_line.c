@@ -51,6 +51,16 @@
  *	  curves the robot corrects all the time, so a line seen by B there
  *	  does not count.  (After the arm L touches it and the robot turns a
  *	  little toward it, so after it is not checked.)
+ *	  Crossing with a left arm, two sensors agreeing (8 Nov): both black
+ *	  for S3_PAIR_BOTH_MIN_MM .. S3_CROSS_MAX_MM, and B (S3_BAR_AHEAD_MM
+ *	  behind) then sees a patch about a tape wide within S3_PAIR_MM of
+ *	  the same place.  Counts even while the robot corrects: with the
+ *	  robot zigzagging (24 corrections a metre, 8 Nov) the "drove
+ *	  straight before it" rule threw away every junction, and the robot
+ *	  read a barcode and drove on through its junction.  In the saved
+ *	  logs of 7-8 Nov this pairing finds 11 places, 3 of them detected at
+ *	  the time; the zigzag's own both-black stretches are 2-6 mm and B
+ *	  sees nothing there.
  *	  Two within S3_JUNC_MERGE_MM are one junction.
  *	Mission is told through flg_mission (MSN_FLG_JUNCTION /
  *	MSN_FLG_LINE_LOST); line_junction_odo() says where the centre was.
@@ -94,6 +104,11 @@
 #define S3_LOST_MM		250	/* searching this far ... */
 #define S3_LOST_MS		4000	/* ... or this long (it turns on the spot) */
 #define S3_CROSS_MAX_MM		45	/* both black, crossed at up to ~60 deg */
+#define S3_PAIR_BOTH_MIN_MM	10	/* both black this long ... */
+#define S3_PAIR_B_MIN_MM10	90	/* ... and B a patch from 9.0 mm (B's
+					   tape patches read 11.5-15.9 mm) ... */
+#define S3_PAIR_MM		25	/* ... within this of each other (logs:
+					   1-16 mm) = a crossing */
 #define S3_STUCK_ONE_MM		300
 #define S3_STUCK_BOTH_MM	150
 #define MM(mm)		((W)(mm) * 1000 / S2_UM_PER_COUNT)	/* mm -> counts */
@@ -237,6 +252,8 @@ EXPORT void line_task(INT stacd, void *exinf)
 	float	mem = 0.0f;		/* steering memory, mm/s */
 	W	mem_odo = 0;
 	W	bpend_c = 0;
+	W	pair_c = 0;		/* centre of the last both-black, for B */
+	BOOL	pair_ok = FALSE;
 	W	mc;
 	INT	mw;
 	UW	mark_seen = barcode_mark(&mc, &mw);
@@ -264,7 +281,7 @@ EXPORT void line_task(INT stacd, void *exinf)
 			out = 0;
 			last_side = 0;
 			single_from = white_from = both_from = odo;
-			long_corr = searching = bpend = FALSE;
+			long_corr = searching = bpend = pair_ok = FALSE;
 			probe = probe_leg = 0;
 			probe_none = FALSE;
 			mem = 0.0f;
@@ -461,8 +478,15 @@ EXPORT void line_task(INT stacd, void *exinf)
 			    quiet_over(both_from - MM(S3_CROSS_BEFORE_MM),
 				       both_from - MM(S3_CROSS_LEAD_MM), odo)) {
 				junction_at(both_from + len / 2, JUNC_SIDE_S);
+			} else if (len >= MM(S3_PAIR_BOTH_MIN_MM) && len <= MM(S3_CROSS_MAX_MM)) {
+				/* while correcting: a crossing only if B agrees */
+				pair_c = both_from + len / 2;
+				pair_ok = TRUE;
 			}
 			/* else swept across the line on a curve: not a crossing */
+		}
+		if (pair_ok && odo - pair_c > MM(S3_PAIR_MM - S3_BAR_AHEAD_MM + 20)) {
+			pair_ok = FALSE;		/* B is past it and saw nothing */
 		}
 
 		/* ---- Left arm, from B: a patch about one tape wide.  cc is
@@ -472,7 +496,16 @@ EXPORT void line_task(INT stacd, void *exinf)
 			UW q = barcode_mark(&mc, &mw);
 
 			if (q != mark_seen) {
+				W cc = mc + MM(S3_BAR_AHEAD_MM);
+				W dd = cc - pair_c;
+
 				mark_seen = q;
+				if (dd < 0) dd = -dd;
+				if (pair_ok && dd <= MM(S3_PAIR_MM) &&
+				    mw >= S3_PAIR_B_MIN_MM10 && mw <= S3_JUNC_MAX_MM * 10) {
+					junction_at(pair_c, JUNC_SIDE_S | JUNC_SIDE_B);
+					pair_ok = FALSE;
+				}
 				if (mw >= S3_JUNC_MIN_MM * 10 && mw <= S3_JUNC_MAX_MM * 10) {
 					bpend = TRUE;
 					bpend_c = mc + MM(S3_BAR_AHEAD_MM);

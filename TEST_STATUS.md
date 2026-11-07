@@ -220,6 +220,19 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
   sensor off the bars. Latest build drives straight during the slow read:
   **not tested on the robot yet.** Pass = the codes on the track decoded in
   order, both directions, including "A small".
+- **8 Nov Stage 2 run (`linefolo` log, 8 Nov):** mapping from the new
+  panel box arrived (`A=L,B=R,C=F,F=U`). 2C: **barcode F read, "U-TURN at
+  next junction", but the junction was not detected**, it drove on. Same
+  in S3-L01 (junction at about 800 mm missed) and 2B run 2 (about 620
+  mm). Cause: the robot zigzagged (S3-L01: 24 corrections a metre, 19
+  sweeps; 7 Nov good runs 0-6), and a crossing only counted after 20 mm
+  of driving straight. Both missed junctions had L and R black together
+  for 16-18 mm and B a tape-wide patch at the same place (7-12 mm apart).
+  **Fixed 8 Nov, not run yet:** both black 10-45 mm + B's tape patch
+  within 25 mm = a crossing, correcting or not (the saved logs: 11 such
+  places, 3 detected then). Barcode: S3-B00 run 2 PASS (F, from the
+  other end); run 1 lost its first 4 elements; 2B read F twice.
+  Zigzag: check the line sensor mount (did it move?).
 - [ ] ⬜ **S5-B01 / S5-B02** (2C): right move at each junction, U-turn, stop on
   an unmapped code
 

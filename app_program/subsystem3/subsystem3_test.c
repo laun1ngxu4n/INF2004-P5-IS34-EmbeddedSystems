@@ -174,6 +174,8 @@ LOCAL INT follow_and_watch(INT secs, INT max_mm, INT *junc, INT *lost,
 			else j_left++;
 			tm_printf((UB*)"[S3] junction %d at %d mm: %s\n", *junc,
 				  (INT)S2_COUNTS_TO_MM(motion_odometer() - odo0),
+				  (sd == (JUNC_SIDE_S | JUNC_SIDE_B)) ?
+				  "crossing (both line sensors black, B saw the left arm)" :
 				  ((sd & JUNC_SIDE_S) != 0) ?
 				  "crossing (both line sensors black)" :
 				  "branch left (seen by B)");

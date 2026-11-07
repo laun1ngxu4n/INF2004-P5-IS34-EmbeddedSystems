@@ -90,6 +90,16 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
   sweep across its own line at an angle (L, then both, then R): that
   came out as 2 false crossings on 7 Nov, and is now ignored because it
   was correcting just before.
+- **Crossing while correcting (8 Nov):** both black for 10-45 mm **and**
+  B then sees a patch about a tape wide (9-28 mm) within 25 mm of the
+  same place (B's left arm): a crossing, even if the robot was
+  correcting. On 8 Nov the robot zigzagged (24 corrections a metre), the
+  "drove straight before it" rule threw every junction away, and it read
+  barcode F (U-turn) and drove on through the junction. In the saved
+  logs of 7-8 Nov this pairing finds 11 places (the two sensors 1-16 mm
+  apart), only 3 of them detected then; the zigzag's own both-black
+  stretches are 2-6 mm long and B sees nothing there. A crossing with no
+  left arm (a T with only a right arm) still needs the straight drive.
 - **Left branch** (an arm to the left only): the barcode sensor B
   (**40 mm behind** the line sensors, 70 mm left of L) sees a black patch
   12-28 mm long (reported as soon as B leaves it), and the robot was

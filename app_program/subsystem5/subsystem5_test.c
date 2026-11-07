@@ -61,6 +61,8 @@ EXPORT void subsystem5_stage_test(void)
 		/* the side look on the leg past the box (8 Nov): does the side
 		   of the beam hear a box face beside the robot? */
 		servo_look_side(-1);
+		test_wait_start("Side look check next (12 s): get a box ready to hold "
+				"beside the robot on the right, then press START.");
 		tm_printf((UB*)"[S5] side look check, 12 s: the sonar points %d deg "
 			  "right. Hold a box BESIDE the robot on the right, its face "
 			  "parallel to the robot's side (as when driving past it), "

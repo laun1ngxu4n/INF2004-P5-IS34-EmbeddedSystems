@@ -150,8 +150,14 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
   60 mm of steering while both white), overshoot search after 60 mm of
   white (±30 at 20 %), 1-reading filter, the straight-line probe back,
   120 mm/s. Simulated: 478/480 (9d10fa6: 297), unseen scenarios 177/216
-  (89), no sweeps. **Not run on the robot yet:** S3-L01, L07 and the
-  S-bend first.
+  (89), no sweeps. **First robot run (`linefolo` log, last): "works
+  extremely well" (team)**, the S-bend included; most guided runs were
+  skipped (START then STOP). S3-L10 (X crossing) still not detected: both
+  sensors black together for only 1-6 mm. **S3-B00 run 1 PASS: "A small"
+  decoded A** driving straight (29 elements, narrow 3.0 mm, wide 8.2 mm;
+  profile: narrow bars 2089-2552, white about 200, none nearly missed).
+  The WiFi watchdog re-joined the broker after about 100 s without it
+  (`no answer ... trying again`).
 - [ ] ⬜ **S3-L10, L03, L05..L09** (straddle logic, 7 Nov): X crossing, left
   branch, T end, right curve, left curve, gap (track 2), stuck R (black
   card under R); one place at a time, each prints PASS/FAIL. S3-L04

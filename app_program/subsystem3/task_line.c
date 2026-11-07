@@ -8,22 +8,32 @@
  *	  L black, R white   the line moves left     turn left
  *	  L white, R black   the line moves right    turn right
  *	  L black, R black   a cross line            straight (a crossing)
- *	A correction is gentle (STEER_GENTLE) at full speed for its first
- *	S3_GENTLE_MM; if the sensor is still black (a curve) it goes hard
- *	(STEER_HARD) at S3_MID_PCT, and S3_LOW_PCT after S3_LOW_AFTER_MM.
- *	Tuned on 7 Nov between two failures: gentle for 25 mm at 150 mm/s let
- *	the tape slip out past L on tight left curves; hard at once with the
- *	speed at 50/25 % zigzagged (the sensors are 115 mm ahead of the
- *	wheels, so turning swings them sideways fast: the bar swept across
- *	the 20 mm tape and the 5 mm clearance before the loop could react,
- *	both sensors black on every swing, never centred).
+ *	Steering (tuned 7 Nov in a simulation calibrated on that day's three
+ *	robot runs: it reproduced the lost left curves at 150 mm/s, the zigzag
+ *	of the hard-at-once version and the good third run; scenarios: 100-130
+ *	mm curves, S-bends, straights, sensor windows 6-20 mm, motor lag and
+ *	delay, +-2-4 % wheel mismatch.  Old settings 297/480, these 478/480
+ *	with no sweeps, same speed):
+ *	  - a correction is STEER_CORR at once, Motion at S3_CORR_PCT, then
+ *	    S3_LOW_PCT after S3_LOW_AFTER_MM of it;
+ *	  - steering memory: the steering averaged over the last S3_MEM_MM;
+ *	    while both sensors are white the robot keeps S3_MEM_K of it.  On a
+ *	    straight the corrections alternate L, R and it stays near 0; on a
+ *	    curve it settles at the turn the curve needs, so the robot keeps
+ *	    turning between corrections instead of driving straight off (the
+ *	    S-bend of track 3, 7 Nov).  It also slows a little in curves.
  *	Overshoot: on a tight curve the tape can pass right under a sensor
- *	and out the other side, which also reads "both white".  After a long
- *	correction (S3_LONG_CORR_MM) followed by S3_OVERSHOOT_MM of white, it
- *	turns back toward the side that saw the line last (LINE_SEARCH);
- *	LINE_LOST after S3_LOST_MM or S3_LOST_MS of that.  Otherwise both
- *	white is straight on (gaps need nothing special); LINE_LOST after
- *	S3_LOST_STRAIGHT_MM of white.
+ *	and out the other side, which also reads "both white".  After a
+ *	correction (S3_LONG_CORR_MM) followed by S3_OVERSHOOT_MM of white it
+ *	turns STEER_SEARCH toward the side that saw the line last (LINE_SEARCH)
+ *	at S3_SEARCH_PCT; LINE_LOST after S3_LOST_MM or S3_LOST_MS of that.
+ *	Both white is also "no line at all": on a long straight, well
+ *	centred, the robot touched nothing for 400 mm and stopped with
+ *	LINE_LOST on a good line (Stage 2B, 7 Nov).  So after
+ *	S3_PROBE_AFTER_MM of white it steers very gently (STEER_PROBE) toward
+ *	the side it saw last, for S3_PROBE_MM, then the other way for twice
+ *	that: a sensor touching the tape ends the probe.  Nothing either way:
+ *	LINE_LOST (a line end is driven past by about 400 mm).
  *	Stuck sensor: one black for S3_STUCK_ONE_MM, or both black for
  *	S3_STUCK_BOTH_MM, of driving: LINE_FAULT, Mission stops.
  *
@@ -50,30 +60,37 @@
 #include "../subsystem2/subsystem2.h"	/* motion_odometer() */
 #include "../subsystem5/subsystem5.h"	/* flg_mission */
 
-/* Steering (mm/s each wheel).  Turn radius at 120 mm/s: gentle 30 cm;
-   hard at 60 % 11 cm, at 35 % 6 cm (tight curves ~15 cm). */
-#define STEER_GENTLE	25	/* first part of a correction, full speed */
-#define STEER_HARD	40	/* a long correction (a curve) and the search */
-#define STEER_STEP	10	/* most the steering may grow per 20 ms (15 with
-				   the hard-at-once version zigzagged) */
-#define S3_GENTLE_MM		15	/* gentle this long, then hard */
-#define S3_MID_PCT		60	/* speed while correcting hard ... */
-#define S3_LOW_PCT		35	/* ... and after S3_LOW_AFTER_MM of it */
-#define S3_LOW_AFTER_MM		35
+/* Steering (mm/s each wheel) and Motion's speed while correcting */
+#define STEER_CORR	30	/* every correction, at once */
+#define STEER_SEARCH	30	/* the overshoot search */
+#define STEER_STEP	10	/* most the steering may grow per 20 ms */
+#define S3_CORR_PCT		60	/* speed while correcting ... */
+#define S3_LOW_PCT		40	/* ... and after S3_LOW_AFTER_MM of it */
+#define S3_LOW_AFTER_MM		50
 #define S3_SEARCH_PCT		20	/* searching (0 rocked in place, 2 Nov) */
-#define S3_FILTER_N	2	/* a sensor pattern counts only after this many
-				   readings in a row (2 = 40 ms, ~6 mm) */
-#define S3_LONG_CORR_MM		15	/* a correction this long may have let the
-					   tape slip out past the sensor (left
-					   curves, 7 Nov: 21-27 mm, then lost) */
-#define S3_OVERSHOOT_MM		40	/* white this long after one: overshot */
+/* Steering memory */
+#define S3_MEM_MM		60	/* averaged over about this distance */
+#define S3_MEM_K		0.4f	/* share kept while both sensors are white */
+#define S3_MEM_MAX		40
+#define S3_MEM_SLOW		0.5f	/* speed % less per mm/s of memory (curves) */
+#define S3_FILTER_N	1	/* a sensor pattern counts only after this many
+				   readings in a row (2 made every correction
+				   20-40 ms late) */
+#define S3_LONG_CORR_MM		5	/* a correction this long may have let the
+					   tape slip out past the sensor ... */
+#define S3_OVERSHOOT_MM		60	/* ... white this long after it: overshot
+					   (the memory keeps turning meanwhile) */
 /* Crossing: no correction from both_from - S3_CROSS_BEFORE_MM to
    both_from - S3_CROSS_LEAD_MM (one sensor may reach an angled cross
    line first) */
 #define S3_CROSS_BEFORE_MM	40
 #define S3_CROSS_LEAD_MM	20
-#define S3_LOST_STRAIGHT_MM	400	/* white this long (no search): lost.  Also
-					   the longest gap it can cross */
+#define S3_PROBE_AFTER_MM	200	/* white this long: look for the tape */
+#define S3_PROBE_MM		70	/* one way this far, the other way twice
+					   that; nothing = lost.  Longest gap it
+					   can cross: about 200 + 3 x 70 mm */
+#define STEER_PROBE		12	/* mm/s: the sensors move ~5 mm sideways
+					   (the clearance to the tape) in ~30 mm */
 #define S3_LOST_MM		250	/* searching this far ... */
 #define S3_LOST_MS		4000	/* ... or this long (it turns on the spot) */
 #define S3_CROSS_MAX_MM		45	/* both black, crossed at up to ~60 deg */
@@ -213,6 +230,12 @@ EXPORT void line_task(INT stacd, void *exinf)
 	W	both_from = 0;
 	UW	before_both = 0u;	/* the one-sensor pattern before a both-black */
 	BOOL	bpend = FALSE;		/* B patch waiting until the sensors pass it */
+	INT	probe = 0;		/* probing for the tape: +1 left, -1 right */
+	INT	probe_leg = 0;		/* 1 first way, 2 back the other way */
+	W	probe_from = 0;
+	BOOL	probe_none = FALSE;	/* probed both ways: no tape */
+	float	mem = 0.0f;		/* steering memory, mm/s */
+	W	mem_odo = 0;
 	W	bpend_c = 0;
 	W	mc;
 	INT	mw;
@@ -242,6 +265,10 @@ EXPORT void line_task(INT stacd, void *exinf)
 			last_side = 0;
 			single_from = white_from = both_from = odo;
 			long_corr = searching = bpend = FALSE;
+			probe = probe_leg = 0;
+			probe_none = FALSE;
+			mem = 0.0f;
+			mem_odo = odo;
 			before_both = 0u;
 			n_corr = n_sweep = 0u;
 			hist_reset(odo);
@@ -301,15 +328,42 @@ EXPORT void line_task(INT stacd, void *exinf)
 			search_n = 0;
 		}
 
+		/* Long straight, all white: is the tape still there? */
+		if (stable != 0u || searching) {
+			probe = probe_leg = 0;
+			probe_none = FALSE;
+		} else if (probe == 0 && !probe_none &&
+			   odo - white_from >= MM(S3_PROBE_AFTER_MM)) {
+			probe = (last_side >= 0) ? +1 : -1;
+			probe_leg = 1;
+			probe_from = odo;
+		} else if (probe != 0 &&
+			   odo - probe_from >= MM(S3_PROBE_MM * probe_leg)) {
+			if (probe_leg == 1) {
+				probe = -probe;		/* the other way, twice as far */
+				probe_leg = 2;
+				probe_from = odo;
+			} else {
+				probe = probe_leg = 0;
+				probe_none = TRUE;	/* no tape either way */
+			}
+		}
+
 		/* Steering (+ = turn left) */
 		if (single) {
-			s = (odo - single_from < MM(S3_GENTLE_MM)) ? STEER_GENTLE
-								   : STEER_HARD;
-			if (fr) s = -s;
+			s = fr ? -STEER_CORR : STEER_CORR;
 		} else if (searching) {
-			s = (last_side >= 0) ? STEER_HARD : -STEER_HARD;
+			s = (last_side >= 0) ? STEER_SEARCH : -STEER_SEARCH;
+		} else if (probe != 0) {
+			s = probe * STEER_PROBE;	/* looking for the tape */
 		} else {
-			s = 0;				/* centred, gap, or crossing */
+			/* centred, gap or crossing: keep part of the recent
+			   steering (a curve keeps turning) */
+			float m = S3_MEM_K * mem;
+
+			if (m > (float)S3_MEM_MAX) m = (float)S3_MEM_MAX;
+			if (m < -(float)S3_MEM_MAX) m = -(float)S3_MEM_MAX;
+			s = (INT)m;
 		}
 		/* Build a turn up gently (STEER_STEP per period), but ease off
 		   at once: ramping down too kept the robot turning after it
@@ -329,18 +383,39 @@ EXPORT void line_task(INT stacd, void *exinf)
 			out = target;
 		}
 		steer = out;
+		/* steering memory: average of the steering by distance */
+		{
+			W ds = odo - mem_odo;
+
+			if (ds > 0) {
+				float a = (float)S2_COUNTS_TO_MM(ds) / (float)S3_MEM_MM;
+
+				if (a > 1.0f) a = 1.0f;
+				mem += ((float)out - mem) * a;
+			}
+			mem_odo = odo;
+		}
 		/* Motion slows down while correcting or searching, so the same
-		   steering turns much tighter */
+		   steering turns much tighter; a little in curves too */
 		if (searching) {
 			speed_pct = S3_SEARCH_PCT;
-		} else if (single && odo - single_from >= MM(S3_LOW_AFTER_MM)) {
-			speed_pct = S3_LOW_PCT;
-		} else if (single && odo - single_from >= MM(S3_GENTLE_MM)) {
-			speed_pct = S3_MID_PCT;
 		} else {
-			speed_pct = 100;
+			INT cap;
+
+			if (single && odo - single_from >= MM(S3_LOW_AFTER_MM)) {
+				speed_pct = S3_LOW_PCT;
+			} else if (single) {
+				speed_pct = S3_CORR_PCT;
+			} else {
+				speed_pct = 100;
+			}
+			cap = 100 - (INT)(S3_MEM_SLOW * ((mem < 0.0f) ? -mem : mem));
+			if (cap < 35) cap = 35;
+			if (cap < speed_pct) speed_pct = cap;
 		}
-		hist_step(odo, single || searching);
+		/* the probe turns too: a crossing met while probing came at an
+		   angle (7 Nov: taken as a crossing) */
+		hist_step(odo, single || searching || probe != 0);
 
 		if (!enabled) {			/* turning, bypassing: no events */
 			bpend = FALSE;
@@ -358,8 +433,7 @@ EXPORT void line_task(INT stacd, void *exinf)
 				    ++search_n > S3_LOST_MS / PERIOD_LINE_MS) {
 					state = LINE_LOST;
 				}
-			} else if (stable == 0u &&
-				   odo - white_from > MM(S3_LOST_STRAIGHT_MM)) {
+			} else if (probe_none) {
 				state = LINE_LOST;
 			} else {
 				state = LINE_ON;

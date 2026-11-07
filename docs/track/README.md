@@ -8,6 +8,7 @@ turned and swapped.
 |---|---|---|
 | `Sample_track1.jpg` | closed oval on paper, no junctions | S3-L01 (3 m = a few laps), no false junctions |
 | `Sample_track2.jpg` | straight on paper with a short gap in the line | S3-L08 gap crossing |
+| `overshoot.jpg` | track 3's S-bend (two tight half circles back to back), the robot after running off it (7 Nov) | the hardest piece for line following; `tools/linesim.py` models it |
 | `Sample_track3.jpg` | foam tiles: straights, tight half circles (about 15 cm radius), an S bend, an X crossing, line ends | S3-L06/L07 curves, X crossing (both sides), 2C junction moves |
 
 Sizes are estimates from the photos: measure the tile, the tightest curve

@@ -141,6 +141,17 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
   the 1-reading filter, the heading rule for left branches. Kept: the
   barcode reader (relative edges, one pass, steering held straight over
   the bars), WiFi log, Stage 4 test.
+- **7 Nov, later: line following re-tuned in a simulation**
+  (`tools/linesim.py`), calibrated until it reproduced the three real runs
+  of the day (lost left curves at 150 mm/s, the zigzag, the good third
+  run); the S-bend of track 3 (photo `docs/track/overshoot.jpg`) failed in it the
+  same way as on the robot with a narrow sensor window. New: correction
+  ±30 at once at 60 % / 40 %, steering memory (keeps 40 % of the last
+  60 mm of steering while both white), overshoot search after 60 mm of
+  white (±30 at 20 %), 1-reading filter, the straight-line probe back,
+  120 mm/s. Simulated: 478/480 (9d10fa6: 297), unseen scenarios 177/216
+  (89), no sweeps. **Not run on the robot yet:** S3-L01, L07 and the
+  S-bend first.
 - [ ] ⬜ **S3-L10, L03, L05..L09** (straddle logic, 7 Nov): X crossing, left
   branch, T end, right curve, left curve, gap (track 2), stuck R (black
   card under R); one place at a time, each prints PASS/FAIL. S3-L04

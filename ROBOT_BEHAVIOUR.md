@@ -26,28 +26,43 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
   | black | white | line moving left | turn left |
   | white | black | line moving right | turn right |
   | black | black | a cross line | straight (a crossing) |
-- A correction is gentle (±25 mm/s between the wheels) at full speed for
-  its first 15 mm. If the sensor is still black (a curve) it goes hard
-  (±40) at 60 % speed, and 35 % after 35 mm (turn radius about 11 cm, then
-  6 cm). Steering builds up by 10 mm/s per 20 ms and eases off at once.
-  Tuned on 7 Nov between two failures: gentle for 25 mm at 150 mm/s let
-  the tape slip out on tight left curves; hard at once at 50/25 % speed
-  zigzagged (the sensors are 115 mm ahead of the wheels, so a sharp turn
-  swings them across the tape faster than the loop reacts).
+- A correction is ±30 mm/s between the wheels at once, with the robot at
+  60 % speed, 40 % after 50 mm of it. Steering builds up by 10 mm/s per
+  20 ms and eases off at once. The sensors are acted on as read (every
+  20 ms).
+- **Steering memory**: the steering averaged over the last 60 mm. While
+  both sensors are white the robot keeps 40 % of it (at most 40). On a
+  straight the corrections alternate L, R, so it stays near 0; on a curve
+  it settles at the turn the curve needs, so the robot keeps turning
+  between corrections instead of driving straight off. It also slows a
+  little in curves (0.5 % per mm/s of memory, never under 35 %).
+- **How it was tuned (7 Nov):** a simulation of the robot (track 123 mm,
+  sensors 115 mm ahead, motion ramp and lag) with the line task ported
+  line for line (`tools/linesim.py`). Calibrated until it reproduced that
+  day's three robot runs: the lost left curves at 150 mm/s, the zigzag of
+  the hard-at-once version and the good third run. Then 600 settings
+  were tried on 480 scenarios (100-120 mm curves, the S-bend of track 3
+  both ways, straights, sensor windows 8-20 mm, motor lag and delay, wheel
+  mismatch) and checked on 216 others. The 9d10fa6 settings passed
+  297/480 and 89/216; these pass 478/480 and 177/216, with no sweeps, at
+  the same 120 mm/s. Their only failures are with a sensor that sees
+  just 6 mm of the 20 mm tape. **Not run on the robot yet.**
 - Every Stage 2 run ends with `wobble this run: N corrections (per
   metre), M sweeps right across the tape`: sweeps should be 0.
 - **Overshoot**: on a tight curve the tape can pass right under a sensor
   and out the other side, which also reads "both white". After a
-  correction of 15 mm or more and then 40 mm of white, it turns back
-  toward the side that saw the line last (searching at 20 %).
+  correction and then 60 mm of white (the memory keeps turning
+  meanwhile), it turns back toward the side that saw the line last
+  (±30, at 20 % speed).
 - **Gaps** need nothing special: both white = straight on.
-- **Line lost**: 400 mm of white (no search), or 250 mm / 4 s of
-  searching. It stops and reports "line lost". So a line that ends is
-  driven past by up to 400 mm before it stops. **Known limit:** well
-  centred on a long straight it also touches nothing, and stopped with
-  "line lost" on a good straight twice in Stage 2B (7 Nov). A gentle
-  probe for the tape fixed that but was undone with the other line
-  changes of 7 Nov (back to the 9d10fa6 line following).
+- **Long straight, all white** (well centred, or no line at all: the two
+  look the same): after 200 mm without touching the tape it steers very
+  gently toward the side it saw last for 70 mm, then the other way for
+  140 mm. A sensor touching the tape ends this. (Without it, it stopped
+  with "line lost" on good straights in Stage 2B, 7 Nov.)
+- **Line lost**: that probe found nothing either way, or 250 mm / 4 s of
+  searching after an overshoot. It stops and reports "line lost". So a
+  line that ends is driven past by about 400 mm before it stops.
 - **Stuck line sensor**: one sensor black for 300 mm of driving, or both
   black for 150 mm: it stops and says which. A robot standing still
   never trips this.
@@ -152,8 +167,9 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
 
 **Sensors**
 - The IR modules are digital (on/off) with no hysteresis: they flicker at
-  every edge. The code filters this (line: 2 readings agree; barcode: a
-  level must hold 1.2 mm of travel), at the cost of a little delay.
+  every edge. The barcode reader filters this (a level must hold 1.2 mm
+  of travel); the line sensors are taken as read every 20 ms (2 readings
+  had to agree until 7 Nov: every correction came 20-40 ms late).
 - On the tiled floor, the dark **grout lines can read as black**. Pot
   setting matters, and it shifts when the robot is handled.
 - The barcode sensor is not very sensitive; bars only read reliably at
@@ -168,8 +184,8 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
   | Sensor stuck black | stop after 300 mm (one) or 150 mm (both) of driving |
   | Sensor stuck white / cable out | not detected: that side never corrects, the robot drifts off and stops with "line lost" |
   | L-R gap wrong for the tape | build: about 30 mm for 20 mm tape, tape centred between them |
-  | Tight curves (about 15 cm on the foam track) | hard steering and slow after 25 mm; overshoot search; S3-L06/L07 |
-  | Gap in the line | straight on (up to 400 mm); S3-L08 |
+  | Tight curves and the S-bend (about 12-15 cm on the foam track) | steering memory keeps turning between corrections; overshoot search; S3-L06/L07 |
+  | Gap in the line | straight on (memory), gentle probe after 200 mm (up to about 400 mm); S3-L08 |
   | Left branch met while correcting, or on a curve | ignored (not trusted); S3-L03 |
   | A branch to the right only | looks like a correction: not detected (none on the track) |
   | Foam tile joins, grout, marks about 20 mm under B | could look like a left arm; watch `B patch` prints |
@@ -193,7 +209,7 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
   a very tight one can overshoot and needs the search. A branch on a
   curve is ignored, and on a curve the turn point (drives straight
   115 mm) is less accurate. **Not tried on the robot yet.**
-- Line lost = stop, after 400 mm of white (it cannot tell centred from
+- Line lost = stop, after about 400 mm of white and a probe both ways (it cannot tell centred from
   lost sooner) or a failed search.
 - The bypass is a fixed rectangle planned for boxes up to 200 mm wide and
   150 mm deep; it assumes nothing else is next to the obstacle.

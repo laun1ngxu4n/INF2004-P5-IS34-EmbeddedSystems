@@ -15,7 +15,8 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
 4. **RUN**: line following starts.
 
 ### Line following
-- 150 mm/s everywhere (the whole course runs at the slow barcode speed).
+- 120 mm/s everywhere (the whole course runs at the slow barcode speed;
+  150 ran past tight curves on 7 Nov).
 - **The two line sensors straddle the tape** (since 7 Nov): L just left
   of it, R just right of it, about 30 mm apart for the 20 mm tape, so
   both read white when centred.
@@ -25,14 +26,15 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
   | black | white | line moving left | turn left |
   | white | black | line moving right | turn right |
   | black | black | a cross line | straight (a crossing) |
-- A correction starts gentle (±25 mm/s between the wheels) and goes hard
-  (±40 mm/s) with the robot slowing to 20 % once the sensor has been black
-  for 25 mm: a tight curve. Steering builds up gradually and eases off at
-  once.
+- A correction is hard at once (±40 mm/s between the wheels) and the
+  robot slows to 50 %, then to 25 % after 10 mm of it (turn radius about
+  9 cm, then 4 cm). Steering builds up over 60 ms and eases off at once.
+  (Until 7 Nov it started gentle at full speed: on tight left curves the
+  tape slipped out past L before the hard turn began.)
 - **Overshoot**: on a tight curve the tape can pass right under a sensor
-  and out the other side, which also reads "both white". After a long
-  correction (30 mm or more) and then 60 mm of white, it turns back
-  toward the side that saw the line last.
+  and out the other side, which also reads "both white". After a
+  correction of 15 mm or more and then 40 mm of white, it turns back
+  toward the side that saw the line last (searching at 20 %).
 - **Gaps** need nothing special: both white = straight on.
 - **Line lost**: 400 mm of white (no search), or 250 mm / 4 s of
   searching. It stops and reports "line lost". So a line that ends is
@@ -53,13 +55,16 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
 
 ### Junctions
 - **Crossing** (X, crossroads, T end): L and R both black for 12-45 mm
-  (one tape width, more when crossed at an angle). The tape is narrower
-  than the L-R gap, so the line itself never does that.
+  (one tape width, more when crossed at an angle), **after driving
+  straight** for the 20-40 mm before it. On a tight curve the robot can
+  sweep across its own line at an angle (L, then both, then R): that
+  came out as 2 false crossings on 7 Nov, and is now ignored because it
+  was correcting just before.
 - **Left branch** (an arm to the left only): the barcode sensor B
   (**40 mm behind** the line sensors, 70 mm left of L) sees a black patch
   12-28 mm long (reported as soon as B leaves it), and the robot was
-  driving straight before and after that place (L touching the arm
-  itself is allowed). The line task remembers where it was correcting,
+  driving straight before that place (after it, L touches the arm and
+  the robot turns a little toward it, so that is not checked). The line task remembers where it was correcting,
   by distance, to check this. On a curve it corrects all the time, so a
   line B sees there does not count. Barcode bars (narrow 3.5, wide
   10.5 mm) and grout lines are thinner. Reported about 50 mm after the

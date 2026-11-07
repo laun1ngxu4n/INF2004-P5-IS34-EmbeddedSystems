@@ -29,11 +29,9 @@
 					   90 / 180, so 130 x 90/95 = 123.
 					   Re-run S2-M02 to confirm. */
 
-/* Line following: forward speed, in % of the follow speed, while the
-   centre sensor is off the line; 0 = stop and turn on the spot until it
-   is back on the line (IF-03, Stage 2 runs 2 Nov) */
-#define S2_SEARCH_PCT		20	/* 0 rocked in place: always creep forward */
-/* Line following: speed while the barcode sensor is inside a barcode */
+/* Line following: the slow-down while correcting is set by the line task
+   (line_speed_pct(); 0 rocked in place on 2 Nov, so it always creeps).
+   Speed while the barcode sensor is inside a barcode: */
 #define S2_SPEED_IN_BARCODE	50
 /* Barcode rescan: on bar-space-bar, back up S2_SCAN_BACK_MM straight,
    then read forward at S2_SCAN_SPEED; give up S2_SCAN_MAX_MM after the
@@ -45,7 +43,9 @@
 
 /* Speeds used by the team (mm/s) */
 #define S2_SPEED_LINE		200	/* line following, design 10-25 cm/s */
-#define S2_SPEED_BARCODE	150	/* over barcodes (TEAM.md 7.1 B4) */
+#define S2_SPEED_BARCODE	120	/* line following and over barcodes (TEAM.md
+					   7.1 B4).  150 ran past tight curves
+					   (Stage 2 run, 7 Nov) */
 #define S2_SPEED_TURN		120	/* each wheel during a spin */
 
 /* Result of the last command */

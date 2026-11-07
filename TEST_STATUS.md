@@ -59,6 +59,19 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
   1.2-2.1 m only because the track was too short. **Needs a 3 m line.**
 - [ ] 🟡 **S3-L02** junction count = real count. Side-to-side movement can
   give false junctions; count the real ones and compare.
+- **7 Nov run (straddle, first version), `linefolo` log:** B analogue
+  works (white 250-570, black ~4040). L01 started with a rescan (tape
+  left under B after the live view) and was stopped at 375 mm. Right
+  curves held; **left curves lost**: L saw the tape only 21-27 mm, the
+  gentle first steering at 150 mm/s let it slip out past L, and the
+  overshoot search needed 30 mm. L06 (right curve) gave 2 **false
+  crossings** (the robot swept across the line diagonally). L05 PASS (1
+  crossing). L10 and L03 no junction. Also: one `IMU read failed`, and a
+  `ramp peak 8.4 mm` while following on foam (tile edges look like humps:
+  check in Stage 4). **Fixed the same day, not yet re-run:** hard steering
+  at once with 50 % / 25 % speed, overshoot search after 15 mm, crossings
+  need a straight approach, barcode reader reset at every start, follow
+  speed 120 mm/s, fixed B thresholds 2500 / 1700.
 - [ ] ⬜ **S3-L10, L03, L05..L09** (straddle logic, 7 Nov): X crossing, left
   branch, T end, right curve, left curve, gap (track 2), stuck R (black
   card under R); one place at a time, each prints PASS/FAIL. S3-L04

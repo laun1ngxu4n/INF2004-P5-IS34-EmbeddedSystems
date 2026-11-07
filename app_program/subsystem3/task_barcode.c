@@ -279,6 +279,16 @@ LOCAL void mark_pub(W end_odo, W w)
 EXPORT UW barcode_seq(void)	{ return seq_now; }
 EXPORT void barcode_pause(BOOL on)	{ paused = on; }
 
+/* Forget any half-read code (start of a run, after a manoeuvre).  On 7 Nov
+   tape held under B at the end of the live view left a code open, and
+   the run started with a rescan.  Task context; blocks 30 ms. */
+EXPORT void barcode_reset(void)
+{
+	paused = TRUE;
+	tk_dly_tsk(30);			/* the task drops it within 10 ms */
+	paused = FALSE;
+}
+
 EXPORT void barcode_last(BARCODE_RESULT *r)
 {
 	UINT s;

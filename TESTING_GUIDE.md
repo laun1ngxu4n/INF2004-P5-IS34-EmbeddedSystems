@@ -123,19 +123,14 @@ send the log (a motor or encoder wire differs from bring-up).
 1. **IR view (30 s)**: slide black tape under each sensor; L, R and B
    must each change. Nothing changes = sensor or pot. Robot centred on
    the tape: L 0 and R 0.
-   **Which image depends on how B is wired:**
-   - B's **D0 to GP2** (digital, as built): `is34_test_stage2.uf2`. Tune
-     B's pot until `B edges/s` reads 0 held still over white and over black.
-   - B's **AO to GP28, module powered from 3V3, not 5 V** (analogue):
-     `is34_test_stage2_analog.uf2`. B's pot does nothing. Pass B over
-     white, black tape (it reads 0 until it has seen black once) and a
-     grout line or tile join; each second prints the lowest and highest
-     reading. At the end it prints `S3_BAR_ADC_ON` / `S3_BAR_ADC_OFF` to
-     copy into `subsystem3/subsystem3.h`: send them to B3 to build them in.
-     Grout must read on the white side of OFF. B shows 1 over white = set
-     `S3_BAR_BLACK_HIGH 0`.
-   - Analogue is a build switch (`S3_BARCODE_ANALOG`): if the team keeps
-     B on analogue, every image (Stages 3, 6, demo) must be built with it.
+   **B is on its analogue output since 7 Nov** (AO to GP28, module on
+   **3V3, not 5 V**); every image is built that way (`S3_BARCODE_ANALOG 1`)
+   with fixed thresholds from the 7 Nov live view (black from 2500, white
+   below 1700). B's pot does nothing. The live view prints the lowest and
+   highest reading each second: white must stay under 1700 everywhere
+   (paper, foam, tile joins), black over 2500. If not, send the lines to
+   B3. B shows 1 over white = `S3_BAR_BLACK_HIGH 0`. Back to the digital
+   D0 on GP2: `S3_BARCODE_ANALOG 0` and rebuild every image.
 2. **2A, S3-L01 / S3-L02**: robot on the line, START, let it run (up to
    60 s). Pass L01: `[TEST] S3-L01 PASS` = at least 3 m followed with no
    line lost, and you saw it stay on the line. L02: printed junction count = real count (write both down).

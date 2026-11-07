@@ -8,9 +8,11 @@
  *	  L black, R white   the line moves left     turn left
  *	  L white, R black   the line moves right    turn right
  *	  L black, R black   a cross line            straight (a crossing)
- *	A correction starts gentle (STEER_SMALL) and turns hard (STEER_HARD),
- *	with Motion slowing down, once the sensor has been black for
- *	S3_HARD_AFTER_MM: a tight curve.
+ *	A correction is hard at once (STEER_HARD) with Motion slowing to
+ *	S3_CORR_PCT, and to S3_CORR2_PCT once the sensor has been black for
+ *	S3_SLOW2_AFTER_MM (a tight curve).  The 7 Nov run steered gently
+ *	first at full speed: on tight left curves the tape slipped out past
+ *	L before the hard turn started, and the robot drove off the curve.
  *	Overshoot: on a tight curve the tape can pass right under a sensor
  *	and out the other side, which also reads "both white".  After a long
  *	correction (S3_LONG_CORR_MM) followed by S3_OVERSHOOT_MM of white, it
@@ -24,14 +26,17 @@
  *	Junctions (see subsystem3.h):
  *	  Crossing (X, crossroads, T end): both black for S3_JUNC_MIN_MM ..
  *	  S3_CROSS_MAX_MM (longer than one tape width when crossed at an
- *	  angle).  The tape is narrower than the L-R gap, so the line itself
- *	  never makes both black.
+ *	  angle), after driving straight (no correction) before it.  The tape
+ *	  is narrower than the L-R gap, so the line itself only makes both
+ *	  black when the robot sweeps across it at an angle, on a tight curve
+ *	  while correcting: 2 false crossings on a curve on 7 Nov.
  *	  Left branch: B saw a patch about one tape wide, and the robot was
- *	  driving straight (no correction, no search) before and after that
- *	  place, apart from L touching the arm itself.  B is not level with
- *	  the line sensors, so the corrections are kept by distance (off_a/
- *	  off_b) and looked up when B's patch arrives.  On curves the robot
- *	  corrects all the time, so a line seen by B there does not count.
+ *	  driving straight (no correction, no search) before that place.  B
+ *	  is not level with the line sensors, so the corrections are kept by
+ *	  distance (off_a/off_b) and looked up when B's patch arrives.  On
+ *	  curves the robot corrects all the time, so a line seen by B there
+ *	  does not count.  (After the arm L touches it and the robot turns a
+ *	  little toward it, so after it is not checked.)
  *	  Two within S3_JUNC_MERGE_MM are one junction.
  *	Mission is told through flg_mission (MSN_FLG_JUNCTION /
  *	MSN_FLG_LINE_LOST); line_junction_odo() says where the centre was.
@@ -41,19 +46,26 @@
 #include "../subsystem2/subsystem2.h"	/* motion_odometer() */
 #include "../subsystem5/subsystem5.h"	/* flg_mission */
 
-/* Steering, tuned on the Stage 2 runs (1-2 Nov, edge following): 40 /
-   110 swung across the line; 70 on the spot overshot. */
-#define STEER_SMALL	25	/* mm/s, first part of a correction */
-#define STEER_HARD	40	/* mm/s, a long correction and the search */
+/* Steering: 40 mm/s each wheel (70 on the spot overshot, 2 Nov, edge
+   following).  The turn radius comes from the slow-down: at 120 mm/s x
+   50 % it is about 9 cm, at 25 % about 4 cm (tight curves ~15 cm). */
+#define STEER_HARD	40	/* mm/s, every correction and the search */
 #define STEER_STEP	15	/* most the steering may grow per 20 ms */
+#define S3_CORR_PCT		50	/* speed while correcting ... */
+#define S3_CORR2_PCT		25	/* ... and after S3_SLOW2_AFTER_MM of it */
+#define S3_SLOW2_AFTER_MM	10
+#define S3_SEARCH_PCT		20	/* searching (0 rocked in place, 2 Nov) */
 #define S3_FILTER_N	2	/* a sensor pattern counts only after this many
 				   readings in a row (2 = 40 ms, ~6 mm) */
-#define S3_HARD_AFTER_MM	25	/* one sensor black this long: hard, slow.
-					   Over a tape width, so L crossing a left
-					   arm (~20 mm) is only a gentle nudge */
-#define S3_LONG_CORR_MM		30	/* a correction this long: a tight curve
-					   (L crossing a left arm is ~20 mm) */
-#define S3_OVERSHOOT_MM		60	/* white this long after one: overshot */
+#define S3_LONG_CORR_MM		15	/* a correction this long may have let the
+					   tape slip out past the sensor (left
+					   curves, 7 Nov: 21-27 mm, then lost) */
+#define S3_OVERSHOOT_MM		40	/* white this long after one: overshot */
+/* Crossing: no correction from both_from - S3_CROSS_BEFORE_MM to
+   both_from - S3_CROSS_LEAD_MM (one sensor may reach an angled cross
+   line first) */
+#define S3_CROSS_BEFORE_MM	40
+#define S3_CROSS_LEAD_MM	20
 #define S3_LOST_STRAIGHT_MM	400	/* white this long (no search): lost.  Also
 					   the longest gap it can cross */
 #define S3_LOST_MM		250	/* searching this far ... */
@@ -64,13 +76,12 @@
 #define MM(mm)		((W)(mm) * 1000 / S2_UM_PER_COUNT)	/* mm -> counts */
 
 /* Left arm under B, centre at cc (where the line sensors crossed it):
-   no correction from cc - S3_ARM_BEFORE_MM to cc - S3_ARM_SELF_MM and
-   from cc + S3_ARM_SELF_MM to cc + S3_ARM_AFTER_MM (L touching the arm
-   itself, within S3_ARM_SELF_MM, is allowed).  Decided once the line
-   sensors are S3_ARM_AFTER_MM past it (at once when B is behind). */
+   no correction from cc - S3_ARM_BEFORE_MM to cc - S3_ARM_SELF_MM (L
+   touching the arm itself is allowed).  Decided once the line sensors
+   are S3_ARM_AFTER_MM past it (at once when B is behind). */
 #define S3_ARM_BEFORE_MM	40
 #define S3_ARM_SELF_MM		22	/* half a tape + the ~6 mm filter delay + margin */
-#define S3_ARM_AFTER_MM		35
+#define S3_ARM_AFTER_MM		20
 
 #define PAT_L		2u
 #define PAT_R		1u
@@ -79,7 +90,7 @@ LOCAL volatile INT	steer;
 LOCAL volatile INT	state = LINE_ON;
 LOCAL volatile UW	junctions;
 LOCAL volatile BOOL	enabled = FALSE;	/* until a start (Mission or a test) */
-LOCAL volatile BOOL	on_track = TRUE;
+LOCAL volatile INT	speed_pct = 100;
 LOCAL volatile W	junc_odo;		/* last junction centre */
 LOCAL volatile INT	junc_sides;
 LOCAL volatile INT	fault_why;
@@ -89,7 +100,7 @@ EXPORT INT line_state(void)		{ return state; }
 EXPORT INT line_fault(void)		{ return fault_why; }
 EXPORT UW line_junctions(void)		{ return junctions; }
 EXPORT void line_set_enabled(BOOL on)	{ enabled = on; }
-EXPORT BOOL line_on_track(void)		{ return on_track; }
+EXPORT INT line_speed_pct(void)		{ return speed_pct; }
 EXPORT W line_junction_odo(void)	{ return junc_odo; }
 EXPORT INT line_junction_sides(void)	{ return junc_sides; }
 EXPORT BOOL line_any_black(void)
@@ -122,7 +133,7 @@ LOCAL void junction_at(W c, INT side)
 
 /* Where the robot was correcting or searching: the last OFFS stretches,
    by odometer.  The newest is still open while it is. */
-#define OFFS	8
+#define OFFS	16
 LOCAL W		off_a[OFFS], off_b[OFFS];
 LOCAL UW	off_n;
 LOCAL BOOL	off_open;
@@ -152,7 +163,10 @@ LOCAL BOOL quiet_over(W a, W b, W now)
 {
 	UW i;
 
-	if (a < hist_from || (off_n > OFFS && a < off_a[(off_n - OFFS) % OFFS])) {
+	if (b < hist_from) return TRUE;		/* before the start: the robot
+						   was put down straight */
+	if (a < hist_from) a = hist_from;
+	if (off_n > OFFS && a < off_a[(off_n - OFFS) % OFFS]) {
 		return FALSE;			/* not on record */
 	}
 	for (i = (off_n > OFFS) ? off_n - OFFS : 0; i < off_n; i++) {
@@ -262,9 +276,7 @@ EXPORT void line_task(INT stacd, void *exinf)
 
 		/* Steering (+ = turn left) */
 		if (single) {
-			s = (odo - single_from < MM(S3_HARD_AFTER_MM)) ? STEER_SMALL
-								       : STEER_HARD;
-			if (fr) s = -s;
+			s = fr ? -STEER_HARD : STEER_HARD;
 		} else if (searching) {
 			s = (last_side >= 0) ? STEER_HARD : -STEER_HARD;
 		} else {
@@ -288,10 +300,16 @@ EXPORT void line_task(INT stacd, void *exinf)
 			out = target;
 		}
 		steer = out;
-		/* Motion slows to a creep on a hard correction or a search, so
-		   the same steering turns much tighter */
-		on_track = !searching &&
-			   !(single && odo - single_from >= MM(S3_HARD_AFTER_MM));
+		/* Motion slows down while correcting or searching, so the same
+		   steering turns much tighter */
+		if (searching) {
+			speed_pct = S3_SEARCH_PCT;
+		} else if (single) {
+			speed_pct = (odo - single_from < MM(S3_SLOW2_AFTER_MM)) ?
+				    S3_CORR_PCT : S3_CORR2_PCT;
+		} else {
+			speed_pct = 100;
+		}
 		hist_step(odo, single || searching);
 
 		if (!enabled) {			/* turning, bypassing: no events */
@@ -335,9 +353,12 @@ EXPORT void line_task(INT stacd, void *exinf)
 		if (prev == (PAT_L | PAT_R) && stable != prev) {
 			W len = odo - both_from;
 
-			if (len >= MM(S3_JUNC_MIN_MM) && len <= MM(S3_CROSS_MAX_MM)) {
+			if (len >= MM(S3_JUNC_MIN_MM) && len <= MM(S3_CROSS_MAX_MM) &&
+			    quiet_over(both_from - MM(S3_CROSS_BEFORE_MM),
+				       both_from - MM(S3_CROSS_LEAD_MM), odo)) {
 				junction_at(both_from + len / 2, JUNC_SIDE_S);
 			}
+			/* else swept across the line on a curve: not a crossing */
 		}
 
 		/* ---- Left arm, from B: a patch about one tape wide.  cc is
@@ -358,8 +379,7 @@ EXPORT void line_task(INT stacd, void *exinf)
 			W cc = bpend_c;
 
 			bpend = FALSE;
-			if (quiet_over(cc - MM(S3_ARM_BEFORE_MM), cc - MM(S3_ARM_SELF_MM), odo) &&
-			    quiet_over(cc + MM(S3_ARM_SELF_MM), cc + MM(S3_ARM_AFTER_MM), odo)) {
+			if (quiet_over(cc - MM(S3_ARM_BEFORE_MM), cc - MM(S3_ARM_SELF_MM), odo)) {
 				junction_at(cc, JUNC_SIDE_B);
 			}
 			/* else on a curve or correcting there: not trusted */

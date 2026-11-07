@@ -33,16 +33,18 @@
    the threshold).  1: its analogue AO on GP28 (ADC 2); the threshold and
    hysteresis are set in software, from the white and black levels it
    has seen.  For 1: power the module from 3V3, NOT 5 V (AO would go
-   above the ADC's 3.3 V limit), and wire AO to GP28. */
-#define S3_BARCODE_ANALOG	0
+   above the ADC's 3.3 V limit), and wire AO to GP28.  Analogue since
+   7 Nov (B wired to GP28 then). */
+#define S3_BARCODE_ANALOG	1
 #define PIN_IR_BARCODE_AO	28
 #define S3_BAR_ADC_CH		2	/* GP28 = ADC input 2 */
 #define S3_BAR_BLACK_HIGH	1	/* AO is higher over black (TCRT5000
 					   modules); the live view shows it */
 /* Fixed thresholds (raw 0..4095): 0 = learn them from the white and black
-   levels seen (the live view prints them to copy here) */
-#define S3_BAR_ADC_ON		0	/* black from here (above, if BLACK_HIGH) */
-#define S3_BAR_ADC_OFF		0	/* white again from here */
+   levels seen (the live view prints them to copy here).  From the 7 Nov
+   live view: white 250-570, black about 4040; it suggested 2496 / 1718. */
+#define S3_BAR_ADC_ON		2500	/* black from here (above, if BLACK_HIGH) */
+#define S3_BAR_ADC_OFF		1700	/* white again from here */
 #define S3_BAR_MIN_SPAN		400	/* learned: black-white gap needed before
 					   anything counts as black */
 
@@ -97,8 +99,9 @@ IMPORT INT	line_junction_sides(void);	/* its branches: JUNC_SIDE_S | _B */
 IMPORT void	line_set_enabled(BOOL on);	/* FALSE: no junction / lost events
 						   (during turns and bypasses) */
 IMPORT BOOL	line_any_black(void);		/* raw: either line sensor on black */
-IMPORT BOOL	line_on_track(void);		/* FALSE while correcting hard or
-						   searching: Motion slows down */
+IMPORT INT	line_speed_pct(void);		/* % of the follow speed Motion may
+						   use: 100 on track, less while
+						   correcting or searching */
 
 /* Barcode results */
 typedef struct {
@@ -121,6 +124,8 @@ IMPORT BOOL	barcode_candidate(void);	/* bar, space, bar seen: worth a rescan */
 IMPORT UW	barcode_seq(void);		/* +1 for every result published */
 IMPORT void	barcode_pause(BOOL on);		/* TRUE: ignore edges (backing up);
 						   FALSE: start a fresh read */
+IMPORT void	barcode_reset(void);		/* drop a half-read code (start of
+						   a run); blocks 30 ms */
 IMPORT UW	barcode_debug(INT *n, INT *w_mm10, INT max);	/* last code that
 						   ended, any length; returns a seq */
 /* Last first-bar under B (published as soon as it ends): a left branch

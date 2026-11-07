@@ -51,6 +51,11 @@ LOCAL void ir_live(void)
 			  "end: thresholds to copy into subsystem3.h. B reads 1 over "
 			  "WHITE = this module's output is lower over black: set "
 			  "S3_BAR_BLACK_HIGH 0\n");
+		if (S3_BAR_ADC_ON > 0) {
+			tm_printf((UB*)"[S3] B uses FIXED thresholds: black from %d, white "
+				  "again below %d (S3_BAR_ADC_ON/OFF; 0 = learn)\n",
+				  S3_BAR_ADC_ON, S3_BAR_ADC_OFF);
+		}
 	}
 	for (t = 0; t < 3000; t++) {
 		UW now = ((UW)(app_gpio_get(PIN_IR_LINE_L) == IR_BLACK) << 2) |
@@ -125,6 +130,7 @@ LOCAL INT follow_and_watch(INT secs, INT max_mm, INT *junc, INT *lost,
 	barcode_last(&r);
 	seq = r.seq;
 	j_cross = j_left = 0;
+	barcode_reset();		/* nothing left over from the live view */
 	line_set_enabled(TRUE);
 	tm_printf((UB*)"[S3] at start: L %d  R %d (want L 0, R 0: the tape centred "
 		  "between them)\n",

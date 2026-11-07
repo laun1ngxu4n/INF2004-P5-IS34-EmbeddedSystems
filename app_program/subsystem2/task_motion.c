@@ -271,7 +271,8 @@ EXPORT void motion_task(INT stacd, void *exinf)
 			float	steer = (float)line_steer_mm_s();	/* + = steer left */
 			float	t_l, t_r;
 			float	cap = absf((float)cur.speed);
-			BOOL	off = !line_on_track();
+			INT	pct = line_speed_pct();	/* 100 = on track */
+			BOOL	off = (pct < 100);
 
 			if (follow_limit > 0 && cap > (float)follow_limit) {
 				cap = (float)follow_limit;
@@ -293,15 +294,18 @@ EXPORT void motion_task(INT stacd, void *exinf)
 					if (cap > (float)S2_SCAN_SPEED) cap = (float)S2_SCAN_SPEED;
 					steer = 0.0f;
 					off = FALSE;
+					pct = 100;
 				}
 			}
 
-			/* Centre sensor off the line: forward speed drops to
-			   S2_SEARCH_PCT % (0 = turn on the spot) while steering
-			   back, so the turn finds the line before the robot runs
-			   past it (Stage 2 runs, 2 Nov).  Over a barcode: slow. */
+			/* Correcting: forward speed drops to what the line task
+			   asks (a correction 50 %, a long one 25 %, a search 20 %),
+			   so the same steering turns much tighter and the robot
+			   does not run past the line (Stage 2 run, 7 Nov: the tape
+			   slipped out past the sensor on tight left curves).  Over a
+			   barcode: slow. */
 			if (off) {
-				cap = cap * (float)S2_SEARCH_PCT / 100.0f;
+				cap = cap * (float)pct / 100.0f;
 			}
 			if (barcode_busy() && cap > (float)S2_SPEED_IN_BARCODE) {
 				cap = (float)S2_SPEED_IN_BARCODE;

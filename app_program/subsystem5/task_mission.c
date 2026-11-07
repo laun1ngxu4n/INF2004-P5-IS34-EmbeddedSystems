@@ -123,6 +123,7 @@ LOCAL BOOL resume_follow(void)
 {
 	W odo0 = motion_odometer();
 
+	barcode_reset();		/* a spin can leave a half-read code */
 	if (motion_follow(S5_FOLLOW_SPEED) < E_OK) return FALSE;
 	while (S2_COUNTS_TO_MM(motion_odometer() - odo0) < REJOIN_ENABLE_MM) {
 		if (app_stop_reasons() != 0u) return FALSE;
@@ -148,6 +149,7 @@ LOCAL void start_run(void)
 	}
 	pending = 0;
 	motion_follow_limit(0);
+	barcode_reset();		/* nothing left over from before START */
 	tk_clr_flg(flg_mission, 0);
 	if (motion_follow(S5_FOLLOW_SPEED) < E_OK) {
 		halt("STOP still set");

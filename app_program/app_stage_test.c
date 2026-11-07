@@ -73,11 +73,31 @@ EXPORT void app_course_test(BOOL obstacles, BOOL imu)
 	tm_printf((UB*)"\n[DRIVE] === Mission run: obstacle watch %s, IMU %s ===\n",
 		  obstacles ? "ON" : "OFF", imu ? "ON" : "OFF");
 #if defined(TM_MQTT) && TM_MQTT
-	tm_printf((UB*)"[DRIVE] send the mapping from the PC: topic is34/cmd/map\n");
-	while (barcode_mapping_text(map, sizeof(map)) == 0) {
-		tk_dly_tsk(100);
+	{
+		/* 7 Nov: START was pressed again and again while this waited
+		   for a mapping that was never sent; it looked like a crash.
+		   Remind every 10 s; START with no mapping = the TEST mapping. */
+		UW	remote = tele_start_count();
+		INT	t = 0;
+
+		tm_printf((UB*)"[DRIVE] send the mapping from the PC (panel: Send "
+			  "mapping), or press START to use the TEST mapping "
+			  "A=L,B=R,C=F,D=U\n");
+		while (barcode_mapping_text(map, sizeof(map)) == 0) {
+			if (tele_start_count() != remote || button_down(PIN_START)) {
+				while (button_down(PIN_START)) tk_dly_tsk(10);
+				test_use_test_mapping();
+				break;
+			}
+			if (++t % 100 == 0) {
+				tm_printf((UB*)"[DRIVE] still waiting for a mapping (panel: "
+					  "Send mapping) or START for the TEST mapping\n");
+			}
+			tk_dly_tsk(100);
+		}
+		(void)barcode_mapping_text(map, sizeof(map));
+		tm_printf((UB*)"[DRIVE] mapping %s in use\n", map);
 	}
-	tm_printf((UB*)"[DRIVE] mapping %s received\n", map);
 #else
 	test_use_test_mapping();
 	(void)map;

@@ -211,8 +211,9 @@ send the log (a motor or encoder wire differs from bring-up).
    line again (`[EVT] bypass done`). Pass: no contact, stays within 300 mm
    of the line, back on the line within 500 mm after the obstacle.
    Over WiFi (`images/wifi/is34_test_stage3_wifi.uf2`) this part first
-   waits for a mapping: send any valid one from the panel (e.g.
-   `A=L,B=R,C=F,D=U`), then START. Start on a straight stretch; since 8
+   waits for a mapping: send one from the panel, or press START once to
+   use the TEST mapping `A=L,B=R,C=F,D=U` (it reminds you every 10 s);
+   then START again to run. Start on a straight stretch; since 8
    Nov the line behind the box may also curve (the robot spins until a
    line sensor finds it). New lines: `line met beside the box` (it
    curved toward the robot) or `line found N mm after the last turn`.

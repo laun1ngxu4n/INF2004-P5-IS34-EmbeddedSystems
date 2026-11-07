@@ -282,8 +282,19 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
   so": "no clear side" for the larger boxes. Now each edge comes from the
   scan(s) that saw past it. Side margin 50 -> 70 mm (barcode arm on the
   left). S5-O01 now places the box at 350 mm and reverses 100 mm.
-- [ ] 🟡 **S5-O01** width, now 6 tries (any 3 flat boxes, 2 each, real width
-  by ruler, box about 250 mm ahead, nothing else within 50 cm). With the
+- **7 Nov, first Stage 3 run over WiFi (`ultrason` log): the bypass
+  (S5-O02) worked first time.** Stopped at 245 mm, scanned (scan 1 saw
+  the box fill the sweep, 411 mm; scan 2 found the edges, 140 mm), went
+  round on the RIGHT (out 214 mm, past 930 mm), found the line 123 mm
+  after the last turn, "bypass done, following the line"; then line lost
+  at a floor X junction (not the track). Servo directions and the sonar
+  view fine. S5-O01 widths varied a lot (522, 218, 240, 302, 370, 435
+  mm; real widths still to be sent): several scans heard the box across
+  almost the whole +-40 deg (a flat face echoes straight back, and with
+  open space behind nothing else answers first). Width test cut to 3
+  tries the same day (team).
+- [ ] 🟡 **S5-O01** width, 3 tries (3 flat boxes, one each, real width
+  by ruler, box about 350 mm ahead, nothing else within 60 cm). With the
   scan at +/- 25 deg the sonar never saw past a box's edge (beam is about
   30 deg wide), so no width came out. Scan widened to **+/- 40 deg: not
   tested on the robot yet.** Route the cables at the back first so they

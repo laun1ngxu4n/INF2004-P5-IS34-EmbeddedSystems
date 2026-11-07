@@ -65,9 +65,9 @@ EXPORT void subsystem5_stage_test(void)
 		tk_dly_tsk(270);
 	}
 
-	for (k = 1; k <= 6; k++) {
-		tm_printf((UB*)"\n[DRIVE] S5-O01 width, try %d of 6 (any 3 boxes of "
-			  "different widths, 2 tries each; STOP ends early)\n", k);
+	for (k = 1; k <= 3; k++) {
+		tm_printf((UB*)"\n[DRIVE] S5-O01 width, try %d of 3 (a different box "
+			  "each time, 10-20 cm wide; STOP ends early)\n", k);
 		test_wait_start("Box about 350 mm straight ahead of the sensor (where "
 				"the bypass scans from), flat face to it, nothing else "
 				"within 60 cm. Write down its real width (ruler).");

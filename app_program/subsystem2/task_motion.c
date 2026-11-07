@@ -84,6 +84,11 @@ EXPORT ID motion_turn(INT deg)
 	return cmd_post(CMD_TURN, S2_SPEED_TURN, deg);
 }
 
+EXPORT ID motion_turn_at(INT deg, INT wheel_mm_s)
+{
+	return cmd_post(CMD_TURN, wheel_mm_s, deg);
+}
+
 EXPORT ID motion_follow(INT speed_mm_s)
 {
 	return cmd_post(CMD_FOLLOW, speed_mm_s, 0);

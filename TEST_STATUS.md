@@ -293,6 +293,13 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
   almost the whole +-40 deg (a flat face echoes straight back, and with
   open space behind nothing else answers first). Width test cut to 3
   tries the same day (team).
+- **Changed 8 Nov, not run yet (bypass rejoin):** chosen in
+  `tools/bypasssim.py` (486 simulated bypasses). The line sensors watch
+  on the leg past the box, any black counts on the way back, and the
+  robot spins toward the old direction until a line sensor finds the
+  tape instead of a fixed 90 deg turn. Old way 36/486 (straights 24/54:
+  spin errors moved the line out of its 100 mm window), new 471/486, no
+  contact with the box. Side margin 70 -> 100 mm.
 - [ ] 🟡 **S5-O01** width, 3 tries (3 flat boxes, one each, real width
   by ruler, box about 350 mm ahead, nothing else within 60 cm). With the
   scan at +/- 25 deg the sonar never saw past a box's edge (beam is about

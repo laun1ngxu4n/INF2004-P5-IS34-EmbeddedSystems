@@ -135,16 +135,34 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
 - Picks the side that is clear beyond the edge (if both, the nearer edge);
   neither clear (something else there, or no scan saw past the edge):
   stops, "no clear side".
-- Drives round on a rectangle, pinging before each long leg:
+- Drives round, pinging before each long leg:
   1. turn 90 to the clear side
-  2. out: half of max(width + U, 200 mm) + half the robot width + 70 mm
-     (about 255 mm for a 150 mm box; 50 mm margin until 7 Nov, the
-     barcode arm sticks out on the left)
+  2. out: half of max(width + U, 200 mm) + half the robot width + 100 mm
+     (about 285 mm for a 150 mm box)
   3. turn back; past: distance to the box + 150 mm (deepest expected box)
-     + robot length + 70 mm (about 870 mm from the 450 mm scan position)
-  4. turn 90 toward the line; drive until C sees it (gives up 200 mm past
-     where it should be)
-  5. wheels onto the line, turn 90 to face the old direction, follow.
+     + robot length + 100 mm (about 900 mm from the 450 mm scan
+     position). **The line sensors watch on this leg** once they are past
+     the box's front: a line that curves toward this side behind the box
+     is met here, and the robot goes straight to step 5.
+  4. otherwise turn 90 toward the line and drive until a line sensor sees
+     black, anywhere (gives up 400 mm past where the line should be)
+  5. wheels onto the line (115 mm on); if a line sensor already sees the
+     tape (a curve met at a shallow angle) it just follows; otherwise it
+     **spins slowly toward the old direction until a line sensor finds the
+     tape** (at most 170 deg, black ignored for the first 20 deg), then
+     follows. So the line behind the box may curve either way, and a few
+     degrees of error in the earlier spins do not matter.
+- **How it was chosen (8 Nov):** `tools/bypasssim.py` runs the whole
+  manoeuvre (line following to the box, stop, scans with width errors,
+  spins 0-6 % off, wheel size mismatch, the robot's footprint) on 486
+  cases: straight lines and 300 / 500 mm curves either way behind 100-200
+  mm boxes. The old fixed rectangle (turn 90, accept black only near
+  where the line should be, turn 90) found and followed the line in 36:
+  on straights only 24 of 54, because a few degrees of spin error moved
+  the line outside its 100 mm window (the first robot run found it 123 mm
+  after the last turn: just inside). The new way: 471, nothing touched
+  the box. Margin 70 -> 100 mm: with spins 5 % off the robot passed a
+  200 mm box 21 mm away at 70, 42 mm at 100. Not run on the robot yet.
 
 ### Ramp / hump (IMU)
 - Climbed height = distance driven x sin(tilt), all the time. Tilt is
@@ -211,8 +229,11 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
   115 mm) is less accurate. **Not tried on the robot yet.**
 - Line lost = stop, after about 400 mm of white and a probe both ways (it cannot tell centred from
   lost sooner) or a failed search.
-- The bypass is a fixed rectangle planned for boxes up to 200 mm wide and
-  150 mm deep; it assumes nothing else is next to the obstacle.
+- The bypass is planned for boxes up to 200 mm wide and 150 mm deep; it
+  assumes nothing else is next to the obstacle. A line that turns 90 deg
+  away right behind the box is not found (the robot stops). On the tiled
+  floor, grout seen on the leg past the box or on the way back is taken
+  for the line (on the foam track there is none).
 - A ramp is only reported once the robot is level again for 100 mm. On a
   short hump (shorter than the robot) the robot tips instead of climbing,
   and the sum of distance x tilt does not equal the hump height.

@@ -65,6 +65,7 @@ typedef struct {
    reason is set.  A new command replaces a running one. */
 IMPORT ID	motion_drive(INT speed_mm_s, INT dist_mm);	/* speed < 0 = reverse */
 IMPORT ID	motion_turn(INT deg);				/* + = left (CCW) */
+IMPORT ID	motion_turn_at(INT deg, INT wheel_mm_s);	/* a slower spin */
 IMPORT ID	motion_follow(INT speed_mm_s);	/* follow the line (IF-03 steering from
 						   line_steer_mm_s()) until another command */
 IMPORT void	motion_halt(void);				/* stop, no STOP reason */

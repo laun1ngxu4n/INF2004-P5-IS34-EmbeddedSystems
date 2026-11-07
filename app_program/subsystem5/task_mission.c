@@ -38,9 +38,16 @@
 #define SCAN_FROM_MM		350
 #define REVERSE_MM		100	/* second scan position */
 #define D_MAX_MM		150	/* deepest expected obstacle (A9) */
-#define MARGIN_MM		70	/* was 50; the barcode arm sticks out left */
+#define MARGIN_MM		100	/* 50 until 7 Nov, then 70: tools/bypasssim.py
+					   with +-5 % spin error passed a 200 mm box
+					   21 mm away at 70, 42 mm at 100 */
 #define REJOIN_ENABLE_MM	60	/* line events back on after this */
-#define LINE_NEAR_MM		100	/* bypass: line accepted from y_off - this */
+#define REJOIN_FAR_MM		400	/* back toward the line: give up this far
+					   past where it should be */
+#define SPIN_SEARCH_DEG		170	/* rejoin spin: at most this far ... */
+#define SPIN_IGNORE_DEG		20	/* ... and black only after this */
+#define SPIN_SPEED		40	/* each wheel, mm/s: slow, so it stops on
+					   the 20 mm tape */
 
 #define M_IDLE		0
 #define M_CAL		1
@@ -243,11 +250,70 @@ LOCAL BOOL ahead_clear(INT dist_mm)
 	return d == SONAR_OPEN || (d >= 0 && d > dist_mm + MARGIN_MM);	/* fault = not clear */
 }
 
+/* Drive dist_mm straight; stop as soon as a line sensor sees black, but
+   only after from_mm.  1 = line found, 0 = drove it all, -1 = failed */
+LOCAL INT drive_until_line(INT dist_mm, INT from_mm)
+{
+	W	odo0 = motion_odometer();
+
+	if (motion_drive(S5_FOLLOW_SPEED, dist_mm) < E_OK) return -1;
+	while (1) {
+		MOTION_STATUS st;
+
+		if (app_stop_reasons() != 0u) return -1;
+		if (line_any_black() &&
+		    S2_COUNTS_TO_MM(motion_odometer() - odo0) >= from_mm) {
+			motion_halt();
+			wait_still();
+			return 1;
+		}
+		motion_get_status(&st);
+		if (st.result != MOT_RES_BUSY) {
+			return (st.result == MOT_RES_DONE) ? 0 : -1;
+		}
+		tk_dly_tsk(5);
+	}
+}
+
+/* Spin slowly by up to deg; stop when a line sensor sees black after
+   SPIN_IGNORE_DEG.  1 = found, 0 = turned it all, -1 = failed */
+LOCAL INT spin_until_line(INT deg)
+{
+	MOTION_STATUS	st;
+	W		l0, r0;
+
+	motion_get_status(&st);
+	l0 = st.count_l;
+	r0 = st.count_r;
+	if (motion_turn_at(deg, SPIN_SPEED) < E_OK) return -1;
+	while (1) {
+		W   dd;
+		INT turned;
+
+		if (app_stop_reasons() != 0u) return -1;
+		motion_get_status(&st);
+		dd = (st.count_r - r0) - (st.count_l - l0);
+		if (dd < 0) dd = -dd;
+		/* counts -> mm of wheel difference -> degrees over the track */
+		turned = (INT)((dd * S2_UM_PER_COUNT / 1000) * 573 / (S2_TRACK_MM * 10));
+		if (turned >= SPIN_IGNORE_DEG && line_any_black()) {
+			motion_halt();
+			wait_still();
+			return 1;
+		}
+		if (st.result != MOT_RES_BUSY) {
+			return (st.result == MOT_RES_DONE) ? 0 : -1;
+		}
+		tk_dly_tsk(5);
+	}
+}
+
 LOCAL void on_obstacle(void)
 {
 	OBSTACLE_PROFILE	a, b, p;
 	UB			msg[TELE_TEXT_MAX];
 	INT			sgn, w_plan, yc, edge_meas, edge_plan, y_off, x_pass;
+	INT			found;
 	W			odo0;
 
 	set_state(M_MANOEUVRE);
@@ -325,42 +391,55 @@ LOCAL void on_obstacle(void)
 		   (sgn > 0) ? "LEFT" : "RIGHT", w_plan, y_off, x_pass);
 	say(msg);
 
-	/* legs 1-5 */
+	/* legs 1-4.  The leg past the box watches the line sensors once
+	   they are past the box's front: a line that curves toward this
+	   side behind the box is met there (tools/bypasssim.py: the old
+	   fixed rectangle got 36 of 486 runs, straight and curved lines; this
+	   471, nothing touched the box) */
 	if (!mv(motion_turn(sgn * 90))) goto fail;
 	if (!ahead_clear(y_off)) { halt("bypass leg 2 blocked"); return; }
 	if (!mv(motion_drive(S5_FOLLOW_SPEED, y_off))) goto fail;
 	if (!mv(motion_turn(-sgn * 90))) goto fail;
 	if (!ahead_clear(x_pass)) { halt("bypass leg 4 blocked"); return; }
-	if (!mv(motion_drive(S5_FOLLOW_SPEED, x_pass))) goto fail;
-	if (!mv(motion_turn(-sgn * 90))) goto fail;
-
-	/* leg 6: drive back toward the line until a line sensor sees it
-	   (driving square to it, both reach it together) */
 	odo0 = motion_odometer();
-	if (motion_drive(S5_FOLLOW_SPEED, y_off + 200) < E_OK) goto fail;
-	/* Black only counts near where the line should be: on the tiled
-	   floor the grout reads black too */
-	while (!line_any_black() ||
-	       S2_COUNTS_TO_MM(motion_odometer() - odo0) < y_off - LINE_NEAR_MM) {
-		MOTION_STATUS st;
-
-		motion_get_status(&st);
-		if (app_stop_reasons() != 0u) goto fail;
-		if (st.result != MOT_RES_BUSY) {
+	found = drive_until_line(x_pass, p.front_mm + 30);
+	if (found < 0) goto fail;
+	if (found) {
+		tm_sprintf(msg, (const UB*)"line met beside the box, %d mm along",
+			   (INT)S2_COUNTS_TO_MM(motion_odometer() - odo0));
+		say(msg);
+	} else {
+		/* leg 5-6: back toward the line, any black counts (it may
+		   have curved either way behind the box) */
+		if (!mv(motion_turn(-sgn * 90))) goto fail;
+		odo0 = motion_odometer();
+		found = drive_until_line(y_off + REJOIN_FAR_MM, 20);
+		if (found < 0) goto fail;
+		if (!found) {
 			halt("line not found after the bypass");
 			return;
 		}
-		tk_dly_tsk(5);
+		tm_sprintf(msg, (const UB*)"line found %d mm after the last turn",
+			   (INT)S2_COUNTS_TO_MM(motion_odometer() - odo0));
+		say(msg);
 	}
-	motion_halt();
-	wait_still();
-	tm_sprintf(msg, (const UB*)"line found %d mm after the last turn",
-		   (INT)S2_COUNTS_TO_MM(motion_odometer() - odo0));
-	say(msg);
 
-	/* leg 7: wheels onto the line, face the original direction, follow */
+	/* leg 7: wheels onto the line, then spin toward the old direction
+	   until a line sensor finds the tape (whatever way the line runs
+	   now: straight, curved, or the turns were a few degrees off) */
 	if (!mv(motion_drive(S5_FOLLOW_SPEED, S3_SENSOR_TO_AXLE_MM))) goto fail;
-	if (!mv(motion_turn(sgn * 90))) goto fail;
+	if (!line_any_black()) {
+		/* (already on the tape: a curve met at a shallow angle, so the
+		   robot runs along it; spinning would turn it away) */
+		found = spin_until_line(sgn * SPIN_SEARCH_DEG);
+		if (found < 0) goto fail;
+		if (!found) {
+			/* not the other way: that found the line pointing back at
+			   the box in tools/bypasssim.py and drove into it */
+			halt("line not found after the bypass (spin)");
+			return;
+		}
+	}
 	if (!resume_follow()) goto fail;
 	say((const UB*)"bypass done, following the line");
 	set_state(M_RUN);

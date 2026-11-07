@@ -90,9 +90,16 @@ LOCAL INT echo_mm(void)
 
 EXPORT INT sonar_ping_mm(void)
 {
+	INT mm;
+
 	trigger();
 	tk_dly_tsk(60);
-	return echo_mm();
+	mm = echo_mm();
+	/* straight ahead: also what the panel shows.  Test images do not
+	   idle-ping (their tests ping themselves), so the panel's distance
+	   stayed frozen through Stage 3 (7 Nov) */
+	if (servo_now == 90) front_mm = mm;
+	return mm;
 }
 
 LOCAL void servo_write(INT deg)

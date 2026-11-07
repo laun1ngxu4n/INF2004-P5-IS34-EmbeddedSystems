@@ -10,6 +10,7 @@
 #include "subsystem3.h"
 #include "../test_report.h"
 #include "../app_stage_test.h"
+#include "../subsystem1/subsystem1.h"
 #include "../subsystem2/subsystem2.h"
 #include "../subsystem5/subsystem5.h"
 
@@ -240,15 +241,21 @@ LOCAL INT follow_and_watch(INT secs, INT max_mm, INT *junc, INT *lost,
 /* START = run this part, STOP = skip it.  TRUE = run it. */
 LOCAL BOOL ask_run(const char *what)
 {
+	UW	remote = tele_start_count();
+
+	app_stop_clear(STOP_BUTTON | STOP_MQTT);	/* a STOP from the last run */
 	tm_printf((UB*)"\n[DRIVE] %s\n[DRIVE] START (GP20) = run it, STOP (GP21) = "
-		  "skip it\n", what);
+		  "skip it (or START / STOP on the panel)\n", what);
 	while (1) {
-		if (button_down(PIN_STOP)) {
+		if (button_down(PIN_STOP) || (app_stop_reasons() & STOP_MQTT) != 0u) {
 			while (button_down(PIN_STOP)) tk_dly_tsk(10);
 			tk_dly_tsk(50);
 			app_stop_clear(STOP_BUTTON | STOP_MQTT);
 			tm_printf((UB*)"[DRIVE] skipped\n");
 			return FALSE;
+		}
+		if (tele_start_count() != remote) {
+			return TRUE;
 		}
 		if (button_down(PIN_START)) {
 			tk_dly_tsk(30);			/* debounce */

@@ -18,17 +18,20 @@
 
 EXPORT void test_wait_start(const char *what)
 {
-	tm_printf((UB*)"\n[DRIVE] %s\n[DRIVE] press START (GP20) to go\n", what);
-	while (1) {
-		while (!button_down(PIN_START)) {
-			tk_dly_tsk(10);
+	UW	remote = tele_start_count();
+
+	tm_printf((UB*)"\n[DRIVE] %s\n[DRIVE] press START (GP20, or START on the "
+		  "panel) to go\n", what);
+	while (tele_start_count() == remote) {
+		if (button_down(PIN_START)) {
+			tk_dly_tsk(30);			/* debounce */
+			if (button_down(PIN_START) && !button_down(PIN_STOP)) {
+				while (button_down(PIN_START)) {
+					tk_dly_tsk(10);
+				}
+				break;
+			}
 		}
-		tk_dly_tsk(30);				/* debounce */
-		if (button_down(PIN_START) && !button_down(PIN_STOP)) {
-			break;
-		}
-	}
-	while (button_down(PIN_START)) {
 		tk_dly_tsk(10);
 	}
 	app_stop_clear(STOP_BUTTON | STOP_MQTT);

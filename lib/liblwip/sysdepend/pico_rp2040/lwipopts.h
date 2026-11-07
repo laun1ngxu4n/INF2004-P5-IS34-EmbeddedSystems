@@ -91,4 +91,8 @@
 
 #define LWIP_DEBUG                  0
 
+/* P5-IS34: room for one 400-byte robot log chunk plus its header (the
+   lwIP default of 256 holds only one short message) */
+#define MQTT_OUTPUT_RINGBUF_SIZE    1024
+
 #endif /* LWIP_LWIPOPTS_H */

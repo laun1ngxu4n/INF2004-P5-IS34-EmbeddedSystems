@@ -34,7 +34,7 @@
 #define IS34_CMD_TOPIC          "is34/cmd/#"
 #define IS34_PUMP_MS            100     /* outbox poll: one message per poll */
 #define IS34_TOPIC_MAX          32
-#define IS34_PAYLOAD_MAX        200
+#define IS34_PAYLOAD_MAX        400     /* robot log chunks (is34/log) */
 
 __attribute__((weak)) void app_mqtt_rx(const char *topic,
                                        const unsigned char *data, unsigned len)
@@ -154,8 +154,8 @@ static void heartbeat_timeout(void *arg)
 /* P5-IS34: publish one queued application message per poll */
 static void is34_pump_timeout(void *arg)
 {
-	char		topic[IS34_TOPIC_MAX];
-	UB		payload[IS34_PAYLOAD_MAX];
+	static char	topic[IS34_TOPIC_MAX];	/* static: off the WiFi task stack */
+	static UB	payload[IS34_PAYLOAD_MAX];
 	int		len;
 
 	(void)arg;

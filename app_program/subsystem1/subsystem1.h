@@ -38,6 +38,7 @@
 #define TOPIC_TELEMETRY		"is34/telemetry"
 #define TOPIC_ACK_MAP		"is34/ack/map"
 #define TOPIC_SENSORS		"is34/sensors"
+#define TOPIC_LOG		"is34/log"	/* copy of the console (MQTT images) */
 #define TOPIC_CMD_PREFIX	"is34/cmd/"
 
 #define TELE_TEXT_MAX		160
@@ -47,6 +48,10 @@ IMPORT void	tele_event(const UB *text);
 
 /* Mission state text for the status line (set by Mission) */
 IMPORT void	tele_set_state(const char *state);
+
+/* START commands received over MQTT since boot (the stage tests accept
+   the panel's START as well as the button) */
+IMPORT UW	tele_start_count(void);
 
 /* Private to subsystem 1, shared between its own .c files */
 IMPORT ID	tid_telemetry;

@@ -21,9 +21,12 @@ Steps for each: `../TESTING_GUIDE.md`.
 | `is34_test_stage6.uf2` | `TEST=1 TEST_STAGE=6` | then the whole course with the TEST mapping A=L, B=R, C=F, D=U |
 | `is34_normal_no_wifi.uf2` | (plain `make`) | the mission image without MQTT: START button runs it, but with no mapping it stops at the first junction after a barcode |
 
-Not here: the **demo image with MQTT** (`make NET=lwip MQTT=1`). It needs
-your WiFi name, password and broker IP compiled in, so each person builds
-it with their own `config/wifi_secrets.h` (TESTING_GUIDE.md section 6).
+Not here: the **demo image with MQTT** (`make NET=lwip MQTT=1`) and the
+**test images over WiFi** (`make NET=lwip MQTT=1 TEST=1 TEST_STAGE=n`,
+which send the whole log to the panel's Robot log tab). They need your
+WiFi name, password and broker IP compiled in, so each person builds
+them with their own `config/wifi_secrets.h` into `images/wifi/`, which
+git ignores: never commit them (TESTING_GUIDE.md section 6).
 
 ## Bring-up part checks (`bringup/`, no RTOS)
 

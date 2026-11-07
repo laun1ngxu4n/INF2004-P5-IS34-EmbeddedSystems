@@ -17,6 +17,7 @@ checked that the board allows it.
 |---|---|---|
 | Stages 1-4 tests (they print the results) | **Laptop USB only**, long cable, laptop follows the robot | the log is on USB. The motors run on USB 5 V (bring-up motor and STOP tests ran on laptop USB); slower, but the speed controller makes up for it |
 | Stage 5-6 / demo (results over WiFi) | **Power bank on VIN only**, no USB | results arrive on the PC over MQTT |
+| **Any stage over WiFi** (`images/wifi/is34_test_stageN_wifi.uf2`, since 7 Nov) | **Power bank on VIN only**, no USB | the whole log arrives in the panel's **Robot log** tab; "Save log..." writes it to a file. START / STOP on the panel answer the test prompts too |
 
 If the robot is too weak on USB for a test, run that test on the power
 bank and read the result from the robot's behaviour, or move on to the
@@ -55,6 +56,7 @@ Built by you (they need your WiFi and broker IP, section 6):
 |---|---|
 | Demo image: MQTT mapping, START/STOP, telemetry | `make NET=lwip MQTT=1` |
 | Course test that waits for the PC's mapping | `make NET=lwip MQTT=1 TEST=1 TEST_STAGE=6` |
+| **Any stage test with its log over WiFi** (no USB cable) | `make NET=lwip MQTT=1 TEST=1 TEST_STAGE=n`, then copy `mtk3pico_smp0_usb_cdc_wifi_lwip_mqtt_test_sn.uf2` to `images/wifi/is34_test_stagen_wifi.uf2` (git-ignored: it holds the WiFi password) |
 
 Build any image yourself: `make TEST=1 TEST_STAGE=n` (n = 1, 2, 3, 4, 6),
 Pico SDK 2.2.0 (see `RTOS_STAGE0.md` section 1). Changing `TEST_STAGE`
@@ -265,6 +267,18 @@ line found after every manoeuvre.
    "Start broker" runs Mosquitto on port 1884
    (`tools/mosquitto_robot.conf`): use that port in `wifi_secrets.h` if
    the Mosquitto Windows service already holds 1883 for localhost only.
+6. **Tests over WiFi** (any stage, no USB cable): flash
+   `images/wifi/is34_test_stageN_wifi.uf2`, power bank on VIN only. The
+   panel's **Robot log** tab shows the same text as the USB console, from
+   boot on (the robot keeps 8 KB until the WiFi is up). Prompts that say
+   "press START" also take START on the panel; the Stage 2 "run it / skip
+   it" questions take START / STOP on the panel. **Save log...** writes
+   everything since the last **Clear** to a text file: send that file. It
+   is also saved as it arrives to `tools/is34_<date>_<time>_robot.txt`.
+   Lines `[panel: N log messages lost on the WiFi]` or `[panel: the
+   robot dropped N bytes]` mark gaps (WiFi drop-outs, or a burst bigger
+   than the robot's buffer). Stage 2C and 6 over WiFi wait for a mapping
+   from the panel: for the TEST mapping send `A=L,B=R,C=F,D=U`.
 
 ## 7. Send back
 

@@ -8,6 +8,13 @@ readings (is34/sensors, every 0.5 s) and every event
 (is34/cmd/start, is34/cmd/stop, is34/cmd/map).  Everything shown is also
 written to a log file next to this script (is34_<date>_<time>.log).
 
+Robot log tab: images built with MQTT send a copy of the whole console
+(the same text as the USB console) on is34/log.  The tab shows it live;
+"Save log..." writes everything since the last "Clear" to a text file
+(send that file instead of a copied USB console).  It is also written
+as it comes to is34_<date>_<time>_robot.txt next to this script.
+START and STOP here also answer the stage tests' "press START" prompts.
+
     pip install paho-mqtt
     python tools/is34_panel.py                  # broker on this laptop, port 1884
     python tools/is34_panel.py --port 1883      # or another port / --host <ip>
@@ -27,13 +34,14 @@ import random
 import subprocess
 import time
 import tkinter as tk
-from tkinter import ttk
+from tkinter import filedialog, ttk
 
 import paho.mqtt.client as mqtt
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 MOSQUITTO = r"C:\Program Files\mosquitto\mosquitto.exe"
 OFFLINE_S = 3.0                 # no status line for this long = offline
+LOG_VIEW_LINES = 4000           # lines kept in the Robot log view (the file keeps all)
 
 LINE_NAMES = {"0": "ON", "1": "SEARCH", "2": "LOST"}
 STOP_BITS = {1: "button", 2: "laptop", 4: "fault"}
@@ -78,8 +86,15 @@ class Panel:
         self.q = queue.Queue()          # MQTT thread -> GUI thread
         self.last_status = 0.0
         self.broker_proc = None
-        self.log = open(os.path.join(HERE, time.strftime("is34_%Y%m%d_%H%M%S.log")),
-                        "a", encoding="utf-8")
+        stamp = time.strftime("is34_%Y%m%d_%H%M%S")
+        self.log = open(os.path.join(HERE, stamp + ".log"), "a", encoding="utf-8")
+        self.robot_file = open(os.path.join(HERE, stamp + "_robot.txt"), "a",
+                               encoding="utf-8")
+        self.robot_text = []            # robot log since the last Clear
+        self.robot_seq = None           # last is34/log message number
+        self.robot_dropped = 0
+        self.robot_lost = 0             # messages lost on the WiFi
+        self.robot_lines = 0
 
         root.title("P5-IS34 robot panel")
         root.minsize(620, 520)
@@ -162,13 +177,31 @@ class Panel:
             self.sens[key] = v
             sn.columnconfigure(col, weight=1)
 
-        ev = ttk.LabelFrame(self.root, text="Events", padding=4)
-        ev.pack(fill="both", expand=True, padx=8, pady=(0, 8))
+        nb = ttk.Notebook(self.root)
+        nb.pack(fill="both", expand=True, padx=8, pady=(0, 8))
+        ev = ttk.Frame(nb, padding=4)
+        nb.add(ev, text="Events")
         self.events = tk.Text(ev, height=12, state="disabled", font=("Consolas", 10))
         sb = ttk.Scrollbar(ev, command=self.events.yview)
         self.events.configure(yscrollcommand=sb.set)
         sb.pack(side="right", fill="y")
         self.events.pack(fill="both", expand=True)
+
+        rl = ttk.Frame(nb, padding=4)
+        nb.add(rl, text="Robot log")
+        bar = ttk.Frame(rl)
+        bar.pack(fill="x", pady=(0, 4))
+        ttk.Button(bar, text="Save log...", command=self.save_robot_log).pack(side="left")
+        ttk.Button(bar, text="Clear", command=self.clear_robot_log).pack(side="left", padx=4)
+        self.follow_var = tk.BooleanVar(value=True)
+        ttk.Checkbutton(bar, text="follow", variable=self.follow_var).pack(side="left", padx=4)
+        self.robot_lbl2 = ttk.Label(bar, text="nothing yet (needs an MQTT image)")
+        self.robot_lbl2.pack(side="left", padx=8)
+        self.rlog = tk.Text(rl, height=12, state="disabled", font=("Consolas", 9), wrap="none")
+        sb2 = ttk.Scrollbar(rl, command=self.rlog.yview)
+        self.rlog.configure(yscrollcommand=sb2.set)
+        sb2.pack(side="right", fill="y")
+        self.rlog.pack(fill="both", expand=True)
 
     # ---- actions -----------------------------------------------------------
     def connect(self):
@@ -217,6 +250,77 @@ class Panel:
         self.ack_lbl.configure(text="waiting for the robot ...", foreground="#666666")
         self.publish("is34/cmd/map", self.map_var.get().strip())
 
+    def save_robot_log(self):
+        if not self.robot_text:
+            self.add_event("panel", "robot log is empty, nothing saved")
+            return
+        path = filedialog.asksaveasfilename(
+            parent=self.root, title="Save robot log", defaultextension=".txt",
+            initialdir=HERE, initialfile=time.strftime("robot_log_%Y%m%d_%H%M.txt"),
+            filetypes=[("Text", "*.txt"), ("All files", "*.*")])
+        if not path:
+            return
+        with open(path, "w", encoding="utf-8") as f:
+            f.write("".join(self.robot_text))
+        self.add_event("panel", f"robot log saved: {path}")
+
+    def clear_robot_log(self):
+        self.robot_text = []
+        self.robot_lost = self.robot_dropped = self.robot_lines = 0
+        self.rlog.configure(state="normal")
+        self.rlog.delete("1.0", "end")
+        self.rlog.configure(state="disabled")
+        self._robot_label()
+
+    def _robot_label(self):
+        n = self.robot_lines
+        warn = []
+        if self.robot_lost:
+            warn.append(f"{self.robot_lost} messages lost on the WiFi")
+        if self.robot_dropped:
+            warn.append(f"{self.robot_dropped} bytes dropped on the robot")
+        self.robot_lbl2.configure(text=f"{n} lines" + (" - " + ", ".join(warn) if warn else ""),
+                                  foreground="#b00020" if warn else "")
+
+    def _robot_log(self, text):
+        # "L<seq> <dropped>|<text>"
+        head, sep, body = text.partition("|")
+        note = ""
+        if sep and head.startswith("L"):
+            try:
+                seq, dropped = (int(x) for x in head[1:].split())
+            except ValueError:
+                seq, dropped, body = None, self.robot_dropped, text
+            if seq is not None:
+                if self.robot_seq is not None and seq <= self.robot_seq:
+                    note = "\n[panel: the robot restarted]\n"
+                    self.robot_dropped = 0
+                elif self.robot_seq is not None and seq > self.robot_seq + 1:
+                    gap = seq - self.robot_seq - 1
+                    self.robot_lost += gap
+                    note = f"\n[panel: {gap} log messages lost on the WiFi]\n"
+                if dropped > self.robot_dropped:
+                    note += (f"\n[panel: the robot dropped {dropped - self.robot_dropped} "
+                             f"bytes, its buffer was full]\n")
+                self.robot_dropped = dropped
+                self.robot_seq = seq
+        else:
+            body = text
+        chunk = note + body
+        self.robot_text.append(chunk)
+        self.robot_lines += chunk.count("\n")
+        self.robot_file.write(chunk)
+        self.robot_file.flush()
+        self.rlog.configure(state="normal")
+        self.rlog.insert("end", chunk)
+        extra = int(self.rlog.index("end-1c").split(".")[0]) - LOG_VIEW_LINES
+        if extra > 0:
+            self.rlog.delete("1.0", f"{extra + 1}.0")
+        if self.follow_var.get():
+            self.rlog.see("end")
+        self.rlog.configure(state="disabled")
+        self._robot_label()
+
     def close(self):
         try:
             self.cli.loop_stop()
@@ -226,6 +330,7 @@ class Panel:
         if self.broker_proc and self.broker_proc.poll() is None:
             self.broker_proc.terminate()
         self.log.close()
+        self.robot_file.close()
         self.root.destroy()
 
     # ---- MQTT -> GUI -------------------------------------------------------
@@ -271,6 +376,8 @@ class Panel:
             self.add_event("robot", f"mapping: {text}")
         elif topic == "is34/event":
             self.add_event("robot", text)
+        elif topic == "is34/log":
+            self._robot_log(text)
         elif not topic.startswith("is34/cmd/"):     # our own commands are echoed back
             self.add_event("robot", f"{topic} {text}")
 

@@ -28,3 +28,11 @@ config/wifi_secrets.h
 
 # Robot panel logs (tools/is34_panel.py)
 tools/is34_*.log
+
+# Test images with MQTT carry the WiFi password (config/wifi_secrets.h):
+# build them locally, never commit them
+images/wifi/
+
+# Robot logs saved by the panel
+tools/is34_*_robot.txt
+tools/robot_log_*.txt

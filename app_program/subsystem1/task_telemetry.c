@@ -9,6 +9,12 @@
  *	pulls them with app_mqtt_tx() and hands
  *	commands to app_mqtt_rx().  Both hooks only copy under APP_LOCK and
  *	never wait, because they run in the kernel's WiFi task.
+ *
+ *	MQTT images also send a copy of the whole console on is34/log, so a
+ *	test can run on the battery with no USB cable: the panel shows it and
+ *	saves it (tools/is34_panel.py, "Save log").  Each message is
+ *	"L<seq> <dropped>|<text>": seq counts messages (a gap = lost on the
+ *	WiFi), dropped counts bytes the robot could not keep (buffer full).
  */
 
 #include "subsystem1.h"
@@ -28,6 +34,71 @@ LOCAL OUTMSG		outbox[OUTBOX_N];
 LOCAL UW		ob_w, ob_r;	/* under APP_LOCK */
 LOCAL UW		out_dropped;
 LOCAL const char	*state_text = "IDLE";
+LOCAL volatile UW	start_count;	/* MQTT START commands since boot */
+
+EXPORT UW tele_start_count(void)	{ return start_count; }
+
+#if defined(TM_MQTT) && TM_MQTT
+/* Copy of the console for is34/log.  8 KB holds the start-up and Stage 0
+   output until the WiFi is up (~4 KB), and a few seconds of the busiest
+   test output; the link takes about 2.5 KB/s. */
+#define LOG_RING	8192		/* a power of 2 */
+LOCAL UB		log_ring[LOG_RING];
+LOCAL UW		log_w, log_r;	/* under APP_LOCK */
+LOCAL UW		log_dropped;	/* bytes lost: ring full */
+LOCAL UW		log_seq;
+LOCAL BOOL		log_turn;	/* last message sent was a log chunk */
+
+/* Called by the console driver for every byte it sends: any context */
+EXPORT void tm_console_mirror(const UB *buf, INT size)
+{
+	UINT	s;
+	INT	i;
+
+	APP_LOCK(s);
+	for (i = 0; i < size; i++) {
+		if (buf[i] == '\r') continue;		/* the panel wants \n only */
+		if (log_w - log_r >= LOG_RING) {
+			log_dropped++;
+		} else {
+			log_ring[log_w & (LOG_RING - 1)] = buf[i];
+			log_w++;
+		}
+	}
+	APP_UNLOCK(s);
+}
+
+/* The next log chunk into buf; 0 = nothing waiting */
+LOCAL int log_take(char *topic, unsigned tmax, unsigned char *buf, unsigned bmax)
+{
+	UB		head[24];
+	UINT		s;
+	unsigned	i, n, h;
+	UW		avail;
+
+	APP_LOCK(s);
+	avail = log_w - log_r;
+	APP_UNLOCK(s);
+	if (avail == 0u || bmax < 64u) return 0;
+
+	h = (unsigned)tm_sprintf(head, (const UB*)"L%d %d|", (INT)(log_seq + 1u),
+				 (INT)log_dropped);
+	for (i = 0; i < h; i++) buf[i] = head[i];
+	n = bmax - 1u - h;
+	if (n > avail) n = (unsigned)avail;
+	APP_LOCK(s);
+	for (i = 0; i < n; i++) {
+		buf[h + i] = log_ring[(log_r + i) & (LOG_RING - 1)];
+	}
+	log_r += n;
+	APP_UNLOCK(s);
+	log_seq++;
+
+	for (i = 0; i + 1 < tmax && TOPIC_LOG[i] != '\0'; i++) topic[i] = TOPIC_LOG[i];
+	topic[i] = '\0';
+	return (int)(h + n);
+}
+#endif
 
 LOCAL void outbox_put(UB topic, const UB *text)
 {
@@ -87,7 +158,22 @@ EXPORT int app_mqtt_tx(char *topic, unsigned tmax, unsigned char *buf, unsigned 
 	OUTMSG			m;
 	UINT			s;
 	unsigned		i;
+	BOOL			have;
 
+	APP_LOCK(s);
+	have = (ob_r != ob_w);
+	APP_UNLOCK(s);
+#if defined(TM_MQTT) && TM_MQTT
+	/* Outbox and log take turns, so a long log never holds up an event */
+	if (!have || !log_turn) {
+		int n = log_take(topic, tmax, buf, bmax);
+		if (n > 0) {
+			log_turn = TRUE;
+			return n;
+		}
+	}
+	log_turn = FALSE;
+#endif
 	APP_LOCK(s);
 	if (ob_r == ob_w) {
 		APP_UNLOCK(s);
@@ -128,6 +214,7 @@ EXPORT void app_mqtt_rx(const char *topic, const unsigned char *data, unsigned l
 		outbox_put(2, msg);
 	} else if (same(cmd, "start")) {
 		tm_printf((UB*)"[MQTT] start\n");
+		start_count++;
 		tk_set_flg(flg_mission, MSN_FLG_START);
 	} else if (same(cmd, "stop")) {
 		app_stop_request(STOP_MQTT);

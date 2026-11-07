@@ -57,8 +57,12 @@
    both.  Simulated (spot sigma 1.2-1.6 mm, ink 65-100 %): fixed 2500/1700
    decoded 24/54, 1300/800 6/54, relative 54/54. */
 #define S3_BAR_RELATIVE		1
-#define S3_BAR_DELTA		500	/* white noise is +-20 */
-#define S3_BAR_BLACK_MIN	900	/* never black below this (white up to 570) */
+#define S3_BAR_DELTA		700	/* white noise is +-20 */
+#define S3_BAR_BLACK_MIN	1500	/* never black below this (white up to 570).
+					   Raised from 500 / 900 on 7 Nov at the
+					   team's request (fewer faint marks seen
+					   as bars); simulated "A small" still
+					   54/54, 800 / 1800 began to lose reads */
 #define S3_BAR_MIN_SPAN		400	/* learned: black-white gap needed before
 					   anything counts as black */
 

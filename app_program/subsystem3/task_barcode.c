@@ -420,6 +420,164 @@ LOCAL BOOL decode(W *e, INT n, BARCODE_RESULT *r)
 	return FALSE;
 }
 
+/* ---- Forgiving decode (8 Nov) -------------------------------------------
+   Two ways a real read failed (logs 7-8 Nov):
+   - one '*' damaged (the robot started on the first bars: 7.2 5.6 8.0
+     mm where 3.4 10 3.4 were): accepted if the other '*' and the data
+     character decode with a clear wide/narrow split (wide >= 2 x narrow),
+     the two gaps between characters are narrow, and the damaged block is
+     as long as a character (+-15 %);
+   - a narrow element lost (blur: two bars or two spaces merged, 27
+     elements): each element is tried as wide-or-narrow + narrow +
+     wide-or-narrow (its width +-20 %), and the result must decode
+     cleanly, with both '*'.
+   Either is used only if exactly one character comes out.  Tested on the
+   logs' reads (Python copy of this decoder): every narrow element of 9
+   good reads lost in turn: 120 recovered, 0 wrong, 39 not read; start or
+   stop replaced by noise: 1059 right, 0 wrong; 200 000 random bar
+   patterns: 3 decoded as something (the clean decoder 0); of 16 failed
+   real reads, 2 now decode (both 'A', the "A small" code used then). */
+LOCAL void sort_w(W *s, INT n)
+{
+	INT	i, j;
+	W	t;
+
+	for (i = 1; i < n; i++) {			/* insertion sort, n <= 32 */
+		t = s[i];
+		for (j = i; j > 0 && s[j - 1] > t; j--) s[j] = s[j - 1];
+		s[j] = t;
+	}
+}
+
+/* the 3 widest of 9 at least twice the 6 narrow */
+LOCAL BOOL clear_split(const W *e)
+{
+	W	s[9];
+	INT	i;
+
+	for (i = 0; i < 9; i++) s[i] = e[i];
+	sort_w(s, 9);
+	return s[6] >= 2 * s[5];
+}
+
+LOCAL W sum9(const W *e)
+{
+	W	s = 0;
+	INT	i;
+
+	for (i = 0; i < 9; i++) s += e[i];
+	return s;
+}
+
+/* typical narrow and wide width of n elements (n <= 32): the median of
+   the narrowest two thirds and of the widest quarter */
+LOCAL void nar_wid(const W *e, INT n, W *nar, W *wid)
+{
+	W	s[32];
+	INT	i;
+
+	if (n > 32) n = 32;
+	for (i = 0; i < n; i++) s[i] = e[i];
+	sort_w(s, n);
+	*nar = s[(n * 2 / 3) / 2];
+	*wid = s[n - 1 - (n / 4) / 2];
+}
+
+LOCAL BOOL decode_one_star(W *e, INT n, BARCODE_RESULT *r)
+{
+	INT	pass, off, i;
+	UB	found = 0;
+	BOOL	rev_found = FALSE;
+	W	f_nar = 0, f_wid = 0;
+
+	if (n < 29) return FALSE;
+	for (pass = 0; pass < 2; pass++) {
+		for (off = 0; off + 29 <= n; off += 2) {
+			W	ns = 0, ws = 0, nar, wid, sm, so, m[29];
+			UB	a, ch, b;
+			BOOL	a_ok;
+			INT	k;
+
+			a = decode_char(&e[off], &ns, &ws);
+			ch = decode_char(&e[off + 10], &ns, &ws);
+			b = decode_char(&e[off + 20], &ns, &ws);
+			if (ch == 0 || ch == '*' || (a == '*') == (b == '*')) continue;
+			a_ok = (a == '*');
+			for (k = 0; k < 29; k++) m[k] = e[off + k];
+			sort_w(m, 29);			/* m[14]: the median, a narrow one */
+			if (e[off + 9] * 10 >= m[14] * 16 || e[off + 19] * 10 >= m[14] * 16) {
+				continue;		/* a gap between characters is not narrow */
+			}
+			if (!clear_split(&e[off + 10]) ||
+			    !clear_split(&e[a_ok ? off : off + 20])) {
+				continue;
+			}
+			sm = sum9(&e[off + 10]);
+			so = sum9(&e[a_ok ? off + 20 : off]);
+			if ((so > sm ? so - sm : sm - so) * 100 > sm * 15) continue;
+			if (found != 0 && found != ch) found = 0xFF;	/* two answers */
+			else found = ch;
+			rev_found = (pass == 1);
+			nar_wid(&e[off], 29, &nar, &wid);
+			f_nar = nar;
+			f_wid = wid;
+		}
+		for (i = 0; i < n / 2; i++) {		/* backwards */
+			W t = e[i];
+
+			e[i] = e[n - 1 - i];
+			e[n - 1 - i] = t;
+		}
+	}
+	if (found == 0 || found == 0xFF) return FALSE;
+	r->ok = TRUE;
+	r->ch = found;
+	r->reversed = rev_found;
+	r->fixed = BAR_FIX_STAR;
+	r->narrow_mm10 = (INT)(f_nar * S2_UM_PER_COUNT / 100);
+	r->wide_mm10 = (INT)(f_wid * S2_UM_PER_COUNT / 100);
+	return TRUE;
+}
+
+LOCAL BOOL decode_merged(const W *e, INT n, BARCODE_RESULT *r)
+{
+	W		x[31];
+	W		nar, wid, tot, opt[2];
+	INT		i, a, c, j;
+	UB		found = 0;
+	BARCODE_RESULT	t, keep;
+
+	if (n != 27 && n != 28) return FALSE;
+	keep = *r;
+	nar_wid(e, n, &nar, &wid);
+	opt[0] = nar;
+	opt[1] = wid;
+	for (i = 0; i < n; i++) {
+		for (a = 0; a < 2; a++) {
+			for (c = 0; c < 2; c++) {
+				tot = opt[a] + nar + opt[c];
+				if ((e[i] > tot ? e[i] - tot : tot - e[i]) * 5 > tot) continue;
+				for (j = 0; j < i; j++) x[j] = e[j];
+				x[i] = opt[a];
+				x[i + 1] = nar;
+				x[i + 2] = opt[c];
+				for (j = i + 1; j < n; j++) x[j + 2] = e[j];
+				t = *r;
+				if (decode(x, n + 2, &t)) {
+					if (found != 0 && found != t.ch) return FALSE;	/* two answers */
+					found = t.ch;
+					keep = t;
+				}
+			}
+		}
+	}
+	if (found == 0) return FALSE;
+	keep.elements = n;
+	keep.fixed = BAR_FIX_MERGED;
+	*r = keep;
+	return TRUE;
+}
+
 EXPORT void barcode_task(INT stacd, void *exinf)
 {
 	W	elem[MAX_ELEM];
@@ -548,8 +706,9 @@ EXPORT void barcode_task(INT stacd, void *exinf)
 					BARCODE_RESULT	r = {0};
 					UINT		s;
 
-					if (!too_long) {
-						(void)decode(elem, n, &r);
+					if (!too_long && !decode(elem, n, &r) &&
+					    !decode_one_star(elem, n, &r)) {
+						(void)decode_merged(elem, n, &r);
 					}
 					r.seq = ++seq;
 					r.elements = n;

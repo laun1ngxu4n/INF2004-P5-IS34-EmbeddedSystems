@@ -185,8 +185,18 @@ LOCAL void on_barcode(void)
 
 	barcode_last(&r);
 	if (!r.ok) {
+		INT dn, dw[40], k;
+
 		tm_sprintf(msg, (const UB*)"barcode READ_FAIL (%d elements)", r.elements);
 		say(msg);
+		/* the widths to the log, so a failed read can be looked at
+		   (8 Nov: a 27-element failure had nothing to go on) */
+		(void)barcode_debug(&dn, dw, 40);
+		tm_printf((UB*)"[S3] READ_FAIL widths (mm):");
+		for (k = 0; k < dn && k < 40; k++) {
+			tm_printf((UB*)" %d.%d", dw[k] / 10, dw[k] % 10);
+		}
+		tm_printf((UB*)"\n");
 		return;
 	}
 	pending = r.ch;
@@ -194,8 +204,10 @@ LOCAL void on_barcode(void)
 	/* a turn is coming: approach its junction slowly */
 	motion_follow_limit((m == MOVE_LEFT || m == MOVE_RIGHT || m == MOVE_UTURN) ?
 			    S5_APPROACH_SPEED : 0);
-	tm_sprintf(msg, (const UB*)"barcode %c%s (narrow %d.%d mm, wide %d.%d mm) -> %s",
+	tm_sprintf(msg, (const UB*)"barcode %c%s%s (narrow %d.%d mm, wide %d.%d mm) -> %s",
 		   r.ch, r.reversed ? " read backwards" : "",
+		   (r.fixed == BAR_FIX_STAR) ? " (one * damaged)" :
+		   (r.fixed == BAR_FIX_MERGED) ? " (a lost bar put back)" : "",
 		   r.narrow_mm10 / 10, r.narrow_mm10 % 10, r.wide_mm10 / 10, r.wide_mm10 % 10,
 		   (m == MOVE_LEFT) ? "LEFT at next junction" :
 		   (m == MOVE_RIGHT) ? "RIGHT at next junction" :

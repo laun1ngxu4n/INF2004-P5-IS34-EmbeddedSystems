@@ -233,6 +233,14 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
   places, 3 detected then). Barcode: S3-B00 run 2 PASS (F, from the
   other end); run 1 lost its first 4 elements; 2B read F twice.
   Zigzag: check the line sensor mount (did it move?).
+- **8 Nov, second Stage 2 run:** junction now detected in 2C (`junction 1
+  (crossing)`), but the barcode before it read `READ_FAIL (27 elements)`,
+  so the robot went FORWARD (no letter stored). S3-B00: F and A decoded
+  (runs 1, 3); run 2 failed with the start `*` damaged (team: barcode
+  positions were off). 2B: F read once, run 1 LINE LOST at 350 mm.
+  **Added 8 Nov, not run yet: forgiving decode** (one `*` damaged, or one
+  narrow element lost), 0 wrong on every test (`tools/barcodecheck.py`);
+  the run-2 read now decodes (A), one older 27-element read too (A).
 - [ ] ⬜ **S5-B01 / S5-B02** (2C): right move at each junction, U-turn, stop on
   an unmapped code
 

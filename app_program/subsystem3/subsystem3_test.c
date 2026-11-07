@@ -222,8 +222,10 @@ LOCAL INT follow_and_watch(INT secs, INT max_mm, INT *junc, INT *lost,
 			seq = r.seq;
 			if (r.ok) {
 				(*codes_ok)++;
-				tm_printf((UB*)"[S3] barcode %c%s, narrow %d.%d mm, wide %d.%d mm\n",
+				tm_printf((UB*)"[S3] barcode %c%s%s, narrow %d.%d mm, wide %d.%d mm\n",
 					  r.ch, r.reversed ? " (backwards)" : "",
+					  (r.fixed == BAR_FIX_STAR) ? " (one * damaged)" :
+					  (r.fixed == BAR_FIX_MERGED) ? " (a lost bar put back)" : "",
 					  r.narrow_mm10 / 10, r.narrow_mm10 % 10,
 					  r.wide_mm10 / 10, r.wide_mm10 % 10);
 			} else {
@@ -301,8 +303,10 @@ LOCAL BOOL print_new_code(UW *seq, UW *dseq)
 		*seq = r.seq;
 		if (r.ok) {
 			ok = TRUE;
-			tm_printf((UB*)"[S3] barcode %c%s, narrow %d.%d mm, wide %d.%d mm\n",
+			tm_printf((UB*)"[S3] barcode %c%s%s, narrow %d.%d mm, wide %d.%d mm\n",
 				  r.ch, r.reversed ? " (backwards)" : "",
+				  (r.fixed == BAR_FIX_STAR) ? " (one * damaged)" :
+				  (r.fixed == BAR_FIX_MERGED) ? " (a lost bar put back)" : "",
 				  r.narrow_mm10 / 10, r.narrow_mm10 % 10,
 				  r.wide_mm10 / 10, r.wide_mm10 % 10);
 		} else {

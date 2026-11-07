@@ -78,6 +78,19 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
   goes on as if there was no barcode.
 - A stray mark within 40 mm before or after a code (a tile join) does not
   spoil it: the decoder looks for `*X*` starting at any bar of the run.
+- **Forgiving decode (8 Nov)**, only when the clean decode fails and only
+  if exactly one letter comes out: (a) one `*` damaged (B started on the
+  first bars, a bad position): the other `*` and the letter must decode
+  with wide >= 2 x narrow, the gaps between characters narrow, the
+  damaged block as long as a character; (b) one narrow bar or space lost
+  (blur merged two elements, 27 elements): each element is tried as
+  three, and the result must decode cleanly with both `*`. Reported as
+  `barcode A (one * damaged)` / `(a lost bar put back)`. Checked with
+  `tools/barcodecheck.py` and the robot's own C code on the PC: on the
+  logs' good reads, every narrow element lost in turn: 117 recovered, 0
+  wrong; start or stop replaced by noise: 988 right, 0 wrong; 20 000
+  random bar patterns: none decoded. A failed read prints its widths to
+  the log (`[S3] READ_FAIL widths`).
 - Bar widths are measured with the wheel encoders (distance, not time).
   Read in either direction.
 - Reports `barcode F (narrow 3.5 mm, wide 10.5 mm) -> LEFT` or `READ_FAIL`

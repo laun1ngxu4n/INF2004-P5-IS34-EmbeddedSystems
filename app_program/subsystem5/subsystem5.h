@@ -83,6 +83,12 @@ typedef struct {
 	INT	unc_mm;		/* +/- uncertainty */
 	BOOL	left_clear;	/* open space beyond the left edge */
 	BOOL	right_clear;
+	BOOL	left_seen;	/* the scan saw past the left edge (FALSE:
+				   the obstacle filled the scan that side,
+				   edge and clear unknown) */
+	BOOL	right_seen;
+	INT	left_unc;	/* +/- of each edge */
+	INT	right_unc;
 	INT	rays;		/* rays scanned */
 	INT	fault_rays;	/* rays where the sensor did not answer */
 } OBSTACLE_PROFILE;

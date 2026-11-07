@@ -164,7 +164,7 @@ LOCAL INT median5(INT *v, INT n)
    direction in the ray array (which side that is depends on the servo).
    Returns the lateral edge (mm, signed) and its half-step uncertainty. */
 LOCAL void side_edge(const INT *d, const INT *phi, INT centre, INT dir, INT front,
-		     INT *edge_mm, INT *unc_mm, BOOL *clear)
+		     INT *edge_mm, INT *unc_mm, BOOL *clear, BOOL *seen)
 {
 	INT	i = centre, last_in = centre, out_run = 0, first_out = -1;
 	BOOL	other = FALSE;
@@ -191,8 +191,10 @@ LOCAL void side_edge(const INT *d, const INT *phi, INT centre, INT dir, INT fron
 		*edge_mm = (INT)((float)d[last_in] * app_sin_deg((float)phi[last_in]));
 		*unc_mm = 50;
 		*clear = FALSE;
+		*seen = FALSE;
 		return;
 	}
+	*seen = TRUE;
 	{
 		float	a_in = (float)phi[last_in], a_out = (float)phi[first_out];
 		float	side = (a_out > 0.0f) ? 1.0f : -1.0f;	/* + = left */
@@ -251,14 +253,18 @@ EXPORT void obstacle_scan(OBSTACLE_PROFILE *p)
 	p->found = (d[centre] >= 0 && d[centre] <= MAX_FRONT_MM);
 	if (!p->found) {
 		p->width_mm = p->unc_mm = p->left_mm = p->right_mm = 0;
+		p->left_unc = p->right_unc = 0;
 		p->left_clear = p->right_clear = TRUE;
+		p->left_seen = p->right_seen = FALSE;
 		return;
 	}
 	/* phi rises with k only if LEFT_HIGH: walk "left" in the right order */
 	side_edge(d, phi, centre, S5_SERVO_LEFT_HIGH ? +1 : -1, d[centre],
-		  &p->left_mm, &ul, &p->left_clear);
+		  &p->left_mm, &ul, &p->left_clear, &p->left_seen);
 	side_edge(d, phi, centre, S5_SERVO_LEFT_HIGH ? -1 : +1, d[centre],
-		  &p->right_mm, &ur, &p->right_clear);
+		  &p->right_mm, &ur, &p->right_clear, &p->right_seen);
+	p->left_unc = ul;
+	p->right_unc = ur;
 	p->width_mm = p->left_mm - p->right_mm;
 	{
 		float beam = 2.0f * (float)d[centre] * app_sin_deg((float)BEAM_UNC_DEG);
@@ -266,21 +272,54 @@ EXPORT void obstacle_scan(OBSTACLE_PROFILE *p)
 	}
 }
 
+/* One side from two scans.  An edge counts from a scan that saw past it;
+   a scan the obstacle filled to the end of its travel says nothing about
+   that side (it used to make the side "not clear": from 20-25 cm a 20 cm
+   box fills +-40 deg once the beam's width is added). */
+LOCAL void pick_edge(INT ea, INT ua, BOOL sa, BOOL ca, INT eb, INT ub, BOOL sb, BOOL cb,
+		     INT *e, INT *u, BOOL *seen, BOOL *clear)
+{
+	if (sa && sb) {
+		INT half = (ea > eb) ? (ea - eb) / 2 : (eb - ea) / 2;
+
+		*e = (ea + eb) / 2;
+		*u = (ua + ub) / 2;
+		if (half > *u) *u = half;
+		*seen = TRUE;
+		*clear = ca && cb;
+	} else if (sa || sb) {
+		*e = sa ? ea : eb;
+		*u = sa ? ua : ub;
+		*seen = TRUE;
+		*clear = sa ? ca : cb;
+	} else {
+		/* neither saw it: the wider of the two, not clear */
+		INT aa = (ea < 0) ? -ea : ea, ab = (eb < 0) ? -eb : eb;
+
+		*e = (aa > ab) ? ea : eb;
+		*u = 50;
+		*seen = FALSE;
+		*clear = FALSE;
+	}
+}
+
 EXPORT void obstacle_combine(const OBSTACLE_PROFILE *a, const OBSTACLE_PROFILE *b,
 			     OBSTACLE_PROFILE *out)
 {
-	INT spread = a->width_mm - b->width_mm;
+	float beam;
 
-	if (spread < 0) spread = -spread;
 	*out = *b;
 	out->found = a->found && b->found;
-	out->width_mm = (a->width_mm + b->width_mm) / 2;
-	out->left_mm = (a->left_mm + b->left_mm) / 2;
-	out->right_mm = (a->right_mm + b->right_mm) / 2;
-	out->unc_mm = (a->unc_mm + b->unc_mm) / 2;
-	if (spread / 2 > out->unc_mm) out->unc_mm = spread / 2;
-	out->left_clear = a->left_clear && b->left_clear;
-	out->right_clear = a->right_clear && b->right_clear;
+	pick_edge(a->left_mm, a->left_unc, a->left_seen, a->left_clear,
+		  b->left_mm, b->left_unc, b->left_seen, b->left_clear,
+		  &out->left_mm, &out->left_unc, &out->left_seen, &out->left_clear);
+	pick_edge(a->right_mm, a->right_unc, a->right_seen, a->right_clear,
+		  b->right_mm, b->right_unc, b->right_seen, b->right_clear,
+		  &out->right_mm, &out->right_unc, &out->right_seen, &out->right_clear);
+	out->width_mm = out->left_mm - out->right_mm;
+	beam = 2.0f * (float)out->front_mm * app_sin_deg((float)BEAM_UNC_DEG);
+	out->unc_mm = (INT)app_sqrtf((float)(out->left_unc * out->left_unc +
+				     out->right_unc * out->right_unc) + beam * beam);
 }
 
 /* ---- the task: forward watch ---------------------------------------- */

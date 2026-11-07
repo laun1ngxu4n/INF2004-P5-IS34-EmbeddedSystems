@@ -29,9 +29,16 @@
 #define S5_APPROACH_SPEED	100	/* barcode read, its junction not yet:
 					   slower, so weaving is less likely
 					   and the junction is not overrun */
-#define REVERSE_MM		80	/* second scan position (O5) */
+/* Scan positions (O5).  The forward watch stops the robot 20-25 cm from
+   the obstacle: from there a 20 cm box, with the sonar beam's ~30 deg
+   width, fills the whole +-40 deg scan and its edges are never seen
+   ("no clear side").  So it backs up until the obstacle is SCAN_FROM_MM
+   away, scans, backs up REVERSE_MM more and scans again: a 20 cm box is
+   about +-16 / +-13 deg from there. */
+#define SCAN_FROM_MM		350
+#define REVERSE_MM		100	/* second scan position */
 #define D_MAX_MM		150	/* deepest expected obstacle (A9) */
-#define MARGIN_MM		50
+#define MARGIN_MM		70	/* was 50; the barcode arm sticks out left */
 #define REJOIN_ENABLE_MM	60	/* line events back on after this */
 #define LINE_NEAR_MM		100	/* bypass: line accepted from y_off - this */
 
@@ -255,6 +262,19 @@ LOCAL void on_obstacle(void)
 	tm_sprintf(msg, (const UB*)"obstacle ahead at %d mm: scanning", obstacle_front_mm());
 	say(msg);
 
+	/* back up to scan from SCAN_FROM_MM */
+	{
+		INT d = sonar_ping_mm();
+		INT back = SCAN_FROM_MM - ((d >= 0) ? d : S5_TRIP_MM);
+
+		if (back > 0) {
+			if (!mv(motion_drive(-S5_FOLLOW_SPEED, back))) {
+				halt("reverse for the 1st scan did not finish");
+				return;
+			}
+			wait_still();
+		}
+	}
 	obstacle_scan(&a);
 	if (a.fault_rays > a.rays / 2) {
 		halt("ultrasonic not answering during the scan");

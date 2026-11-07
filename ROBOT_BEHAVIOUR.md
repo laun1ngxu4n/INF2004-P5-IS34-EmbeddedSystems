@@ -102,19 +102,31 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
 - While running: one ping straight ahead every 60 ms.
 - **Two readings in a row closer than 250 mm**: stop, wait until still.
 - No echo 5 times in a row (0.3 s): stops, "ultrasonic not answering".
+- **Backs up until the obstacle is about 350 mm away** (since 7 Nov: from
+  where it stops, 200-250 mm, a 200 mm box plus the sonar beam's ~30 deg
+  width fills the whole +-40 deg scan and its edges are never seen).
 - Scan 1: servo **40 deg left to 40 deg right in 5 deg steps** (17 rays),
   turning slowly (2 deg per 20 ms), 5 pings per ray, median. About 6 s.
-- **Reverses 80 mm**, scan 2.
-- Reports `obstacle width W +/- U mm` (two scans averaged; ± from the 5 deg
-  step, the sonar beam and the difference between the scans).
+- **Reverses 100 mm more**, scan 2 (from about 450 mm).
+- How the width comes out: each ray gives a point (distance x sin(angle)
+  to the side). Rays within 150 mm of the straight-ahead distance are "on
+  the obstacle"; an edge lies between the last ray on it and the first of
+  two rays off it, pulled in by 6 deg for the beam's width
+  (`S5_BEAM_HALF_DEG`, tuned with S5-O01). Width = left edge - right edge.
+- Each edge is taken from the scan(s) that saw past it; a scan the
+  obstacle filled to the end of its travel says nothing about that side.
+  Reports `obstacle width W +/- U mm` (± from the 5 deg step, the beam and
+  the difference between the scans).
 - Picks the side that is clear beyond the edge (if both, the nearer edge);
-  neither clear: stops, "no clear side".
+  neither clear (something else there, or no scan saw past the edge):
+  stops, "no clear side".
 - Drives round on a rectangle, pinging before each long leg:
   1. turn 90 to the clear side
-  2. out: half of max(width + U, 200 mm) + half the robot width + 50 mm
-     (about 235 mm for a 150 mm box)
+  2. out: half of max(width + U, 200 mm) + half the robot width + 70 mm
+     (about 255 mm for a 150 mm box; 50 mm margin until 7 Nov, the
+     barcode arm sticks out on the left)
   3. turn back; past: distance to the box + 150 mm (deepest expected box)
-     + robot length + 50 mm (about 730 mm)
+     + robot length + 70 mm (about 870 mm from the 450 mm scan position)
   4. turn 90 toward the line; drive until C sees it (gives up 200 mm past
      where it should be)
   5. wheels onto the line, turn 90 to face the old direction, follow.

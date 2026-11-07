@@ -196,9 +196,11 @@ send the log (a motor or encoder wire differs from bring-up).
    robot ("ultrasonic not answering"); a scan ray with no ECHO counts as
    blocked, never as open space. Check it once: cover/unplug ECHO during
    S5-O02 and the robot must stop.
-3. **S5-O01 width**: 6 tries, obstacle about 250 mm straight ahead.
-   Use 3 flat boxes of different widths (about 100-200 mm), 2 tries each. Each try scans,
-   reverses 80 mm, scans again and prints
+3. **S5-O01 width**: 6 tries, obstacle about **350 mm** straight ahead
+   (where the bypass scans from since 7 Nov). Use 3 flat boxes of
+   different widths (about 100-200 mm), 2 tries each. Each try also
+   prints which scan saw each edge (`edge seen by scan 1 L 1 R 1 ...`). Each try scans,
+   reverses 100 mm, scans again and prints
    `width W +/- U mm (scan 1 ..., scan 2 ...)` plus the raw rays
    (`[SCAN] rays ...`). Write down the real width. Pass: the real width
    is inside W +/- U. If every width is too big (or too small) by about

@@ -68,11 +68,11 @@ EXPORT void subsystem5_stage_test(void)
 	for (k = 1; k <= 6; k++) {
 		tm_printf((UB*)"\n[DRIVE] S5-O01 width, try %d of 6 (any 3 boxes of "
 			  "different widths, 2 tries each; STOP ends early)\n", k);
-		test_wait_start("Box about 250 mm straight ahead of the sensor, flat "
-				"face to it, nothing else within 50 cm. Write down "
-				"its real width (ruler).");
+		test_wait_start("Box about 350 mm straight ahead of the sensor (where "
+				"the bypass scans from), flat face to it, nothing else "
+				"within 60 cm. Write down its real width (ruler).");
 		obstacle_scan(&a);
-		motion_drive(-S2_SPEED_BARCODE, 80);
+		motion_drive(-S2_SPEED_BARCODE, 100);	/* as the bypass does */
 		do {
 			tk_dly_tsk(10);
 			motion_get_status(&st);
@@ -81,10 +81,12 @@ EXPORT void subsystem5_stage_test(void)
 		obstacle_scan(&b);
 		obstacle_combine(&a, &b, &p);
 		tm_printf((UB*)"[S5-O01] try %d: width %d +/- %d mm (scan 1 %d +/- %d, "
-			  "scan 2 %d +/- %d), edges L %d R %d, front %d, clear L %d R %d\n",
+			  "scan 2 %d +/- %d), edges L %d R %d, front %d, clear L %d R %d, "
+			  "edge seen by scan 1 L %d R %d, scan 2 L %d R %d\n",
 			  k, p.width_mm, p.unc_mm, a.width_mm, a.unc_mm, b.width_mm,
 			  b.unc_mm, p.left_mm, p.right_mm, p.front_mm,
-			  p.left_clear, p.right_clear);
+			  p.left_clear, p.right_clear, a.left_seen, a.right_seen,
+			  b.left_seen, b.right_seen);
 		if (test_stop_pressed()) break;
 	}
 	TEST_SUMMARY("subsystem5 stage 3");

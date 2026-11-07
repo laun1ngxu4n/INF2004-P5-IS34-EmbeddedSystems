@@ -257,6 +257,14 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
 - [x] ✅ Sonar live view: steady readings (about +/- 10 mm), follows a hand
 
 ### Not done yet
+- **Changed 7 Nov, not run yet:** the bypass now backs up until the
+  obstacle is about 350 mm away before scanning, and scans again 100 mm
+  further back. From where the forward watch stops (200-250 mm) a 200 mm
+  box, with the beam's ~30 deg width, filled the whole +-40 deg scan, and
+  the two scans were combined as "a side is clear only if both scans say
+  so": "no clear side" for the larger boxes. Now each edge comes from the
+  scan(s) that saw past it. Side margin 50 -> 70 mm (barcode arm on the
+  left). S5-O01 now places the box at 350 mm and reverses 100 mm.
 - [ ] 🟡 **S5-O01** width, now 6 tries (any 3 flat boxes, 2 each, real width
   by ruler, box about 250 mm ahead, nothing else within 50 cm). With the
   scan at +/- 25 deg the sonar never saw past a box's edge (beam is about

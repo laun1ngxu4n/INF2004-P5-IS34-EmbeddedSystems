@@ -131,6 +131,16 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
   speed 120 -> 100 mm/s. Filter 1 reading and the heading rule for left
   branches stay. The line sensors still see the tape late since the
   mount was raised: line following was best before that (third run).
+- **7 Nov, last line run (sensors at their lowest after the mount was
+  raised): drove off the left curve again.** L saw the tape for only
+  6-30 mm per correction (38-61 mm in the third run on the same curve),
+  so the robot never turned enough. The mount cannot go lower. **Line
+  following reset to `9d10fa6`** (the third run: L05-L08 PASS), at the
+  team's request: task_line.c as it was and 120 mm/s. Undone with it:
+  the straight-line probe (false LINE LOST on long straights comes back),
+  the 1-reading filter, the heading rule for left branches. Kept: the
+  barcode reader (relative edges, one pass, steering held straight over
+  the bars), WiFi log, Stage 4 test.
 - [ ] ⬜ **S3-L10, L03, L05..L09** (straddle logic, 7 Nov): X crossing, left
   branch, T end, right curve, left curve, gap (track 2), stuck R (black
   card under R); one place at a time, each prints PASS/FAIL. S3-L04

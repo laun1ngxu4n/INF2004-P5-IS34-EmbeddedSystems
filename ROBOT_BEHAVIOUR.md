@@ -15,7 +15,7 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
 4. **RUN**: line following starts.
 
 ### Line following
-- 100 mm/s everywhere (since 7 Nov; the whole course runs at the slow barcode speed;
+- 120 mm/s everywhere (the whole course runs at the slow barcode speed;
   150 ran past tight curves on 7 Nov).
 - **The two line sensors straddle the tape** (since 7 Nov): L just left
   of it, R just right of it, about 30 mm apart for the 20 mm tape, so
@@ -39,17 +39,15 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
 - **Overshoot**: on a tight curve the tape can pass right under a sensor
   and out the other side, which also reads "both white". After a
   correction of 15 mm or more and then 40 mm of white, it turns back
-  toward the side that saw the line last (searching at 20 %). (A
-  stricter rule tried on 7 Nov missed a left curve and drove off it.)
+  toward the side that saw the line last (searching at 20 %).
 - **Gaps** need nothing special: both white = straight on.
-- **Long straight, all white** (well centred, or no line at all: the two
-  look the same): after 200 mm without touching the tape it steers very
-  gently toward the side it saw last for 70 mm, then the other way for
-  140 mm. A sensor touching the tape ends this (a normal correction). On
-  7 Nov, before this, it stopped with "line lost" on good straights.
-- **Line lost**: that probe found nothing either way, or 250 mm / 4 s of
-  searching after an overshoot. It stops and reports "line lost". So a
-  line that ends is driven past by about 400 mm before it stops.
+- **Line lost**: 400 mm of white (no search), or 250 mm / 4 s of
+  searching. It stops and reports "line lost". So a line that ends is
+  driven past by up to 400 mm before it stops. **Known limit:** well
+  centred on a long straight it also touches nothing, and stopped with
+  "line lost" on a good straight twice in Stage 2B (7 Nov). A gentle
+  probe for the tape fixed that but was undone with the other line
+  changes of 7 Nov (back to the 9d10fa6 line following).
 - **Stuck line sensor**: one sensor black for 300 mm of driving, or both
   black for 150 mm: it stops and says which. A robot standing still
   never trips this.
@@ -79,12 +77,11 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
   was correcting just before.
 - **Left branch** (an arm to the left only): the barcode sensor B
   (**40 mm behind** the line sensors, 70 mm left of L) sees a black patch
-  12-28 mm long (reported as soon as B leaves it), and the robot's
-  heading, from the wheel encoders, turned less than 30 deg over the
-  200 mm before it. On a curve B passes over the curve's own tape: a
-  15 cm curve turns about 76 deg in 200 mm, so that does not count. (Until
-  7 Nov the rule was "no correction just before": it let 2 false
-  branches through on a curve and rejected a real one while zigzagging.) Barcode bars (narrow 3.5, wide
+  12-28 mm long (reported as soon as B leaves it), and the robot was
+  driving straight before that place (after it, L touches the arm and
+  the robot turns a little toward it, so that is not checked). The line task remembers where it was correcting,
+  by distance, to check this. On a curve it corrects all the time, so a
+  line B sees there does not count. Barcode bars (narrow 3.5, wide
   10.5 mm) and grout lines are thinner. Reported about 50 mm after the
   line sensors crossed it; Mission then drives the rest of the 115 mm.
 - **A branch to the right only** cannot be told from a correction (R
@@ -143,9 +140,8 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
 
 **Sensors**
 - The IR modules are digital (on/off) with no hysteresis: they flicker at
-  every edge. The barcode reader filters this (a level must hold 1.2 mm
-  of travel). The line sensors are taken as read every 20 ms (until 7
-  Nov 2 readings had to agree: 20-40 ms late).
+  every edge. The code filters this (line: 2 readings agree; barcode: a
+  level must hold 1.2 mm of travel), at the cost of a little delay.
 - On the tiled floor, the dark **grout lines can read as black**. Pot
   setting matters, and it shifts when the robot is handled.
 - The barcode sensor is not very sensitive; bars only read reliably at
@@ -161,8 +157,8 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
   | Sensor stuck white / cable out | not detected: that side never corrects, the robot drifts off and stops with "line lost" |
   | L-R gap wrong for the tape | build: about 30 mm for 20 mm tape, tape centred between them |
   | Tight curves (about 15 cm on the foam track) | hard steering and slow after 25 mm; overshoot search; S3-L06/L07 |
-  | Gap in the line | straight on, with a gentle probe after 200 mm (up to about 400 mm); S3-L08 |
-  | Left branch on a curve (heading turned 30 deg or more in 200 mm) | ignored (B sees the curve's own tape there); S3-L03 |
+  | Gap in the line | straight on (up to 400 mm); S3-L08 |
+  | Left branch met while correcting, or on a curve | ignored (not trusted); S3-L03 |
   | A branch to the right only | looks like a correction: not detected (none on the track) |
   | Foam tile joins, grout, marks about 20 mm under B | could look like a left arm; watch `B patch` prints |
   | Another track line within 70 mm of the robot's path | B could see it as a left arm; watch `B patch` prints |
@@ -185,7 +181,7 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
   a very tight one can overshoot and needs the search. A branch on a
   curve is ignored, and on a curve the turn point (drives straight
   115 mm) is less accurate. **Not tried on the robot yet.**
-- Line lost = stop, after about 400 mm of white and a probe both ways (it cannot tell centred from
+- Line lost = stop, after 400 mm of white (it cannot tell centred from
   lost sooner) or a failed search.
 - The bypass is a fixed rectangle planned for boxes up to 200 mm wide and
   150 mm deep; it assumes nothing else is next to the obstacle.

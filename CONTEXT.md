@@ -173,7 +173,7 @@ An outside review of the stage tests found real problems, fixed:
   `app_mqtt_rx()` for each message and publishes one outbox message every
   100 ms via `app_mqtt_tx()`; `lwipopts.h` got 2 more timeout slots.
 - **Stage 6 (S5)**: `task_mission.c` state machine (see
-  `TESTING_GUIDE.md` section 5). Follows at 100 mm/s everywhere (slow for
+  `TESTING_GUIDE.md` section 5). Follows at 120 mm/s everywhere (slow for
   barcodes; 150 until 7 Nov). Test images arm Mission only for the course part, so their
   START presses don't start a run.
 

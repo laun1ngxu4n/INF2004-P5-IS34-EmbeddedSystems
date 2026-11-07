@@ -41,9 +41,14 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
   correction of 15 mm or more and then 40 mm of white, it turns back
   toward the side that saw the line last (searching at 20 %).
 - **Gaps** need nothing special: both white = straight on.
-- **Line lost**: 400 mm of white (no search), or 250 mm / 4 s of
-  searching. It stops and reports "line lost". So a line that ends is
-  driven past by up to 400 mm before it stops.
+- **Long straight, all white** (well centred, or no line at all: the two
+  look the same): after 200 mm without touching the tape it steers very
+  gently toward the side it saw last for 70 mm, then the other way for
+  140 mm. A sensor touching the tape ends this (a normal correction). On
+  7 Nov, before this, it stopped with "line lost" on good straights.
+- **Line lost**: that probe found nothing either way, or 250 mm / 4 s of
+  searching after an overshoot. It stops and reports "line lost". So a
+  line that ends is driven past by about 400 mm before it stops.
 - **Stuck line sensor**: one sensor black for 300 mm of driving, or both
   black for 150 mm: it stops and says which. A robot standing still
   never trips this.
@@ -153,7 +158,7 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
   | Sensor stuck white / cable out | not detected: that side never corrects, the robot drifts off and stops with "line lost" |
   | L-R gap wrong for the tape | build: about 30 mm for 20 mm tape, tape centred between them |
   | Tight curves (about 15 cm on the foam track) | hard steering and slow after 25 mm; overshoot search; S3-L06/L07 |
-  | Gap in the line | straight on (up to 400 mm); S3-L08 |
+  | Gap in the line | straight on, with a gentle probe after 200 mm (up to about 400 mm); S3-L08 |
   | Left branch met while correcting, or on a curve | ignored (not trusted); S3-L03 |
   | A branch to the right only | looks like a correction: not detected (none on the track) |
   | Foam tile joins, grout, marks about 20 mm under B | could look like a left arm; watch `B patch` prints |
@@ -177,7 +182,7 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
   a very tight one can overshoot and needs the search. A branch on a
   curve is ignored, and on a curve the turn point (drives straight
   115 mm) is less accurate. **Not tried on the robot yet.**
-- Line lost = stop, after 400 mm of white (it cannot tell centred from
+- Line lost = stop, after about 400 mm of white and a probe both ways (it cannot tell centred from
   lost sooner) or a failed search.
 - The bypass is a fixed rectangle planned for boxes up to 200 mm wide and
   150 mm deep; it assumes nothing else is next to the obstacle.

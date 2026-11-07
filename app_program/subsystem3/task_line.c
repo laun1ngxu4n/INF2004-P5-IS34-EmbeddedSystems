@@ -22,8 +22,14 @@
  *	correction (S3_LONG_CORR_MM) followed by S3_OVERSHOOT_MM of white, it
  *	turns back toward the side that saw the line last (LINE_SEARCH);
  *	LINE_LOST after S3_LOST_MM or S3_LOST_MS of that.  Otherwise both
- *	white is straight on (gaps need nothing special); LINE_LOST after
- *	S3_LOST_STRAIGHT_MM of white.
+ *	white is straight on (gaps need nothing special).  But both white is
+ *	also "no line at all": on a long straight, well centred, the robot
+ *	touched nothing for 400 mm and stopped with LINE_LOST on a good line
+ *	(Stage 2B, 7 Nov).  So after S3_PROBE_AFTER_MM of white it steers very
+ *	gently (STEER_PROBE) toward the side it saw last, for S3_PROBE_MM, then
+ *	the other way for twice that: a sensor touching the tape ends the
+ *	probe (a normal correction takes over).  Nothing either way: LINE_LOST
+ *	(a line end is driven past by about 400 mm).
  *	Stuck sensor: one black for S3_STUCK_ONE_MM, or both black for
  *	S3_STUCK_BOTH_MM, of driving: LINE_FAULT, Mission stops.
  *
@@ -72,8 +78,12 @@
    line first) */
 #define S3_CROSS_BEFORE_MM	40
 #define S3_CROSS_LEAD_MM	20
-#define S3_LOST_STRAIGHT_MM	400	/* white this long (no search): lost.  Also
-					   the longest gap it can cross */
+#define S3_PROBE_AFTER_MM	200	/* white this long: look for the tape */
+#define S3_PROBE_MM		70	/* one way this far, the other way twice
+					   that; nothing = lost.  Longest gap it
+					   can cross: about 200 + 3 x 70 mm */
+#define STEER_PROBE		12	/* mm/s: the sensors move ~5 mm sideways
+					   (the clearance to the tape) in ~30 mm */
 #define S3_LOST_MM		250	/* searching this far ... */
 #define S3_LOST_MS		4000	/* ... or this long (it turns on the spot) */
 #define S3_CROSS_MAX_MM		45	/* both black, crossed at up to ~60 deg */
@@ -213,6 +223,10 @@ EXPORT void line_task(INT stacd, void *exinf)
 	W	both_from = 0;
 	UW	before_both = 0u;	/* the one-sensor pattern before a both-black */
 	BOOL	bpend = FALSE;		/* B patch waiting until the sensors pass it */
+	INT	probe = 0;		/* probing for the tape: +1 left, -1 right */
+	INT	probe_leg = 0;		/* 1 first way, 2 back the other way */
+	W	probe_from = 0;
+	BOOL	probe_none = FALSE;	/* probed both ways: no tape */
 	W	bpend_c = 0;
 	W	mc;
 	INT	mw;
@@ -242,6 +256,8 @@ EXPORT void line_task(INT stacd, void *exinf)
 			last_side = 0;
 			single_from = white_from = both_from = odo;
 			long_corr = searching = bpend = FALSE;
+			probe = probe_leg = 0;
+			probe_none = FALSE;
 			before_both = 0u;
 			n_corr = n_sweep = 0u;
 			hist_reset(odo);
@@ -301,6 +317,27 @@ EXPORT void line_task(INT stacd, void *exinf)
 			search_n = 0;
 		}
 
+		/* Long straight, all white: is the tape still there? */
+		if (stable != 0u || searching) {
+			probe = probe_leg = 0;
+			probe_none = FALSE;
+		} else if (probe == 0 && !probe_none &&
+			   odo - white_from >= MM(S3_PROBE_AFTER_MM)) {
+			probe = (last_side >= 0) ? +1 : -1;
+			probe_leg = 1;
+			probe_from = odo;
+		} else if (probe != 0 &&
+			   odo - probe_from >= MM(S3_PROBE_MM * probe_leg)) {
+			if (probe_leg == 1) {
+				probe = -probe;		/* the other way, twice as far */
+				probe_leg = 2;
+				probe_from = odo;
+			} else {
+				probe = probe_leg = 0;
+				probe_none = TRUE;	/* no tape either way */
+			}
+		}
+
 		/* Steering (+ = turn left) */
 		if (single) {
 			s = (odo - single_from < MM(S3_GENTLE_MM)) ? STEER_GENTLE
@@ -308,6 +345,8 @@ EXPORT void line_task(INT stacd, void *exinf)
 			if (fr) s = -s;
 		} else if (searching) {
 			s = (last_side >= 0) ? STEER_HARD : -STEER_HARD;
+		} else if (probe != 0) {
+			s = probe * STEER_PROBE;	/* looking for the tape */
 		} else {
 			s = 0;				/* centred, gap, or crossing */
 		}
@@ -358,8 +397,7 @@ EXPORT void line_task(INT stacd, void *exinf)
 				    ++search_n > S3_LOST_MS / PERIOD_LINE_MS) {
 					state = LINE_LOST;
 				}
-			} else if (stable == 0u &&
-				   odo - white_from > MM(S3_LOST_STRAIGHT_MM)) {
+			} else if (probe_none) {
 				state = LINE_LOST;
 			} else {
 				state = LINE_ON;

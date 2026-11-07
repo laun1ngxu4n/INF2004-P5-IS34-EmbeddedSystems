@@ -26,6 +26,8 @@
 #define MQTT_UTK_HEARTBEAT_MS   5000
 #define MQTT_UTK_KEEPALIVE_S    60
 #define MQTT_UTK_RETRY_MS       3000
+#define MQTT_UTK_CONNECT_MS     15000   /* P5-IS34: an attempt with no answer
+                                           this long is dropped, then retried */
 
 /* P5-IS34 (Stage 5): the robot's own topics.  The application provides
  * app_mqtt_rx() / app_mqtt_tx() (app_program/subsystem1/task_telemetry.c);
@@ -202,6 +204,23 @@ static void retry_timeout(void *arg)
 	mqtt_utk_start();
 }
 
+/* P5-IS34: a connect that never gets an answer (broker not up yet, laptop
+ * asleep) can sit in "connecting" for minutes; every new attempt then
+ * fails with ERR_ISCONN (7 Nov: hundreds of "err=-10" lines, robot never
+ * came back).  Drop it after MQTT_UTK_CONNECT_MS; the poll loop starts a
+ * fresh one (mqtt_disconnect() does not call connection_cb). */
+static void connect_watchdog(void *arg)
+{
+	(void)arg;
+	if(client != NULL && !mqtt_client_is_connected(client)) {
+		tm_printf((UB*)"mqtt: no answer from " MQTT_BROKER_IP " in %ds, "
+			  "trying again\n", MQTT_UTK_CONNECT_MS / 1000);
+		mqtt_disconnect(client);
+		sys_untimeout(retry_timeout, NULL);
+		connecting = 0;
+	}
+}
+
 static void connection_cb(mqtt_client_t *c, void *arg, mqtt_connection_status_t status)
 {
 	(void)c;
@@ -215,6 +234,7 @@ static void connection_cb(mqtt_client_t *c, void *arg, mqtt_connection_status_t 
 		 * is allowed to reconnect. Leaving it set would wedge the client
 		 * permanently after the first disconnect. */
 		connecting = 0;
+		sys_untimeout(connect_watchdog, NULL);
 
 		tm_printf((UB*)"mqtt: connected to " MQTT_BROKER_IP "\n");
 
@@ -254,6 +274,9 @@ static void connection_cb(mqtt_client_t *c, void *arg, mqtt_connection_status_t 
 		 * into a tight reconnect loop. */
 		tm_printf((UB*)"mqtt: connection status %d, retrying in %ds\n",
 			  (int)status, MQTT_UTK_RETRY_MS / 1000);
+		sys_untimeout(connect_watchdog, NULL);
+		sys_untimeout(retry_timeout, NULL);	/* only one pending */
+		connecting = 1;		/* the poll loop must not start one too */
 		sys_timeout(MQTT_UTK_RETRY_MS, retry_timeout, NULL);
 	}
 }
@@ -287,8 +310,20 @@ void mqtt_utk_start(void)
 	connecting = 1;
 	err = mqtt_client_connect(client, &broker_addr, MQTT_BROKER_PORT,
 				  connection_cb, NULL, &client_info);
-	if(err != ERR_OK) {
-		tm_printf((UB*)"mqtt: mqtt_client_connect() failed, err=%d\n", (int)err);
-		connecting = 0;
+	if(err == ERR_ISCONN) {
+		/* P5-IS34: an attempt is still under way: wait for it (the
+		 * watchdog ends it if it never answers) */
+		sys_untimeout(connect_watchdog, NULL);
+		sys_timeout(MQTT_UTK_CONNECT_MS, connect_watchdog, NULL);
+		return;
 	}
+	if(err != ERR_OK) {
+		tm_printf((UB*)"mqtt: mqtt_client_connect() failed, err=%d, "
+			  "retrying in %ds\n", (int)err, MQTT_UTK_RETRY_MS / 1000);
+		sys_untimeout(retry_timeout, NULL);
+		sys_timeout(MQTT_UTK_RETRY_MS, retry_timeout, NULL);
+		return;			/* connecting stays 1 until the retry */
+	}
+	sys_untimeout(connect_watchdog, NULL);
+	sys_timeout(MQTT_UTK_CONNECT_MS, connect_watchdog, NULL);
 }

@@ -48,6 +48,17 @@
    just above the whitest white. */
 #define S3_BAR_ADC_ON		1300	/* black from here (above, if BLACK_HIGH) */
 #define S3_BAR_ADC_OFF		800	/* white again from here (white up to 570) */
+/* Relative edges (used instead of ON/OFF when 1): black once the reading
+   rises S3_BAR_DELTA above the lowest since the last bar (and is at least
+   S3_BAR_BLACK_MIN), white again once it falls S3_BAR_DELTA below the
+   highest since the bar began.  "A small" through B's blurred spot (7 Nov,
+   S3-B00): narrow bars peaked at 1700-3100, yet the narrow space between
+   two wide bars stayed above 1050, so no fixed pair of thresholds sees
+   both.  Simulated (spot sigma 1.2-1.6 mm, ink 65-100 %): fixed 2500/1700
+   decoded 24/54, 1300/800 6/54, relative 54/54. */
+#define S3_BAR_RELATIVE		1
+#define S3_BAR_DELTA		500	/* white noise is +-20 */
+#define S3_BAR_BLACK_MIN	900	/* never black below this (white up to 570) */
 #define S3_BAR_MIN_SPAN		400	/* learned: black-white gap needed before
 					   anything counts as black */
 

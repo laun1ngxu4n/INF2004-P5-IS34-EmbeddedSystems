@@ -122,6 +122,30 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
     / 800 the same day**; check B's height above the floor (TCRT5000 best
     about 2-4 mm) and whether the cards are inkjet (dye inks can be nearly
     invisible to IR; laser prints read black).
+  - **7 Nov, second WiFi run, all with "A small":** run 4 (120 mm/s)
+    decoded **A (backwards)**, and 2B run 2 decoded **A** while following.
+    Runs 1-3 failed: run 1 had two 35 mm bars (a black floor line under
+    B); run 2 read 27 elements because the narrow space between the two
+    wide bars of the stop `*` never dropped below the threshold (the two
+    bars merged into one 20.5 mm bar); run 3 missed narrow bars that
+    peaked at only 1700-2200. A fixed threshold cannot see both (narrow
+    bars peak lower than that space dips). **Changed the same day:**
+    relative edges (500 from the last extreme, never black under 900) and
+    the decoder's wide/narrow check 1.5 -> 1.3. Simulated "A small" with a
+    blurred spot (sigma 1.2-1.6 mm, ink 65-100 %): fixed 2500/1700 24/54,
+    1300/800 6/54, relative + 1.3 54/54; random widths still 0/20000.
+    Beyond sigma 1.8 nothing decodes: B lower is the real fix.
+  - **2B runs 1 and 2 stopped with LINE LOST on a good straight** (0 and
+    1 corrections): with the tape centred between L and R, 400 mm of white
+    looked like no line. **Fixed the same day:** after 200 mm of white it
+    probes gently each way for the tape (see ROBOT_BEHAVIOUR.md). 2B run
+    3: a crossing at 934 mm, then both black for 150 mm, LINE SENSOR
+    FAULT (what is there on the track?).
+  - **WiFi reconnect:** after a drop the robot printed `mqtt_client_connect()
+    failed, err=-10` hundreds of times and did not come back (two retry
+    paths fought; the first attempt never got an answer). Fixed the same
+    day: one retry at a time, and an attempt with no answer in 15 s is
+    dropped and started again.
   - The robot log over WiFi lost about 1 message in 20 (`[panel: N log
     messages lost]`): the robot dropped a message whenever lwIP's MQTT
     buffer was still full. Fixed the same day: it keeps it and sends it

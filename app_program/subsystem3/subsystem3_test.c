@@ -52,7 +52,13 @@ LOCAL void ir_live(void)
 			  "end: thresholds to copy into subsystem3.h. B reads 1 over "
 			  "WHITE = this module's output is lower over black: set "
 			  "S3_BAR_BLACK_HIGH 0\n");
-		if (S3_BAR_ADC_ON > 0) {
+		if (S3_BAR_RELATIVE) {
+			tm_printf((UB*)"[S3] B uses RELATIVE edges: black once the reading "
+				  "rises %d above the lowest since the last bar (and is at "
+				  "least %d), white once it falls %d below the highest. White "
+				  "must stay under %d everywhere\n", S3_BAR_DELTA,
+				  S3_BAR_BLACK_MIN, S3_BAR_DELTA, S3_BAR_BLACK_MIN);
+		} else if (S3_BAR_ADC_ON > 0) {
 			tm_printf((UB*)"[S3] B uses FIXED thresholds: black from %d, white "
 				  "again below %d (S3_BAR_ADC_ON/OFF; 0 = learn)\n",
 				  S3_BAR_ADC_ON, S3_BAR_ADC_OFF);
@@ -91,7 +97,11 @@ LOCAL void ir_live(void)
 	}
 	if (ana) {
 		(void)barcode_adc(&raw, &wl, &bl);
-		if (bl - wl >= S3_BAR_MIN_SPAN || wl - bl >= S3_BAR_MIN_SPAN) {
+		if (S3_BAR_RELATIVE) {
+			tm_printf((UB*)"[S3] B: whitest %d, darkest %d seen%s\n", wl, bl,
+				  (bl - wl < S3_BAR_MIN_SPAN && wl - bl < S3_BAR_MIN_SPAN) ?
+				  " (it never saw black: pass it over tape)" : "");
+		} else if (bl - wl >= S3_BAR_MIN_SPAN || wl - bl >= S3_BAR_MIN_SPAN) {
 			/* black from 60 % of the way from white to black, white
 			   again below 40 %: grout should stay under 40 % */
 			tm_printf((UB*)"[S3] B thresholds from what it saw: "
@@ -303,11 +313,10 @@ LOCAL BOOL print_new_code(UW *seq, UW *dseq)
 
 /* S3-B00: B straight over one barcode, no line following, so only the
    sensor and the decoder are tested, not the steering.  With the analogue
-   input it also keeps the raw reading every 10 ms (0.4 mm at 40 mm/s)
-   and prints each bar and space with its darkest / lightest reading: a
-   narrow bar that never reaches S3_BAR_ADC_ON, or a narrow space that
-   never drops below S3_BAR_ADC_OFF, is marked '!' (the sensor's spot is
-   wider than the bar: lower the module, or move the thresholds). */
+   input it also keeps the raw reading every 10 ms (0.5 mm at 50 mm/s)
+   and prints each bar and space with its darkest / lightest reading; one
+   with little contrast to its neighbour is marked '!' (the sensor's spot
+   is nearly as wide as the bar: lower the module). */
 #define BENCH_MM	300
 #define BENCH_N		1000
 LOCAL W		bn_odo[BENCH_N];
@@ -343,65 +352,76 @@ LOCAL BOOL bar_bench_run(INT speed)
 	if (print_new_code(&seq, &dseq)) ok = TRUE;
 
 	if (ana && n > 0) {
-		/* split at the middle of the two thresholds (or of the learned
-		   levels); skip the white before the first bar and after the
-		   last */
-		INT on = S3_BAR_ADC_ON, offv = S3_BAR_ADC_OFF, mid, cnt = 0;
-		INT first = -1, last = -1, start, ext;
-		BOOL blk;
+		/* The reader's own rule (S3_BAR_RELATIVE) on the 10 ms samples:
+		   each bar and space with its darkest / lightest reading.  '!' =
+		   its contrast to the element before was under 2 x S3_BAR_DELTA,
+		   close to being missed (a narrow bar or space the spot blurs). */
+#define BK(v)	(S3_BAR_BLACK_HIGH ? (INT)(v) : 4095 - (INT)(v))
+#define RAW(x)	(S3_BAR_BLACK_HIGH ? (x) : 4095 - (x))
+		INT	cnt = 0, lo, hi, ref = 0, weak = 0;
+		BOOL	blk = FALSE, started = FALSE;
+		W	st_odo = 0;
 
-		if (on <= 0) {
-			on = (wl + bl) / 2 + (bl - wl) / 6;
-			offv = (wl + bl) / 2 - (bl - wl) / 6;
-		}
-		mid = (on + offv) / 2;
-#define IS_BLK(v)	(S3_BAR_BLACK_HIGH ? ((INT)(v) >= mid) : ((INT)(v) <= mid))
-		for (i = 0; i < n; i++) {
-			if (IS_BLK(bn_v[i])) {
-				if (first < 0) first = i;
-				last = i;
+		lo = hi = BK(bn_v[0]);
+		for (i = 1; i < n && cnt < 80; i++) {
+			INT	x = BK(bn_v[i]);
+			BOOL	change;
+
+			if (!blk) {
+				if (x < lo) lo = x;
+				change = (x > lo + S3_BAR_DELTA && x >= BK(S3_BAR_BLACK_MIN));
+			} else {
+				if (x > hi) hi = x;
+				change = (x < hi - S3_BAR_DELTA);
+			}
+			if (!change) continue;
+			if (!started) {
+				started = TRUE;		/* the white before the code */
+				tm_printf((UB*)"[S3] B profile, bar (B) and space (s): width "
+					  "mm / darkest or lightest reading; '!' = under %d "
+					  "from the one before, nearly missed:\n[S3]  ",
+					  2 * S3_BAR_DELTA);
+			} else {
+				W	w = bn_odo[i] - st_odo;
+				INT	mm10 = (INT)((w < 0 ? -w : w) * S2_UM_PER_COUNT / 100);
+				INT	ext = blk ? hi : lo;
+				BOOL	bad = (blk ? ext - ref : ref - ext) < 2 * S3_BAR_DELTA;
+
+				if (bad) weak++;
+				tm_printf((UB*)"%c%d.%d/%d%s ", blk ? 'B' : 's',
+					  mm10 / 10, mm10 % 10, RAW(ext), bad ? "!" : "");
+				if (++cnt % 10 == 0) tm_printf((UB*)"\n[S3]  ");
+			}
+			ref = blk ? hi : lo;
+			st_odo = bn_odo[i];
+			if (!blk) {
+				ref = lo;
+				blk = TRUE;
+				hi = x;
+			} else {
+				blk = FALSE;
+				lo = x;
 			}
 		}
-		if (first < 0) {
-			tm_printf((UB*)"[S3] B profile: never darker than %d (max seen "
-				  "over %d samples): B did not pass over a bar\n", mid, n);
+		if (blk && started) {			/* the last bar */
+			W	w = bn_odo[n - 1] - st_odo;
+			INT	mm10 = (INT)((w < 0 ? -w : w) * S2_UM_PER_COUNT / 100);
+
+			tm_printf((UB*)"B%d.%d/%d (end of samples) ", mm10 / 10, mm10 % 10,
+				  RAW(hi));
+			cnt++;
+		}
+		if (!started) {
+			tm_printf((UB*)"[S3] B profile: no bar in %d samples (lightest %d, "
+				  "darkest %d): B did not pass over the bars\n", n,
+				  RAW(lo), RAW(hi));
 		} else {
-			tm_printf((UB*)"[S3] B profile, bar (B) and space (s): width mm / "
-				  "darkest or lightest reading. A bar must reach %d, a "
-				  "space drop below %d, '!' = it did not:\n[S3]  ", on, offv);
-			start = first;
-			blk = TRUE;
-			ext = bn_v[first];
-			for (i = first + 1; i <= last + 1; i++) {
-				BOOL b = (i <= last) ? IS_BLK(bn_v[i]) : !blk;
-
-				if (i <= last && b == blk) {
-					INT v = bn_v[i];
-					if (S3_BAR_BLACK_HIGH ? (blk ? v > ext : v < ext)
-							      : (blk ? v < ext : v > ext)) {
-						ext = v;
-					}
-					continue;
-				}
-				{
-					W   w = bn_odo[(i <= last) ? i : last] - bn_odo[start];
-					INT mm10 = (INT)((w < 0 ? -w : w) * S2_UM_PER_COUNT / 100);
-					BOOL bad = blk ?
-						(S3_BAR_BLACK_HIGH ? ext < on : ext > on) :
-						(S3_BAR_BLACK_HIGH ? ext > offv : ext < offv);
-
-					tm_printf((UB*)"%c%d.%d/%d%s ", blk ? 'B' : 's',
-						  mm10 / 10, mm10 % 10, ext, bad ? "!" : "");
-					if (++cnt % 10 == 0) tm_printf((UB*)"\n[S3]  ");
-					if (cnt >= 80) break;
-				}
-				start = i;
-				blk = b;
-				ext = (i < n) ? bn_v[i] : 0;
-			}
-#undef IS_BLK
-			tm_printf((UB*)"\n[S3] %d bars and spaces (a code is 29)\n", cnt);
+			tm_printf((UB*)"\n[S3] %d bars and spaces (a code is 29), %d nearly "
+				  "missed. At 120 mm/s the samples are 1.2 mm apart: narrow "
+				  "ones blur together here, not in the reader\n", cnt, weak);
 		}
+#undef BK
+#undef RAW
 	}
 	return ok;
 }

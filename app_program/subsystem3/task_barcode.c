@@ -30,6 +30,13 @@
 					   must stay under half the narrowest
 					   bar: 3.5 mm small codes = 44 counts */
 #define MIN_ELEM_REPORT	20		/* fewer elements = noise, not reported */
+#define S3_WIDE_RATIO_X10	13	/* the 3 widest of 9 at least 1.3 x the
+					   rest.  Was 1.5: blur widens a narrow
+					   element beside a wide one (4.6 mm
+					   against 7.0 wide, simulated "A small"),
+					   and 1.5 lost 4 reads in 18 at spot sigma
+					   1.6 mm; 1.3 none.  Random widths: 0 of
+					   20000 decode either way. */
 
 typedef struct { W odo; UB level; } EDGE;
 
@@ -122,6 +129,7 @@ EXPORT BOOL barcode_adc(INT *raw, INT *white, INT *black)
 
 LOCAL volatile INT	adc_raw;
 LOCAL INT		env_w = -1, env_b = -1;	/* white / black level x16 */
+LOCAL INT		rel_lo, rel_hi;		/* S3_BAR_RELATIVE: extremes so far */
 LOCAL volatile UB	adc_lvl = !IR_BLACK;
 
 /* bigger = blacker, whichever way the module is wired */
@@ -133,7 +141,10 @@ LOCAL void adc_sample(INT v)
 	UB	lvl = adc_lvl;
 
 	adc_raw = v;
-	if (env_w < 0) env_w = env_b = b;
+	if (env_w < 0) {
+		env_w = env_b = b;
+		rel_lo = rel_hi = BLACKNESS(v);
+	}
 	/* black level: rises fast to a new darkest, sinks very slowly */
 	if (b > env_b) env_b += (b - env_b) >> ENV_UP_SH;
 	else env_b -= (env_b - b) >> ENV_DECAY_SH;
@@ -141,7 +152,23 @@ LOCAL void adc_sample(INT v)
 	if (b < env_w) env_w -= (env_w - b) >> ENV_UP_SH;
 	else env_w += (b - env_w) >> ENV_DECAY_SH;
 
-	if (S3_BAR_ADC_ON > 0) {
+	if (S3_BAR_RELATIVE) {
+		INT x = BLACKNESS(v);
+
+		if (lvl != IR_BLACK) {
+			if (x < rel_lo) rel_lo = x;
+			if (x > rel_lo + S3_BAR_DELTA && x >= BLACKNESS(S3_BAR_BLACK_MIN)) {
+				lvl = IR_BLACK;
+				rel_hi = x;
+			}
+		} else {
+			if (x > rel_hi) rel_hi = x;
+			if (x < rel_hi - S3_BAR_DELTA) {
+				lvl = !IR_BLACK;
+				rel_lo = x;
+			}
+		}
+	} else if (S3_BAR_ADC_ON > 0) {
 		INT x = BLACKNESS(v);
 		if (lvl != IR_BLACK && x >= BLACKNESS(S3_BAR_ADC_ON)) lvl = IR_BLACK;
 		else if (lvl == IR_BLACK && x <= BLACKNESS(S3_BAR_ADC_OFF)) lvl = !IR_BLACK;
@@ -337,7 +364,7 @@ LOCAL UB decode_char(const W *e, W *narrow_sum, W *wide_sum)
 			if (e[i] > max_narrow) max_narrow = e[i];
 		}
 	}
-	if (min_wide * 10 < max_narrow * 15) {
+	if (min_wide * 10 < max_narrow * S3_WIDE_RATIO_X10) {
 		return 0;			/* wide and narrow not separable */
 	}
 	for (i = 0; i < (INT)(sizeof(c39) / sizeof(c39[0])); i++) {

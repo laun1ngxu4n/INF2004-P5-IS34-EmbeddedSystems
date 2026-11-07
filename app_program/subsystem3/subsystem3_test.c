@@ -121,7 +121,7 @@ LOCAL INT follow_and_watch(INT secs, INT max_mm, INT *junc, INT *lost,
 	UW		seq;
 	INT		t, last_state = LINE_ON, traced = 0;
 	UW		lc_prev = 0xFFu;
-	INT		dn, dw[40], ph = 0, k;
+	INT		dn, dw[40], k;
 	UW		dseq = barcode_debug(&dn, dw, 40);
 	W		mo;
 	INT		mw;
@@ -182,14 +182,6 @@ LOCAL INT follow_and_watch(INT secs, INT max_mm, INT *junc, INT *lost,
 					  "both black for 15 cm (stuck, or a wide black area)");
 				break;
 			}
-		}
-		/* What the barcode reader is doing */
-		if (motion_scan_phase() != ph) {
-			ph = motion_scan_phase();
-			tm_printf((UB*)"[S3] %d mm: %s\n",
-				  (INT)S2_COUNTS_TO_MM(motion_odometer() - odo0),
-				  (ph == 1) ? "rescan: bar-space-bar seen, backing up" :
-				  (ph == 2) ? "rescan: reading slowly" : "rescan: done, normal speed");
 		}
 		if (barcode_debug(&dn, dw, 40) != dseq) {
 			dseq = barcode_debug(&dn, dw, 40);
@@ -410,12 +402,14 @@ LOCAL BOOL bar_bench_run(INT speed)
 LOCAL void bar_bench(void)
 {
 	static const struct { const char *what; INT speed; } run[] = {
-		{"a barcode, B about 5 cm before its first bar", S2_SCAN_SPEED},
+		{"a barcode, B about 5 cm before its first bar", S2_SPEED_IN_BARCODE},
 		{"the SAME barcode from the other end (robot turned round)",
-		 S2_SCAN_SPEED},
-		{"the thinnest barcode (\"A small\"), any direction", S2_SCAN_SPEED},
-		{"any barcode, at the FOLLOW speed (only to compare: the real "
-		 "read is the slow rescan)", S2_SPEED_BARCODE},
+		 S2_SPEED_IN_BARCODE},
+		{"the thinnest barcode (\"A small\"), any direction",
+		 S2_SPEED_IN_BARCODE},
+		{"any barcode, at the FOLLOW speed (the robot slows only once B "
+		 "is on the first bar, so the start is read at this speed)",
+		 S2_SPEED_BARCODE},
 	};
 	INT i;
 	TEST_INIT();

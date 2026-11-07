@@ -33,13 +33,6 @@
    (line_speed_pct(); 0 rocked in place on 2 Nov, so it always creeps).
    Speed while the barcode sensor is inside a barcode: */
 #define S2_SPEED_IN_BARCODE	50
-/* Barcode rescan: on bar-space-bar, back up S2_SCAN_BACK_MM straight,
-   then read forward at S2_SCAN_SPEED; give up S2_SCAN_MAX_MM after the
-   back-up point; no new rescan for S2_SCAN_COOL_MM after one */
-#define S2_SCAN_BACK_MM		60
-#define S2_SCAN_SPEED		40
-#define S2_SCAN_MAX_MM		400
-#define S2_SCAN_COOL_MM		200
 
 /* Speeds used by the team (mm/s) */
 #define S2_SPEED_LINE		200	/* line following, design 10-25 cm/s */
@@ -74,10 +67,9 @@ IMPORT ID	motion_follow(INT speed_mm_s);	/* follow the line (IF-03 steering from
 IMPORT void	motion_halt(void);				/* stop, no STOP reason */
 /* Line following: never faster than this (0 = no limit).  Changes the
    speed of a running follow without restarting it (a new motion_follow
-   would start from 0 and cancel a barcode rescan). */
+   would start again from standstill). */
 IMPORT void	motion_follow_limit(INT speed_mm_s);
 IMPORT void	motion_get_status(MOTION_STATUS *st);
-IMPORT INT	motion_scan_phase(void);		/* 0 none, 1 backing up, 2 rescanning */
 
 /* Motors off now.  Any context, also interrupt handlers; used by the
    STOP helper (app_stop.c) and, later, Safety (TEAM.md section 3). */

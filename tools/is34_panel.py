@@ -283,12 +283,11 @@ class Panel:
 
         ir = d.get("ir", "???")
         dot = lambda c: "●" if c == "1" else "○"      # filled = black
-        scan = {"0": "-", "1": "backing up", "2": "reading slowly"}.get(d.get("scan"), "?")
         self.sens["line"].configure(text=(
             f"L {dot(ir[0:1])}  R {dot(ir[1:2])}  B {dot(ir[2:3])}\n"
             f"steer {num('steer')} mm/s\n"
             f"in barcode: {'yes' if d.get('inbar') == '1' else 'no'}\n"
-            f"rescan: {scan}"))
+            f"steering held (B on bars): {'yes' if d.get('hold') == '1' else 'no'}"))
         front = num("front")
         front_txt = {None: "?", -1: "nothing in range", -2: "NO ECHO (fault)"}.get(
             front, f"{front} mm")

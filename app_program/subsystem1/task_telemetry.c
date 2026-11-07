@@ -162,7 +162,7 @@ LOCAL void status_line(void)
 
 /* Live sensor readings for the laptop panel (not graded, just to see what
    the robot sees): ir = side, centre, barcode (1 = black), steer mm/s,
-   scan = barcode rescan phase, inbar = inside a barcode, front = last
+   hold = steering held straight (B over bars), inbar = inside a barcode, front = last
    forward sonar mm (-1 open, -2 no ECHO), tilt = sin(pitch) x1000,
    h10 = climbed height in 0.1 mm, imu = IMU answering */
 LOCAL void sensor_line(void)
@@ -170,11 +170,11 @@ LOCAL void sensor_line(void)
 	UB	text[TELE_TEXT_MAX];
 
 	tm_sprintf(text, (const UB*)
-		"ir=%d%d%d steer=%d scan=%d inbar=%d front=%d tilt=%d h10=%d imu=%d",
+		"ir=%d%d%d steer=%d hold=%d inbar=%d front=%d tilt=%d h10=%d imu=%d",
 		(INT)(app_gpio_get(PIN_IR_LINE_L) == IR_BLACK),
 		(INT)(app_gpio_get(PIN_IR_LINE_R) == IR_BLACK),
 		(INT)barcode_black(),
-		line_steer_mm_s(), motion_scan_phase(), (INT)barcode_busy(),
+		line_steer_mm_s(), (INT)barcode_in_bars(), (INT)barcode_busy(),
 		obstacle_front_mm(), imu_pitch_mdeg_sin(), imu_height_mm10(),
 		(INT)imu_ok());
 	outbox_put(3, text);

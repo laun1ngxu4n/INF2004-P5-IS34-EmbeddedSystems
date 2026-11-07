@@ -51,8 +51,9 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
   without losing the line, with side to side. **Replaced 7 Nov by the
   straddle logic: re-run S3-L01 with it.**
 - [x] ✅ Barcode noise filter: ignores sensor flicker and single grout lines
-- [x] ✅ Rescan: on bar-space-bar the robot backs up 60 mm and reads forward
-  slowly (seen working on the robot)
+- ~~Rescan (back up 60 mm, read again slowly)~~: worked on the robot 2
+  Nov, **removed 7 Nov** at the team's choice; codes are read in one pass
+  with the steering held straight over the bars.
 
 ### Not done yet
 - [ ] 🟡 **S3-L01**: at least 3 m with no line lost. Runs stopped at
@@ -90,9 +91,9 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
   white 165-200 on this surface, black 2900-3945. On the L07 left curve B
   saw 8-10 mm patches (tile joins?) and one false `bar-space-bar`: the
   robot backed up and then drove straight for the rest of the run (the
-  read never ended). **Fixed the same day:** the slow read holds the
-  steering straight only while B is over bars, and ends once the bars
-  have passed.
+  read never ended). **Changed the same day:** the back-up-and-reread is
+  removed; codes are read in one pass with the steering held straight
+  only while B is over bars.
 - [ ] ⬜ **S3-L10, L03, L05..L09** (straddle logic, 7 Nov): X crossing, left
   branch, T end, right curve, left curve, gap (track 2), stuck R (black
   card under R); one place at a time, each prints PASS/FAIL. S3-L04
@@ -101,8 +102,9 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
   an X crossing, but no left-only branch or T end unless tiles are
   turned to make one.
 - [ ] ⬜ **S3-B00** (new 7 Nov): barcode read driving **straight**, no line
-  following: 4 runs (a code, the same code from the other end, "A small",
-  one at the follow speed to compare). Prints the elements, the decode
+  following: 4 runs at 50 mm/s (a code, the same code from the other end,
+  "A small") and one at the follow speed 120 mm/s: with no reread, the
+  first bars are met at that speed, so run 4 matters too. Prints the elements, the decode
   and (analogue) each bar's darkest and each space's lightest reading;
   `!` marks a bar that never reached 2500 or a space that never dropped
   below 1700. Run this before S3-B01..B03: it separates sensor and

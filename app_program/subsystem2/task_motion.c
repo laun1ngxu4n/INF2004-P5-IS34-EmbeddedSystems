@@ -20,11 +20,6 @@
 #include "../app_math.h"
 #include "../subsystem3/subsystem3.h"	/* IF-03: line_steer_mm_s() */
 
-/* Barcode rescan while following (Stage 2, 2 Nov) */
-#define SCAN_NONE	0
-#define SCAN_BACK	1	/* reversing straight, edges ignored */
-#define SCAN_READ	2	/* forward slowly, fresh read */
-
 #define CMD_NONE	0
 #define CMD_DRIVE	1
 #define CMD_TURN	2
@@ -57,9 +52,6 @@ LOCAL CMD		cmd_slot;	/* written by callers, under APP_LOCK */
 LOCAL BOOL		cmd_new;
 LOCAL ID		cmd_last_id;
 LOCAL MOTION_STATUS	status;		/* written by the task, under APP_LOCK */
-LOCAL volatile INT	scan_phase_pub;	/* fphase, for tests */
-
-EXPORT INT motion_scan_phase(void)	{ return scan_phase_pub; }
 
 LOCAL ID cmd_post(INT type, INT speed, INT amount)
 {
@@ -155,9 +147,6 @@ EXPORT void motion_task(INT stacd, void *exinf)
 	UW		elapsed_ms = 0, limit_ms = 0;
 	INT		result = MOT_RES_NONE;
 	UINT		s;
-	INT		fphase = SCAN_NONE;	/* barcode rescan, follow only */
-	W		scan_from = 0, cool_until = 0;
-	UW		scan_seq = 0, scan_cend = 0;
 
 	(void)stacd; (void)exinf;
 	encoder_read(&prev_l, &prev_r, NULL);
@@ -206,10 +195,6 @@ EXPORT void motion_task(INT stacd, void *exinf)
 			}
 			pi_l.integ = pi_r.integ = 0.0f;
 			v_prof = 0.0f;
-			if (fphase != SCAN_NONE) {
-				fphase = SCAN_NONE;
-				barcode_pause(FALSE);
-			}
 			goto publish;
 		}
 
@@ -221,11 +206,6 @@ EXPORT void motion_task(INT stacd, void *exinf)
 			v_prof = 0.0f;
 			pi_l.integ = pi_r.integ = 0.0f;
 			result = MOT_RES_BUSY;
-			if (fphase != SCAN_NONE) {
-				barcode_pause(FALSE);	/* replaced mid-rescan */
-			}
-			fphase = SCAN_NONE;
-			cool_until = motion_odometer();
 			if (cur.type == CMD_DRIVE) {
 				limit_ms = (UW)(2000 * absf((float)cur.amount) /
 					absf((float)cur.speed)) + 1000;
@@ -242,33 +222,7 @@ EXPORT void motion_task(INT stacd, void *exinf)
 		}
 
 		/* 3. Run the command */
-		if (cur.type == CMD_FOLLOW && fphase == SCAN_NONE &&
-		    barcode_candidate() && motion_odometer() > cool_until) {
-			/* Bar, space, bar: probably a barcode.  Back up straight,
-			   ignoring the sensor, then read the whole code slowly. */
-			fphase = SCAN_BACK;
-			scan_from = motion_odometer();
-			barcode_pause(TRUE);
-			v_prof = 0.0f;
-			pi_l.integ = pi_r.integ = 0.0f;
-		}
-		if (cur.type == CMD_FOLLOW && fphase == SCAN_BACK) {
-			if (S2_COUNTS_TO_MM(scan_from - motion_odometer()) >= S2_SCAN_BACK_MM) {
-				fphase = SCAN_READ;
-				scan_seq = barcode_seq();
-				scan_cend = barcode_cand_ends();
-				barcode_pause(FALSE);	/* fresh read from here */
-				v_prof = 0.0f;
-				pi_l.integ = pi_r.integ = 0.0f;
-				motor_write(0, 0);
-			} else {
-				v_prof += ACCEL_MM_S2 * DT_S;
-				if (v_prof > (float)S2_SCAN_SPEED) v_prof = (float)S2_SCAN_SPEED;
-				duty_l = wheel_duty(&pi_l, -v_prof, vl);
-				duty_r = wheel_duty(&pi_r, -v_prof, vr);
-				motor_write(duty_l, duty_r);
-			}
-		} else if (cur.type == CMD_FOLLOW) {
+		if (cur.type == CMD_FOLLOW) {
 			float	steer = (float)line_steer_mm_s();	/* + = steer left */
 			float	t_l, t_r;
 			float	cap = absf((float)cur.speed);
@@ -279,33 +233,17 @@ EXPORT void motion_task(INT stacd, void *exinf)
 				cap = (float)follow_limit;
 			}
 
-			if (fphase == SCAN_READ) {
-				if (barcode_seq() != scan_seq ||
-				    barcode_cand_ends() != scan_cend ||
-				    S2_COUNTS_TO_MM(motion_odometer() - scan_from) >
-				    S2_SCAN_MAX_MM - S2_SCAN_BACK_MM) {
-					/* read, or the bars passed without a code (a
-					   false start: tile joins on a curve, 7 Nov),
-					   or nothing there: normal speed again, no new
-					   rescan for S2_SCAN_COOL_MM */
-					fphase = SCAN_NONE;
-					cool_until = motion_odometer() +
-						     S2_SCAN_COOL_MM * 1000 / S2_UM_PER_COUNT;
-				} else {
-					if (cap > (float)S2_SCAN_SPEED) cap = (float)S2_SCAN_SPEED;
-					/* Straight while B is over the bars: a turn
-					   changes B's speed against the odometer (B is
-					   85 mm off centre) and swung it off the bars
-					   (2 Nov).  Between the bars and before them it
-					   follows the line as usual (until 7 Nov it drove
-					   straight the whole read: up to 340 mm off a
-					   curve after a false start). */
-					if (barcode_in_bars()) {
-						steer = 0.0f;
-						off = FALSE;
-						pct = 100;
-					}
-				}
+			/* Straight while B is over the bars (an edge in the last
+			   15 mm): B is 85 mm off centre, so a turn changes its
+			   speed over the bars against the odometer by 50 % or
+			   more and the widths come out wrong (2 Nov the steering
+			   broke a read into pieces).  The code is read in one
+			   pass; the back-up-and-reread (2-7 Nov) was removed on
+			   7 Nov. */
+			if (barcode_in_bars()) {
+				steer = 0.0f;
+				off = FALSE;
+				pct = 100;
 			}
 
 			/* Correcting: forward speed drops to what the line task
@@ -405,7 +343,6 @@ EXPORT void motion_task(INT stacd, void *exinf)
 		}
 
 publish:
-		scan_phase_pub = fphase;
 		APP_LOCK(s);
 		if (!cmd_new) {		/* a newer command keeps its BUSY */
 			status.result = result;

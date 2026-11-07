@@ -156,8 +156,10 @@ send the log (a motor or encoder wire differs from bring-up).
    each drives 300 mm straight with no line following. Put the robot so
    **B** (70 mm left of the line sensors) is about 5 cm before the first
    bar, square to the bars; where the line is does not matter. Runs: a
-   code; the same code from the other end; "A small"; any code at the
-   follow speed (only to compare). Each prints `code ended, N elements
+   code; the same code from the other end; "A small" (all at 50 mm/s, the
+   speed inside a code); any code at the follow speed 120 mm/s (the robot
+   only slows once B is on the first bar, so this shows whether the start
+   still reads). Each prints `code ended, N elements
    (mm): ...` (groups of 10 = one character), the decode, and a `B
    profile`: every bar `B` and space `s` with its width and its darkest
    or lightest reading. `!` = a bar that never reached black (2500) or a
@@ -170,9 +172,9 @@ send the log (a motor or encoder wire differs from bring-up).
    backwards. Each prints `[S3] barcode X` or `READ_FAIL`. Pass: the printed
    sequence equals your written one ("it decoded something" is not a pass). "A small" must read too
    (S3-B03): if it fails, lower `S2_SPEED_BARCODE` and rebuild.
-   While following, a bar-space-bar makes it back up 60 mm and read
-   again at 40 mm/s; it holds the steering straight only while B is over
-   the bars (`rescan: ...` lines).
+   Each code is read in **one pass** (no backing up since 7 Nov): it
+   slows to 50 mm/s on the first bar and holds the steering straight
+   while B is over the bars. A missed code is not read again.
 5. **2C, S5-B01 / S5-B02**: Mission takes over with the TEST mapping (A=L,
    B=R, C=F, D=U), with obstacle watch and IMU **off** (they are tested in
    Stages 3 and 4). START: it follows the line, reads barcodes and does

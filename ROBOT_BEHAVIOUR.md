@@ -49,16 +49,14 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
   never trips this.
 
 ### Barcodes (Code 39, barcode sensor B)
-- Inside a barcode: 50 mm/s.
-- After bar, space, bar: backs up 60 mm, then reads forward at 40 mm/s.
-  It follows the line as usual but **holds the steering straight while B
-  is over bars** (an edge in the last 15 mm): B is 85 mm off the robot's
-  centre, so any turn changes its speed over the bars against the
-  odometer by 50 % or more and the widths come out wrong. The read ends
-  when a code is reported, when the bars have passed without one (a false
-  start, e.g. tile joins on a curve), or 340 mm later. No new rescan for
-  the next 200 mm. (Until 7 Nov it drove straight the whole read: after a
-  false start on a curve that was up to 340 mm off the line.)
+- Inside a barcode: 50 mm/s (it slows once B is on the first bar).
+- **One pass, no backing up** (the back-up-and-reread of 2-7 Nov was
+  removed on 7 Nov). It follows the line as usual but **holds the
+  steering straight while B is over bars** (an edge in the last 15 mm):
+  B is 85 mm off the robot's centre, so any turn changes its speed over
+  the bars against the odometer by 50 % or more and the widths come out
+  wrong. A code it misses is not read again: `READ_FAIL`, and Mission
+  goes on as if there was no barcode.
 - A stray mark within 40 mm before or after a code (a tile join) does not
   spoil it: the decoder looks for `*X*` starting at any bar of the run.
 - Bar widths are measured with the wheel encoders (distance, not time).

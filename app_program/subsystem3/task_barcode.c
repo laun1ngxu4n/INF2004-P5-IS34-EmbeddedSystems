@@ -38,14 +38,10 @@ LOCAL volatile UW	ring_w;		/* written by the interrupt */
 LOCAL UW		ring_r;		/* read by the task */
 
 LOCAL volatile BOOL	busy;		/* inside a barcode (in_code) */
-LOCAL volatile INT	n_now;		/* clean elements so far in this one */
-LOCAL volatile BOOL	paused;		/* Motion is backing up: ignore edges */
+LOCAL volatile BOOL	paused;		/* barcode_reset(): ignore edges */
 LOCAL volatile UW	seq_now;	/* results published so far */
 LOCAL volatile W	edge_pub;	/* odometer at the last clean edge */
-LOCAL volatile UW	cand_ends;	/* runs of >= S3_SCAN_MIN_ELEM that ended */
 
-#define S3_SCAN_MIN_ELEM	3	/* bar, space, bar: looks like a barcode
-					   start (a grout line or junction is 1) */
 #define S3_IN_BARS_MM		15	/* edge this recent = B over bars */
 
 LOCAL BARCODE_RESULT	last;
@@ -227,8 +223,6 @@ EXPORT BOOL barcode_adc(INT *raw, INT *white, INT *black)
 
 EXPORT BOOL barcode_busy(void)	{ return busy; }
 EXPORT UW barcode_edges(void)	{ return ring_w; }
-EXPORT BOOL barcode_candidate(void)	{ return busy && n_now >= S3_SCAN_MIN_ELEM; }
-EXPORT UW barcode_cand_ends(void)	{ return cand_ends; }
 
 /* B is over bars now: an edge in the last S3_IN_BARS_MM (widest element
    10.5 mm).  Motion holds the steering straight then: B sits 85 mm left
@@ -298,7 +292,6 @@ LOCAL void mark_pub(W end_odo, W w)
 }
 
 EXPORT UW barcode_seq(void)	{ return seq_now; }
-EXPORT void barcode_pause(BOOL on)	{ paused = on; }
 
 /* Forget any half-read code (start of a run, after a manoeuvre).  On 7 Nov
    tape held under B at the end of the live view left a code open, and
@@ -448,14 +441,13 @@ EXPORT void barcode_task(INT stacd, void *exinf)
 		(void)tk_slp_tsk(TIMEOUT_BARCODE_MS);
 		app_timing_wake(tmg_barcode, 0);
 
-		/* Motion is backing up to rescan: drop this read and every edge
-		   until it drives forward again, then start fresh */
+		/* barcode_reset(): drop this read and every edge until it
+		   ends, then start fresh */
 		if (paused) {
 			ring_r = ring_w;
 			in_code = FALSE;
 			n = 0;
 			busy = FALSE;
-			n_now = 0;
 			stable = !IR_BLACK;
 			raw_ok = FALSE;
 			app_timing_done(tmg_barcode);
@@ -513,7 +505,6 @@ EXPORT void barcode_task(INT stacd, void *exinf)
 			if (gap < 0) gap = -gap;
 			if (S2_COUNTS_TO_MM(gap) > S3_QUIET_MM) {
 				in_code = FALSE;
-				if (n >= S3_SCAN_MIN_ELEM) cand_ends++;
 				{
 					INT	i;
 					UINT	s;
@@ -545,7 +536,6 @@ EXPORT void barcode_task(INT stacd, void *exinf)
 			}
 		}
 		busy = in_code;
-		n_now = in_code ? n : 0;
 
 		app_timing_done(tmg_barcode);
 	}

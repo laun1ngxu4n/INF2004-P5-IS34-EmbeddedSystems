@@ -72,6 +72,13 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
   at once with 50 % / 25 % speed, overshoot search after 15 mm, crossings
   need a straight approach, barcode reader reset at every start, follow
   speed 120 mm/s, fixed B thresholds 2500 / 1700.
+- **7 Nov, second run (hard steering at once):** zigzag. The trace
+  repeats R, L+R, L, 1 mm white, R ... about every 40 mm: never centred,
+  both sensors black on every swing (heading swinging about ±40 deg). S3-L01
+  1761 mm, no line lost; 1 left branch counted (false). **Retuned the
+  same day, not yet re-run:** gentle for 15 mm at full speed, then hard
+  at 60 % / 35 %, steering ramp 10 per 20 ms; runs now print a wobble
+  count (corrections per metre, sweeps across the tape).
 - [ ] ⬜ **S3-L10, L03, L05..L09** (straddle logic, 7 Nov): X crossing, left
   branch, T end, right curve, left curve, gap (track 2), stuck R (black
   card under R); one place at a time, each prints PASS/FAIL. S3-L04

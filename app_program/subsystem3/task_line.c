@@ -8,11 +8,15 @@
  *	  L black, R white   the line moves left     turn left
  *	  L white, R black   the line moves right    turn right
  *	  L black, R black   a cross line            straight (a crossing)
- *	A correction is hard at once (STEER_HARD) with Motion slowing to
- *	S3_CORR_PCT, and to S3_CORR2_PCT once the sensor has been black for
- *	S3_SLOW2_AFTER_MM (a tight curve).  The 7 Nov run steered gently
- *	first at full speed: on tight left curves the tape slipped out past
- *	L before the hard turn started, and the robot drove off the curve.
+ *	A correction is gentle (STEER_GENTLE) at full speed for its first
+ *	S3_GENTLE_MM; if the sensor is still black (a curve) it goes hard
+ *	(STEER_HARD) at S3_MID_PCT, and S3_LOW_PCT after S3_LOW_AFTER_MM.
+ *	Tuned on 7 Nov between two failures: gentle for 25 mm at 150 mm/s let
+ *	the tape slip out past L on tight left curves; hard at once with the
+ *	speed at 50/25 % zigzagged (the sensors are 115 mm ahead of the
+ *	wheels, so turning swings them sideways fast: the bar swept across
+ *	the 20 mm tape and the 5 mm clearance before the loop could react,
+ *	both sensors black on every swing, never centred).
  *	Overshoot: on a tight curve the tape can pass right under a sensor
  *	and out the other side, which also reads "both white".  After a long
  *	correction (S3_LONG_CORR_MM) followed by S3_OVERSHOOT_MM of white, it
@@ -46,14 +50,16 @@
 #include "../subsystem2/subsystem2.h"	/* motion_odometer() */
 #include "../subsystem5/subsystem5.h"	/* flg_mission */
 
-/* Steering: 40 mm/s each wheel (70 on the spot overshot, 2 Nov, edge
-   following).  The turn radius comes from the slow-down: at 120 mm/s x
-   50 % it is about 9 cm, at 25 % about 4 cm (tight curves ~15 cm). */
-#define STEER_HARD	40	/* mm/s, every correction and the search */
-#define STEER_STEP	15	/* most the steering may grow per 20 ms */
-#define S3_CORR_PCT		50	/* speed while correcting ... */
-#define S3_CORR2_PCT		25	/* ... and after S3_SLOW2_AFTER_MM of it */
-#define S3_SLOW2_AFTER_MM	10
+/* Steering (mm/s each wheel).  Turn radius at 120 mm/s: gentle 30 cm;
+   hard at 60 % 11 cm, at 35 % 6 cm (tight curves ~15 cm). */
+#define STEER_GENTLE	25	/* first part of a correction, full speed */
+#define STEER_HARD	40	/* a long correction (a curve) and the search */
+#define STEER_STEP	10	/* most the steering may grow per 20 ms (15 with
+				   the hard-at-once version zigzagged) */
+#define S3_GENTLE_MM		15	/* gentle this long, then hard */
+#define S3_MID_PCT		60	/* speed while correcting hard ... */
+#define S3_LOW_PCT		35	/* ... and after S3_LOW_AFTER_MM of it */
+#define S3_LOW_AFTER_MM		35
 #define S3_SEARCH_PCT		20	/* searching (0 rocked in place, 2 Nov) */
 #define S3_FILTER_N	2	/* a sensor pattern counts only after this many
 				   readings in a row (2 = 40 ms, ~6 mm) */
@@ -94,11 +100,18 @@ LOCAL volatile INT	speed_pct = 100;
 LOCAL volatile W	junc_odo;		/* last junction centre */
 LOCAL volatile INT	junc_sides;
 LOCAL volatile INT	fault_why;
+LOCAL volatile UW	n_corr;			/* corrections since the start */
+LOCAL volatile UW	n_sweep;		/* sweeps right across the tape */
 
 EXPORT INT line_steer_mm_s(void)	{ return steer; }
 EXPORT INT line_state(void)		{ return state; }
 EXPORT INT line_fault(void)		{ return fault_why; }
 EXPORT UW line_junctions(void)		{ return junctions; }
+EXPORT void line_wobble(UW *corrections, UW *sweeps)
+{
+	*corrections = n_corr;
+	*sweeps = n_sweep;
+}
 EXPORT void line_set_enabled(BOOL on)	{ enabled = on; }
 EXPORT INT line_speed_pct(void)		{ return speed_pct; }
 EXPORT W line_junction_odo(void)	{ return junc_odo; }
@@ -198,6 +211,7 @@ EXPORT void line_task(INT stacd, void *exinf)
 	W	search_from = 0;
 	INT	search_n = 0;
 	W	both_from = 0;
+	UW	before_both = 0u;	/* the one-sensor pattern before a both-black */
 	BOOL	bpend = FALSE;		/* B patch waiting until the sensors pass it */
 	W	bpend_c = 0;
 	W	mc;
@@ -228,6 +242,8 @@ EXPORT void line_task(INT stacd, void *exinf)
 			last_side = 0;
 			single_from = white_from = both_from = odo;
 			long_corr = searching = bpend = FALSE;
+			before_both = 0u;
+			n_corr = n_sweep = 0u;
 			hist_reset(odo);
 			mark_seen = barcode_mark(&mc, &mw);	/* drop old patches */
 			state = LINE_ON;
@@ -256,9 +272,20 @@ EXPORT void line_task(INT stacd, void *exinf)
 			} else if (prev == PAT_L || prev == PAT_R) {
 				long_corr = FALSE;
 			}
-			if (single) single_from = odo;
+			if (single) {
+				single_from = odo;
+				if (prev == 0u) n_corr++;
+				/* L, both, R (or R, both, L): swept right across */
+				if (prev == (PAT_L | PAT_R) && before_both != 0u &&
+				    before_both != stable) {
+					n_sweep++;
+				}
+			}
 			if (stable == 0u) white_from = odo;
-			if (stable == (PAT_L | PAT_R)) both_from = odo;
+			if (stable == (PAT_L | PAT_R)) {
+				both_from = odo;
+				before_both = (prev == PAT_L || prev == PAT_R) ? prev : 0u;
+			}
 		}
 		if (stable != 0u && searching) {
 			searching = FALSE;		/* found it again */
@@ -276,7 +303,9 @@ EXPORT void line_task(INT stacd, void *exinf)
 
 		/* Steering (+ = turn left) */
 		if (single) {
-			s = fr ? -STEER_HARD : STEER_HARD;
+			s = (odo - single_from < MM(S3_GENTLE_MM)) ? STEER_GENTLE
+								   : STEER_HARD;
+			if (fr) s = -s;
 		} else if (searching) {
 			s = (last_side >= 0) ? STEER_HARD : -STEER_HARD;
 		} else {
@@ -304,9 +333,10 @@ EXPORT void line_task(INT stacd, void *exinf)
 		   steering turns much tighter */
 		if (searching) {
 			speed_pct = S3_SEARCH_PCT;
-		} else if (single) {
-			speed_pct = (odo - single_from < MM(S3_SLOW2_AFTER_MM)) ?
-				    S3_CORR_PCT : S3_CORR2_PCT;
+		} else if (single && odo - single_from >= MM(S3_LOW_AFTER_MM)) {
+			speed_pct = S3_LOW_PCT;
+		} else if (single && odo - single_from >= MM(S3_GENTLE_MM)) {
+			speed_pct = S3_MID_PCT;
 		} else {
 			speed_pct = 100;
 		}

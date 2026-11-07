@@ -26,11 +26,16 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
   | black | white | line moving left | turn left |
   | white | black | line moving right | turn right |
   | black | black | a cross line | straight (a crossing) |
-- A correction is hard at once (±40 mm/s between the wheels) and the
-  robot slows to 50 %, then to 25 % after 10 mm of it (turn radius about
-  9 cm, then 4 cm). Steering builds up over 60 ms and eases off at once.
-  (Until 7 Nov it started gentle at full speed: on tight left curves the
-  tape slipped out past L before the hard turn began.)
+- A correction is gentle (±25 mm/s between the wheels) at full speed for
+  its first 15 mm. If the sensor is still black (a curve) it goes hard
+  (±40) at 60 % speed, and 35 % after 35 mm (turn radius about 11 cm, then
+  6 cm). Steering builds up by 10 mm/s per 20 ms and eases off at once.
+  Tuned on 7 Nov between two failures: gentle for 25 mm at 150 mm/s let
+  the tape slip out on tight left curves; hard at once at 50/25 % speed
+  zigzagged (the sensors are 115 mm ahead of the wheels, so a sharp turn
+  swings them across the tape faster than the loop reacts).
+- Every Stage 2 run ends with `wobble this run: N corrections (per
+  metre), M sweeps right across the tape`: sweeps should be 0.
 - **Overshoot**: on a tight curve the tape can pass right under a sensor
   and out the other side, which also reads "both white". After a
   correction of 15 mm or more and then 40 mm of white, it turns back

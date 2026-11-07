@@ -92,6 +92,9 @@ IMPORT INT	line_state(void);
 #define LINE_FAULT_ONE	2	/* one black for S3_STUCK_ONE_MM */
 IMPORT INT	line_fault(void);		/* LINE_FAULT_... or 0 */
 IMPORT UW	line_junctions(void);		/* junctions seen since boot */
+IMPORT void	line_wobble(UW *corrections, UW *sweeps);	/* since the start:
+						   corrections begun, and sweeps right
+						   across the tape (zigzag) */
 IMPORT W	line_junction_odo(void);	/* last junction's centre, where the
 						   line sensors crossed it (odometer
 						   counts) */

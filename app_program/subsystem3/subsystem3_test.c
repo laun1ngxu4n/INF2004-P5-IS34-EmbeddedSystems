@@ -231,6 +231,15 @@ LOCAL INT follow_and_watch(INT secs, INT max_mm, INT *junc, INT *lost,
 		  "(0 = it never saw black)\n", (INT)(barcode_edges() - e0));
 	tm_printf((UB*)"[S3] junctions this run: crossings %d, left branches %d\n",
 		  j_cross, j_left);
+	{
+		UW  nc, ns;
+		INT mm = (INT)S2_COUNTS_TO_MM(motion_odometer() - odo0);
+
+		line_wobble(&nc, &ns);
+		tm_printf((UB*)"[S3] wobble this run: %d corrections (%d per metre), "
+			  "%d sweeps right across the tape (a zigzag; want 0)\n",
+			  (INT)nc, (mm > 0) ? (INT)nc * 1000 / mm : 0, (INT)ns);
+	}
 	return (INT)S2_COUNTS_TO_MM(motion_odometer() - odo0);	/* mm followed */
 }
 

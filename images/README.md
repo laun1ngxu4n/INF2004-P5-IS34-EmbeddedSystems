@@ -13,7 +13,7 @@ Steps for each: `../TESTING_GUIDE.md`.
 | `is34_test_stage1.uf2` | `TEST=1 TEST_STAGE=1` | Stage 0 auto tests, then motion: turns, slow speed, STOP |
 | `is34_test_stage2.uf2` | `TEST=1 TEST_STAGE=2` | then IR view, line + junctions, one place at a time (S3-L03..L09), barcodes, course with the TEST mapping |
 | `is34_test_stage2_analog.uf2` | same, with `S3_BARCODE_ANALOG 1` | the same, barcode sensor on its analogue output: **power it from 3V3**, AO to GP28 |
-| `is34_test_stage3.uf2` | `TEST=1 TEST_STAGE=3` | then servo check, sonar view, 15 width scans, course (bypass) |
+| `is34_test_stage3.uf2` | `TEST=1 TEST_STAGE=3` | then servo check, sonar view, 6 width scans, course (bypass) |
 | `is34_test_stage4.uf2` | `TEST=1 TEST_STAGE=4` | then IMU check, tilt view, 5 ramp runs |
 | `is34_test_stage6.uf2` | `TEST=1 TEST_STAGE=6` | then the whole course with the TEST mapping A=L, B=R, C=F, D=U |
 | `is34_normal_no_wifi.uf2` | (plain `make`) | the mission image without MQTT: START button runs it, but with no mapping it stops at the first junction after a barcode |

@@ -132,6 +132,18 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
   the clear side, back on the line. Pass = no contact, within 300 mm of the
   line, back on it within 500 mm. Needs S5-O01 working (with no clear side
   found it stops with "no clear side").
+- [ ] ⬜ Before the ±40 deg scan: **route the servo cables at the back** so
+  they do not pull at 40 deg (the horn already broke once at full speed)
+- [ ] ⬜ Forward watch while following: a box on the line, the robot must
+  stop **before** about 250 mm (2 readings in a row), part of S5-O02
+- [ ] ⬜ "No clear side": boxes or a wall on both sides of the obstacle;
+  must stop with "no clear side", not drive into one
+- [ ] ⬜ "Bypass leg blocked": something in the way of a bypass leg; it
+  pings before each long leg and must stop with "bypass leg N blocked"
+- [ ] ⬜ Back on the line after the bypass: the robot drives back toward
+  the line until C sees it (floor grout only counts near where the line
+  should be); then the normal line checks (junctions, stuck sensor) start
+  again after 60 mm
 - [ ] ⬜ Sonar fault: cover or unplug ECHO during S5-O02; the robot must stop
   with "ultrasonic not answering"
 
@@ -223,5 +235,5 @@ Setup notes:
 - Never power from laptop USB and the power bank at the same time.
 - `config/wifi_secrets.h` is git-ignored: never commit it.
 - Don't build with `CRASH_REPORT=1` while the IR sensors are on GP0/GP1.
-- The `.uf2` files in `images/` are from 1 Nov. For Stage 2, build from the
-  latest source (`make TEST=1 TEST_STAGE=2`).
+- The `.uf2` files in `images/` are rebuilt with every code change (last
+  7 Nov). Pull before flashing.

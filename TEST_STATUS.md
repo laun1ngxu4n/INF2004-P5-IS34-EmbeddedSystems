@@ -194,6 +194,10 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
 - Tape width: 20 mm. Barcode sensor B: 40 mm **behind** C, 70 mm left
   (measured 6 Nov)
 - L to R gap: about 30 mm, tape centred between them (7 Nov)
+- **IR mount raised (7 Nov, after the WiFi barcode runs):** redo the IR
+  live view (L/R pots), S3-B00 and 2B, a short 2A check (S3-L01, L07),
+  and re-measure B's position (`S3_BAR_AHEAD_MM`, `S3_BAR_LEFT_MM`) if
+  it moved. B higher = blurrier bars: "A small" may stop reading.
 - Real number of junctions on the test track
 
 ## Stage 3: obstacle (`TEST_STAGE=3`)
@@ -291,6 +295,11 @@ than the robot, so the robot tips over it instead of driving up a slope.
   the ramp, the run ends 30 cm after the last one, each ramp printed as a
   bump (nose-up / nose-down peaks, L x sin, climb, jolts) with a 10 ms
   trace while on it. Not run yet.
+- **The course ramp is a hump too** (team, 7 Nov): slightly higher than
+  the 10 mm practice block. So the robot tips over it and L x sin(nose-up
+  peak) is the height to use; the IMU task's own report (integrated
+  climb, used by Mission and the demo) should switch to it once S4-R01
+  shows L x sin within +/- 5 mm.
 - [x] ✅ **L measured: 80 mm** (`S4_L_MM`), same as the guess
 - Note for B4: a hard STOP can give a false ramp report (braking tilt)
 

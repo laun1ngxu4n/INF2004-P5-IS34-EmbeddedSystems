@@ -26,5 +26,19 @@ config/wifi_secrets.h
 # macOS
 .DS_Store
 
-# Robot panel logs (tools/is34_panel.py)
-tools/is34_*.log
+# Logs: the panel's (logs/panel/) and the robot's (logs/robot/), saved by
+# tools/panel/is34_panel.py.  Kept on the laptop only; copy the ones that
+# matter into testing/<subsystem>/logs/ to keep them.
+logs/*
+!logs/README.md
+
+# Python caches
+__pycache__/
+
+# Test images with MQTT carry the WiFi password (config/wifi_secrets.h):
+# build them locally, never commit them
+images/wifi/
+
+
+# Last barcode mapping picked in the panel
+tools/panel/is34_panel_mapping.txt

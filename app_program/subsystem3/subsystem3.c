@@ -1,50 +1,73 @@
-/*
- *	subsystem3.c
- *	Subsystem 3 -- Line Following + Barcode Decoder: creates its objects
- *	and starts its tasks.
+/**
+ * @file    subsystem3.c
+ *  Subsystem 3 -- Line Following + Barcode Decoder: creates its objects
+ *  and starts its tasks.
  */
 
 #include "subsystem3.h"
 
-EXPORT ID	tid_line;
-EXPORT ID	cyc_line;
-EXPORT INT	tmg_line;
-EXPORT ID	tid_barcode;
-EXPORT INT	tmg_barcode;
+EXPORT ID      gh_tid_line;
+EXPORT ID      gh_cyc_line;
+EXPORT int32_t g_tmg_line;
+EXPORT ID      gh_tid_barcode;
+EXPORT int32_t g_tmg_barcode;
 
-EXPORT ER subsystem3_init(void)
+/** Creates subsystem 3's objects (line and barcode tasks). */
+EXPORT ER subsystem3_init (void)
 {
-	ER	er;
+    ER err;
 
-	er = line_hw_init();
-	if (er < E_OK) {
-		return er;
-	}
-	er = barcode_hw_init();
-	if (er < E_OK) {
-		return er;
-	}
-	tmg_line = app_timing_add("line", PRI_LINE, PERIOD_LINE_MS);
-	tmg_barcode = app_timing_add("barcode", PRI_BARCODE, TIMEOUT_BARCODE_MS);
-	cyc_line = app_create_wake_cyclic(&tid_line, PERIOD_LINE_MS);
-	if (tmg_line < E_OK) {
-		return tmg_line;
-	}
-	if (tmg_barcode < E_OK) {
-		return tmg_barcode;
-	}
-	return (cyc_line < E_OK) ? cyc_line : E_OK;
+    err = line_hw_init();
+
+    if (err < E_OK)
+    {
+        return err;
+    }
+
+    err = barcode_hw_init();
+
+    if (err < E_OK)
+    {
+        return err;
+    }
+
+    g_tmg_line    = app_timing_add("line", PRI_LINE, PERIOD_LINE_MS);
+    g_tmg_barcode = app_timing_add("barcode", PRI_BARCODE, TIMEOUT_BARCODE_MS);
+    gh_cyc_line   = app_main_create_wake_cyclic(&gh_tid_line, PERIOD_LINE_MS);
+
+    if (g_tmg_line < E_OK)
+    {
+        return g_tmg_line;
+    }
+
+    if (g_tmg_barcode < E_OK)
+    {
+        return g_tmg_barcode;
+    }
+
+    return (gh_cyc_line < E_OK) ? gh_cyc_line : E_OK;
 }
 
-EXPORT ER subsystem3_start(void)
+/** Starts subsystem 3's tasks (line following, barcode decoder). */
+EXPORT ER subsystem3_start (void)
 {
-	tid_line = app_start_task(line_task, PRI_LINE, 0, "line_task");
-	if (tid_line < E_OK) {
-		return tid_line;
-	}
-	tid_barcode = app_start_task(barcode_task, PRI_BARCODE, 0, "barcode_task");
-	if (tid_barcode < E_OK) {
-		return tid_barcode;
-	}
-	return tk_sta_cyc(cyc_line);
+    gh_tid_line = app_main_start_task(line_task, PRI_LINE, 0, "line_task");
+
+    if (gh_tid_line < E_OK)
+    {
+        return gh_tid_line;
+    }
+
+    gh_tid_barcode =
+        app_main_start_task(barcode_task, PRI_BARCODE, 0, "barcode_task");
+
+    if (gh_tid_barcode < E_OK)
+    {
+        return gh_tid_barcode;
+    }
+
+    return tk_sta_cyc(gh_cyc_line);
 }
+
+/*** end of file ***/
+

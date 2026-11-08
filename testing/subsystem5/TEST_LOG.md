@@ -16,7 +16,7 @@ Define a test here before running it. Test IDs never change.
 | S5-U04 | obstacle_task: no overrun, longest interval <= 75 ms | build plan timing hooks | auto | same | `[TEST] S5-U04 PASS` |
 | S5-B01 | *planned (Stage 2)* Move at the cross-junction, U-turn included | TEAM.md 7.1 B5, B6 | manual | one barcode per mapped move, then the junction | each move happens at the junction, not at the barcode |
 | S5-B02 | *planned* No mapping received | B7 | manual | decode a barcode before any map is sent | robot stops at the junction and reports "no mapping" |
-| S5-O01 | *planned (Stage 3)* Width estimate | TEAM.md 7.2 O1-O6 | manual | obstacles 100, 150, 200 mm wide, 5 runs each; record the scan time in the notes | reported width +/- uncertainty contains the true width; record the error |
+| S5-O01 | *planned (Stage 3)* Width estimate | TEAM.md 7.2 O1-O6 | manual | 3 tries (Stage 3 image): 3 flat boxes 10-20 cm wide, one each, real width by ruler, box about 250 mm ahead (350 mm 7-8 Nov), nothing else within 60 cm; record the scan time in the notes | reported width +/- uncertainty contains the true width; record the error |
 | S5-O02 | *planned* Bypass and line reacquire | O7, O8 | manual | same obstacles | no contact, within 300 mm of the line, rejoin within 500 mm |
 | S5-O03 | **dropped (1 Nov, essentials only)**: scan time is recorded in S5-O01's notes instead | O9 | - | - | - |
 

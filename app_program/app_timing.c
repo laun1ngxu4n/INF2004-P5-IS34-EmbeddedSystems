@@ -1,157 +1,215 @@
-/*
- *	app_timing.c
- *	Per-task timing monitor (see app_timing.h).
+/**
+ * @file    app_timing.c
+ *  Per-task timing monitor (see app_timing.h).
  *
- *	Each slot is written by its own task (wake/done) and read and reset
- *	by Telemetry (report), so every access goes through APP_LOCK.  The
- *	locked sections are a few loads and stores.
+ *  Each slot is written by its own task (wake/done) and read and reset
+ *  by Telemetry (report), so every access goes through APP_LOCK.  The
+ *  locked sections are a few loads and stores.
  */
 
 #include "app.h"
 
 /* RP2040 TIMER block, TIMERAWL: free-running 1 MHz counter, read-only.
    Reading it has no side effects (unlike TIMELR/TIMEHR). */
-#define RP2040_TIMERAWL		(*(volatile UW *)0x40054028)
+#define RP2040_TIMERAWL (*(volatile uint32_t *)0x40054028)
 
-LOCAL APP_TIMING	tmg[APP_TIMING_MAX];
-LOCAL INT		tmg_used;
+LOCAL app_timing_t g_tmg[APP_TIMING_MAX];
+LOCAL int32_t      g_tmg_used;
 
-EXPORT UW app_time_us(void)
+EXPORT uint32_t app_timing_now_us (void)
 {
-	return RP2040_TIMERAWL;
+    return RP2040_TIMERAWL;
 }
 
-/* Called only from the subsystems' _init(), which usermain() runs one
+/** Called only from the subsystems' _init(), which usermain() runs one
    after another before any task starts, so no lock is needed here. */
-EXPORT INT app_timing_add(const char *name, PRI pri, UINT period_ms)
+EXPORT int32_t app_timing_add (const char * p_name, PRI pri, uint32_t period_ms)
 {
-	APP_TIMING	*t;
+    app_timing_t * p_slot;
 
-	if (tmg_used >= APP_TIMING_MAX) {
-		return E_LIMIT;
-	}
-	t = &tmg[tmg_used];
-	t->name = name;
-	t->pri = pri;
-	t->period_ms = period_ms;
-	t->win_min_iv_us = 0xFFFFFFFFu;
-	return tmg_used++;
+    if (g_tmg_used >= APP_TIMING_MAX)
+    {
+        return E_LIMIT;
+    }
+
+    p_slot                = &g_tmg[g_tmg_used];
+    p_slot->p_name        = p_name;
+    p_slot->pri           = pri;
+    p_slot->period_ms     = period_ms;
+    p_slot->win_min_iv_us = 0xFFFFFFFFu;
+    return g_tmg_used++;
 }
 
-EXPORT void app_timing_wake(INT slot, INT overruns)
+EXPORT void app_timing_wake (int32_t slot, int32_t overruns)
 {
-	APP_TIMING	*t;
-	UW		now = app_time_us();
-	UW		iv;
-	UINT		s;
+    app_timing_t * p_slot;
+    uint32_t       now = app_timing_now_us();
+    uint32_t       interval;
+    uint32_t       irq_state;
 
-	if (slot < 0 || slot >= tmg_used) {
-		return;
-	}
-	t = &tmg[slot];
+    if ((slot < 0) || (slot >= g_tmg_used))
+    {
+        return;
+    }
 
-	APP_LOCK(s);
-	if (t->count > 0) {
-		iv = now - t->last_us;
-		if (iv < t->win_min_iv_us) t->win_min_iv_us = iv;
-		if (iv > t->win_max_iv_us) t->win_max_iv_us = iv;
-		if (iv > t->max_iv_us) {
-			t->max_iv_us = iv;
-			t->max_iv_at_us = now;
-		}
-		if (iv > t->test_max_iv_us) t->test_max_iv_us = iv;
-	}
-	if (overruns > 0) {
-		t->overruns += (UW)overruns;
-	}
-	t->last_us = now;
-	t->run_start_us = now;
-	t->count++;
-	APP_UNLOCK(s);
+    p_slot = &g_tmg[slot];
+
+    APP_LOCK(irq_state);
+
+    if (p_slot->count > 0)
+    {
+        interval = now - p_slot->last_us;
+
+        if (interval < p_slot->win_min_iv_us)
+        {
+            p_slot->win_min_iv_us = interval;
+        }
+
+        if (interval > p_slot->win_max_iv_us)
+        {
+            p_slot->win_max_iv_us = interval;
+        }
+
+        if (interval > p_slot->max_iv_us)
+        {
+            p_slot->max_iv_us    = interval;
+            p_slot->max_iv_at_us = now;
+        }
+
+        if (interval > p_slot->test_max_iv_us)
+        {
+            p_slot->test_max_iv_us = interval;
+        }
+    }
+
+    if (overruns > 0)
+    {
+        p_slot->overruns += (uint32_t)overruns; /* > 0 here */
+    }
+
+    p_slot->last_us      = now;
+    p_slot->run_start_us = now;
+    p_slot->count++;
+    APP_UNLOCK(irq_state);
 }
 
-EXPORT void app_timing_done(INT slot)
+EXPORT void app_timing_done (int32_t slot)
 {
-	APP_TIMING	*t;
-	UW		run;
-	UINT		s;
+    app_timing_t * p_slot;
+    uint32_t       run;
+    uint32_t       irq_state;
 
-	if (slot < 0 || slot >= tmg_used) {
-		return;
-	}
-	t = &tmg[slot];
+    if ((slot < 0) || (slot >= g_tmg_used))
+    {
+        return;
+    }
 
-	APP_LOCK(s);
-	run = app_time_us() - t->run_start_us;
-	if (run > t->win_max_run_us) t->win_max_run_us = run;
-	if (run > t->max_run_us)     t->max_run_us = run;
-	APP_UNLOCK(s);
+    p_slot = &g_tmg[slot];
+
+    APP_LOCK(irq_state);
+    run = app_timing_now_us() - p_slot->run_start_us;
+
+    if (run > p_slot->win_max_run_us)
+    {
+        p_slot->win_max_run_us = run;
+    }
+
+    if (run > p_slot->max_run_us)
+    {
+        p_slot->max_run_us = run;
+    }
+
+    APP_UNLOCK(irq_state);
 }
 
-EXPORT void app_timing_test_start(INT slot)
+EXPORT void app_timing_test_start (int32_t slot)
 {
-	UINT	s;
+    uint32_t irq_state;
 
-	if (slot < 0 || slot >= tmg_used) {
-		return;
-	}
-	APP_LOCK(s);
-	tmg[slot].test_max_iv_us = 0;
-	APP_UNLOCK(s);
+    if ((slot < 0) || (slot >= g_tmg_used))
+    {
+        return;
+    }
+
+    APP_LOCK(irq_state);
+    g_tmg[slot].test_max_iv_us = 0;
+    APP_UNLOCK(irq_state);
 }
 
-EXPORT ER app_timing_get(INT slot, APP_TIMING *p_copy)
+EXPORT ER app_timing_get (int32_t slot, app_timing_t * p_p_copy)
 {
-	UINT	s;
+    uint32_t irq_state;
 
-	if (slot < 0 || slot >= tmg_used) {
-		return E_PAR;
-	}
-	APP_LOCK(s);
-	*p_copy = tmg[slot];
-	APP_UNLOCK(s);
-	return E_OK;
+    if ((slot < 0) || (slot >= g_tmg_used))
+    {
+        return E_PAR;
+    }
+
+    APP_LOCK(irq_state);
+    *p_p_copy = g_tmg[slot];
+    APP_UNLOCK(irq_state);
+    return E_OK;
 }
 
-/* Print microseconds as milliseconds with two decimals, e.g. "10.02" */
-LOCAL void print_ms(UW us)
+/** Print microseconds as milliseconds with two decimals, e.g. "10.02" */
+LOCAL void print_ms (uint32_t micros)
 {
-	tm_printf((UB*)"%d.%02d", (INT)(us / 1000), (INT)((us % 1000) / 10));
+    /* micros / 1000 <= 4 294 967 and the rest < 100: both fit %d */
+    tm_printf(app_str("%d.%02d"), (int32_t)(micros / 1000),
+              (int32_t)((micros % 1000) / 10));
 }
 
-EXPORT void app_timing_report(void)
+EXPORT void app_timing_report (void)
 {
-	APP_TIMING	c;
-	INT		i;
-	UINT		s;
+    app_timing_t snap;
+    int32_t      idx;
+    uint32_t     irq_state;
 
-	tm_printf((UB*)"[tmg] t=%d ms | task pri period | wakes overruns | "
-		  "interval min-max ms (boot max @ s) | run max us (boot max)\n",
-		  (INT)(app_time_us() / 1000));
-	for (i = 0; i < tmg_used; i++) {
-		/* Copy and start a new window in one locked step, print after */
-		APP_LOCK(s);
-		c = tmg[i];
-		tmg[i].win_min_iv_us = 0xFFFFFFFFu;
-		tmg[i].win_max_iv_us = 0;
-		tmg[i].win_max_run_us = 0;
-		APP_UNLOCK(s);
+    /* ms since boot <= 4 294 967: fits %d */
+    tm_printf(app_str("[tmg] t=%d ms | task pri period | wakes overruns | "
+                      "interval min-max ms (boot max @ s) | run max us "
+                      "(boot max)\n"),
+              (int32_t)(app_timing_now_us() / 1000));
 
-		tm_printf((UB*)"[tmg] %-9s %2d %3d | %6d %3d | ",
-			  c.name, (INT)c.pri, (INT)c.period_ms,
-			  (INT)c.count, (INT)c.overruns);
-		if (c.win_max_iv_us == 0) {
-			tm_printf((UB*)"no wake this window");
-		} else {
-			print_ms(c.win_min_iv_us);
-			tm_printf((UB*)"-");
-			print_ms(c.win_max_iv_us);
-			tm_printf((UB*)" (");
-			print_ms(c.max_iv_us);
-			tm_printf((UB*)" @ %d.%d", (INT)(c.max_iv_at_us / 1000000),
-				  (INT)((c.max_iv_at_us % 1000000) / 100000));
-			tm_printf((UB*)")");
-		}
-		tm_printf((UB*)" | %d (%d)\n", (INT)c.win_max_run_us, (INT)c.max_run_us);
-	}
+    for (idx = 0; idx < g_tmg_used; idx++)
+    {
+        /* Copy and start a new window in one locked step, print after */
+        APP_LOCK(irq_state);
+        snap                      = g_tmg[idx];
+        g_tmg[idx].win_min_iv_us  = 0xFFFFFFFFu;
+        g_tmg[idx].win_max_iv_us  = 0;
+        g_tmg[idx].win_max_run_us = 0;
+        APP_UNLOCK(irq_state);
+
+        /* priority 1..140, period <= 1000 ms; wakes and overruns since boot
+           stay below 2^31 for 248 days at 100 Hz: all fit %d */
+        tm_printf(app_str("[tmg] %-9s %2d %3d | %6d %3d | "), snap.p_name,
+                  (int32_t)snap.pri, (int32_t)snap.period_ms,
+                  (int32_t)snap.count, (int32_t)snap.overruns);
+
+        if (0 == snap.win_max_iv_us)
+        {
+            tm_printf(app_str("no wake this window"));
+        }
+        else
+        {
+            print_ms(snap.win_min_iv_us);
+            tm_printf(app_str("-"));
+            print_ms(snap.win_max_iv_us);
+            tm_printf(app_str(" ("));
+            print_ms(snap.max_iv_us);
+            /* seconds <= 4294 and tenths 0..9: fit %d */
+            tm_printf(app_str(" @ %d.%d"),
+                      (int32_t)(snap.max_iv_at_us / 1000000),
+                      (int32_t)((snap.max_iv_at_us % 1000000) / 100000));
+            tm_printf(app_str(")"));
+        }
+
+        /* run times in us, far below 2^31 (35 minutes): fit %d */
+        tm_printf(app_str(" | %d (%d)\n"), (int32_t)snap.win_max_run_us,
+                  (int32_t)snap.max_run_us);
+    }
 }
+
+/*** end of file ***/
+

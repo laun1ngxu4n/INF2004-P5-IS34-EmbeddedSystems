@@ -1,36 +1,53 @@
-/*
- *	subsystem2.c
- *	Subsystem 2 -- Motion Control: sets up the motors and encoders, creates
- *	its objects and starts its task.
+/**
+ * @file    subsystem2.c
+ *  Subsystem 2 -- Motion Control: sets up the motors and encoders, creates
+ *  its objects and starts its task.
  */
 
 #include "subsystem2.h"
 
-EXPORT ID	tid_motion;
-EXPORT ID	cyc_motion;
-EXPORT INT	tmg_motion;
+EXPORT ID      gh_tid_motion;
+EXPORT ID      gh_cyc_motion;
+EXPORT int32_t g_tmg_motion;
 
-EXPORT ER subsystem2_init(void)
+/** Creates subsystem 2's objects (motion): hardware, timing, cyclic
+ * handler. */
+EXPORT ER subsystem2_init (void)
 {
-	ER	er;
+    ER err;
 
-	er = motion_hw_init();		/* motors off, encoders counting */
-	if (er < E_OK) {
-		return er;
-	}
-	tmg_motion = app_timing_add("motion", PRI_MOTION, PERIOD_MOTION_MS);
-	cyc_motion = app_create_wake_cyclic(&tid_motion, PERIOD_MOTION_MS);
-	if (tmg_motion < E_OK) {
-		return tmg_motion;
-	}
-	return (cyc_motion < E_OK) ? cyc_motion : E_OK;
+    err = motor_init(); /* motors off, encoders counting */
+
+    if (err < E_OK)
+    {
+        return err;
+    }
+
+    g_tmg_motion = app_timing_add("motion", PRI_MOTION, PERIOD_MOTION_MS);
+    gh_cyc_motion =
+        app_main_create_wake_cyclic(&gh_tid_motion, PERIOD_MOTION_MS);
+
+    if (g_tmg_motion < E_OK)
+    {
+        return g_tmg_motion;
+    }
+
+    return (gh_cyc_motion < E_OK) ? gh_cyc_motion : E_OK;
 }
 
-EXPORT ER subsystem2_start(void)
+/** Starts subsystem 2's task (motion) and its cyclic handler. */
+EXPORT ER subsystem2_start (void)
 {
-	tid_motion = app_start_task(motion_task, PRI_MOTION, 0, "motion_task");
-	if (tid_motion < E_OK) {
-		return tid_motion;
-	}
-	return tk_sta_cyc(cyc_motion);
+    gh_tid_motion =
+        app_main_start_task(motion_task, PRI_MOTION, 0, "motion_task");
+
+    if (gh_tid_motion < E_OK)
+    {
+        return gh_tid_motion;
+    }
+
+    return tk_sta_cyc(gh_cyc_motion);
 }
+
+/*** end of file ***/
+

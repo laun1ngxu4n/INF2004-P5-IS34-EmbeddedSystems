@@ -82,8 +82,19 @@ LOCAL void uart_snd_dat(const UB* buf, INT size)
 IMPORT void tm_usb_console_put(const UB *buf, INT size);
 #endif
 
+/*
+ * P5-IS34: an application may take a copy of every console byte (the
+ * robot log over MQTT, app_program/subsystem1/telemetry.c).  Weak
+ * and undefined by default, so images without it link unchanged.  It is
+ * called from any context and must only copy.
+ */
+extern void tm_console_mirror(const UB *buf, INT size) __attribute__((weak));
+
 EXPORT	void	tm_snd_dat( const UB* buf, INT size )
 {
+	if( tm_console_mirror ){
+		tm_console_mirror(buf, size);
+	}
 #if TM_CONSOLE_USB_CDC
 	tm_usb_console_put(buf, size);
 #endif

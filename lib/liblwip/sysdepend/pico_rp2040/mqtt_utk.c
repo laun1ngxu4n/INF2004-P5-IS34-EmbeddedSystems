@@ -15,6 +15,7 @@
  *	file's size_t workaround -- tm/tmonitor.h alone is namespace-safe here.
  */
 
+#include <string.h>
 #include "lwip/apps/mqtt.h"
 #include "lwip/ip_addr.h"
 #include "lwip/timeouts.h"
@@ -25,16 +26,18 @@
 #define MQTT_UTK_HEARTBEAT_MS   5000
 #define MQTT_UTK_KEEPALIVE_S    60
 #define MQTT_UTK_RETRY_MS       3000
+#define MQTT_UTK_CONNECT_MS     15000   /* P5-IS34: an attempt with no answer
+                                           this long is dropped, then retried */
 
 /* P5-IS34 (Stage 5): the robot's own topics.  The application provides
- * app_mqtt_rx() / app_mqtt_tx() (app_program/subsystem1/task_telemetry.c);
+ * app_mqtt_rx() / app_mqtt_tx() (app_program/subsystem1/telemetry.c);
  * the weak versions below keep the template working without them.  Both
  * run here, in this task, and only copy data -- no lwIP call ever leaves
  * this task (docs/RELEASE.md safety rule 6). */
 #define IS34_CMD_TOPIC          "is34/cmd/#"
 #define IS34_PUMP_MS            100     /* outbox poll: one message per poll */
 #define IS34_TOPIC_MAX          32
-#define IS34_PAYLOAD_MAX        200
+#define IS34_PAYLOAD_MAX        400     /* robot log chunks (is34/log) */
 
 __attribute__((weak)) void app_mqtt_rx(const char *topic,
                                        const unsigned char *data, unsigned len)
@@ -105,8 +108,12 @@ static void incoming_data_cb(void *arg, const u8_t *data, u16_t len, u8_t flags)
 
 	if((flags & MQTT_DATA_FLAG_LAST) != 0) {
 		rx_data[rx_len] = '\0';
-		tm_printf((UB*)"mqtt: RX [%s] \"%s\"%s\n", rx_topic, rx_data,
-			  rx_truncated? " (truncated)": "");
+		if(rx_topic[0] != MQTT_TOPIC[0] ||
+		   strcmp(rx_topic, MQTT_TOPIC) != 0 ||
+		   strcmp((const char *)rx_data, "hb 0") == 0) {
+			tm_printf((UB*)"mqtt: RX [%s] \"%s\"%s\n", rx_topic, rx_data,
+				  rx_truncated? " (truncated)": "");
+		}
 		app_mqtt_rx(rx_topic, rx_data, rx_len);
 	}
 }
@@ -138,8 +145,13 @@ static void heartbeat_timeout(void *arg)
 	(void)arg;
 
 	if(mqtt_client_is_connected(client)) {
+		/* P5-IS34: only the first one is printed: one pair every 5 s
+		 * filled the robot log (is34/log) */
+		if(count == 0) {
+			tm_printf((UB*)"mqtt: TX [" MQTT_TOPIC "] \"hb 0\" (heartbeat "
+				  "every %d s, not printed)\n", MQTT_UTK_HEARTBEAT_MS / 1000);
+		}
 		len = tm_sprintf(payload, (const UB*)"hb %u", count++);
-		tm_printf((UB*)"mqtt: TX [" MQTT_TOPIC "] \"%s\"\n", payload);
 		(void)mqtt_publish(client, MQTT_TOPIC, payload, (u16_t)len,
 				   0 /* qos */, 0 /* retain */,
 				   publish_done_cb, NULL);
@@ -151,20 +163,35 @@ static void heartbeat_timeout(void *arg)
 	sys_timeout(MQTT_UTK_HEARTBEAT_MS, heartbeat_timeout, NULL);
 }
 
-/* P5-IS34: publish one queued application message per poll */
+/* P5-IS34: publish one queued application message per poll.  A message
+ * mqtt_publish() refuses (ERR_MEM: its output buffer is still full while
+ * TCP waits for the laptop's ACK over the hotspot) is kept and offered
+ * again on the next poll instead of being dropped: on 7 Nov about one
+ * robot log message in 20 was lost that way.  Given up after
+ * IS34_RETRY_MAX polls (the link is gone; mqtt.c reconnects). */
+#define IS34_RETRY_MAX          30      /* x IS34_PUMP_MS = 3 s */
+
 static void is34_pump_timeout(void *arg)
 {
-	char		topic[IS34_TOPIC_MAX];
-	UB		payload[IS34_PAYLOAD_MAX];
-	int		len;
+	static char	topic[IS34_TOPIC_MAX];	/* static: off the WiFi task stack */
+	static UB	payload[IS34_PAYLOAD_MAX];
+	static int	len = 0;		/* > 0: a message waiting */
+	static int	tries = 0;
+	err_t		err;
 
 	(void)arg;
 	if(mqtt_client_is_connected(client)) {
-		len = app_mqtt_tx(topic, sizeof(topic), payload, sizeof(payload));
+		if(len <= 0) {
+			len = app_mqtt_tx(topic, sizeof(topic), payload, sizeof(payload));
+			tries = 0;
+		}
 		if(len > 0) {
-			(void)mqtt_publish(client, topic, payload, (u16_t)len,
+			err = mqtt_publish(client, topic, payload, (u16_t)len,
 					   0 /* qos */, 0 /* retain */,
 					   publish_done_cb, NULL);
+			if(err == ERR_OK || ++tries >= IS34_RETRY_MAX) {
+				len = 0;
+			}
 		}
 	}
 	sys_timeout(IS34_PUMP_MS, is34_pump_timeout, NULL);
@@ -175,6 +202,23 @@ static void retry_timeout(void *arg)
 	(void)arg;
 	connecting = 0;
 	mqtt_utk_start();
+}
+
+/* P5-IS34: a connect that never gets an answer (broker not up yet, laptop
+ * asleep) can sit in "connecting" for minutes; every new attempt then
+ * fails with ERR_ISCONN (7 Nov: hundreds of "err=-10" lines, robot never
+ * came back).  Drop it after MQTT_UTK_CONNECT_MS; the poll loop starts a
+ * fresh one (mqtt_disconnect() does not call connection_cb). */
+static void connect_watchdog(void *arg)
+{
+	(void)arg;
+	if(client != NULL && !mqtt_client_is_connected(client)) {
+		tm_printf((UB*)"mqtt: no answer from " MQTT_BROKER_IP " in %ds, "
+			  "trying again\n", MQTT_UTK_CONNECT_MS / 1000);
+		mqtt_disconnect(client);
+		sys_untimeout(retry_timeout, NULL);
+		connecting = 0;
+	}
 }
 
 static void connection_cb(mqtt_client_t *c, void *arg, mqtt_connection_status_t status)
@@ -190,6 +234,7 @@ static void connection_cb(mqtt_client_t *c, void *arg, mqtt_connection_status_t 
 		 * is allowed to reconnect. Leaving it set would wedge the client
 		 * permanently after the first disconnect. */
 		connecting = 0;
+		sys_untimeout(connect_watchdog, NULL);
 
 		tm_printf((UB*)"mqtt: connected to " MQTT_BROKER_IP "\n");
 
@@ -229,6 +274,9 @@ static void connection_cb(mqtt_client_t *c, void *arg, mqtt_connection_status_t 
 		 * into a tight reconnect loop. */
 		tm_printf((UB*)"mqtt: connection status %d, retrying in %ds\n",
 			  (int)status, MQTT_UTK_RETRY_MS / 1000);
+		sys_untimeout(connect_watchdog, NULL);
+		sys_untimeout(retry_timeout, NULL);	/* only one pending */
+		connecting = 1;		/* the poll loop must not start one too */
 		sys_timeout(MQTT_UTK_RETRY_MS, retry_timeout, NULL);
 	}
 }
@@ -262,8 +310,20 @@ void mqtt_utk_start(void)
 	connecting = 1;
 	err = mqtt_client_connect(client, &broker_addr, MQTT_BROKER_PORT,
 				  connection_cb, NULL, &client_info);
-	if(err != ERR_OK) {
-		tm_printf((UB*)"mqtt: mqtt_client_connect() failed, err=%d\n", (int)err);
-		connecting = 0;
+	if(err == ERR_ISCONN) {
+		/* P5-IS34: an attempt is still under way: wait for it (the
+		 * watchdog ends it if it never answers) */
+		sys_untimeout(connect_watchdog, NULL);
+		sys_timeout(MQTT_UTK_CONNECT_MS, connect_watchdog, NULL);
+		return;
 	}
+	if(err != ERR_OK) {
+		tm_printf((UB*)"mqtt: mqtt_client_connect() failed, err=%d, "
+			  "retrying in %ds\n", (int)err, MQTT_UTK_RETRY_MS / 1000);
+		sys_untimeout(retry_timeout, NULL);
+		sys_timeout(MQTT_UTK_RETRY_MS, retry_timeout, NULL);
+		return;			/* connecting stays 1 until the retry */
+	}
+	sys_untimeout(connect_watchdog, NULL);
+	sys_timeout(MQTT_UTK_CONNECT_MS, connect_watchdog, NULL);
 }

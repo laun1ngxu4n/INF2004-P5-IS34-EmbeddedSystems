@@ -39,31 +39,31 @@ typedef struct
 {
     W  odo;
     UB level;
-} EDGE;
+} bar_edge_t;
 
-LOCAL EDGE        ring[RING];
-LOCAL volatile UW ring_w; /* written by the interrupt */
-LOCAL UW          ring_r; /* read by the task */
+LOCAL bar_edge_t  g_ring[RING];
+LOCAL volatile UW g_ring_w; /* written by the interrupt */
+LOCAL UW          g_ring_r; /* read by the task */
 
-LOCAL volatile BOOL busy;     /* inside a barcode (in_code) */
-LOCAL volatile BOOL paused;   /* barcode_reset(): ignore edges */
-LOCAL volatile UW   seq_now;  /* results published so far */
-LOCAL volatile W    edge_pub; /* odometer at the last clean edge */
+LOCAL volatile BOOL gb_busy;    /* inside a barcode (in_code) */
+LOCAL volatile BOOL gb_paused;  /* barcode_reset(): ignore edges */
+LOCAL volatile UW   g_seq_now;  /* results published so far */
+LOCAL volatile W    g_edge_pub; /* odometer at the last clean edge */
 
 #define S3_IN_BARS_MM 15 /* edge this recent = B over bars */
 
-LOCAL BARCODE_RESULT last;
-LOCAL UB             map_ch[4];
-LOCAL UB             map_mv[4];
-LOCAL BOOL           map_set;
+LOCAL barcode_result_t g_last;
+LOCAL UB               g_map_ch[4];
+LOCAL UB               g_map_mv[4];
+LOCAL BOOL             gb_map_set;
 
 /* Code 39: 9 elements bar/space/bar..., 1 = wide.  Bit 8 = first bar. */
 typedef struct
 {
-    UB ch;
+    UB letter;
     UH pat;
-} C39;
-LOCAL const C39 c39[] = {
+} c39_char_t;
+LOCAL const c39_char_t g_c39[] = {
     {'0', 0x034}, {'1', 0x121}, {'2', 0x061}, {'3', 0x160}, {'4', 0x031},
     {'5', 0x130}, {'6', 0x070}, {'7', 0x025}, {'8', 0x124}, {'9', 0x064},
     {'A', 0x109}, {'B', 0x049}, {'C', 0x148}, {'D', 0x019}, {'E', 0x118},
@@ -75,33 +75,33 @@ LOCAL const C39 c39[] = {
     {'$', 0x0A8}, {'/', 0x0A2}, {'+', 0x08A}, {'%', 0x02A}};
 
 /* GP2 edge: interrupt context */
-LOCAL void bar_edge (UINT pin, UW events)
+LOCAL void barcode_edge_isr (UINT pin, UW events)
 {
-    UW w = ring_w;
+    UW ring_pos = g_ring_w;
 
     (void)events;
-    ring[w & (RING - 1)].odo   = motion_odometer();
-    ring[w & (RING - 1)].level = (UB)app_gpio_get(pin);
-    ring_w                     = w + 1;
+    g_ring[ring_pos & (RING - 1)].odo   = motion_odometer();
+    g_ring[ring_pos & (RING - 1)].level = (UB)app_gpio_get(pin);
+    g_ring_w                            = ring_pos + 1;
 }
 
 #if !S3_BARCODE_ANALOG
 
 EXPORT ER barcode_hw_init (void)
 {
-    ER er = app_gpio_input(PIN_IR_BARCODE, FALSE);
+    ER err = app_gpio_input(PIN_IR_BARCODE, FALSE);
 
-    return (er < E_OK)
-               ? er
-               : app_gpio_irq_add(PIN_IR_BARCODE, APP_GPIO_BOTH, bar_edge);
+    return (err < E_OK) ? err
+                        : app_gpio_irq_add(PIN_IR_BARCODE, APP_GPIO_BOTH,
+                                           barcode_edge_isr);
 }
 EXPORT BOOL barcode_black (void)
 {
     return IR_BLACK == app_gpio_get(PIN_IR_BARCODE);
 }
-EXPORT BOOL barcode_adc (INT * raw, INT * white, INT * black)
+EXPORT BOOL barcode_adc (INT * p_raw, INT * p_white, INT * p_black)
 {
-    *raw = *white = *black = 0;
+    *p_raw = *p_white = *p_black = 0;
     return FALSE;
 }
 
@@ -135,123 +135,123 @@ EXPORT BOOL barcode_adc (INT * raw, INT * white, INT * black)
  * "black". */
 #define ENV_DECAY_SH   20
 
-LOCAL volatile INT adc_raw;
-LOCAL INT          env_w = -1;
-LOCAL INT          env_b = -1; /* white / black level x16 */
-LOCAL INT          rel_lo;
-LOCAL INT          rel_hi; /* S3_BAR_RELATIVE: extremes so far */
-LOCAL volatile UB  adc_lvl = !IR_BLACK;
+LOCAL volatile INT g_adc_raw;
+LOCAL INT          g_env_w = -1;
+LOCAL INT          g_env_b = -1; /* white / black level x16 */
+LOCAL INT          g_rel_lo;
+LOCAL INT          g_rel_hi; /* S3_BAR_RELATIVE: extremes so far */
+LOCAL volatile UB  g_adc_lvl = !IR_BLACK;
 
 /* bigger = blacker, whichever way the module is wired */
 #define BLACKNESS(v)   (S3_BAR_BLACK_HIGH ? (v) : 4095 - (v))
 
-LOCAL void adc_sample (INT v)
+LOCAL void adc_sample (INT sample)
 {
-    INT b   = BLACKNESS(v) << ENV_SH;
-    UB  lvl = adc_lvl;
+    INT black = BLACKNESS(sample) << ENV_SH;
+    UB  lvl   = g_adc_lvl;
 
-    adc_raw = v;
-    if (env_w < 0)
+    g_adc_raw = sample;
+    if (g_env_w < 0)
     {
-        env_w = env_b = b;
-        rel_lo = rel_hi = BLACKNESS(v);
+        g_env_w = g_env_b = black;
+        g_rel_lo = g_rel_hi = BLACKNESS(sample);
     }
     /* black level: rises fast to a new darkest, sinks very slowly */
-    if (b > env_b)
+    if (black > g_env_b)
     {
-        env_b += (b - env_b) >> ENV_UP_SH;
+        g_env_b += (black - g_env_b) >> ENV_UP_SH;
     }
     else
     {
-        env_b -= (env_b - b) >> ENV_DECAY_SH;
+        g_env_b -= (g_env_b - black) >> ENV_DECAY_SH;
     }
     /* white level: the same the other way */
-    if (b < env_w)
+    if (black < g_env_w)
     {
-        env_w -= (env_w - b) >> ENV_UP_SH;
+        g_env_w -= (g_env_w - black) >> ENV_UP_SH;
     }
     else
     {
-        env_w += (b - env_w) >> ENV_DECAY_SH;
+        g_env_w += (black - g_env_w) >> ENV_DECAY_SH;
     }
 
     if (S3_BAR_RELATIVE)
     {
-        INT x = BLACKNESS(v);
+        INT blackness = BLACKNESS(sample);
 
         if (lvl != IR_BLACK)
         {
-            if (x < rel_lo)
+            if (blackness < g_rel_lo)
             {
-                rel_lo = x;
+                g_rel_lo = blackness;
             }
-            if ((x > (rel_lo + S3_BAR_DELTA)) &&
-                (x >= BLACKNESS(S3_BAR_BLACK_MIN)))
+            if ((blackness > (g_rel_lo + S3_BAR_DELTA)) &&
+                (blackness >= BLACKNESS(S3_BAR_BLACK_MIN)))
             {
-                lvl    = IR_BLACK;
-                rel_hi = x;
+                lvl      = IR_BLACK;
+                g_rel_hi = blackness;
             }
         }
         else
         {
-            if (x > rel_hi)
+            if (blackness > g_rel_hi)
             {
-                rel_hi = x;
+                g_rel_hi = blackness;
             }
-            if (x < (rel_hi - S3_BAR_DELTA))
+            if (blackness < (g_rel_hi - S3_BAR_DELTA))
             {
-                lvl    = !IR_BLACK;
-                rel_lo = x;
+                lvl      = !IR_BLACK;
+                g_rel_lo = blackness;
             }
         }
     }
     else if (S3_BAR_ADC_ON > 0)
     {
-        INT x = BLACKNESS(v);
-        if ((lvl != IR_BLACK) && (x >= BLACKNESS(S3_BAR_ADC_ON)))
+        INT blackness = BLACKNESS(sample);
+        if ((lvl != IR_BLACK) && (blackness >= BLACKNESS(S3_BAR_ADC_ON)))
         {
             lvl = IR_BLACK;
         }
-        else if ((IR_BLACK == lvl) && (x <= BLACKNESS(S3_BAR_ADC_OFF)))
+        else if ((IR_BLACK == lvl) && (blackness <= BLACKNESS(S3_BAR_ADC_OFF)))
         {
             lvl = !IR_BLACK;
         }
     }
     else
     {
-        INT span = (env_b - env_w) >> ENV_SH;
-        INT mid  = (env_b + env_w) >> (ENV_SH + 1);
-        INT hyst = span / 6;
-        INT x    = BLACKNESS(v);
+        INT span      = (g_env_b - g_env_w) >> ENV_SH;
+        INT mid       = (g_env_b + g_env_w) >> (ENV_SH + 1);
+        INT hyst      = span / 6;
+        INT blackness = BLACKNESS(sample);
 
         if (span < S3_BAR_MIN_SPAN)
         {
             lvl = !IR_BLACK; /* never seen black */
         }
-        else if ((lvl != IR_BLACK) && (x > (mid + hyst)))
+        else if ((lvl != IR_BLACK) && (blackness > (mid + hyst)))
         {
             lvl = IR_BLACK;
         }
-        else if ((IR_BLACK == lvl) && (x < (mid - hyst)))
+        else if ((IR_BLACK == lvl) && (blackness < (mid - hyst)))
         {
             lvl = !IR_BLACK;
         }
     }
-    if (lvl != adc_lvl)
+    if (lvl != g_adc_lvl)
     {
-        UW w = ring_w;
+        UW ring_pos = g_ring_w;
 
-        adc_lvl = lvl;
-        if (!paused)
+        g_adc_lvl = lvl;
+        if (!gb_paused)
         {
-            ring[w & (RING - 1)].odo   = motion_odometer();
-            ring[w & (RING - 1)].level = lvl;
-            ring_w                     = w + 1;
+            g_ring[ring_pos & (RING - 1)].odo   = motion_odometer();
+            g_ring[ring_pos & (RING - 1)].level = lvl;
+            g_ring_w                            = ring_pos + 1;
         }
     }
 }
 
-LOCAL void adc_inthdr (UINT intno)
+LOCAL void adc_fifo_isr (UINT intno)
 {
     while (0u == (in_w(ADC_FCS) & FCS_EMPTY))
     {
@@ -263,7 +263,7 @@ LOCAL void adc_inthdr (UINT intno)
 EXPORT ER barcode_hw_init (void)
 {
     T_DINT dint;
-    ER     er;
+    ER     err;
 
     app_hw_release(RESETS_RESET_ADC);
     /* GP28 as an analogue pin: no digital input, no pulls */
@@ -285,11 +285,11 @@ EXPORT ER barcode_hw_init (void)
     }
 
     dint.intatr = TA_HLNG;
-    dint.inthdr = (FP)adc_inthdr;
-    er          = tk_def_int(INTNO_ADC_FIFO, &dint);
-    if (er < E_OK)
+    dint.inthdr = (FP)adc_fifo_isr;
+    err         = tk_def_int(INTNO_ADC_FIFO, &dint);
+    if (err < E_OK)
     {
-        return er;
+        return err;
     }
     ClearInt(INTNO_ADC_FIFO);
     out_w(ADC_INTE, 1u);
@@ -299,20 +299,20 @@ EXPORT ER barcode_hw_init (void)
 }
 EXPORT BOOL barcode_black (void)
 {
-    return IR_BLACK == adc_lvl;
+    return IR_BLACK == g_adc_lvl;
 }
-EXPORT BOOL barcode_adc (INT * raw, INT * white, INT * black)
+EXPORT BOOL barcode_adc (INT * p_raw, INT * p_white, INT * p_black)
 {
-    INT w = env_w;
-    INT b = env_b;
+    INT white = g_env_w;
+    INT black = g_env_b;
 
-    *raw   = adc_raw;
-    *white = (w < 0) ? 0 : (w >> ENV_SH);
-    *black = (b < 0) ? 0 : (b >> ENV_SH);
+    *p_raw   = g_adc_raw;
+    *p_white = (white < 0) ? 0 : (white >> ENV_SH);
+    *p_black = (black < 0) ? 0 : (black >> ENV_SH);
     if (!S3_BAR_BLACK_HIGH)
     {
-        *white = 4095 - *white;
-        *black = 4095 - *black;
+        *p_white = 4095 - *p_white;
+        *p_black = 4095 - *p_black;
     }
     return TRUE;
 }
@@ -321,11 +321,11 @@ EXPORT BOOL barcode_adc (INT * raw, INT * white, INT * black)
 
 EXPORT BOOL barcode_busy (void)
 {
-    return busy;
+    return gb_busy;
 }
 EXPORT UW barcode_edges (void)
 {
-    return ring_w;
+    return g_ring_w;
 }
 
 /* B is over bars now: an edge in the last S3_IN_BARS_MM (widest element
@@ -334,57 +334,57 @@ EXPORT UW barcode_edges (void)
    by +-50 % or more against the odometer, and the widths come out wrong. */
 EXPORT BOOL barcode_in_bars (void)
 {
-    W d;
+    W since;
 
-    if (!busy)
+    if (!gb_busy)
     {
         return FALSE;
     }
-    d = motion_odometer() - edge_pub;
-    if (d < 0)
+    since = motion_odometer() - g_edge_pub;
+    if (since < 0)
     {
-        d = -d;
+        since = -since;
     }
-    return d < (W)(S3_IN_BARS_MM * 1000 / S2_UM_PER_COUNT);
+    return since < (W)(S3_IN_BARS_MM * 1000 / S2_UM_PER_COUNT);
 }
 
 /* Debug (Stage 2 tests): the element widths of the last code that ended,
    even one too short to report, so a test can show what the sensor saw */
 #define DBG_MAX 40
-LOCAL INT         dbg_w[DBG_MAX]; /* 0.1 mm */
-LOCAL INT         dbg_n;
-LOCAL volatile UW dbg_seq;
+LOCAL INT         g_dbg_w[DBG_MAX]; /* 0.1 mm */
+LOCAL INT         g_dbg_n;
+LOCAL volatile UW g_dbg_seq;
 
-EXPORT UW barcode_debug (INT * n, INT * w_mm10, INT max)
+EXPORT UW barcode_debug (INT * p_count, INT * p_w_mm10, INT max)
 {
-    INT  i;
-    UINT s;
+    INT  idx;
+    UINT irq_state;
 
-    APP_LOCK(s);
-    *n = dbg_n;
-    for (i = 0; (i < dbg_n) && (i < DBG_MAX) && (i < max); i++)
+    APP_LOCK(irq_state);
+    *p_count = g_dbg_n;
+    for (idx = 0; (idx < g_dbg_n) && (idx < DBG_MAX) && (idx < max); idx++)
     {
-        w_mm10[i] = dbg_w[i];
+        p_w_mm10[idx] = g_dbg_w[idx];
     }
-    APP_UNLOCK(s);
-    return dbg_seq;
+    APP_UNLOCK(irq_state);
+    return g_dbg_seq;
 }
 /* Single black patches (left branches, grout lines) */
-LOCAL W           mark_odo;
-LOCAL INT         mark_w; /* 0.1 mm */
-LOCAL volatile UW mark_seq;
+LOCAL W           g_mark_odo;
+LOCAL INT         g_mark_w; /* 0.1 mm */
+LOCAL volatile UW g_mark_seq;
 
-EXPORT UW barcode_mark (W * centre_odo, INT * width_mm10)
+EXPORT UW barcode_mark (W * p_centre_odo, INT * p_width_mm10)
 {
-    UINT s;
-    UW   q;
+    UINT irq_state;
+    UW   seq;
 
-    APP_LOCK(s);
-    *centre_odo = mark_odo;
-    *width_mm10 = mark_w;
-    q           = mark_seq;
-    APP_UNLOCK(s);
-    return q;
+    APP_LOCK(irq_state);
+    *p_centre_odo = g_mark_odo;
+    *p_width_mm10 = g_mark_w;
+    seq           = g_mark_seq;
+    APP_UNLOCK(irq_state);
+    return seq;
 }
 
 /* The first bar of a run has just ended at end_odo, w counts wide.
@@ -393,20 +393,20 @@ EXPORT UW barcode_mark (W * centre_odo, INT * width_mm10)
    is published (also a barcode's narrow start bar and grout lines); the
    line task keeps only the ones about one tape wide.  No Code 39 bar is
    that wide (wide bars measured 10.5 mm). */
-LOCAL void mark_pub (W end_odo, W w)
+LOCAL void mark_pub (W end_odo, W width)
 {
-    UINT s;
+    UINT irq_state;
 
-    APP_LOCK(s);
-    mark_odo = end_odo - (w / 2); /* driving forward: centre is behind */
-    mark_w   = (INT)(w * S2_UM_PER_COUNT / 100);
-    mark_seq++;
-    APP_UNLOCK(s);
+    APP_LOCK(irq_state);
+    g_mark_odo = end_odo - (width / 2); /* driving forward: centre is behind */
+    g_mark_w   = (INT)(width * S2_UM_PER_COUNT / 100);
+    g_mark_seq++;
+    APP_UNLOCK(irq_state);
 }
 
 EXPORT UW barcode_seq (void)
 {
-    return seq_now;
+    return g_seq_now;
 }
 
 /* Forget any half-read code (start of a run, after a manoeuvre).  On 7 Nov
@@ -414,60 +414,60 @@ EXPORT UW barcode_seq (void)
    the run started with a rescan.  Task context; blocks 30 ms. */
 EXPORT void barcode_reset (void)
 {
-    paused = TRUE;
+    gb_paused = TRUE;
     tk_dly_tsk(30); /* the task drops it within 10 ms */
-    paused = FALSE;
+    gb_paused = FALSE;
 }
 
-EXPORT void barcode_last (BARCODE_RESULT * r)
+EXPORT void barcode_last (barcode_result_t * p_result)
 {
-    UINT s;
+    UINT irq_state;
 
-    APP_LOCK(s);
-    *r = last;
-    APP_UNLOCK(s);
+    APP_LOCK(irq_state);
+    *p_result = g_last;
+    APP_UNLOCK(irq_state);
 }
 
 /* One character from 9 widths; 0 = no match */
-LOCAL UB decode_char (const W * e, W * narrow_sum, W * wide_sum)
+LOCAL UB decode_char (const W * p_elem, W * p_narrow_sum, W * p_wide_sum)
 {
-    INT i;
-    INT j;
+    INT idx;
+    INT jdx;
     INT wide[3] = {-1, -1, -1};
     UH  pat     = 0;
     W   min_wide;
     W   max_narrow = 0;
 
-    for (j = 0; j < 3; j++)
+    for (jdx = 0; jdx < 3; jdx++)
     {
         INT best = -1;
-        for (i = 0; i < 9; i++)
+        for (idx = 0; idx < 9; idx++)
         {
-            if ((i == wide[0]) || (i == wide[1]))
+            if ((idx == wide[0]) || (idx == wide[1]))
             {
                 continue;
             }
-            if ((best < 0) || (e[i] > e[best]))
+            if ((best < 0) || (p_elem[idx] > p_elem[best]))
             {
-                best = i;
+                best = idx;
             }
         }
-        wide[j] = best;
+        wide[jdx] = best;
         pat |= (UH)(1u << (8 - best));
     }
-    min_wide = e[wide[2]];
-    for (i = 0; i < 9; i++)
+    min_wide = p_elem[wide[2]];
+    for (idx = 0; idx < 9; idx++)
     {
-        if ((pat & (1u << (8 - i))) != 0u)
+        if ((pat & (1u << (8 - idx))) != 0u)
         {
-            *wide_sum += e[i];
+            *p_wide_sum += p_elem[idx];
         }
         else
         {
-            *narrow_sum += e[i];
-            if (e[i] > max_narrow)
+            *p_narrow_sum += p_elem[idx];
+            if (p_elem[idx] > max_narrow)
             {
-                max_narrow = e[i];
+                max_narrow = p_elem[idx];
             }
         }
     }
@@ -475,11 +475,11 @@ LOCAL UB decode_char (const W * e, W * narrow_sum, W * wide_sum)
     {
         return 0; /* wide and narrow not separable */
     }
-    for (i = 0; i < (INT)(sizeof(c39) / sizeof(c39[0])); i++)
+    for (idx = 0; idx < (INT)(sizeof(g_c39) / sizeof(g_c39[0])); idx++)
     {
-        if (c39[i].pat == pat)
+        if (g_c39[idx].pat == pat)
         {
-            return c39[i].ch;
+            return g_c39[idx].letter;
         }
     }
     return 0;
@@ -488,59 +488,62 @@ LOCAL UB decode_char (const W * e, W * narrow_sum, W * wide_sum)
 /* Decode n elements; fills r.  TRUE = valid "*...*".  The code may start
    at any bar (off even) and end before the last element: a stray mark
    within S3_QUIET_MM of the code is part of the same run. */
-LOCAL BOOL decode (W * e, INT n, BARCODE_RESULT * r)
+LOCAL BOOL decode (W * p_elem, INT count, barcode_result_t * p_result)
 {
-    INT k;
+    INT kdx;
     INT pass;
-    INT i;
+    INT idx;
     INT off;
-    W   ns = 0;
-    W   ws = 0;
+    W   narrow_sum = 0;
+    W   wide_sum   = 0;
 
-    r->ok       = FALSE;
-    r->elements = n;
-    if (n < 29)
+    p_result->b_ok     = FALSE;
+    p_result->elements = count;
+    if (count < 29)
     {
         return FALSE;
     }
     for (pass = 0; pass < 2; pass++)
     {
-        for (off = 0; (off + 29) <= n; off += 2)
+        for (off = 0; (off + 29) <= count; off += 2)
         {
-            ns = ws = 0;
-            if (decode_char(&e[off], &ns, &ws) != '*')
+            narrow_sum = wide_sum = 0;
+            if (decode_char(&p_elem[off], &narrow_sum, &wide_sum) != '*')
             {
                 continue;
             }
-            for (k = (n - off + 1) / 10; k >= 3; k--)
+            for (kdx = (count - off + 1) / 10; kdx >= 3; kdx--)
             {
-                UB ch;
+                UB letter;
 
-                ns = ws = 0;
-                (void)decode_char(&e[off], &ns, &ws);
-                if (decode_char(&e[off + ((k - 1) * 10)], &ns, &ws) != '*')
+                narrow_sum = wide_sum = 0;
+                (void)decode_char(&p_elem[off], &narrow_sum, &wide_sum);
+                if (decode_char(&p_elem[off + ((kdx - 1) * 10)], &narrow_sum,
+                                &wide_sum) != '*')
                 {
                     continue;
                 }
-                ch = decode_char(&e[off + 10], &ns, &ws);
-                if ((ch != 0) && (ch != '*'))
+                letter = decode_char(&p_elem[off + 10], &narrow_sum, &wide_sum);
+                if ((letter != 0) && (letter != '*'))
                 {
-                    r->ok       = TRUE;
-                    r->ch       = ch;
-                    r->reversed = (1 == pass);
+                    p_result->b_ok       = TRUE;
+                    p_result->letter     = letter;
+                    p_result->b_reversed = (1 == pass);
                     /* 3 chars of 6 narrow + 3 wide counted above */
-                    r->narrow_mm10 = (INT)(ns * S2_UM_PER_COUNT / 100 / 18);
-                    r->wide_mm10   = (INT)(ws * S2_UM_PER_COUNT / 100 / 9);
+                    p_result->narrow_mm10 =
+                        (INT)(narrow_sum * S2_UM_PER_COUNT / 100 / 18);
+                    p_result->wide_mm10 =
+                        (INT)(wide_sum * S2_UM_PER_COUNT / 100 / 9);
                     return TRUE;
                 }
             }
         }
         /* try backwards */
-        for (i = 0; i < (n / 2); i++)
+        for (idx = 0; idx < (count / 2); idx++)
         {
-            W t          = e[i];
-            e[i]         = e[n - 1 - i];
-            e[n - 1 - i] = t;
+            W tmp                   = p_elem[idx];
+            p_elem[idx]             = p_elem[count - 1 - idx];
+            p_elem[count - 1 - idx] = tmp;
         }
     }
     return FALSE;
@@ -563,217 +566,223 @@ LOCAL BOOL decode (W * e, INT n, BARCODE_RESULT * r)
    stop replaced by noise: 1059 right, 0 wrong; 200 000 random bar
    patterns: 3 decoded as something (the clean decoder 0); of 16 failed
    real reads, 2 now decode (both 'A', the "A small" code used then). */
-LOCAL void sort_w (W * s, INT n)
+LOCAL void sort_w (W * p_values, INT count)
 {
-    INT i;
-    INT j;
-    W   t;
+    INT idx;
+    INT jdx;
+    W   tmp;
 
-    for (i = 1; i < n; i++)
+    for (idx = 1; idx < count; idx++)
     { /* insertion sort, n <= 32 */
-        t = s[i];
-        for (j = i; (j > 0) && (s[j - 1] > t); j--)
+        tmp = p_values[idx];
+        for (jdx = idx; (jdx > 0) && (p_values[jdx - 1] > tmp); jdx--)
         {
-            s[j] = s[j - 1];
+            p_values[jdx] = p_values[jdx - 1];
         }
-        s[j] = t;
+        p_values[jdx] = tmp;
     }
 }
 
 /* the 3 widest of 9 at least twice the 6 narrow */
-LOCAL BOOL clear_split (const W * e)
+LOCAL BOOL clear_split (const W * p_elem)
 {
-    W   s[9];
-    INT i;
+    W   sorted[9];
+    INT idx;
 
-    for (i = 0; i < 9; i++)
+    for (idx = 0; idx < 9; idx++)
     {
-        s[i] = e[i];
+        sorted[idx] = p_elem[idx];
     }
-    sort_w(s, 9);
-    return s[6] >= (2 * s[5]);
+    sort_w(sorted, 9);
+    return sorted[6] >= (2 * sorted[5]);
 }
 
-LOCAL W sum9 (const W * e)
+LOCAL W sum9 (const W * p_elem)
 {
-    W   s = 0;
-    INT i;
+    W   sum = 0;
+    INT idx;
 
-    for (i = 0; i < 9; i++)
+    for (idx = 0; idx < 9; idx++)
     {
-        s += e[i];
+        sum += p_elem[idx];
     }
-    return s;
+    return sum;
 }
 
 /* typical narrow and wide width of n elements (n <= 32): the median of
    the narrowest two thirds and of the widest quarter */
-LOCAL void nar_wid (const W * e, INT n, W * nar, W * wid)
+LOCAL void nar_wid (const W * p_elem, INT count, W * p_nar, W * p_wid)
 {
-    W   s[32];
-    INT i;
+    W   sorted[32];
+    INT idx;
 
-    if (n > 32)
+    if (count > 32)
     {
-        n = 32;
+        count = 32;
     }
-    for (i = 0; i < n; i++)
+    for (idx = 0; idx < count; idx++)
     {
-        s[i] = e[i];
+        sorted[idx] = p_elem[idx];
     }
-    sort_w(s, n);
-    *nar = s[(n * 2 / 3) / 2];
-    *wid = s[n - 1 - ((n / 4) / 2)];
+    sort_w(sorted, count);
+    *p_nar = sorted[(count * 2 / 3) / 2];
+    *p_wid = sorted[count - 1 - ((count / 4) / 2)];
 }
 
-LOCAL BOOL decode_one_star (W * e, INT n, BARCODE_RESULT * r)
+LOCAL BOOL decode_one_star (W * p_elem, INT count, barcode_result_t * p_result)
 {
     INT  pass;
     INT  off;
-    INT  i;
-    UB   found     = 0;
-    BOOL rev_found = FALSE;
-    W    f_nar     = 0;
-    W    f_wid     = 0;
+    INT  idx;
+    UB   found       = 0;
+    BOOL b_rev_found = FALSE;
+    W    f_nar       = 0;
+    W    f_wid       = 0;
 
-    if (n < 29)
+    if (count < 29)
     {
         return FALSE;
     }
     for (pass = 0; pass < 2; pass++)
     {
-        for (off = 0; (off + 29) <= n; off += 2)
+        for (off = 0; (off + 29) <= count; off += 2)
         {
-            W    ns = 0;
-            W    ws = 0;
+            W    narrow_sum = 0;
+            W    wide_sum   = 0;
             W    nar;
             W    wid;
-            W    sm;
-            W    so;
-            W    m[29];
-            UB   a;
-            UB   ch;
-            UB   b;
-            BOOL a_ok;
-            INT  k;
+            W    sum_mid;
+            W    sum_other;
+            W    sorted[29];
+            UB   first_ch;
+            UB   letter;
+            UB   last_ch;
+            BOOL b_a_ok;
+            INT  kdx;
 
-            a  = decode_char(&e[off], &ns, &ws);
-            ch = decode_char(&e[off + 10], &ns, &ws);
-            b  = decode_char(&e[off + 20], &ns, &ws);
-            if ((0 == ch) || ('*' == ch) || (('*' == a) == ('*' == b)))
+            first_ch = decode_char(&p_elem[off], &narrow_sum, &wide_sum);
+            letter   = decode_char(&p_elem[off + 10], &narrow_sum, &wide_sum);
+            last_ch  = decode_char(&p_elem[off + 20], &narrow_sum, &wide_sum);
+            if ((0 == letter) || ('*' == letter) ||
+                (('*' == first_ch) == ('*' == last_ch)))
             {
                 continue;
             }
-            a_ok = ('*' == a);
-            for (k = 0; k < 29; k++)
+            b_a_ok = ('*' == first_ch);
+            for (kdx = 0; kdx < 29; kdx++)
             {
-                m[k] = e[off + k];
+                sorted[kdx] = p_elem[off + kdx];
             }
-            sort_w(m, 29); /* m[14]: the median, a narrow one */
-            if (((e[off + 9] * 10) >= (m[14] * 16)) ||
-                ((e[off + 19] * 10) >= (m[14] * 16)))
+            sort_w(sorted, 29); /* m[14]: the median, a narrow one */
+            if (((p_elem[off + 9] * 10) >= (sorted[14] * 16)) ||
+                ((p_elem[off + 19] * 10) >= (sorted[14] * 16)))
             {
                 continue; /* a gap between characters is not narrow */
             }
-            if ((!clear_split(&e[off + 10])) ||
-                (!clear_split(&e[a_ok ? off : off + 20])))
+            if ((!clear_split(&p_elem[off + 10])) ||
+                (!clear_split(&p_elem[b_a_ok ? off : off + 20])))
             {
                 continue;
             }
-            sm = sum9(&e[off + 10]);
-            so = sum9(&e[a_ok ? off + 20 : off]);
-            if ((((so > sm) ? so - sm : sm - so) * 100) > (sm * 15))
+            sum_mid   = sum9(&p_elem[off + 10]);
+            sum_other = sum9(&p_elem[b_a_ok ? off + 20 : off]);
+            if ((((sum_other > sum_mid) ? sum_other - sum_mid
+                                        : sum_mid - sum_other) *
+                 100) > (sum_mid * 15))
             {
                 continue;
             }
-            if ((found != 0) && (found != ch))
+            if ((found != 0) && (found != letter))
             {
                 found = 0xFF; /* two answers */
             }
             else
             {
-                found = ch;
+                found = letter;
             }
-            rev_found = (1 == pass);
-            nar_wid(&e[off], 29, &nar, &wid);
+            b_rev_found = (1 == pass);
+            nar_wid(&p_elem[off], 29, &nar, &wid);
             f_nar = nar;
             f_wid = wid;
         }
-        for (i = 0; i < (n / 2); i++)
+        for (idx = 0; idx < (count / 2); idx++)
         { /* backwards */
-            W t = e[i];
+            W tmp = p_elem[idx];
 
-            e[i]         = e[n - 1 - i];
-            e[n - 1 - i] = t;
+            p_elem[idx]             = p_elem[count - 1 - idx];
+            p_elem[count - 1 - idx] = tmp;
         }
     }
     if ((0 == found) || (0xFF == found))
     {
         return FALSE;
     }
-    r->ok          = TRUE;
-    r->ch          = found;
-    r->reversed    = rev_found;
-    r->fixed       = BAR_FIX_STAR;
-    r->narrow_mm10 = (INT)(f_nar * S2_UM_PER_COUNT / 100);
-    r->wide_mm10   = (INT)(f_wid * S2_UM_PER_COUNT / 100);
+    p_result->b_ok        = TRUE;
+    p_result->letter      = found;
+    p_result->b_reversed  = b_rev_found;
+    p_result->fixed       = BAR_FIX_STAR;
+    p_result->narrow_mm10 = (INT)(f_nar * S2_UM_PER_COUNT / 100);
+    p_result->wide_mm10   = (INT)(f_wid * S2_UM_PER_COUNT / 100);
     return TRUE;
 }
 
-LOCAL BOOL decode_merged (const W * e, INT n, BARCODE_RESULT * r)
+LOCAL BOOL decode_merged (const W * p_elem, INT count,
+                          barcode_result_t * p_result)
 {
-    W              x[31];
-    W              nar;
-    W              wid;
-    W              tot;
-    W              opt[2];
-    INT            i;
-    INT            a;
-    INT            c;
-    INT            j;
-    UB             found = 0;
-    BARCODE_RESULT t;
-    BARCODE_RESULT keep;
+    W                trial_elems[31];
+    W                nar;
+    W                wid;
+    W                tot;
+    W                opt[2];
+    INT              idx;
+    INT              first_opt;
+    INT              last_opt;
+    INT              jdx;
+    UB               found = 0;
+    barcode_result_t trial;
+    barcode_result_t keep;
 
-    if ((n != 27) && (n != 28))
+    if ((count != 27) && (count != 28))
     {
         return FALSE;
     }
-    keep = *r;
-    nar_wid(e, n, &nar, &wid);
+    keep = *p_result;
+    nar_wid(p_elem, count, &nar, &wid);
     opt[0] = nar;
     opt[1] = wid;
-    for (i = 0; i < n; i++)
+    for (idx = 0; idx < count; idx++)
     {
-        for (a = 0; a < 2; a++)
+        for (first_opt = 0; first_opt < 2; first_opt++)
         {
-            for (c = 0; c < 2; c++)
+            for (last_opt = 0; last_opt < 2; last_opt++)
             {
-                tot = opt[a] + nar + opt[c];
-                if ((((e[i] > tot) ? e[i] - tot : tot - e[i]) * 5) > tot)
+                tot = opt[first_opt] + nar + opt[last_opt];
+                if ((((p_elem[idx] > tot) ? p_elem[idx] - tot
+                                          : tot - p_elem[idx]) *
+                     5) > tot)
                 {
                     continue;
                 }
-                for (j = 0; j < i; j++)
+                for (jdx = 0; jdx < idx; jdx++)
                 {
-                    x[j] = e[j];
+                    trial_elems[jdx] = p_elem[jdx];
                 }
-                x[i]     = opt[a];
-                x[i + 1] = nar;
-                x[i + 2] = opt[c];
-                for (j = i + 1; j < n; j++)
+                trial_elems[idx]     = opt[first_opt];
+                trial_elems[idx + 1] = nar;
+                trial_elems[idx + 2] = opt[last_opt];
+                for (jdx = idx + 1; jdx < count; jdx++)
                 {
-                    x[j + 2] = e[j];
+                    trial_elems[jdx + 2] = p_elem[jdx];
                 }
-                t = *r;
-                if (decode(x, n + 2, &t))
+                trial = *p_result;
+                if (decode(trial_elems, count + 2, &trial))
                 {
-                    if ((found != 0) && (found != t.ch))
+                    if ((found != 0) && (found != trial.letter))
                     {
                         return FALSE; /* two answers */
                     }
-                    found = t.ch;
-                    keep  = t;
+                    found = trial.letter;
+                    keep  = trial;
                 }
             }
         }
@@ -782,9 +791,9 @@ LOCAL BOOL decode_merged (const W * e, INT n, BARCODE_RESULT * r)
     {
         return FALSE;
     }
-    keep.elements = n;
+    keep.elements = count;
     keep.fixed    = BAR_FIX_MERGED;
-    *r            = keep;
+    *p_result     = keep;
     return TRUE;
 }
 
@@ -794,49 +803,50 @@ LOCAL BOOL decode_merged (const W * e, INT n, BARCODE_RESULT * r)
    two narrow elements at the end, or at the start, and decode cleanly.
    Logs' good reads with 1-2 elements cut off either end: 33 right, 0
    wrong, 11 not read; 50 000 random 27-28 element patterns: 1 decoded. */
-LOCAL BOOL decode_truncated (const W * e, INT n, BARCODE_RESULT * r)
+LOCAL BOOL decode_truncated (const W * p_elem, INT count,
+                             barcode_result_t * p_result)
 {
-    W              x[31];
-    W              nar;
-    W              wid;
-    INT            k;
-    INT            side;
-    INT            j;
-    UB             found = 0;
-    BARCODE_RESULT t;
-    BARCODE_RESULT keep;
+    W                trial_elems[31];
+    W                nar;
+    W                wid;
+    INT              kdx;
+    INT              side;
+    INT              jdx;
+    UB               found = 0;
+    barcode_result_t trial;
+    barcode_result_t keep;
 
-    if ((n != 27) && (n != 28))
+    if ((count != 27) && (count != 28))
     {
         return FALSE;
     }
-    keep = *r;
-    nar_wid(e, n, &nar, &wid);
-    for (k = 1; k <= 2; k++)
+    keep = *p_result;
+    nar_wid(p_elem, count, &nar, &wid);
+    for (kdx = 1; kdx <= 2; kdx++)
     {
-        if ((n + k) < 29)
+        if ((count + kdx) < 29)
         {
             continue;
         }
         for (side = 0; side < 2; side++)
         {
-            for (j = 0; j < (n + k); j++)
+            for (jdx = 0; jdx < (count + kdx); jdx++)
             {
-                x[j] = nar;
+                trial_elems[jdx] = nar;
             }
-            for (j = 0; j < n; j++)
+            for (jdx = 0; jdx < count; jdx++)
             {
-                x[(0 == side) ? j : j + k] = e[j];
+                trial_elems[(0 == side) ? jdx : jdx + kdx] = p_elem[jdx];
             }
-            t = *r;
-            if (decode(x, n + k, &t))
+            trial = *p_result;
+            if (decode(trial_elems, count + kdx, &trial))
             {
-                if ((found != 0) && (found != t.ch))
+                if ((found != 0) && (found != trial.letter))
                 {
                     return FALSE; /* two answers */
                 }
-                found = t.ch;
-                keep  = t;
+                found = trial.letter;
+                keep  = trial;
             }
         }
     }
@@ -844,25 +854,25 @@ LOCAL BOOL decode_truncated (const W * e, INT n, BARCODE_RESULT * r)
     {
         return FALSE;
     }
-    keep.elements = n;
+    keep.elements = count;
     keep.fixed    = BAR_FIX_CUT;
-    *r            = keep;
+    *p_result     = keep;
     return TRUE;
 }
 
-EXPORT void barcode_task (INT stacd, void * exinf)
+EXPORT void barcode_task (INT stacd, void * p_exinf)
 {
     W    elem[MAX_ELEM];
-    INT  n        = 0;
-    W    prev_odo = 0;
-    BOOL in_code  = FALSE;
-    BOOL too_long = FALSE;
-    UW   seq      = 0;
+    INT  count      = 0;
+    W    prev_odo   = 0;
+    BOOL b_in_code  = FALSE;
+    BOOL b_too_long = FALSE;
+    UW   seq        = 0;
     UW   end;
-    UB   stable  = !IR_BLACK; /* debounced level */
-    UB   raw_lvl = !IR_BLACK; /* level after the last raw edge */
-    W    raw_odo = 0;         /* where that raw edge was */
-    BOOL raw_ok  = FALSE;
+    UB   stable   = !IR_BLACK; /* debounced level */
+    UB   raw_lvl  = !IR_BLACK; /* level after the last raw edge */
+    W    raw_odo  = 0;         /* where that raw edge was */
+    BOOL b_raw_ok = FALSE;
 
     /* A level counts only once it has held for MERGE_COUNTS of travel:
        then it starts where its last raw edge was.  Flicker never holds,
@@ -874,16 +884,16 @@ EXPORT void barcode_task (INT stacd, void * exinf)
         if ((lvl) != stable)             \
         {                                \
             stable = (lvl);              \
-            if (!in_code)                \
+            if (!b_in_code)              \
             {                            \
                 if ((lvl) == IR_BLACK)   \
                 {                        \
-                    in_code  = TRUE;     \
-                    too_long = FALSE;    \
-                    n        = 0;        \
-                    prev_odo = (pos);    \
-                    edge_pub = (pos);    \
-                    busy     = TRUE;     \
+                    b_in_code  = TRUE;   \
+                    b_too_long = FALSE;  \
+                    count      = 0;      \
+                    prev_odo   = (pos);  \
+                    g_edge_pub = (pos);  \
+                    gb_busy    = TRUE;   \
                 }                        \
             }                            \
             else                         \
@@ -891,38 +901,38 @@ EXPORT void barcode_task (INT stacd, void * exinf)
                 W w_ = (pos) - prev_odo; \
                 if (w_ < 0)              \
                     w_ = -w_;            \
-                if (n < MAX_ELEM)        \
-                    elem[n++] = w_;      \
+                if (count < MAX_ELEM)    \
+                    elem[count++] = w_;  \
                 else                     \
-                    too_long = TRUE;     \
-                if (n == 1)              \
+                    b_too_long = TRUE;   \
+                if (count == 1)          \
                     mark_pub((pos), w_); \
-                prev_odo = (pos);        \
-                edge_pub = (pos);        \
+                prev_odo   = (pos);      \
+                g_edge_pub = (pos);      \
             }                            \
         }                                \
     } while (0)
 
     (void)stacd;
-    (void)exinf;
-    ring_r = ring_w;
+    (void)p_exinf;
+    g_ring_r = g_ring_w;
 
     for (;;)
     {
         (void)tk_slp_tsk(TIMEOUT_BARCODE_MS);
-        app_timing_wake(tmg_barcode, 0);
+        app_timing_wake(g_tmg_barcode, 0);
 
         /* barcode_reset(): drop this read and every edge until it
            ends, then start fresh */
-        if (paused)
+        if (gb_paused)
         {
-            ring_r  = ring_w;
-            in_code = FALSE;
-            n       = 0;
-            busy    = FALSE;
-            stable  = !IR_BLACK;
-            raw_ok  = FALSE;
-            app_timing_done(tmg_barcode);
+            g_ring_r  = g_ring_w;
+            b_in_code = FALSE;
+            count     = 0;
+            gb_busy   = FALSE;
+            stable    = !IR_BLACK;
+            b_raw_ok  = FALSE;
+            app_timing_done(g_tmg_barcode);
             continue;
         }
 
@@ -932,58 +942,58 @@ EXPORT void barcode_task (INT stacd, void * exinf)
            Stage 2 run, 1 Nov).  If the ring overflowed, edges were
            lost: drop the barcode being read. */
         {
-            UW avail = ring_w - ring_r;
+            UW avail = g_ring_w - g_ring_r;
 
             if (avail > RING)
             {
-                ring_r  = ring_w - RING;
-                in_code = FALSE;
-                n       = 0;
-                stable  = !IR_BLACK;
-                raw_ok  = FALSE;
-                avail   = RING;
+                g_ring_r  = g_ring_w - RING;
+                b_in_code = FALSE;
+                count     = 0;
+                stable    = !IR_BLACK;
+                b_raw_ok  = FALSE;
+                avail     = RING;
             }
-            end = ring_r + avail;
+            end = g_ring_r + avail;
         }
-        while (ring_r != end)
+        while (g_ring_r != end)
         {
-            EDGE ed = ring[ring_r & (RING - 1)];
-            W    d;
+            bar_edge_t edge = g_ring[g_ring_r & (RING - 1)];
+            W          delta;
 
-            ring_r++;
-            if (raw_ok)
+            g_ring_r++;
+            if (b_raw_ok)
             {
-                d = ed.odo - raw_odo;
-                if (d < 0)
+                delta = edge.odo - raw_odo;
+                if (delta < 0)
                 {
-                    d = -d;
+                    delta = -delta;
                 }
-                if (d >= MERGE_COUNTS)
+                if (delta >= MERGE_COUNTS)
                 {
                     COMMIT(raw_lvl, raw_odo); /* that level held */
                 }
             }
-            raw_lvl = ed.level;
-            raw_odo = ed.odo;
-            raw_ok  = TRUE;
+            raw_lvl  = edge.level;
+            raw_odo  = edge.odo;
+            b_raw_ok = TRUE;
         }
         /* The latest level may have held long enough by now */
-        if (raw_ok)
+        if (b_raw_ok)
         {
-            W d = motion_odometer() - raw_odo;
+            W delta = motion_odometer() - raw_odo;
 
-            if (d < 0)
+            if (delta < 0)
             {
-                d = -d;
+                delta = -delta;
             }
-            if (d >= MERGE_COUNTS)
+            if (delta >= MERGE_COUNTS)
             {
                 COMMIT(raw_lvl, raw_odo);
             }
         }
 
         /* End of a barcode: quiet for S3_QUIET_MM */
-        if (in_code)
+        if (b_in_code)
         {
             W gap = motion_odometer() - prev_odo;
 
@@ -993,182 +1003,187 @@ EXPORT void barcode_task (INT stacd, void * exinf)
             }
             if (S2_COUNTS_TO_MM(gap) > S3_QUIET_MM)
             {
-                in_code = FALSE;
+                b_in_code = FALSE;
                 {
-                    INT  i;
-                    UINT s;
+                    INT  idx;
+                    UINT irq_state;
 
-                    APP_LOCK(s);
-                    dbg_n = n;
-                    for (i = 0; (i < n) && (i < DBG_MAX); i++)
+                    APP_LOCK(irq_state);
+                    g_dbg_n = count;
+                    for (idx = 0; (idx < count) && (idx < DBG_MAX); idx++)
                     {
-                        dbg_w[i] = (INT)(elem[i] * S2_UM_PER_COUNT / 100);
+                        g_dbg_w[idx] = (INT)(elem[idx] * S2_UM_PER_COUNT / 100);
                     }
-                    dbg_seq++;
-                    APP_UNLOCK(s);
+                    g_dbg_seq++;
+                    APP_UNLOCK(irq_state);
                 }
-                if (n >= MIN_ELEM_REPORT)
+                if (count >= MIN_ELEM_REPORT)
                 {
-                    BARCODE_RESULT r = {0};
-                    UINT           s;
+                    barcode_result_t result = {0};
+                    UINT             irq_state;
 
-                    if ((!too_long) && (!decode(elem, n, &r)) &&
-                        (!decode_one_star(elem, n, &r)) &&
-                        (!decode_merged(elem, n, &r)))
+                    if ((!b_too_long) && (!decode(elem, count, &result)) &&
+                        (!decode_one_star(elem, count, &result)) &&
+                        (!decode_merged(elem, count, &result)))
                     {
-                        (void)decode_truncated(elem, n, &r);
+                        (void)decode_truncated(elem, count, &result);
                     }
-                    r.seq      = ++seq;
-                    r.elements = n;
-                    APP_LOCK(s);
-                    last = r;
-                    APP_UNLOCK(s);
-                    seq_now = seq;
-                    tk_set_flg(flg_mission, MSN_FLG_BARCODE);
+                    result.seq      = ++seq;
+                    result.elements = count;
+                    APP_LOCK(irq_state);
+                    g_last = result;
+                    APP_UNLOCK(irq_state);
+                    g_seq_now = seq;
+                    tk_set_flg(gh_flg_mission, MSN_FLG_BARCODE);
                 }
-                n = 0;
+                count = 0;
             }
         }
-        busy = in_code;
+        gb_busy = b_in_code;
 
-        app_timing_done(tmg_barcode);
+        app_timing_done(g_tmg_barcode);
     }
 }
 
 /* ---- Mapping (B7, B8) ---------------------------------------------- */
 
-LOCAL BOOL is_code_char (UB c)
+LOCAL BOOL is_code_char (UB letter)
 {
-    return ((c >= 'A') && (c <= 'Z')) || ((c >= '0') && (c <= '9'));
+    return ((letter >= 'A') && (letter <= 'Z')) ||
+           ((letter >= '0') && (letter <= '9'));
 }
 
-EXPORT BOOL barcode_set_mapping (const UB * text, INT len, UB * why,
+EXPORT BOOL barcode_set_mapping (const UB * p_text, INT len, UB * p_why,
                                  INT why_max)
 {
-    UB   ch[4];
-    UB   mv[4];
+    UB   letters[4];
+    UB   moves[4];
     INT  pairs = 0;
-    INT  i     = 0;
-    INT  a;
-    INT  b;
-    UINT s;
+    INT  idx   = 0;
+    INT  first;
+    INT  second;
+    UINT irq_state;
 
-    why[0] = '\0';
-    while (i < len)
+    p_why[0] = '\0';
+    while (idx < len)
     {
-        UB c;
-        UB m;
+        UB letter;
+        UB move_ch;
 
-        while ((i < len) && ((' ' == text[i]) || (',' == text[i])))
+        while ((idx < len) && ((' ' == p_text[idx]) || (',' == p_text[idx])))
         {
-            i++;
+            idx++;
         }
-        if (i >= len)
+        if (idx >= len)
         {
             break;
         }
-        if ((4 == pairs) || ((i + 2) >= len) || (text[i + 1] != '='))
+        if ((4 == pairs) || ((idx + 2) >= len) || (p_text[idx + 1] != '='))
         {
-            tm_sprintf(why,
+            tm_sprintf(p_why,
                        (const UB *)"expected 4 pairs like K=L,Q=R,X=F,M=U");
             return FALSE;
         }
-        c = text[i];
-        m = text[i + 2];
-        if ((c >= 'a') && (c <= 'z'))
+        letter  = p_text[idx];
+        move_ch = p_text[idx + 2];
+        if ((letter >= 'a') && (letter <= 'z'))
         {
-            c = (UB)(c - 'a' + 'A');
+            letter = (UB)(letter - 'a' + 'A');
         }
-        if ((m >= 'a') && (m <= 'z'))
+        if ((move_ch >= 'a') && (move_ch <= 'z'))
         {
-            m = (UB)(m - 'a' + 'A');
+            move_ch = (UB)(move_ch - 'a' + 'A');
         }
-        if ((!is_code_char(c)) || ((m != MOVE_LEFT) && (m != MOVE_RIGHT) &&
-                                   (m != MOVE_FORWARD) && (m != MOVE_UTURN)))
+        if ((!is_code_char(letter)) ||
+            ((move_ch != MOVE_LEFT) && (move_ch != MOVE_RIGHT) &&
+             (move_ch != MOVE_FORWARD) && (move_ch != MOVE_UTURN)))
         {
-            tm_sprintf(why,
+            tm_sprintf(p_why,
                        (const UB *)"pair %d: '%c=%c' not A-Z/0-9 = L/R/F/U",
-                       pairs + 1, c, m);
+                       pairs + 1, letter, move_ch);
             return FALSE;
         }
-        ch[pairs] = c;
-        mv[pairs] = m;
+        letters[pairs] = letter;
+        moves[pairs]   = move_ch;
         pairs++;
-        i += 3;
+        idx += 3;
     }
     if (pairs != 4)
     {
-        tm_sprintf(why, (const UB *)"%d pairs, need exactly 4", pairs);
+        tm_sprintf(p_why, (const UB *)"%d pairs, need exactly 4", pairs);
         return FALSE;
     }
-    for (a = 0; a < 4; a++)
+    for (first = 0; first < 4; first++)
     {
-        for (b = a + 1; b < 4; b++)
+        for (second = first + 1; second < 4; second++)
         {
-            if ((ch[a] == ch[b]) || (mv[a] == mv[b]))
+            if ((letters[first] == letters[second]) ||
+                (moves[first] == moves[second]))
             {
                 tm_sprintf(
-                    why, (const UB *)"each character and each move only once");
+                    p_why,
+                    (const UB *)"each character and each move only once");
                 return FALSE;
             }
         }
     }
     (void)why_max;
-    APP_LOCK(s);
-    for (a = 0; a < 4; a++)
+    APP_LOCK(irq_state);
+    for (first = 0; first < 4; first++)
     {
-        map_ch[a] = ch[a];
-        map_mv[a] = mv[a];
+        g_map_ch[first] = letters[first];
+        g_map_mv[first] = moves[first];
     }
-    map_set = TRUE;
-    APP_UNLOCK(s);
+    gb_map_set = TRUE;
+    APP_UNLOCK(irq_state);
     return TRUE;
 }
 
-EXPORT INT barcode_move_for (UB ch)
+EXPORT INT barcode_move_for (UB letter)
 {
-    INT  i;
-    INT  mv = MOVE_NONE;
-    UINT s;
+    INT  idx;
+    INT  move = MOVE_NONE;
+    UINT irq_state;
 
-    APP_LOCK(s);
-    if (map_set)
+    APP_LOCK(irq_state);
+    if (gb_map_set)
     {
-        for (i = 0; i < 4; i++)
+        for (idx = 0; idx < 4; idx++)
         {
-            if (map_ch[i] == ch)
+            if (g_map_ch[idx] == letter)
             {
-                mv = map_mv[i];
+                move = g_map_mv[idx];
             }
         }
     }
-    APP_UNLOCK(s);
-    return mv;
+    APP_UNLOCK(irq_state);
+    return move;
 }
 
-EXPORT INT barcode_mapping_text (UB * out, INT max)
+EXPORT INT barcode_mapping_text (UB * p_out, INT max)
 {
-    UB   ch[4];
-    UB   mv[4];
-    BOOL set;
-    UINT s;
-    INT  i;
+    UB   letters[4];
+    UB   moves[4];
+    BOOL b_set;
+    UINT irq_state;
+    INT  idx;
 
-    APP_LOCK(s);
-    set = map_set;
-    for (i = 0; i < 4; i++)
+    APP_LOCK(irq_state);
+    b_set = gb_map_set;
+    for (idx = 0; idx < 4; idx++)
     {
-        ch[i] = map_ch[i];
-        mv[i] = map_mv[i];
+        letters[idx] = g_map_ch[idx];
+        moves[idx]   = g_map_mv[idx];
     }
-    APP_UNLOCK(s);
-    if ((!set) || (max < 16))
+    APP_UNLOCK(irq_state);
+    if ((!b_set) || (max < 16))
     {
-        out[0] = '\0';
+        p_out[0] = '\0';
         return 0;
     }
-    return tm_sprintf(out, (const UB *)"%c=%c,%c=%c,%c=%c,%c=%c", ch[0], mv[0],
-                      ch[1], mv[1], ch[2], mv[2], ch[3], mv[3]);
+    return tm_sprintf(p_out, (const UB *)"%c=%c,%c=%c,%c=%c,%c=%c", letters[0],
+                      moves[0], letters[1], moves[1], letters[2], moves[2],
+                      letters[3], moves[3]);
 }
 
 /*** end of file ***/

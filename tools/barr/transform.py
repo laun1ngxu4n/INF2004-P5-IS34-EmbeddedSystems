@@ -148,7 +148,10 @@ def add_typedefs(paths):
         for m in re.finditer(r'typedef[^;{]*?(\w+)\s*;', s):
             TYPE_WORDS.add(m.group(1))
         for m in re.finditer(r'}\s*(\w+)\s*;', s):
-            TYPE_WORDS.add(m.group(1))
+            if m.group(1) not in ('break', 'return', 'continue'):
+                TYPE_WORDS.add(m.group(1))
+        for m in re.finditer(r'typedef[^;]*?\(\s*\*\s*(\w+)\s*\)', s):
+            TYPE_WORDS.add(m.group(1))          # a function pointer type
 
 
 class Fail(Exception):

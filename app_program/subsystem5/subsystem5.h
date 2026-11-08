@@ -25,7 +25,7 @@
 
 /* IF-01: Mission's wake-up event flag, created and owned by subsystem 5.
    Other subsystems only set bits; Mission waits and clears them. */
-IMPORT ID flg_mission;
+IMPORT ID gh_flg_mission;
 #define MSN_FLG_PING      0x0001u /* Stage 0 check from Telemetry, 1 Hz */
 #define MSN_FLG_STOP      0x0002u /* STOP button or MQTT stop */
 #define MSN_FLG_START     0x0004u /* MQTT start (the button is polled) */
@@ -94,31 +94,31 @@ IMPORT INT  obstacle_front_mm (void);     /* last forward reading, -1 = none */
 
 typedef struct
 {
-    BOOL found;      /* an obstacle straight ahead */
-    INT  front_mm;   /* distance straight ahead */
-    INT  left_mm;    /* left edge, mm left of the robot's centre line */
-    INT  right_mm;   /* right edge, mm (negative = right of centre) */
-    INT  width_mm;   /* left - right */
-    INT  unc_mm;     /* +/- uncertainty */
-    BOOL left_clear; /* open space beyond the left edge */
-    BOOL right_clear;
-    BOOL left_seen; /* the scan saw past the left edge (FALSE:
+    BOOL b_found;      /* an obstacle straight ahead */
+    INT  front_mm;     /* distance straight ahead */
+    INT  left_mm;      /* left edge, mm left of the robot's centre line */
+    INT  right_mm;     /* right edge, mm (negative = right of centre) */
+    INT  width_mm;     /* left - right */
+    INT  unc_mm;       /* +/- uncertainty */
+    BOOL b_left_clear; /* open space beyond the left edge */
+    BOOL b_right_clear;
+    BOOL b_left_seen; /* the scan saw past the left edge (FALSE:
                the obstacle filled the scan that side,
                edge and clear unknown) */
-    BOOL right_seen;
+    BOOL b_right_seen;
     INT  left_unc; /* +/- of each edge */
     INT  right_unc;
     INT  rays;       /* rays scanned */
     INT  fault_rays; /* rays where the sensor did not answer */
-} OBSTACLE_PROFILE;
+} obstacle_profile_t;
 
 /* Blocking: called by Mission (or a test) while the robot stands still.
    Turns the servo, settles, 5 pings per ray, median.  About 7 s. */
-IMPORT void obstacle_scan (OBSTACLE_PROFILE * p);
+IMPORT void obstacle_scan (obstacle_profile_t * p);
 /* Combine two scans (O5): mean width, uncertainty includes their spread */
-IMPORT void obstacle_combine (const OBSTACLE_PROFILE * a,
-                              const OBSTACLE_PROFILE * b,
-                              OBSTACLE_PROFILE *       out);
+IMPORT void obstacle_combine (const obstacle_profile_t * a,
+                              const obstacle_profile_t * b,
+                              obstacle_profile_t *       out);
 IMPORT void servo_set_angle (INT deg);  /* 90 = ahead, clamped to 90 +/-
                            the larger of S5_SERVO_HALF_DEG and
                            S5_SERVO_SIDE_DEG; blocks while it
@@ -143,12 +143,12 @@ IMPORT void mission_arm (BOOL on);
 IMPORT void mission_features (BOOL obstacles, BOOL imu);
 
 /* Private to subsystem 5, shared between its own .c files */
-IMPORT ID   tid_mission;
-IMPORT INT  tmg_mission;
-IMPORT UW   mission_pings; /* written only by the Mission task */
-IMPORT ID   tid_obstacle;
-IMPORT ID   cyc_obstacle;
-IMPORT INT  tmg_obstacle;
+IMPORT ID   gh_tid_mission;
+IMPORT INT  g_tmg_mission;
+IMPORT UW   g_mission_pings; /* written only by the Mission task */
+IMPORT ID   gh_tid_obstacle;
+IMPORT ID   gh_cyc_obstacle;
+IMPORT INT  g_tmg_obstacle;
 IMPORT void mission_task (INT stacd, void * exinf);
 IMPORT void obstacle_task (INT stacd, void * exinf);
 IMPORT ER   obstacle_hw_init (void);

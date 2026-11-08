@@ -15,14 +15,14 @@
 #define IO_PROC0_INTS(n) (IO_BANK0_BASE + 0x120 + ((n) * 4))
 #define IO_EDGE_BITS     0xCCCCCCCCu /* edge-low/edge-high of all 8 pins */
 
-LOCAL APP_GPIO_CB gpio_cb[GPIO_NUM];
+LOCAL app_gpio_cb_t g_gpio_cb[GPIO_NUM];
 
-LOCAL void gpio_inthdr (UINT intno)
+LOCAL void gpio_bank0_isr (UINT intno)
 {
     UW   ints;
     UINT reg;
     UINT pin;
-    UINT sh;
+    UINT slot;
 
     for (reg = 0; reg < 4; reg++)
     {
@@ -33,13 +33,13 @@ LOCAL void gpio_inthdr (UINT intno)
         }
         /* Acknowledge first, so an edge during the callbacks is kept */
         out_w(IO_INTR(reg), ints & IO_EDGE_BITS);
-        for (sh = 0; sh < 8; sh++)
+        for (slot = 0; slot < 8; slot++)
         {
-            UW ev = (ints >> (sh * 4)) & APP_GPIO_BOTH;
-            pin   = (reg * 8) + sh;
-            if ((ev != 0u) && (pin < GPIO_NUM) && (gpio_cb[pin] != NULL))
+            UW events = (ints >> (slot * 4)) & APP_GPIO_BOTH;
+            pin       = (reg * 8) + slot;
+            if ((events != 0u) && (pin < GPIO_NUM) && (g_gpio_cb[pin] != NULL))
             {
-                gpio_cb[pin](pin, ev);
+                g_gpio_cb[pin](pin, events);
             }
         }
     }
@@ -49,14 +49,14 @@ LOCAL void gpio_inthdr (UINT intno)
 EXPORT ER app_gpio_init (void)
 {
     T_DINT dint;
-    ER     er;
+    ER     err;
 
     dint.intatr = TA_HLNG;
-    dint.inthdr = (FP)gpio_inthdr;
-    er          = tk_def_int(INTNO_IO_BANK0, &dint);
-    if (er < E_OK)
+    dint.inthdr = (FP)gpio_bank0_isr;
+    err         = tk_def_int(INTNO_IO_BANK0, &dint);
+    if (err < E_OK)
     {
-        return er;
+        return err;
     }
     EnableInt(INTNO_IO_BANK0, INTPRI_IO_BANK0);
     return E_OK;
@@ -77,44 +77,45 @@ EXPORT ER app_gpio_output (UINT pin)
     return gpio_set_pin(pin, GPIO_MODE_OUT);
 }
 
-EXPORT ER app_gpio_input (UINT pin, BOOL pull_up)
+EXPORT ER app_gpio_input (UINT pin, BOOL b_pull_up)
 {
-    ER er;
+    ER err;
 
-    er = gpio_set_pin(pin, GPIO_MODE_IN);
-    if (er < E_OK)
+    err = gpio_set_pin(pin, GPIO_MODE_IN);
+    if (err < E_OK)
     {
-        return er;
+        return err;
     }
     clr_w(GPIO(pin),
           GPIO_PUE | GPIO_PDE); /* the pad resets with pull-down on */
-    if (pull_up)
+    if (b_pull_up)
     {
         set_w(GPIO(pin), GPIO_PUE);
     }
     return E_OK;
 }
 
-EXPORT ER app_gpio_irq_add (UINT pin, UW events, APP_GPIO_CB cb)
+EXPORT ER app_gpio_irq_add (UINT pin, UW events, app_gpio_cb_t p_callback)
 {
-    UINT s;
+    UINT irq_state;
     UW   bits;
 
-    if ((pin >= GPIO_NUM) || (NULL == cb) || ((events & ~APP_GPIO_BOTH) != 0u))
+    if ((pin >= GPIO_NUM) || (NULL == p_callback) ||
+        ((events & ~APP_GPIO_BOTH) != 0u))
     {
         return E_PAR;
     }
     bits = events << ((pin % 8) * 4);
-    APP_LOCK(s);
-    if (gpio_cb[pin] != NULL)
+    APP_LOCK(irq_state);
+    if (g_gpio_cb[pin] != NULL)
     {
-        APP_UNLOCK(s);
+        APP_UNLOCK(irq_state);
         return E_OBJ; /* pin already has an owner */
     }
-    gpio_cb[pin] = cb;
+    g_gpio_cb[pin] = p_callback;
     out_w(IO_INTR(pin / 8), bits); /* drop stale edges */
     set_w(IO_PROC0_INTE(pin / 8), bits);
-    APP_UNLOCK(s);
+    APP_UNLOCK(irq_state);
     return E_OK;
 }
 

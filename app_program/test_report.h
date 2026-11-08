@@ -77,8 +77,8 @@
 #define TEST_TIMED_(id_rate, id_time, slot, is_periodic)                       \
     do                                                                         \
     {                                                                          \
-        APP_TIMING a_, b_;                                                     \
-        INT        per_, exp_, got_, ovr_, lim_ms_;                            \
+        app_timing_t a_, b_;                                                   \
+        INT          per_, exp_, got_, ovr_, lim_ms_;                          \
         app_timing_test_start(slot);                                           \
         app_timing_get((slot), &a_);                                           \
         tk_dly_tsk(APP_TEST_WINDOW_MS);                                        \
@@ -90,7 +90,7 @@
         lim_ms_ = per_ + APP_TEST_SLACK_MS + ((is_periodic) ? 0 : 10);         \
         tm_printf((UB *)"[TEST] %s: %d wakes in %d ms (expected %s%d), "       \
                         "longest interval %d us (limit %d ms), overruns %d\n", \
-                  b_.name, got_, APP_TEST_WINDOW_MS,                           \
+                  b_.p_name, got_, APP_TEST_WINDOW_MS,                         \
                   (is_periodic) ? "" : "about ", exp_, (INT)b_.test_max_iv_us, \
                   lim_ms_, ovr_);                                              \
         TEST_CHECK((id_rate),                                                  \

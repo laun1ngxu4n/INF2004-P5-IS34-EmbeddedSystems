@@ -31,43 +31,45 @@
 #define QDEC_BAD 2
 
 /* (previous AB << 2) | new AB -> +1 / -1 count, 0 no change, 2 invalid */
-LOCAL const B qdec[16] = {0,        +1, -1, QDEC_BAD, -1, 0,  QDEC_BAD, +1, +1,
-                          QDEC_BAD, 0,  -1, QDEC_BAD, -1, +1, 0};
+LOCAL const B g_qdec[16] = {0,        +1, -1, QDEC_BAD, -1, 0,
+                            QDEC_BAD, +1, +1, QDEC_BAD, 0,  -1,
+                            QDEC_BAD, -1, +1, 0};
 
-LOCAL volatile W  enc_count[2]; /* raw: the left one counts down forward */
-LOCAL volatile UW enc_invalid;
-LOCAL UB          enc_prev[2];
+LOCAL volatile W  g_enc_count[2]; /* raw: the left one counts down forward */
+LOCAL volatile UW g_enc_invalid;
+LOCAL UB          g_enc_prev[2];
 
 LOCAL UB enc_ab (INT wheel)
 {
-    UW in = in_w(GPIO_IN);
+    UW pins = in_w(GPIO_IN);
 
     if (WHEEL_L == wheel)
     {
-        return (UB)((((in >> PIN_ENC_L_A) & 1u) << 1) |
-                    ((in >> PIN_ENC_L_B) & 1u));
+        return (UB)((((pins >> PIN_ENC_L_A) & 1u) << 1) |
+                    ((pins >> PIN_ENC_L_B) & 1u));
     }
-    return (UB)((((in >> PIN_ENC_R_A) & 1u) << 1) | ((in >> PIN_ENC_R_B) & 1u));
+    return (UB)((((pins >> PIN_ENC_R_A) & 1u) << 1) |
+                ((pins >> PIN_ENC_R_B) & 1u));
 }
 
 /* Interrupt context, from app_gpio.c */
-LOCAL void enc_edge (UINT pin, UW events)
+LOCAL void encoder_edge_isr (UINT pin, UW events)
 {
     INT wheel =
         ((PIN_ENC_L_A == pin) || (PIN_ENC_L_B == pin)) ? WHEEL_L : WHEEL_R;
-    UB ab   = enc_ab(wheel);
-    B  step = qdec[(enc_prev[wheel] << 2) | ab];
+    UB state_ab = enc_ab(wheel);
+    B  step     = g_qdec[(g_enc_prev[wheel] << 2) | state_ab];
 
     (void)events;
     if (QDEC_BAD == step)
     {
-        enc_invalid++;
+        g_enc_invalid++;
     }
     else
     {
-        enc_count[wheel] += step;
+        g_enc_count[wheel] += step;
     }
-    enc_prev[wheel] = ab;
+    g_enc_prev[wheel] = state_ab;
 }
 
 /* One write per slice sets A (low half) and B (high half) together, so a
@@ -96,9 +98,9 @@ EXPORT void motor_write (INT duty_l, INT duty_r)
 {
     UW   cc_l = cc_pair(duty_l);
     UW   cc_r = cc_pair(duty_r);
-    UINT s;
+    UINT irq_state;
 
-    APP_LOCK(s);
+    APP_LOCK(irq_state);
     if (app_stop_reasons() != 0u)
     {
         cc_l = 0u; /* STOP always wins */
@@ -106,7 +108,7 @@ EXPORT void motor_write (INT duty_l, INT duty_r)
     }
     out_w(PWM_SLICE_CC(SLICE_L), cc_l);
     out_w(PWM_SLICE_CC(SLICE_R), cc_r);
-    APP_UNLOCK(s);
+    APP_UNLOCK(irq_state);
 }
 
 EXPORT void motor_safe_off (void)
@@ -117,59 +119,59 @@ EXPORT void motor_safe_off (void)
 
 EXPORT W motion_odometer (void)
 {
-    return (enc_count[WHEEL_R] - enc_count[WHEEL_L]) / 2;
+    return (g_enc_count[WHEEL_R] - g_enc_count[WHEEL_L]) / 2;
 }
 
 /* Counts with + = forward for both wheels */
-EXPORT void encoder_read (W * l, W * r, UW * invalid)
+EXPORT void encoder_read (W * p_left, W * p_right, UW * p_invalid)
 {
-    UINT s;
+    UINT irq_state;
 
-    APP_LOCK(s);
-    *l = -enc_count[WHEEL_L];
-    *r = enc_count[WHEEL_R];
-    if (invalid != NULL)
+    APP_LOCK(irq_state);
+    *p_left  = -g_enc_count[WHEEL_L];
+    *p_right = g_enc_count[WHEEL_R];
+    if (p_invalid != NULL)
     {
-        *invalid = enc_invalid;
+        *p_invalid = g_enc_invalid;
     }
-    APP_UNLOCK(s);
+    APP_UNLOCK(irq_state);
 }
 
 EXPORT ER motion_hw_init (void)
 {
     const UINT mpins[4] = {PIN_M_L_A, PIN_M_L_B, PIN_M_R_A, PIN_M_R_B};
     const UINT epins[4] = {PIN_ENC_L_A, PIN_ENC_L_B, PIN_ENC_R_A, PIN_ENC_R_B};
-    ER         er;
-    INT        i;
+    ER         err;
+    INT        idx;
 
     app_hw_release(RESETS_RESET_PWM); /* not released by the kernel */
     motor_safe_off();
-    for (i = 0; i < 4; i++)
+    for (idx = 0; idx < 4; idx++)
     {
-        pwm_set_pin(mpins[i]);
+        pwm_set_pin(mpins[idx]);
     }
     pwm_set_wrap(PIN_M_L_A, PWM_WRAP);
     pwm_set_wrap(PIN_M_R_A, PWM_WRAP);
     pwm_set_enabled(PIN_M_L_A, TRUE);
     pwm_set_enabled(PIN_M_R_A, TRUE);
 
-    for (i = 0; i < 4; i++)
+    for (idx = 0; idx < 4; idx++)
     {
         /* pull-up: harmless for push-pull, needed for open-collector */
-        er = app_gpio_input(epins[i], TRUE);
-        if (er < E_OK)
+        err = app_gpio_input(epins[idx], TRUE);
+        if (err < E_OK)
         {
-            return er;
+            return err;
         }
     }
-    enc_prev[WHEEL_L] = enc_ab(WHEEL_L);
-    enc_prev[WHEEL_R] = enc_ab(WHEEL_R);
-    for (i = 0; i < 4; i++)
+    g_enc_prev[WHEEL_L] = enc_ab(WHEEL_L);
+    g_enc_prev[WHEEL_R] = enc_ab(WHEEL_R);
+    for (idx = 0; idx < 4; idx++)
     {
-        er = app_gpio_irq_add(epins[i], APP_GPIO_BOTH, enc_edge);
-        if (er < E_OK)
+        err = app_gpio_irq_add(epins[idx], APP_GPIO_BOTH, encoder_edge_isr);
+        if (err < E_OK)
         {
-            return er;
+            return err;
         }
     }
     return E_OK;

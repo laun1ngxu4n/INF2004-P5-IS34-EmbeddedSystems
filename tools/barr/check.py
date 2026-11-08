@@ -99,6 +99,8 @@ def check_file(f, hits):
     # type names
     for m in re.finditer(r'}\s*(\w+)\s*;|typedef\s+[\w\s\*]+?\b(\w+)\s*;', src):
         name = m.group(1) or m.group(2)
+        if name in ('break', 'return', 'continue'):
+            continue
         if name and not re.fullmatch(r'[a-z][a-z0-9_]*_t', name):
             hit('5.1a', src.count('\n', 0, m.start()) + 1, name)
     # switch without default

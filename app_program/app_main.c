@@ -28,7 +28,7 @@
  *  and go back to sleep.  Telemetry prints the timing table every 10 s.
  *
  *  Interfaces (TEAM.md section 5):
- *    IF-01  S1 -> S5  event flag flg_mission, bit MSN_FLG_PING (owned by S5)
+ *    IF-01  S1 -> S5  event flag gh_flg_mission, bit MSN_FLG_PING (owned by S5)
  *                     Stage 0 check that an event wakes Mission; later
  *                     START/STOP/finish from MQTT use the same flag.
  *
@@ -56,13 +56,13 @@
  * Create and start one task (declared in app.h for every subsystem).
  *   prc = TP_PRC1 (core 0), TP_PRC2 (core 1), or 0 for "any core".
  */
-EXPORT ID app_start_task (FP entry, PRI pri, UW prc, const char * name)
+EXPORT ID app_start_task (FP p_entry, PRI pri, UW prc, const char * p_name)
 {
     T_CTSK ctsk = {0};
-    ID     tid;
-    ER     er;
+    ID     h_tid;
+    ER     err;
 
-    ctsk.task    = entry;           /* function the task runs */
+    ctsk.task    = p_entry;         /* function the task runs */
     ctsk.itskpri = pri;             /* initial priority (1 = highest) */
     ctsk.stksz   = TASK_STACK_SIZE; /* kernel allocates the stack */
     ctsk.tskatr  = TA_HLNG          /* written in a high-level language (C) */
@@ -78,31 +78,31 @@ EXPORT ID app_start_task (FP entry, PRI pri, UW prc, const char * name)
 #endif
 
     /* tk_cre_tsk: create the task.  It starts in the DORMANT state. */
-    tid = tk_cre_tsk(&ctsk);
-    if (tid < E_OK)
+    h_tid = tk_cre_tsk(&ctsk);
+    if (h_tid < E_OK)
     {
-        CHECK(tid, name);
-        return tid;
+        CHECK(h_tid, p_name);
+        return h_tid;
     }
 
     /* tk_sta_tsk: DORMANT -> READY.  The int is passed as stacd. */
-    er = tk_sta_tsk(tid, 0);
-    CHECK(er, name);
-    return tid;
+    err = tk_sta_tsk(h_tid, 0);
+    CHECK(err, p_name);
+    return h_tid;
 }
 
 /* Cyclic handler body shared by every periodic task: exinf points at the
    task's ID variable.  Interrupt context: short, never waits. */
-LOCAL void wake_handler (void * exinf)
+LOCAL void wake_handler (void * p_exinf)
 {
-    tk_wup_tsk(*(ID *)exinf); /* queues if the task is still busy */
+    tk_wup_tsk(*(ID *)p_exinf); /* queues if the task is still busy */
 }
 
-EXPORT ID app_create_wake_cyclic (ID * p_tid, RELTIM period_ms)
+EXPORT ID app_create_wake_cyclic (ID * p_p_tid, RELTIM period_ms)
 {
     T_CCYC ccyc = {0};
 
-    ccyc.exinf  = p_tid;
+    ccyc.exinf  = p_p_tid;
     ccyc.cycatr = TA_HLNG; /* created stopped; tk_sta_cyc in _start */
     ccyc.cychdr = (FP)wake_handler;
     ccyc.cyctim = period_ms; /* period, ms */

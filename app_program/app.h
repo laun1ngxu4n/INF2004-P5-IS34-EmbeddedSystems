@@ -58,7 +58,7 @@
 #define PERIOD_OBSTACLE_MS  60
 #define PERIOD_TELEMETRY_MS 100 /* LED/buzzer tick; table every 10 s */
 #define TIMEOUT_BARCODE_MS  10  /* event-driven, quiet-zone check */
-#define TIMEOUT_MISSION_MS  100 /* event-driven, wait on flg_mission */
+#define TIMEOUT_MISSION_MS  100 /* event-driven, wait on gh_flg_mission */
 
 #define TASK_STACK_SIZE 2048 /* bytes; tm_printf needs ~1 KB */
 

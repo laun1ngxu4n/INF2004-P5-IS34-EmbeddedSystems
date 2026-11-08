@@ -5,48 +5,48 @@
 
 #include "subsystem4.h"
 
-EXPORT ID  tid_safety;
-EXPORT ID  cyc_safety;
-EXPORT INT tmg_safety;
-EXPORT ID  tid_imu;
-EXPORT ID  cyc_imu;
-EXPORT INT tmg_imu;
+EXPORT ID  gh_tid_safety;
+EXPORT ID  gh_cyc_safety;
+EXPORT INT g_tmg_safety;
+EXPORT ID  gh_tid_imu;
+EXPORT ID  gh_cyc_imu;
+EXPORT INT g_tmg_imu;
 
 EXPORT ER subsystem4_init (void)
 {
-    tmg_safety = app_timing_add("safety", PRI_SAFETY, PERIOD_SAFETY_MS);
-    tmg_imu    = app_timing_add("imu", PRI_IMU, PERIOD_IMU_MS);
-    cyc_safety = app_create_wake_cyclic(&tid_safety, PERIOD_SAFETY_MS);
-    cyc_imu    = app_create_wake_cyclic(&tid_imu, PERIOD_IMU_MS);
-    if (tmg_safety < E_OK)
+    g_tmg_safety  = app_timing_add("safety", PRI_SAFETY, PERIOD_SAFETY_MS);
+    g_tmg_imu     = app_timing_add("imu", PRI_IMU, PERIOD_IMU_MS);
+    gh_cyc_safety = app_create_wake_cyclic(&gh_tid_safety, PERIOD_SAFETY_MS);
+    gh_cyc_imu    = app_create_wake_cyclic(&gh_tid_imu, PERIOD_IMU_MS);
+    if (g_tmg_safety < E_OK)
     {
-        return tmg_safety;
+        return g_tmg_safety;
     }
-    if (tmg_imu < E_OK)
+    if (g_tmg_imu < E_OK)
     {
-        return tmg_imu;
+        return g_tmg_imu;
     }
-    if (cyc_safety < E_OK)
+    if (gh_cyc_safety < E_OK)
     {
-        return cyc_safety;
+        return gh_cyc_safety;
     }
-    return (cyc_imu < E_OK) ? cyc_imu : E_OK;
+    return (gh_cyc_imu < E_OK) ? gh_cyc_imu : E_OK;
 }
 
 EXPORT ER subsystem4_start (void)
 {
-    tid_safety = app_start_task(safety_task, PRI_SAFETY, 0, "safety_task");
-    if (tid_safety < E_OK)
+    gh_tid_safety = app_start_task(safety_task, PRI_SAFETY, 0, "safety_task");
+    if (gh_tid_safety < E_OK)
     {
-        return tid_safety;
+        return gh_tid_safety;
     }
-    tid_imu = app_start_task(imu_task, PRI_IMU, 0, "imu_task");
-    if (tid_imu < E_OK)
+    gh_tid_imu = app_start_task(imu_task, PRI_IMU, 0, "imu_task");
+    if (gh_tid_imu < E_OK)
     {
-        return tid_imu;
+        return gh_tid_imu;
     }
-    CHECK(tk_sta_cyc(cyc_safety), "cyc_safety");
-    return tk_sta_cyc(cyc_imu);
+    CHECK(tk_sta_cyc(gh_cyc_safety), "cyc_safety");
+    return tk_sta_cyc(gh_cyc_imu);
 }
 
 /*** end of file ***/

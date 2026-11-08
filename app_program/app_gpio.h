@@ -25,7 +25,7 @@
 #define APP_GPIO_RISE 0x8u /* rising edge */
 #define APP_GPIO_BOTH (APP_GPIO_FALL | APP_GPIO_RISE)
 
-typedef void (*APP_GPIO_CB)(UINT pin, UW events);
+typedef void (*app_gpio_cb_t)(UINT pin, UW events);
 
 /* Called once by usermain() before any subsystemN_init() */
 IMPORT ER app_gpio_init (void);
@@ -34,7 +34,7 @@ IMPORT ER app_gpio_init (void);
 IMPORT ER app_gpio_input (UINT pin, BOOL pull_up);
 
 /* Call cb on the given edges of pin.  One callback per pin. */
-IMPORT ER app_gpio_irq_add (UINT pin, UW events, APP_GPIO_CB cb);
+IMPORT ER app_gpio_irq_add (UINT pin, UW events, app_gpio_cb_t cb);
 
 /* Take peripheral blocks out of reset (RESETS_RESET_PWM, _I2C1, ...).
    The kernel only releases what its own drivers use: with USE_PTMR = 0

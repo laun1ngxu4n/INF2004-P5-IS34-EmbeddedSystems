@@ -51,14 +51,14 @@
 
 typedef struct
 {
-    UW  id;      /* id of the last command accepted */
+    UW  cmd_id;  /* id of the last command accepted */
     INT result;  /* MOT_RES_... of that command */
     W   count_l; /* encoder counts since boot, + = forward */
     W   count_r;
     INT speed_l; /* measured mm/s, + = forward (40 ms average) */
     INT speed_r;
     UW  invalid; /* quadrature errors since boot (missed edges) */
-} MOTION_STATUS;
+} motion_status_t;
 
 /* Commands.  Each returns the command id (> 0), or E_OBJ while a STOP
    reason is set.  A new command replaces a running one. */
@@ -72,7 +72,7 @@ IMPORT void motion_halt (void);           /* stop, no STOP reason */
    speed of a running follow without restarting it (a new motion_follow
    would start again from standstill). */
 IMPORT void motion_follow_limit (INT speed_mm_s);
-IMPORT void motion_get_status (MOTION_STATUS * st);
+IMPORT void motion_get_status (motion_status_t * st);
 
 /* Motors off now.  Any context, also interrupt handlers; used by the
    STOP helper (app_stop.c) and, later, Safety (TEAM.md section 3). */
@@ -91,9 +91,9 @@ IMPORT W motion_odometer (void);
 #define S2_ROBOT_LENGTH_MM 200
 
 /* Private to subsystem 2, shared between its own .c files */
-IMPORT ID   tid_motion;
-IMPORT ID   cyc_motion;
-IMPORT INT  tmg_motion;
+IMPORT ID   gh_tid_motion;
+IMPORT ID   gh_cyc_motion;
+IMPORT INT  g_tmg_motion;
 IMPORT void motion_task (INT stacd, void * exinf);
 IMPORT ER   motion_hw_init (void);
 IMPORT void motor_write (INT duty_l, INT duty_r); /* -1000..1000 per mille */

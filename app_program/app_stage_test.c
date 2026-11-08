@@ -16,13 +16,13 @@
 #define APP_TEST_STAGE 1
 #endif
 
-EXPORT void test_wait_start (const char * what)
+EXPORT void test_wait_start (const char * p_what)
 {
     UW remote = tele_start_count();
 
     tm_printf((UB *)"\n[DRIVE] %s\n[DRIVE] press START (GP20, or START on the "
                     "panel) to go\n",
-              what);
+              p_what);
     while (tele_start_count() == remote)
     {
         if (button_down(PIN_START))
@@ -50,12 +50,13 @@ EXPORT BOOL test_stop_pressed (void)
 }
 
 /* tm_printf has no %f: print x10 as "12.3" */
-EXPORT void test_print_x10 (const char * before, INT x10, const char * after)
+EXPORT void test_print_x10 (const char * p_before, INT x10,
+                            const char * p_after)
 {
-    INT a = (x10 < 0) ? -x10 : x10;
+    INT magnitude = (x10 < 0) ? -x10 : x10;
 
-    tm_printf((UB *)"%s%s%d.%d%s", before, (x10 < 0) ? "-" : "", a / 10, a % 10,
-              after);
+    tm_printf((UB *)"%s%s%d.%d%s", p_before, (x10 < 0) ? "-" : "",
+              magnitude / 10, magnitude % 10, p_after);
 }
 
 EXPORT void test_use_test_mapping (void)
@@ -70,21 +71,21 @@ EXPORT void test_use_test_mapping (void)
 
 /* Mission in charge.  Stage 2 runs it without obstacle watch and IMU
    (not tested yet), Stage 3 adds obstacles, Stage 6 uses everything. */
-EXPORT void app_course_test (BOOL obstacles, BOOL imu)
+EXPORT void app_course_test (BOOL b_obstacles, BOOL b_imu)
 {
     UB map[24];
 
-    mission_features(obstacles, imu);
+    mission_features(b_obstacles, b_imu);
     tm_printf(
         (UB *)"\n[DRIVE] === Mission run: obstacle watch %s, IMU %s ===\n",
-        obstacles ? "ON" : "OFF", imu ? "ON" : "OFF");
+        b_obstacles ? "ON" : "OFF", b_imu ? "ON" : "OFF");
 #if defined(TM_MQTT) && TM_MQTT
     {
         /* 7 Nov: START was pressed again and again while this waited
            for a mapping that was never sent; it looked like a crash.
            Remind every 10 s; START with no mapping = the TEST mapping. */
         UW  remote = tele_start_count();
-        INT t      = 0;
+        INT tick   = 0;
 
         tm_printf((UB *)"[DRIVE] send the mapping from the PC (panel: Barcode "
                         "mapping box), or press START to use the TEST mapping "
@@ -100,7 +101,7 @@ EXPORT void app_course_test (BOOL obstacles, BOOL imu)
                 test_use_test_mapping();
                 break;
             }
-            if ((++t % 100) == 0)
+            if ((++tick % 100) == 0)
             {
                 tm_printf(
                     (UB *)"[DRIVE] still waiting for a mapping (panel: Barcode "

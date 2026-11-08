@@ -6,53 +6,54 @@
 
 #include "subsystem3.h"
 
-EXPORT ID  tid_line;
-EXPORT ID  cyc_line;
-EXPORT INT tmg_line;
-EXPORT ID  tid_barcode;
-EXPORT INT tmg_barcode;
+EXPORT ID  gh_tid_line;
+EXPORT ID  gh_cyc_line;
+EXPORT INT g_tmg_line;
+EXPORT ID  gh_tid_barcode;
+EXPORT INT g_tmg_barcode;
 
 EXPORT ER subsystem3_init (void)
 {
-    ER er;
+    ER err;
 
-    er = line_hw_init();
-    if (er < E_OK)
+    err = line_hw_init();
+    if (err < E_OK)
     {
-        return er;
+        return err;
     }
-    er = barcode_hw_init();
-    if (er < E_OK)
+    err = barcode_hw_init();
+    if (err < E_OK)
     {
-        return er;
+        return err;
     }
-    tmg_line    = app_timing_add("line", PRI_LINE, PERIOD_LINE_MS);
-    tmg_barcode = app_timing_add("barcode", PRI_BARCODE, TIMEOUT_BARCODE_MS);
-    cyc_line    = app_create_wake_cyclic(&tid_line, PERIOD_LINE_MS);
-    if (tmg_line < E_OK)
+    g_tmg_line    = app_timing_add("line", PRI_LINE, PERIOD_LINE_MS);
+    g_tmg_barcode = app_timing_add("barcode", PRI_BARCODE, TIMEOUT_BARCODE_MS);
+    gh_cyc_line   = app_create_wake_cyclic(&gh_tid_line, PERIOD_LINE_MS);
+    if (g_tmg_line < E_OK)
     {
-        return tmg_line;
+        return g_tmg_line;
     }
-    if (tmg_barcode < E_OK)
+    if (g_tmg_barcode < E_OK)
     {
-        return tmg_barcode;
+        return g_tmg_barcode;
     }
-    return (cyc_line < E_OK) ? cyc_line : E_OK;
+    return (gh_cyc_line < E_OK) ? gh_cyc_line : E_OK;
 }
 
 EXPORT ER subsystem3_start (void)
 {
-    tid_line = app_start_task(line_task, PRI_LINE, 0, "line_task");
-    if (tid_line < E_OK)
+    gh_tid_line = app_start_task(line_task, PRI_LINE, 0, "line_task");
+    if (gh_tid_line < E_OK)
     {
-        return tid_line;
+        return gh_tid_line;
     }
-    tid_barcode = app_start_task(barcode_task, PRI_BARCODE, 0, "barcode_task");
-    if (tid_barcode < E_OK)
+    gh_tid_barcode =
+        app_start_task(barcode_task, PRI_BARCODE, 0, "barcode_task");
+    if (gh_tid_barcode < E_OK)
     {
-        return tid_barcode;
+        return gh_tid_barcode;
     }
-    return tk_sta_cyc(cyc_line);
+    return tk_sta_cyc(gh_cyc_line);
 }
 
 /*** end of file ***/

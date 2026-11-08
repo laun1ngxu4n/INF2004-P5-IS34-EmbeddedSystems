@@ -54,9 +54,9 @@ IMPORT void tele_set_state (const char * state);
 IMPORT UW tele_start_count (void);
 
 /* Private to subsystem 1, shared between its own .c files */
-IMPORT ID   tid_telemetry;
-IMPORT ID   cyc_telemetry;
-IMPORT INT  tmg_telemetry;
+IMPORT ID   gh_tid_telemetry;
+IMPORT ID   gh_cyc_telemetry;
+IMPORT INT  g_tmg_telemetry;
 IMPORT void telemetry_task (INT stacd, void * exinf);
 
 #endif /* SUBSYSTEM1_H */

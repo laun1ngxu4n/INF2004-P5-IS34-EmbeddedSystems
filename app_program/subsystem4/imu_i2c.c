@@ -73,21 +73,21 @@ EXPORT void imu_i2c_init (void)
 }
 
 /* Read n (<= 8) registers from reg up (LSM303D: bit 7 = auto-increment) */
-EXPORT ER imu_i2c_read (UB addr, UB reg, UB * buf, INT n)
+EXPORT ER imu_i2c_read (UB addr, UB reg, UB * p_buf, INT count)
 {
-    UW  t0;
-    INT i;
+    UW  t_start;
+    INT idx;
 
     set_target(addr);
     (void)aborted();
-    out_w(IC_DATA_CMD, (UW)(reg | ((n > 1) ? 0x80u : 0u)));
-    for (i = 0; i < n; i++)
+    out_w(IC_DATA_CMD, (UW)(reg | ((count > 1) ? 0x80u : 0u)));
+    for (idx = 0; idx < count; idx++)
     {
-        out_w(IC_DATA_CMD, CMD_READ | ((0 == i) ? CMD_RESTART : 0u) |
-                               ((i == (n - 1)) ? CMD_STOP : 0u));
+        out_w(IC_DATA_CMD, CMD_READ | ((0 == idx) ? CMD_RESTART : 0u) |
+                               ((idx == (count - 1)) ? CMD_STOP : 0u));
     }
-    t0 = app_time_us();
-    for (i = 0; i < n; i++)
+    t_start = app_time_us();
+    for (idx = 0; idx < count; idx++)
     {
         while (0u == in_w(IC_RXFLR))
         {
@@ -95,25 +95,25 @@ EXPORT ER imu_i2c_read (UB addr, UB reg, UB * buf, INT n)
             {
                 return E_IO;
             }
-            if ((app_time_us() - t0) > TIMEOUT_US)
+            if ((app_time_us() - t_start) > TIMEOUT_US)
             {
                 return E_TMOUT;
             }
         }
-        buf[i] = (UB)(in_w(IC_DATA_CMD) & 0xFFu);
+        p_buf[idx] = (UB)(in_w(IC_DATA_CMD) & 0xFFu);
     }
     return E_OK;
 }
 
 EXPORT ER imu_i2c_write (UB addr, UB reg, UB val)
 {
-    UW t0;
+    UW t_start;
 
     set_target(addr);
     (void)aborted();
     out_w(IC_DATA_CMD, reg);
     out_w(IC_DATA_CMD, (UW)val | CMD_STOP);
-    t0 = app_time_us();
+    t_start = app_time_us();
     while ((0u == (in_w(IC_STATUS) & STATUS_TFE)) ||
            ((in_w(IC_STATUS) & STATUS_ACTIVITY) != 0u))
     {
@@ -121,7 +121,7 @@ EXPORT ER imu_i2c_write (UB addr, UB reg, UB val)
         {
             return E_IO;
         }
-        if ((app_time_us() - t0) > TIMEOUT_US)
+        if ((app_time_us() - t_start) > TIMEOUT_US)
         {
             return E_TMOUT;
         }

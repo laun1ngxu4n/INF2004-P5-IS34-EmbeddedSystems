@@ -128,20 +128,20 @@ IMPORT INT  line_speed_pct (void);      /* % of the follow speed Motion may
 typedef struct
 {
     UW   seq;         /* +1 for every decode attempt */
-    BOOL ok;          /* FALSE = READ_FAIL */
-    UB   ch;          /* decoded data character ('A'..'Z', '0'..'9', ...) */
-    BOOL reversed;    /* read backwards */
+    BOOL b_ok;        /* FALSE = READ_FAIL */
+    UB   letter;      /* decoded data character ('A'..'Z', '0'..'9', ...) */
+    BOOL b_reversed;  /* read backwards */
     INT  elements;    /* bars + spaces seen */
     INT  narrow_mm10; /* mean narrow element, 0.1 mm */
     INT  wide_mm10;   /* mean wide element, 0.1 mm */
     UB   fixed;       /* 0 clean read; BAR_FIX_STAR one '*' damaged;
                      BAR_FIX_MERGED a lost narrow element put back;
                      BAR_FIX_CUT a missing end bar put back */
-} BARCODE_RESULT;
+} barcode_result_t;
 #define BAR_FIX_STAR   1
 #define BAR_FIX_MERGED 2
 #define BAR_FIX_CUT    3 /* a weak narrow bar at an end not seen */
-IMPORT void barcode_last (BARCODE_RESULT * r);
+IMPORT void barcode_last (barcode_result_t * r);
 IMPORT BOOL barcode_busy (void);  /* inside a barcode now (Motion slows) */
 IMPORT UW   barcode_edges (void); /* barcode sensor edges since boot */
 IMPORT BOOL barcode_black (void); /* sensor sees black now (either input) */
@@ -174,11 +174,11 @@ IMPORT INT  barcode_move_for (UB ch); /* MOVE_... or MOVE_NONE */
 IMPORT INT  barcode_mapping_text (UB * out, INT max); /* "K=L,Q=R,..." or "" */
 
 /* Private to subsystem 3, shared between its own .c files */
-IMPORT ID   tid_line;
-IMPORT ID   cyc_line;
-IMPORT INT  tmg_line;
-IMPORT ID   tid_barcode;
-IMPORT INT  tmg_barcode;
+IMPORT ID   gh_tid_line;
+IMPORT ID   gh_cyc_line;
+IMPORT INT  g_tmg_line;
+IMPORT ID   gh_tid_barcode;
+IMPORT INT  g_tmg_barcode;
 IMPORT void line_task (INT stacd, void * exinf);
 IMPORT void barcode_task (INT stacd, void * exinf);
 IMPORT ER   barcode_hw_init (void);

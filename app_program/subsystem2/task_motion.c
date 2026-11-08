@@ -44,36 +44,36 @@
 typedef struct
 {
     INT type;
-    ID  id;
+    ID  h_cmd_id;
     INT speed;  /* mm/s, sign = direction (drive) */
     INT amount; /* drive: mm; turn: deg (+ = left) */
-} CMD;
+} motion_cmd_t;
 
-LOCAL CMD           cmd_slot; /* written by callers, under APP_LOCK */
-LOCAL BOOL          cmd_new;
-LOCAL ID            cmd_last_id;
-LOCAL MOTION_STATUS status; /* written by the task, under APP_LOCK */
+LOCAL motion_cmd_t    g_cmd_slot; /* written by callers, under APP_LOCK */
+LOCAL BOOL            gb_cmd_new;
+LOCAL ID              gh_cmd_last_id;
+LOCAL motion_status_t g_status; /* written by the task, under APP_LOCK */
 
 LOCAL ID cmd_post (INT type, INT speed, INT amount)
 {
-    UINT s;
-    ID   id;
+    UINT irq_state;
+    ID   h_cmd;
 
     if ((type != CMD_HALT) && (app_stop_reasons() != 0u))
     {
         return E_OBJ;
     }
-    APP_LOCK(s);
-    id              = ++cmd_last_id;
-    cmd_slot.type   = type;
-    cmd_slot.id     = id;
-    cmd_slot.speed  = speed;
-    cmd_slot.amount = amount;
-    cmd_new         = TRUE;
-    status.id       = (UW)id;
-    status.result   = MOT_RES_BUSY;
-    APP_UNLOCK(s);
-    return id;
+    APP_LOCK(irq_state);
+    h_cmd               = ++gh_cmd_last_id;
+    g_cmd_slot.type     = type;
+    g_cmd_slot.h_cmd_id = h_cmd;
+    g_cmd_slot.speed    = speed;
+    g_cmd_slot.amount   = amount;
+    gb_cmd_new          = TRUE;
+    g_status.cmd_id     = (UW)h_cmd;
+    g_status.result     = MOT_RES_BUSY;
+    APP_UNLOCK(irq_state);
+    return h_cmd;
 }
 
 EXPORT ID motion_drive (INT speed_mm_s, INT dist_mm)
@@ -96,11 +96,11 @@ EXPORT ID motion_follow (INT speed_mm_s)
     return cmd_post(CMD_FOLLOW, speed_mm_s, 0);
 }
 
-LOCAL volatile INT follow_limit; /* 0 = none */
+LOCAL volatile INT g_follow_limit; /* 0 = none */
 
 EXPORT void motion_follow_limit (INT speed_mm_s)
 {
-    follow_limit = speed_mm_s;
+    g_follow_limit = speed_mm_s;
 }
 
 EXPORT void motion_halt (void)
@@ -108,112 +108,117 @@ EXPORT void motion_halt (void)
     (void)cmd_post(CMD_HALT, 0, 0);
 }
 
-EXPORT void motion_get_status (MOTION_STATUS * st)
+EXPORT void motion_get_status (motion_status_t * p_status)
 {
-    UINT s;
+    UINT irq_state;
 
-    APP_LOCK(s);
-    *st = status;
-    APP_UNLOCK(s);
+    APP_LOCK(irq_state);
+    *p_status = g_status;
+    APP_UNLOCK(irq_state);
 }
 
-LOCAL float clampf (float v, float lo, float hi)
+LOCAL float clampf (float value, float low, float high)
 {
-    return (v < lo) ? lo : ((v > hi) ? hi : v);
+    return (value < low) ? low : ((value > high) ? high : value);
 }
 
-LOCAL float absf (float v)
+LOCAL float absf (float value)
 {
-    return (v < 0.0f) ? -v : v;
+    return (value < 0.0f) ? -value : value;
 }
 
 typedef struct
 {
     float integ;
-} WHEEL_PI;
+} wheel_pi_t;
 
-LOCAL INT wheel_duty (WHEEL_PI * w, float target, float measured)
+LOCAL INT wheel_duty (wheel_pi_t * p_wheel, float target, float measured)
 {
     float err = target - measured;
-    float ff;
+    float feedfwd;
 
     if (0.0f == target)
     {
-        w->integ = 0.0f;
+        p_wheel->integ = 0.0f;
         return 0;
     }
-    ff = (FF_PER_MM_S * target) + ((target > 0.0f) ? FF_OFFSET : -FF_OFFSET);
-    w->integ = clampf(w->integ + (KI * err * DT_S), -I_LIMIT, I_LIMIT);
-    return (INT)clampf(ff + (KP * err) + w->integ, -1000.0f, 1000.0f);
+    feedfwd =
+        (FF_PER_MM_S * target) + ((target > 0.0f) ? FF_OFFSET : -FF_OFFSET);
+    p_wheel->integ =
+        clampf(p_wheel->integ + (KI * err * DT_S), -I_LIMIT, I_LIMIT);
+    return (INT)clampf(feedfwd + (KP * err) + p_wheel->integ, -1000.0f,
+                       1000.0f);
 }
 
-EXPORT void motion_task (INT stacd, void * exinf)
+EXPORT void motion_task (INT stacd, void * p_exinf)
 {
-    W        hist_l[SPEED_AVG_N] = {0};
-    W        hist_r[SPEED_AVG_N] = {0};
-    INT      h                   = 0;
-    W        cl;
-    W        cr;
-    W        prev_l;
-    W        prev_r;
-    W        start_l = 0;
-    W        start_r = 0;
-    UW       invalid;
-    CMD      cur        = {0};
-    WHEEL_PI pi_l       = {0};
-    WHEEL_PI pi_r       = {0};
-    float    v_prof     = 0.0f; /* profile speed now, mm/s */
-    UW       elapsed_ms = 0;
-    UW       limit_ms   = 0;
-    INT      result     = MOT_RES_NONE;
-    UINT     s;
+    W            hist_l[SPEED_AVG_N] = {0};
+    W            hist_r[SPEED_AVG_N] = {0};
+    INT          hist_pos            = 0;
+    W            count_left;
+    W            count_right;
+    W            prev_l;
+    W            prev_r;
+    W            start_l = 0;
+    W            start_r = 0;
+    UW           invalid;
+    motion_cmd_t cur        = {0};
+    wheel_pi_t   pi_l       = {0};
+    wheel_pi_t   pi_r       = {0};
+    float        v_prof     = 0.0f; /* profile speed now, mm/s */
+    UW           elapsed_ms = 0;
+    UW           limit_ms   = 0;
+    INT          result     = MOT_RES_NONE;
+    UINT         irq_state;
 
     (void)stacd;
-    (void)exinf;
+    (void)p_exinf;
     encoder_read(&prev_l, &prev_r, NULL);
 
     for (;;)
     {
-        float vl;
-        float vr;
+        float vel_left;
+        float vel_right;
         float dl_mm;
         float dr_mm;
         INT   duty_l = 0;
         INT   duty_r = 0;
         W     sum_l  = 0;
         W     sum_r  = 0;
-        INT   i;
-        BOOL  fresh;
+        INT   idx;
+        BOOL  b_fresh;
 
         tk_slp_tsk(TMO_FEVR); /* woken every 10 ms */
-        app_timing_wake(tmg_motion, tk_can_wup(TSK_SELF));
+        app_timing_wake(g_tmg_motion, tk_can_wup(TSK_SELF));
 
         /* 1. Encoders and speed */
-        encoder_read(&cl, &cr, &invalid);
-        hist_l[h] = cl - prev_l;
-        hist_r[h] = cr - prev_r;
-        h         = (h + 1) % SPEED_AVG_N;
-        prev_l    = cl;
-        prev_r    = cr;
-        for (i = 0; i < SPEED_AVG_N; i++)
+        encoder_read(&count_left, &count_right, &invalid);
+        hist_l[hist_pos] = count_left - prev_l;
+        hist_r[hist_pos] = count_right - prev_r;
+        hist_pos         = (hist_pos + 1) % SPEED_AVG_N;
+        prev_l           = count_left;
+        prev_r           = count_right;
+        for (idx = 0; idx < SPEED_AVG_N; idx++)
         {
-            sum_l += hist_l[i];
-            sum_r += hist_r[i];
+            sum_l += hist_l[idx];
+            sum_r += hist_r[idx];
         }
         /* counts per 40 ms -> mm/s */
-        vl = (float)sum_l * S2_UM_PER_COUNT / (1000.0f * SPEED_AVG_N * DT_S);
-        vr = (float)sum_r * S2_UM_PER_COUNT / (1000.0f * SPEED_AVG_N * DT_S);
+        vel_left =
+            (float)sum_l * S2_UM_PER_COUNT / (1000.0f * SPEED_AVG_N * DT_S);
+        vel_right =
+            (float)sum_r * S2_UM_PER_COUNT / (1000.0f * SPEED_AVG_N * DT_S);
 
         /* Take a new command (it replaces a running one) */
-        fresh = FALSE;
-        APP_LOCK(s);
-        if (cmd_new)
+        b_fresh = FALSE;
+        APP_LOCK(irq_state);
+        if (gb_cmd_new)
         {
-            cur     = cmd_slot;
-            cmd_new = FALSE;
-            fresh   = TRUE;
+            cur        = g_cmd_slot;
+            gb_cmd_new = FALSE;
+            b_fresh    = TRUE;
         }
-        APP_UNLOCK(s);
+        APP_UNLOCK(irq_state);
 
         /* 2. STOP wins over everything */
         if (app_stop_reasons() != 0u)
@@ -230,10 +235,10 @@ EXPORT void motion_task (INT stacd, void * exinf)
         }
 
         /* Start the new command from where the wheels are now */
-        if (fresh)
+        if (b_fresh)
         {
-            start_l    = cl;
-            start_r    = cr;
+            start_l    = count_left;
+            start_r    = count_right;
             elapsed_ms = 0;
             v_prof     = 0.0f;
             pi_l.integ = pi_r.integ = 0.0f;
@@ -268,13 +273,13 @@ EXPORT void motion_task (INT stacd, void * exinf)
             float steer = (float)line_steer_mm_s(); /* + = steer left */
             float t_l;
             float t_r;
-            float cap = absf((float)cur.speed);
-            INT   pct = line_speed_pct(); /* 100 = on track */
-            BOOL  off = (pct < 100);
+            float cap   = absf((float)cur.speed);
+            INT   pct   = line_speed_pct(); /* 100 = on track */
+            BOOL  b_off = (pct < 100);
 
-            if ((follow_limit > 0) && (cap > (float)follow_limit))
+            if ((g_follow_limit > 0) && (cap > (float)g_follow_limit))
             {
-                cap = (float)follow_limit;
+                cap = (float)g_follow_limit;
             }
 
             /* Straight while B is over the bars (an edge in the last
@@ -287,7 +292,7 @@ EXPORT void motion_task (INT stacd, void * exinf)
             if (barcode_in_bars())
             {
                 steer = 0.0f;
-                off   = FALSE;
+                b_off = FALSE;
                 pct   = 100;
             }
 
@@ -297,7 +302,7 @@ EXPORT void motion_task (INT stacd, void * exinf)
                does not run past the line (Stage 2 run, 7 Nov: the tape
                slipped out past the sensor on tight left curves).  Over a
                barcode: slow. */
-            if (off)
+            if (b_off)
             {
                 cap = cap * (float)pct / 100.0f;
             }
@@ -312,7 +317,7 @@ EXPORT void motion_task (INT stacd, void * exinf)
             }
             t_l = v_prof - steer;
             t_r = v_prof + steer;
-            if (!off)
+            if (!b_off)
             {
                 /* on the line: never run a wheel backwards */
                 if (t_l < 0.0f)
@@ -324,8 +329,8 @@ EXPORT void motion_task (INT stacd, void * exinf)
                     t_r = 0.0f;
                 }
             }
-            duty_l = wheel_duty(&pi_l, t_l, vl);
-            duty_r = wheel_duty(&pi_r, t_r, vr);
+            duty_l = wheel_duty(&pi_l, t_l, vel_left);
+            duty_r = wheel_duty(&pi_r, t_r, vel_right);
             motor_write(duty_l, duty_r);
         }
         else if ((CMD_DRIVE == cur.type) || (CMD_TURN == cur.type))
@@ -334,29 +339,29 @@ EXPORT void motion_task (INT stacd, void * exinf)
             float done;
             float remain;
             float v_cap;
-            float sl;
-            float sr;
+            float done_left;
+            float done_right;
             float corr;
 
             elapsed_ms += 10;
-            dl_mm = (float)(cl - start_l) * S2_UM_PER_COUNT / 1000.0f;
-            dr_mm = (float)(cr - start_r) * S2_UM_PER_COUNT / 1000.0f;
+            dl_mm = (float)(count_left - start_l) * S2_UM_PER_COUNT / 1000.0f;
+            dr_mm = (float)(count_right - start_r) * S2_UM_PER_COUNT / 1000.0f;
 
             if (CMD_DRIVE == cur.type)
             {
-                target = absf((float)cur.amount);
-                sl     = (cur.speed >= 0) ? dl_mm : -dl_mm;
-                sr     = (cur.speed >= 0) ? dr_mm : -dr_mm;
+                target     = absf((float)cur.amount);
+                done_left  = (cur.speed >= 0) ? dl_mm : -dl_mm;
+                done_right = (cur.speed >= 0) ? dr_mm : -dr_mm;
             }
             else
             {
                 /* spin: + = left = left wheel back, right forward */
                 target =
                     3.14159f * S2_TRACK_MM * absf((float)cur.amount) / 360.0f;
-                sl = (cur.amount >= 0) ? -dl_mm : dl_mm;
-                sr = (cur.amount >= 0) ? dr_mm : -dr_mm;
+                done_left  = (cur.amount >= 0) ? -dl_mm : dl_mm;
+                done_right = (cur.amount >= 0) ? dr_mm : -dr_mm;
             }
-            done   = 0.5f * (sl + sr);
+            done   = 0.5f * (done_left + done_right);
             remain = target - done;
 
             if ((remain <= 0.0f) || (elapsed_ms > limit_ms))
@@ -386,7 +391,7 @@ EXPORT void motion_task (INT stacd, void * exinf)
             }
 
             /* Keep both wheels at the same distance */
-            corr = KEEP_EQUAL * (sl - sr);
+            corr = KEEP_EQUAL * (done_left - done_right);
             {
                 float t_l = v_prof - corr;
                 float t_r = v_prof + corr;
@@ -404,13 +409,13 @@ EXPORT void motion_task (INT stacd, void * exinf)
                 /* measured speeds in the same "along the move" sense */
                 if (CMD_DRIVE == cur.type)
                 {
-                    m_l = (cur.speed >= 0) ? vl : -vl;
-                    m_r = (cur.speed >= 0) ? vr : -vr;
+                    m_l = (cur.speed >= 0) ? vel_left : -vel_left;
+                    m_r = (cur.speed >= 0) ? vel_right : -vel_right;
                 }
                 else
                 {
-                    m_l = (cur.amount >= 0) ? -vl : vl;
-                    m_r = (cur.amount >= 0) ? vr : -vr;
+                    m_l = (cur.amount >= 0) ? -vel_left : vel_left;
+                    m_r = (cur.amount >= 0) ? vel_right : -vel_right;
                 }
                 duty_l = wheel_duty(&pi_l, t_l, m_l);
                 duty_r = wheel_duty(&pi_r, t_r, m_r);
@@ -440,19 +445,19 @@ EXPORT void motion_task (INT stacd, void * exinf)
         }
 
     publish:
-        APP_LOCK(s);
-        if (!cmd_new)
+        APP_LOCK(irq_state);
+        if (!gb_cmd_new)
         { /* a newer command keeps its BUSY */
-            status.result = result;
+            g_status.result = result;
         }
-        status.count_l = cl;
-        status.count_r = cr;
-        status.speed_l = (INT)vl;
-        status.speed_r = (INT)vr;
-        status.invalid = invalid;
-        APP_UNLOCK(s);
+        g_status.count_l = count_left;
+        g_status.count_r = count_right;
+        g_status.speed_l = (INT)vel_left;
+        g_status.speed_r = (INT)vel_right;
+        g_status.invalid = invalid;
+        APP_UNLOCK(irq_state);
 
-        app_timing_done(tmg_motion);
+        app_timing_done(g_tmg_motion);
     }
 }
 

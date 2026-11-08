@@ -21,7 +21,7 @@
 
 typedef struct
 {
-    const char * name;
+    const char * p_name;
     PRI          pri;
     UINT         period_ms; /* expected wake period (timeout for event tasks) */
     UW           count;     /* wakes since boot */
@@ -38,7 +38,7 @@ typedef struct
     UW max_run_us;
     /* Since app_timing_test_start (on-target tests only) */
     UW test_max_iv_us;
-} APP_TIMING;
+} app_timing_t;
 
 /* Microseconds since boot from the hardware timer (wraps after ~71 min) */
 IMPORT UW app_time_us (void);
@@ -56,7 +56,7 @@ IMPORT void app_timing_done (INT slot);
 IMPORT void app_timing_test_start (INT slot);
 
 /* Copy one slot (for tests); returns E_OK or E_PAR */
-IMPORT ER app_timing_get (INT slot, APP_TIMING * p_copy);
+IMPORT ER app_timing_get (INT slot, app_timing_t * p_copy);
 
 /* Print one line per task, then start a new report window */
 IMPORT void app_timing_report (void);

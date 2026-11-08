@@ -51,44 +51,44 @@
 #define MAX_FRONT_MM 600 /* nothing nearer = no obstacle */
 #define BEAM_UNC_DEG 3   /* +/- on the beam correction */
 
-LOCAL volatile UW   echo_rise_us;
-LOCAL volatile UW   echo_width_us;
-LOCAL volatile BOOL echo_rose;
-LOCAL volatile BOOL echo_done;
-LOCAL volatile BOOL watch;
-LOCAL volatile BOOL idle_ping = TRUE; /* Mission IDLE: ping for the panel */
-LOCAL volatile BOOL scanning;
-LOCAL volatile INT  front_mm = FAR;
-LOCAL volatile BOOL sensor_fault;
-LOCAL INT           servo_now = 90;
+LOCAL volatile UW   g_echo_rise_us;
+LOCAL volatile UW   g_echo_width_us;
+LOCAL volatile BOOL gb_echo_rose;
+LOCAL volatile BOOL gb_echo_done;
+LOCAL volatile BOOL gb_watch;
+LOCAL volatile BOOL gb_idle_ping = TRUE; /* Mission IDLE: ping for the panel */
+LOCAL volatile BOOL gb_scanning;
+LOCAL volatile INT  g_front_mm = FAR;
+LOCAL volatile BOOL gb_sensor_fault;
+LOCAL INT           g_servo_now = 90;
 
 /* ECHO edges: interrupt context */
-LOCAL void echo_edge (UINT pin, UW events)
+LOCAL void sonar_echo_isr (UINT pin, UW events)
 {
     UW now = app_time_us();
 
     if (app_gpio_get(pin) != 0u)
     {
-        echo_rise_us = now;
-        echo_rose    = TRUE;
+        g_echo_rise_us = now;
+        gb_echo_rose   = TRUE;
     }
-    else if (echo_rose)
+    else if (gb_echo_rose)
     {
-        echo_width_us = now - echo_rise_us;
-        echo_done     = TRUE;
+        g_echo_width_us = now - g_echo_rise_us;
+        gb_echo_done    = TRUE;
     }
     (void)events;
 }
 
 LOCAL void trigger (void)
 {
-    UW t0;
+    UW t_start;
 
-    echo_rose = FALSE;
-    echo_done = FALSE;
+    gb_echo_rose = FALSE;
+    gb_echo_done = FALSE;
     gpio_set_val(PIN_TRIG, 1);
-    t0 = app_time_us();
-    while ((app_time_us() - t0) < 12u)
+    t_start = app_time_us();
+    while ((app_time_us() - t_start) < 12u)
     {
         ;
     }
@@ -98,15 +98,16 @@ LOCAL void trigger (void)
 /* Result of the last trigger: mm, FAR (nothing in range) or SONAR_FAULT */
 LOCAL INT echo_mm (void)
 {
-    if (!echo_rose)
+    if (!gb_echo_rose)
     {
         return SONAR_FAULT; /* ECHO never rose */
     }
-    if ((!echo_done) || (echo_width_us < 100u) || (echo_width_us > 25000u))
+    if ((!gb_echo_done) || (g_echo_width_us < 100u) ||
+        (g_echo_width_us > 25000u))
     {
         return FAR;
     }
-    return (INT)(echo_width_us * 174u / 1000u); /* 0.348 mm/us at 28 C, / 2 */
+    return (INT)(g_echo_width_us * 174u / 1000u); /* 0.348 mm/us at 28 C, / 2 */
 }
 
 EXPORT void sonar_ping_start (void)
@@ -120,28 +121,28 @@ EXPORT INT sonar_ping_result (void)
 
 EXPORT INT sonar_ping_mm (void)
 {
-    INT mm;
+    INT dist_mm;
 
     trigger();
     tk_dly_tsk(60);
-    mm = echo_mm();
+    dist_mm = echo_mm();
     /* straight ahead: also what the panel shows.  Test images do not
        idle-ping (their tests ping themselves), so the panel's distance
        stayed frozen through Stage 3 (7 Nov) */
-    if (90 == servo_now)
+    if (90 == g_servo_now)
     {
-        front_mm = mm;
+        g_front_mm = dist_mm;
     }
-    return mm;
+    return dist_mm;
 }
 
 LOCAL void servo_write (INT deg)
 {
-    INT us = 1500 +
-             ((deg - 90) * S5_SERVO_US_PER_DEG * (S5_SERVO_LEFT_HIGH ? 1 : -1));
+    INT pulse_us = 1500 + ((deg - 90) * S5_SERVO_US_PER_DEG *
+                           (S5_SERVO_LEFT_HIGH ? 1 : -1));
 
-    pwm_set_cc(PIN_SERVO, (UW)us); /* 1 count = 1 us */
-    servo_now = deg;
+    pwm_set_cc(PIN_SERVO, (UW)pulse_us); /* 1 count = 1 us */
+    g_servo_now = deg;
 }
 
 /* Walk there S5_SERVO_DEG_STEP per 20 ms frame: a full-speed jump broke
@@ -161,12 +162,12 @@ EXPORT void servo_set_angle (INT deg)
     {
         deg = 90 + SERVO_LIMIT;
     }
-    while (servo_now != deg)
+    while (g_servo_now != deg)
     {
-        INT next = servo_now +
-                   ((deg > servo_now) ? S5_SERVO_DEG_STEP : -S5_SERVO_DEG_STEP);
+        INT next = g_servo_now + ((deg > g_servo_now) ? S5_SERVO_DEG_STEP
+                                                      : -S5_SERVO_DEG_STEP);
 
-        if ((deg > servo_now) ? (next > deg) : (next < deg))
+        if ((deg > g_servo_now) ? (next > deg) : (next < deg))
         {
             next = deg;
         }
@@ -182,26 +183,26 @@ EXPORT void servo_look_side (INT side)
     servo_set_angle(90 + (side * left * S5_SERVO_SIDE_DEG));
 }
 
-EXPORT void obstacle_watch (BOOL on)
+EXPORT void obstacle_watch (BOOL b_on)
 {
-    watch = on;
+    gb_watch = b_on;
 }
-EXPORT void obstacle_idle_ping (BOOL on)
+EXPORT void obstacle_idle_ping (BOOL b_on)
 {
-    idle_ping = on;
+    gb_idle_ping = b_on;
 }
 EXPORT INT obstacle_front_mm (void)
 {
-    return front_mm;
+    return g_front_mm;
 }
 EXPORT BOOL obstacle_sensor_fault (void)
 {
-    return sensor_fault;
+    return gb_sensor_fault;
 }
 
 EXPORT ER obstacle_hw_init (void)
 {
-    ER er;
+    ER err;
 
     app_hw_release(RESETS_RESET_PWM);
     /* servo: 125 MHz / 125 = 1 MHz, wrap 20000 = 50 Hz */
@@ -211,39 +212,39 @@ EXPORT ER obstacle_hw_init (void)
     pwm_set_pin(PIN_SERVO);
     pwm_set_enabled(PIN_SERVO, TRUE);
 
-    er = app_gpio_output(PIN_TRIG);
-    if (er < E_OK)
+    err = app_gpio_output(PIN_TRIG);
+    if (err < E_OK)
     {
-        return er;
+        return err;
     }
-    er = app_gpio_input(PIN_ECHO, FALSE);
-    if (er < E_OK)
+    err = app_gpio_input(PIN_ECHO, FALSE);
+    if (err < E_OK)
     {
-        return er;
+        return err;
     }
     clr_w(GPIO(PIN_ECHO), GPIO_PUE);
     set_w(GPIO(PIN_ECHO), GPIO_PDE); /* as in bring-up */
-    return app_gpio_irq_add(PIN_ECHO, APP_GPIO_BOTH, echo_edge);
+    return app_gpio_irq_add(PIN_ECHO, APP_GPIO_BOTH, sonar_echo_isr);
 }
 
 /* ---- maths without libm -------------------------------------------- */
 
-LOCAL INT median5 (INT * v, INT n)
+LOCAL INT median5 (INT * p_values, INT count)
 {
-    INT i;
-    INT j;
-    INT t;
+    INT idx;
+    INT jdx;
+    INT tmp;
 
-    for (i = 1; i < n; i++)
+    for (idx = 1; idx < count; idx++)
     {
-        for (j = i; (j > 0) && (v[j] < v[j - 1]); j--)
+        for (jdx = idx; (jdx > 0) && (p_values[jdx] < p_values[jdx - 1]); jdx--)
         {
-            t        = v[j];
-            v[j]     = v[j - 1];
-            v[j - 1] = t;
+            tmp               = p_values[jdx];
+            p_values[jdx]     = p_values[jdx - 1];
+            p_values[jdx - 1] = tmp;
         }
     }
-    return v[n / 2];
+    return p_values[count / 2];
 }
 
 /* ---- the profiling scan --------------------------------------------- */
@@ -251,164 +252,178 @@ LOCAL INT median5 (INT * v, INT n)
 /* One side: walk outward from straight ahead.  dir = +1 / -1 is the
    direction in the ray array (which side that is depends on the servo).
    Returns the lateral edge (mm, signed) and its half-step uncertainty. */
-LOCAL void side_edge (const INT * d, const INT * phi, INT centre, INT dir,
-                      INT front, INT * edge_mm, INT * unc_mm, BOOL * clear,
-                      BOOL * seen)
+LOCAL void side_edge (const INT * p_dist, const INT * p_phi, INT centre,
+                      INT dir, INT front, INT * p_edge_mm, INT * p_unc_mm,
+                      BOOL * pb_clear, BOOL * pb_seen)
 {
-    INT  i         = centre;
+    INT  idx       = centre;
     INT  last_in   = centre;
     INT  out_run   = 0;
     INT  first_out = -1;
-    BOOL other     = FALSE;
+    BOOL b_other   = FALSE;
 
-    for (i = centre + dir; (i >= 0) && (i < NRAYS); i += dir)
+    for (idx = centre + dir; (idx >= 0) && (idx < NRAYS); idx += dir)
     {
-        INT  a          = (phi[i] < 0) ? -phi[i] : phi[i];
-        INT  expd       = (INT)((float)front / app_sin_deg((float)(90 - a)));
-        INT  tol        = GEO_TOL_MM + (expd * GEO_TOL_PCT / 100);
-        BOOL near_front = (d[i] >= 0) && ((d[i] - front) <= IN_MM) &&
-                          ((front - d[i]) <= IN_MM);
-        BOOL in =
-            (d[i] >= 0) && (((a <= CENTRE_DEG) && near_front) ||
-                            (((d[i] - expd) <= tol) && ((expd - d[i]) <= tol)));
-        BOOL lobe = (!in) && (d[i] >= 0) && (d[i] < (expd - tol)) &&
-                    (d[i] >= (front - IN_MM)); /* side-of-beam echo */
+        INT  angle = (p_phi[idx] < 0) ? -p_phi[idx] : p_phi[idx];
+        INT  expd  = (INT)((float)front / app_sin_deg((float)(90 - angle)));
+        INT  tol   = GEO_TOL_MM + (expd * GEO_TOL_PCT / 100);
+        BOOL b_near_front = (p_dist[idx] >= 0) &&
+                            ((p_dist[idx] - front) <= IN_MM) &&
+                            ((front - p_dist[idx]) <= IN_MM);
+        BOOL b_on_box =
+            (p_dist[idx] >= 0) &&
+            (((angle <= CENTRE_DEG) && b_near_front) ||
+             (((p_dist[idx] - expd) <= tol) && ((expd - p_dist[idx]) <= tol)));
+        BOOL b_lobe = (!b_on_box) && (p_dist[idx] >= 0) &&
+                      (p_dist[idx] < (expd - tol)) &&
+                      (p_dist[idx] >= (front - IN_MM)); /* side-of-beam echo */
 
-        if (in && (out_run < 2))
+        if (b_on_box && (out_run < 2))
         {
-            last_in   = i;
+            last_in   = idx;
             out_run   = 0;
             first_out = -1;
         }
-        else if (!in)
+        else if (!b_on_box)
         {
             if (0 == out_run)
             {
-                first_out = i;
+                first_out = idx;
             }
             out_run++;
             /* past the edge: open space, or something else nearer? */
             if ((out_run >= 2) &&
-                ((SONAR_FAULT == d[i]) ||
-                 ((d[i] >= 0) && (d[i] < (front + BG_MM)) && (!lobe))))
+                ((SONAR_FAULT == p_dist[idx]) ||
+                 ((p_dist[idx] >= 0) && (p_dist[idx] < (front + BG_MM)) &&
+                  (!b_lobe))))
             {
-                other = TRUE; /* something nearer, or unknown */
+                b_other = TRUE; /* something nearer, or unknown */
             }
         }
     }
     if ((out_run < 2) || (first_out < 0))
     {
         /* obstacle wider than the scan on this side */
-        *edge_mm = (INT)((float)d[last_in] * app_sin_deg((float)phi[last_in]));
-        *unc_mm  = 50;
-        *clear   = FALSE;
-        *seen    = FALSE;
+        *p_edge_mm =
+            (INT)((float)p_dist[last_in] * app_sin_deg((float)p_phi[last_in]));
+        *p_unc_mm = 50;
+        *pb_clear = FALSE;
+        *pb_seen  = FALSE;
         return;
     }
-    *seen = TRUE;
+    *pb_seen = TRUE;
     {
-        float a_in  = (float)phi[last_in];
-        float a_out = (float)phi[first_out];
+        float a_in  = (float)p_phi[last_in];
+        float a_out = (float)p_phi[first_out];
         float side  = (a_out > 0.0f) ? 1.0f : -1.0f; /* + = left */
         float a_edge =
             (0.5f * (a_in + a_out)) - (side * (float)S5_BEAM_HALF_DEG);
-        float r = (float)d[last_in];
+        float range = (float)p_dist[last_in];
 
         if ((a_edge * side) < 0.0f)
         {
             a_edge = 0.0f; /* never past the centre */
         }
-        *edge_mm = (INT)(r * app_sin_deg(a_edge));
-        *unc_mm  = (INT)(r * (app_sin_deg(a_out) - app_sin_deg(a_in)) / 2.0f);
-        if (*unc_mm < 0)
+        *p_edge_mm = (INT)(range * app_sin_deg(a_edge));
+        *p_unc_mm =
+            (INT)(range * (app_sin_deg(a_out) - app_sin_deg(a_in)) / 2.0f);
+        if (*p_unc_mm < 0)
         {
-            *unc_mm = -*unc_mm;
+            *p_unc_mm = -*p_unc_mm;
         }
-        *clear = !other;
+        *pb_clear = !b_other;
     }
 }
 
-EXPORT void obstacle_scan (OBSTACLE_PROFILE * p)
+EXPORT void obstacle_scan (obstacle_profile_t * p_profile)
 {
-    INT d[NRAYS];
+    INT dist[NRAYS];
     INT phi[NRAYS];
-    INT k;
+    INT kdx;
     INT centre = (90 - SCAN_FROM) / SCAN_STEP;
-    INT ul;
-    INT ur;
+    INT unc_left;
+    INT unc_right;
 
-    scanning = TRUE;
-    for (k = 0; k < NRAYS; k++)
+    gb_scanning = TRUE;
+    for (kdx = 0; kdx < NRAYS; kdx++)
     {
-        INT ang    = SCAN_FROM + (k * SCAN_STEP);
-        INT move   = (ang > servo_now) ? ang - servo_now : servo_now - ang;
+        INT ang  = SCAN_FROM + (kdx * SCAN_STEP);
+        INT move = (ang > g_servo_now) ? ang - g_servo_now : g_servo_now - ang;
         INT settle = move * SETTLE_MS_DEG;
-        INT v[PINGS];
-        INT nv     = 0;
+        INT value[PINGS];
+        INT valid  = 0;
         INT nfault = 0;
-        INT j;
+        INT jdx;
 
         servo_set_angle(ang);
         tk_dly_tsk((settle > SETTLE_MIN_MS) ? settle : SETTLE_MIN_MS); /* O1 */
-        for (j = 0; j < PINGS; j++)
+        for (jdx = 0; jdx < PINGS; jdx++)
         { /* O2 */
-            INT mm = sonar_ping_mm();
-            if (mm >= 0)
+            INT dist_mm = sonar_ping_mm();
+            if (dist_mm >= 0)
             {
-                v[nv++] = mm;
+                value[valid++] = dist_mm;
             }
-            else if (SONAR_FAULT == mm)
+            else if (SONAR_FAULT == dist_mm)
             {
                 nfault++;
             }
         }
         /* >= 3 good = median; >= 3 no ECHO = fault (unknown, never open) */
-        d[k] = (nv >= 3) ? median5(v, nv) : (nfault >= 3) ? SONAR_FAULT : FAR;
+        dist[kdx] = (valid >= 3)    ? median5(value, valid)
+                    : (nfault >= 3) ? SONAR_FAULT
+                                    : FAR;
         /* + = left of the robot */
-        phi[k] = (ang - 90) * (S5_SERVO_LEFT_HIGH ? 1 : -1);
+        phi[kdx] = (ang - 90) * (S5_SERVO_LEFT_HIGH ? 1 : -1);
     }
     servo_set_angle(90);
     tk_dly_tsk(60 * SETTLE_MS_DEG);
-    scanning = FALSE;
+    gb_scanning = FALSE;
 
     tm_printf((UB *)"[SCAN] rays (deg:mm, -1 = open, -2 = no ECHO):");
-    for (k = 0; k < NRAYS; k++)
+    for (kdx = 0; kdx < NRAYS; kdx++)
     {
-        tm_printf((UB *)" %d:%d", phi[k], d[k]);
+        tm_printf((UB *)" %d:%d", phi[kdx], dist[kdx]);
     }
     tm_printf((UB *)"\n");
 
-    p->rays       = NRAYS;
-    p->fault_rays = 0;
-    for (k = 0; k < NRAYS; k++)
+    p_profile->rays       = NRAYS;
+    p_profile->fault_rays = 0;
+    for (kdx = 0; kdx < NRAYS; kdx++)
     {
-        if (SONAR_FAULT == d[k])
+        if (SONAR_FAULT == dist[kdx])
         {
-            p->fault_rays++;
+            p_profile->fault_rays++;
         }
     }
-    p->front_mm = d[centre];
-    p->found    = ((d[centre] >= 0) && (d[centre] <= MAX_FRONT_MM));
-    if (!p->found)
+    p_profile->front_mm = dist[centre];
+    p_profile->b_found =
+        ((dist[centre] >= 0) && (dist[centre] <= MAX_FRONT_MM));
+    if (!p_profile->b_found)
     {
-        p->width_mm = p->unc_mm = p->left_mm = p->right_mm = 0;
-        p->left_unc = p->right_unc = 0;
-        p->left_clear = p->right_clear = TRUE;
-        p->left_seen = p->right_seen = FALSE;
+        p_profile->width_mm = p_profile->unc_mm = p_profile->left_mm =
+            p_profile->right_mm                 = 0;
+        p_profile->left_unc = p_profile->right_unc = 0;
+        p_profile->b_left_clear = p_profile->b_right_clear = TRUE;
+        p_profile->b_left_seen = p_profile->b_right_seen = FALSE;
         return;
     }
     /* phi rises with k only if LEFT_HIGH: walk "left" in the right order */
-    side_edge(d, phi, centre, S5_SERVO_LEFT_HIGH ? +1 : -1, d[centre],
-              &p->left_mm, &ul, &p->left_clear, &p->left_seen);
-    side_edge(d, phi, centre, S5_SERVO_LEFT_HIGH ? -1 : +1, d[centre],
-              &p->right_mm, &ur, &p->right_clear, &p->right_seen);
-    p->left_unc  = ul;
-    p->right_unc = ur;
-    p->width_mm  = p->left_mm - p->right_mm;
+    side_edge(dist, phi, centre, S5_SERVO_LEFT_HIGH ? +1 : -1, dist[centre],
+              &p_profile->left_mm, &unc_left, &p_profile->b_left_clear,
+              &p_profile->b_left_seen);
+    side_edge(dist, phi, centre, S5_SERVO_LEFT_HIGH ? -1 : +1, dist[centre],
+              &p_profile->right_mm, &unc_right, &p_profile->b_right_clear,
+              &p_profile->b_right_seen);
+    p_profile->left_unc  = unc_left;
+    p_profile->right_unc = unc_right;
+    p_profile->width_mm  = p_profile->left_mm - p_profile->right_mm;
     {
-        float beam = 2.0f * (float)d[centre] * app_sin_deg((float)BEAM_UNC_DEG);
-        p->unc_mm =
-            (INT)app_sqrtf((float)((ul * ul) + (ur * ur)) + (beam * beam));
+        float beam =
+            2.0f * (float)dist[centre] * app_sin_deg((float)BEAM_UNC_DEG);
+        p_profile->unc_mm = (INT)app_sqrtf(
+            (float)((unc_left * unc_left) + (unc_right * unc_right)) +
+            (beam * beam));
     }
 }
 
@@ -416,88 +431,92 @@ EXPORT void obstacle_scan (OBSTACLE_PROFILE * p)
    a scan the obstacle filled to the end of its travel says nothing about
    that side (it used to make the side "not clear": from 20-25 cm a 20 cm
    box fills +-40 deg once the beam's width is added). */
-LOCAL void pick_edge (INT ea, INT ua, BOOL sa, BOOL ca, INT eb, INT ub, BOOL sb,
-                      BOOL cb, INT * e, INT * u, BOOL * seen, BOOL * clear)
+LOCAL void pick_edge (INT edge_a, INT unc_a, BOOL b_seen_a, BOOL b_clear_a,
+                      INT edge_b, INT unc_b, BOOL b_seen_b, BOOL b_clear_b,
+                      INT * p_edge, INT * p_unc, BOOL * pb_seen,
+                      BOOL * pb_clear)
 {
-    if (sa && sb)
+    if (b_seen_a && b_seen_b)
     {
         /* both saw it: the nearer scan's (a).  On the 7 Nov scans the
            nearer of each pair always read narrower, nearer the ruler
            (until 8 Nov: the mean, uncertainty half the difference) */
-        (void)eb;
-        (void)ub;
-        *e     = ea;
-        *u     = ua;
-        *seen  = TRUE;
-        *clear = ca && cb;
+        (void)edge_b;
+        (void)unc_b;
+        *p_edge   = edge_a;
+        *p_unc    = unc_a;
+        *pb_seen  = TRUE;
+        *pb_clear = b_clear_a && b_clear_b;
     }
-    else if (sa || sb)
+    else if (b_seen_a || b_seen_b)
     {
-        *e     = sa ? ea : eb;
-        *u     = sa ? ua : ub;
-        *seen  = TRUE;
-        *clear = sa ? ca : cb;
+        *p_edge   = b_seen_a ? edge_a : edge_b;
+        *p_unc    = b_seen_a ? unc_a : unc_b;
+        *pb_seen  = TRUE;
+        *pb_clear = b_seen_a ? b_clear_a : b_clear_b;
     }
     else
     {
         /* neither saw it: the wider of the two, not clear */
-        INT aa = (ea < 0) ? -ea : ea;
-        INT ab = (eb < 0) ? -eb : eb;
+        INT abs_a = (edge_a < 0) ? -edge_a : edge_a;
+        INT abs_b = (edge_b < 0) ? -edge_b : edge_b;
 
-        *e     = (aa > ab) ? ea : eb;
-        *u     = 50;
-        *seen  = FALSE;
-        *clear = FALSE;
+        *p_edge   = (abs_a > abs_b) ? edge_a : edge_b;
+        *p_unc    = 50;
+        *pb_seen  = FALSE;
+        *pb_clear = FALSE;
     }
 }
 
-EXPORT void obstacle_combine (const OBSTACLE_PROFILE * a,
-                              const OBSTACLE_PROFILE * b,
-                              OBSTACLE_PROFILE *       out)
+EXPORT void obstacle_combine (const obstacle_profile_t * p_near,
+                              const obstacle_profile_t * p_far,
+                              obstacle_profile_t *       p_out)
 {
     float beam;
 
-    *out       = *b;
-    out->found = (a->found) && (b->found);
-    pick_edge(a->left_mm, a->left_unc, a->left_seen, a->left_clear, b->left_mm,
-              b->left_unc, b->left_seen, b->left_clear, &out->left_mm,
-              &out->left_unc, &out->left_seen, &out->left_clear);
-    pick_edge(a->right_mm, a->right_unc, a->right_seen, a->right_clear,
-              b->right_mm, b->right_unc, b->right_seen, b->right_clear,
-              &out->right_mm, &out->right_unc, &out->right_seen,
-              &out->right_clear);
-    out->width_mm = out->left_mm - out->right_mm;
-    beam = 2.0f * (float)out->front_mm * app_sin_deg((float)BEAM_UNC_DEG);
-    out->unc_mm = (INT)app_sqrtf((float)((out->left_unc * out->left_unc) +
-                                         (out->right_unc * out->right_unc)) +
-                                 (beam * beam));
+    *p_out         = *p_far;
+    p_out->b_found = (p_near->b_found) && (p_far->b_found);
+    pick_edge(p_near->left_mm, p_near->left_unc, p_near->b_left_seen,
+              p_near->b_left_clear, p_far->left_mm, p_far->left_unc,
+              p_far->b_left_seen, p_far->b_left_clear, &p_out->left_mm,
+              &p_out->left_unc, &p_out->b_left_seen, &p_out->b_left_clear);
+    pick_edge(p_near->right_mm, p_near->right_unc, p_near->b_right_seen,
+              p_near->b_right_clear, p_far->right_mm, p_far->right_unc,
+              p_far->b_right_seen, p_far->b_right_clear, &p_out->right_mm,
+              &p_out->right_unc, &p_out->b_right_seen, &p_out->b_right_clear);
+    p_out->width_mm = p_out->left_mm - p_out->right_mm;
+    beam = 2.0f * (float)p_out->front_mm * app_sin_deg((float)BEAM_UNC_DEG);
+    p_out->unc_mm =
+        (INT)app_sqrtf((float)((p_out->left_unc * p_out->left_unc) +
+                               (p_out->right_unc * p_out->right_unc)) +
+                       (beam * beam));
 }
 
 /* ---- the task: forward watch ---------------------------------------- */
 
-EXPORT void obstacle_task (INT stacd, void * exinf)
+EXPORT void obstacle_task (INT stacd, void * p_exinf)
 {
     INT  close_count = 0;
     INT  fault_count = 0;
-    BOOL pinged      = FALSE;
-    BOOL told        = FALSE;
+    BOOL b_pinged    = FALSE;
+    BOOL b_told      = FALSE;
 
     (void)stacd;
-    (void)exinf;
+    (void)p_exinf;
 
     for (;;)
     {
         tk_slp_tsk(TMO_FEVR); /* woken every 60 ms */
-        app_timing_wake(tmg_obstacle, tk_can_wup(TSK_SELF));
+        app_timing_wake(g_tmg_obstacle, tk_can_wup(TSK_SELF));
 
-        if (scanning || (!watch))
+        if (gb_scanning || (!gb_watch))
         {
             close_count = 0;
             fault_count = 0;
-            told        = FALSE;
-            if (!scanning)
+            b_told      = FALSE;
+            if (!gb_scanning)
             {
-                sensor_fault = FALSE; /* fresh start next watch */
+                gb_sensor_fault = FALSE; /* fresh start next watch */
             }
 #if !APP_TEST
             /* Idle: keep pinging ahead so the laptop panel shows a live
@@ -506,49 +525,49 @@ EXPORT void obstacle_task (INT stacd, void * exinf)
                itself (ahead_clear) and two pings at once corrupt each
                other's echo.  Not in test images: their tests turn the
                servo and ping themselves. */
-            if ((!scanning) && idle_ping)
+            if ((!gb_scanning) && gb_idle_ping)
             {
-                if (pinged)
+                if (b_pinged)
                 {
-                    front_mm = echo_mm();
+                    g_front_mm = echo_mm();
                 }
-                if (servo_now != 90)
+                if (g_servo_now != 90)
                 {
                     servo_set_angle(90);
                 }
                 trigger();
-                pinged = TRUE;
+                b_pinged = TRUE;
             }
             else
             {
-                pinged = FALSE;
+                b_pinged = FALSE;
             }
 #else
-            pinged = FALSE;
+            b_pinged = FALSE;
 #endif
         }
         else
         {
-            if (pinged)
+            if (b_pinged)
             {
-                INT mm = echo_mm();
+                INT dist_mm = echo_mm();
 
-                front_mm = mm;
+                g_front_mm = dist_mm;
                 /* No ECHO 5 times in a row (300 ms): the sensor is
                    not working, so Mission must stop, not drive blind */
-                fault_count = (SONAR_FAULT == mm) ? fault_count + 1 : 0;
-                if ((fault_count >= 5) && (!told))
+                fault_count = (SONAR_FAULT == dist_mm) ? fault_count + 1 : 0;
+                if ((fault_count >= 5) && (!b_told))
                 {
-                    sensor_fault = TRUE;
-                    told         = TRUE;
-                    tk_set_flg(flg_mission, MSN_FLG_OBSTACLE);
+                    gb_sensor_fault = TRUE;
+                    b_told          = TRUE;
+                    tk_set_flg(gh_flg_mission, MSN_FLG_OBSTACLE);
                 }
-                if ((mm >= 0) && (mm < S5_TRIP_MM))
+                if ((dist_mm >= 0) && (dist_mm < S5_TRIP_MM))
                 {
-                    if ((++close_count >= 2) && (!told))
+                    if ((++close_count >= 2) && (!b_told))
                     {
-                        told = TRUE;
-                        tk_set_flg(flg_mission, MSN_FLG_OBSTACLE);
+                        b_told = TRUE;
+                        tk_set_flg(gh_flg_mission, MSN_FLG_OBSTACLE);
                     }
                 }
                 else
@@ -556,15 +575,15 @@ EXPORT void obstacle_task (INT stacd, void * exinf)
                     close_count = 0;
                 }
             }
-            if (servo_now != 90)
+            if (g_servo_now != 90)
             {
                 servo_set_angle(90);
             }
             trigger();
-            pinged = TRUE;
+            b_pinged = TRUE;
         }
 
-        app_timing_done(tmg_obstacle);
+        app_timing_done(g_tmg_obstacle);
     }
 }
 

@@ -17,23 +17,24 @@
 
 EXPORT void subsystem5_test (void)
 {
-    UW p0;
+    UW pings_start;
 
     TEST_INIT();
 
     /* S5-U01 / S5-U02: Mission keeps waking with its 100 ms timeout */
-    TEST_TIMEOUT("S5-U01", "S5-U02", tmg_mission);
+    TEST_TIMEOUT("S5-U01", "S5-U02", g_tmg_mission);
 
     /* S5-U03 / S5-U04: Obstacle Scanner wakes every 60 ms without overruns */
-    TEST_PERIODIC("S5-U03", "S5-U04", tmg_obstacle);
+    TEST_PERIODIC("S5-U03", "S5-U04", g_tmg_obstacle);
 
     /* INT-01: Telemetry's 1 Hz ping (IF-01) reaches Mission */
-    p0 = mission_pings;
+    pings_start = g_mission_pings;
     tk_dly_tsk(3000);
     tm_printf((UB *)"[TEST] mission: %d pings in 3000 ms (expected 3)\n",
-              (INT)(mission_pings - p0));
+              (INT)(g_mission_pings - pings_start));
     TEST_CHECK("INT-01",
-               ((mission_pings - p0) >= 2) && ((mission_pings - p0) <= 4),
+               ((g_mission_pings - pings_start) >= 2) &&
+                   ((g_mission_pings - pings_start) <= 4),
                "IF-01 ping from Telemetry wakes Mission once a second");
 
     TEST_SUMMARY("subsystem5");
@@ -43,12 +44,12 @@ EXPORT void subsystem5_test (void)
 
 EXPORT void subsystem5_stage_test (void)
 {
-    OBSTACLE_PROFILE a;
-    OBSTACLE_PROFILE b;
-    OBSTACLE_PROFILE p;
-    MOTION_STATUS    st;
-    INT              k;
-    INT              t;
+    obstacle_profile_t scan_near;
+    obstacle_profile_t scan_far;
+    obstacle_profile_t profile;
+    motion_status_t    status;
+    INT                kdx;
+    INT                tick;
     TEST_INIT();
 
     tm_printf((UB *)"\n[DRIVE] === Stage 3: obstacle ===\n");
@@ -77,7 +78,7 @@ EXPORT void subsystem5_stage_test (void)
                   "about 200. Then slide it backwards past the sonar: the "
                   "reading should go away once the box is behind it.\n",
             S5_SERVO_SIDE_DEG);
-        for (t = 0; t < 40; t++)
+        for (tick = 0; tick < 40; tick++)
         {
             tm_printf((UB *)"[S5] side %d mm\n", sonar_ping_mm());
             tk_dly_tsk(240);
@@ -87,40 +88,43 @@ EXPORT void subsystem5_stage_test (void)
 
     tm_printf(
         (UB *)"[S5] forward distance for 10 s: move your hand in front\n");
-    for (t = 0; t < 30; t++)
+    for (tick = 0; tick < 30; tick++)
     {
         tm_printf((UB *)"[S5] front %d mm\n", sonar_ping_mm());
         tk_dly_tsk(270);
     }
 
-    for (k = 1; k <= 3; k++)
+    for (kdx = 1; kdx <= 3; kdx++)
     {
         tm_printf((UB *)"\n[DRIVE] S5-O01 width, try %d of 3 (a different box "
                         "each time, 10-20 cm wide; STOP ends early)\n",
-                  k);
+                  kdx);
         test_wait_start(
             "Box about 250 mm straight ahead of the sensor (where "
             "the forward watch stops and the bypass scans first), "
             "flat face to it, nothing else within 60 cm. Write down "
             "its real width (ruler).");
-        obstacle_scan(&a);
+        obstacle_scan(&scan_near);
         motion_drive(-S2_SPEED_BARCODE, 100); /* as the bypass does */
         do
         {
             tk_dly_tsk(10);
-            motion_get_status(&st);
-        } while (MOT_RES_BUSY == st.result);
+            motion_get_status(&status);
+        } while (MOT_RES_BUSY == status.result);
         tk_dly_tsk(300);
-        obstacle_scan(&b);
-        obstacle_combine(&a, &b, &p);
+        obstacle_scan(&scan_far);
+        obstacle_combine(&scan_near, &scan_far, &profile);
         tm_printf(
             (UB *)"[S5-O01] try %d: width %d +/- %d mm (scan 1 %d +/- %d, "
                   "scan 2 %d +/- %d), edges L %d R %d, front %d, clear L %d R "
                   "%d, "
                   "edge seen by scan 1 L %d R %d, scan 2 L %d R %d\n",
-            k, p.width_mm, p.unc_mm, a.width_mm, a.unc_mm, b.width_mm, b.unc_mm,
-            p.left_mm, p.right_mm, p.front_mm, p.left_clear, p.right_clear,
-            a.left_seen, a.right_seen, b.left_seen, b.right_seen);
+            kdx, profile.width_mm, profile.unc_mm, scan_near.width_mm,
+            scan_near.unc_mm, scan_far.width_mm, scan_far.unc_mm,
+            profile.left_mm, profile.right_mm, profile.front_mm,
+            profile.b_left_clear, profile.b_right_clear, scan_near.b_left_seen,
+            scan_near.b_right_seen, scan_far.b_left_seen,
+            scan_far.b_right_seen);
         if (test_stop_pressed())
         {
             break;

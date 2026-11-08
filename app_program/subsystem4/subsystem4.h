@@ -43,12 +43,12 @@ IMPORT UW   imu_ramp_reports (void);   /* ramps reported since boot */
 IMPORT UW   imu_jolts (void);          /* samples skipped as jolts since boot */
 
 /* Private to subsystem 4, shared between its own .c files */
-IMPORT ID   tid_safety;
-IMPORT ID   cyc_safety;
-IMPORT INT  tmg_safety;
-IMPORT ID   tid_imu;
-IMPORT ID   cyc_imu;
-IMPORT INT  tmg_imu;
+IMPORT ID   gh_tid_safety;
+IMPORT ID   gh_cyc_safety;
+IMPORT INT  g_tmg_safety;
+IMPORT ID   gh_tid_imu;
+IMPORT ID   gh_cyc_imu;
+IMPORT INT  g_tmg_imu;
 IMPORT void safety_task (INT stacd, void * exinf);
 IMPORT void imu_task (INT stacd, void * exinf);
 

@@ -17,7 +17,7 @@ EXPORT void subsystem1_test (void)
     TEST_INIT();
 
     /* S1-U01 / S1-U02: Telemetry wakes every 100 ms without overruns */
-    TEST_PERIODIC("S1-U01", "S1-U02", tmg_telemetry);
+    TEST_PERIODIC("S1-U01", "S1-U02", g_tmg_telemetry);
 
     TEST_SUMMARY("subsystem1");
 }

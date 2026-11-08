@@ -6,36 +6,36 @@
 
 #include "subsystem2.h"
 
-EXPORT ID  tid_motion;
-EXPORT ID  cyc_motion;
-EXPORT INT tmg_motion;
+EXPORT ID  gh_tid_motion;
+EXPORT ID  gh_cyc_motion;
+EXPORT INT g_tmg_motion;
 
 EXPORT ER subsystem2_init (void)
 {
-    ER er;
+    ER err;
 
-    er = motion_hw_init(); /* motors off, encoders counting */
-    if (er < E_OK)
+    err = motion_hw_init(); /* motors off, encoders counting */
+    if (err < E_OK)
     {
-        return er;
+        return err;
     }
-    tmg_motion = app_timing_add("motion", PRI_MOTION, PERIOD_MOTION_MS);
-    cyc_motion = app_create_wake_cyclic(&tid_motion, PERIOD_MOTION_MS);
-    if (tmg_motion < E_OK)
+    g_tmg_motion  = app_timing_add("motion", PRI_MOTION, PERIOD_MOTION_MS);
+    gh_cyc_motion = app_create_wake_cyclic(&gh_tid_motion, PERIOD_MOTION_MS);
+    if (g_tmg_motion < E_OK)
     {
-        return tmg_motion;
+        return g_tmg_motion;
     }
-    return (cyc_motion < E_OK) ? cyc_motion : E_OK;
+    return (gh_cyc_motion < E_OK) ? gh_cyc_motion : E_OK;
 }
 
 EXPORT ER subsystem2_start (void)
 {
-    tid_motion = app_start_task(motion_task, PRI_MOTION, 0, "motion_task");
-    if (tid_motion < E_OK)
+    gh_tid_motion = app_start_task(motion_task, PRI_MOTION, 0, "motion_task");
+    if (gh_tid_motion < E_OK)
     {
-        return tid_motion;
+        return gh_tid_motion;
     }
-    return tk_sta_cyc(cyc_motion);
+    return tk_sta_cyc(gh_cyc_motion);
 }
 
 /*** end of file ***/

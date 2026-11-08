@@ -11,48 +11,49 @@
 #ifndef APP_MATH_H
 #define APP_MATH_H
 
-Inline float app_sqrtf (float x)
+Inline float app_sqrtf (float value)
 {
-    float r = 1.0f;
-    float s = x;
-    int   i;
+    float root   = 1.0f;
+    float scaled = value;
+    int   iter;
 
-    if (x <= 0.0f)
+    if (value <= 0.0f)
     {
         return 0.0f;
     }
-    while (s >= 4.0f)
+    while (scaled >= 4.0f)
     {
-        s *= 0.25f;
-        r *= 2.0f;
+        scaled *= 0.25f;
+        root *= 2.0f;
     }
-    while (s < 0.25f)
+    while (scaled < 0.25f)
     {
-        s *= 4.0f;
-        r *= 0.5f;
+        scaled *= 4.0f;
+        root *= 0.5f;
     }
-    for (i = 0; i < 6; i++)
+    for (iter = 0; iter < 6; iter++)
     {
-        r = 0.5f * (r + (x / r));
+        root = 0.5f * (root + (value / root));
     }
-    return r;
+    return root;
 }
 
 /* sin of an angle in degrees, |deg| <= 90 (Taylor to x^9) */
 Inline float app_sin_deg (float deg)
 {
-    float x  = deg * 3.14159265f / 180.0f;
-    float x2 = x * x;
+    float rad    = deg * 3.14159265f / 180.0f;
+    float rad_sq = rad * rad;
 
-    return x *
-           (1.0f - (x2 / 6.0f *
-                    (1.0f - (x2 / 20.0f *
-                             (1.0f - (x2 / 42.0f * (1.0f - (x2 / 72.0f))))))));
+    return rad *
+           (1.0f -
+            (rad_sq / 6.0f *
+             (1.0f - (rad_sq / 20.0f *
+                      (1.0f - (rad_sq / 42.0f * (1.0f - (rad_sq / 72.0f))))))));
 }
 
-Inline float app_absf (float x)
+Inline float app_absf (float value)
 {
-    return (x < 0.0f) ? -x : x;
+    return (value < 0.0f) ? -value : value;
 }
 
 #endif /* APP_MATH_H */

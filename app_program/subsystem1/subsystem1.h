@@ -1,5 +1,5 @@
-/*
- *  subsystem1.h
+/**
+ * @file    subsystem1.h
  *  Subsystem 1 -- Telemetry / WiFi + Notification (Buddy 1, Muhammad Ikhwan).
  *
  *  This header is subsystem 1's PUBLIC interface: only what other
@@ -43,13 +43,13 @@
 
 #define TELE_TEXT_MAX 160
 
-/* Report one event line (any task; not from interrupt handlers) */
+/** Report one event line (any task; not from interrupt handlers) */
 IMPORT void tele_event (const uint8_t * text);
 
-/* Mission state text for the status line (set by Mission) */
+/** Mission state text for the status line (set by Mission) */
 IMPORT void tele_set_state (const char * state);
 
-/* START commands received over MQTT since boot (the stage tests accept
+/** START commands received over MQTT since boot (the stage tests accept
    the panel's START as well as the button) */
 IMPORT uint32_t tele_start_count (void);
 

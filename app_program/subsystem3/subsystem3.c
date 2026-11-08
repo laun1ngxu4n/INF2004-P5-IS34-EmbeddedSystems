@@ -1,5 +1,5 @@
-/*
- *  subsystem3.c
+/**
+ * @file    subsystem3.c
  *  Subsystem 3 -- Line Following + Barcode Decoder: creates its objects
  *  and starts its tasks.
  */
@@ -12,6 +12,7 @@ EXPORT int32_t g_tmg_line;
 EXPORT ID      gh_tid_barcode;
 EXPORT int32_t g_tmg_barcode;
 
+/** Creates subsystem 3's objects (line and barcode tasks). */
 EXPORT ER subsystem3_init (void)
 {
     ER err;
@@ -47,6 +48,7 @@ EXPORT ER subsystem3_init (void)
     return (gh_cyc_line < E_OK) ? gh_cyc_line : E_OK;
 }
 
+/** Starts subsystem 3's tasks (line following, barcode decoder). */
 EXPORT ER subsystem3_start (void)
 {
     gh_tid_line = app_start_task(line_task, PRI_LINE, 0, "line_task");

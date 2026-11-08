@@ -1,5 +1,5 @@
-/*
- *  app_stage_test.c
+/**
+ * @file    app_stage_test.c
  *  Picks the hands-on stage test (TEST_STAGE) and holds the helpers the
  *  stage tests share.  Built only with: make TEST=1 TEST_STAGE=n
  */
@@ -16,6 +16,7 @@
 #define APP_TEST_STAGE 1
 #endif
 
+/** Prints what to do, waits for START (button or panel), then waits 1 s. */
 EXPORT void test_wait_start (const char * p_what)
 {
     uint32_t remote = tele_start_count();
@@ -49,12 +50,13 @@ EXPORT void test_wait_start (const char * p_what)
     tk_dly_tsk(1000);
 }
 
+/** TRUE while a STOP reason is set. */
 EXPORT BOOL test_stop_pressed (void)
 {
     return app_stop_reasons() != 0u;
 }
 
-/* tm_printf has no %f: print x10 as "12.3" */
+/** tm_printf has no %f: print x10 as "12.3" */
 EXPORT void test_print_x10 (const char * p_before, int32_t x10,
                             const char * p_after)
 {
@@ -64,6 +66,7 @@ EXPORT void test_print_x10 (const char * p_before, int32_t x10,
               magnitude / 10, magnitude % 10, p_after);
 }
 
+/** Loads the test-only barcode mapping A=L, B=R, C=F, D=U. */
 EXPORT void test_use_test_mapping (void)
 {
     static const uint8_t map[] = "A=L,B=R,C=F,D=U";
@@ -75,7 +78,7 @@ EXPORT void test_use_test_mapping (void)
                    "the demo mapping comes over MQTT)\n");
 }
 
-/* Mission in charge.  Stage 2 runs it without obstacle watch and IMU
+/** Mission in charge.  Stage 2 runs it without obstacle watch and IMU
    (not tested yet), Stage 3 adds obstacles, Stage 6 uses everything. */
 EXPORT void app_course_test (BOOL b_obstacles, BOOL b_imu)
 {
@@ -135,6 +138,7 @@ EXPORT void app_course_test (BOOL b_obstacles, BOOL b_imu)
     mission_arm(TRUE);
 }
 
+/** Runs the hands-on test chosen at build time (TEST_STAGE). */
 EXPORT void app_stage_test (void)
 {
     switch (APP_TEST_STAGE)

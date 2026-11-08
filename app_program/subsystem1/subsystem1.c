@@ -1,5 +1,5 @@
-/*
- *  subsystem1.c
+/**
+ * @file    subsystem1.c
  *  Subsystem 1 -- Telemetry: creates its objects and starts its task.
  */
 
@@ -24,6 +24,7 @@ EXPORT ER subsystem1_init (void)
     return (gh_cyc_telemetry < E_OK) ? gh_cyc_telemetry : E_OK;
 }
 
+/** Starts subsystem 1's task (telemetry). */
 EXPORT ER subsystem1_start (void)
 {
     gh_tid_telemetry =

@@ -1,5 +1,5 @@
-/*
- *  app_stop.h
+/**
+ * @file    app_stop.h
  *  The one STOP helper (TEAM.md section 5, IF-02 / IF-05).  Shared by the
  *  whole team.
  *

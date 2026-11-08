@@ -1,5 +1,5 @@
-/*
- *  subsystem2_test.c
+/**
+ * @file    subsystem2_test.c
  *  On-target tests for subsystem 2.  Built only with: make TEST=1
  *
  *  Each TEST_CHECK prints a PASS/FAIL line on the console.  Save the
@@ -18,6 +18,7 @@
 
 #if APP_TEST
 
+/** Subsystem 2's start-up tests (task timing). */
 EXPORT void subsystem2_test (void)
 {
     TEST_INIT();
@@ -32,6 +33,7 @@ EXPORT void subsystem2_test (void)
 
 #define PI_F 3.14159f
 
+/** Name of a Motion result code, for test output. */
 LOCAL const char * res_name (int32_t res)
 {
     switch (res)
@@ -49,7 +51,7 @@ LOCAL const char * res_name (int32_t res)
     }
 }
 
-/* Wait until command id is no longer BUSY (at most 15 s) */
+/** Wait until command id is no longer BUSY (at most 15 s) */
 LOCAL int32_t wait_done (ID h_cmd, motion_status_t * p_status)
 {
     int32_t tick;
@@ -71,7 +73,7 @@ LOCAL int32_t wait_done (ID h_cmd, motion_status_t * p_status)
     return MOT_RES_TIMEOUT;
 }
 
-/* S2-M02: three rounds of left 90, right 90, 180 */
+/** S2-M02: three rounds of left 90, right 90, 180 */
 LOCAL BOOL test_turns (void)
 {
     static const int32_t turns[3] = {90, -90, 180};
@@ -147,7 +149,7 @@ LOCAL BOOL test_turns (void)
     return b_all_done;
 }
 
-/* S2-M03: 500 mm at the barcode speed; speed over the middle 300 mm */
+/** S2-M03: 500 mm at the barcode speed; speed over the middle 300 mm */
 LOCAL BOOL test_slow_speed (void)
 {
     motion_status_t status;
@@ -235,7 +237,7 @@ LOCAL BOOL test_slow_speed (void)
            (mean <= (S2_SPEED_BARCODE * 11 / 10));
 }
 
-/* S2-M04: drive, press STOP; time from press to wheels stopped */
+/** S2-M04: drive, press STOP; time from press to wheels stopped */
 LOCAL BOOL test_stop_once (int32_t run, BOOL b_lifted)
 {
     motion_status_t status;
@@ -326,7 +328,7 @@ LOCAL BOOL test_stop_once (int32_t run, BOOL b_lifted)
     return (MOT_RES_STOPPED == res) && ((t_last_move - t_press) < 500000u);
 }
 
-/* S2-M05: wheels lifted, both wheels forward then back; check both signs */
+/** S2-M05: wheels lifted, both wheels forward then back; check both signs */
 LOCAL BOOL test_directions (void)
 {
     static const int32_t dir[2] = {+1, -1};
@@ -380,6 +382,7 @@ LOCAL BOOL test_directions (void)
     return b_ok;
 }
 
+/** Stage 1 hands-on test: wheel directions, drives, turns, STOP. */
 EXPORT void subsystem2_drive_test (void)
 {
     motion_status_t status;

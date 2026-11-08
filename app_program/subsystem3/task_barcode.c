@@ -1,5 +1,5 @@
-/*
- *  task_barcode.c
+/**
+ * @file    task_barcode.c
  *  Subsystem 3 -- the Barcode Decoder task (wakes every 10 ms).
  *
  *  The GP2 interrupt stores every edge with the odometer reading (encoder
@@ -74,7 +74,7 @@ LOCAL const c39_char_t g_c39[] = {
     {'Z', 0x0D0}, {'-', 0x085}, {'.', 0x184}, {' ', 0x0C4}, {'*', 0x094},
     {'$', 0x0A8}, {'/', 0x0A2}, {'+', 0x08A}, {'%', 0x02A}};
 
-/* GP2 edge: interrupt context */
+/** GP2 edge: interrupt context */
 LOCAL void barcode_edge_isr (uint32_t pin, uint32_t events)
 {
     uint32_t ring_pos = g_ring_w;
@@ -87,6 +87,7 @@ LOCAL void barcode_edge_isr (uint32_t pin, uint32_t events)
 
 #if !S3_BARCODE_ANALOG
 
+/** Sets up the barcode sensor input and its interrupt. */
 EXPORT ER barcode_hw_init (void)
 {
     ER err = app_gpio_input(PIN_IR_BARCODE, FALSE);
@@ -95,6 +96,7 @@ EXPORT ER barcode_hw_init (void)
                         : app_gpio_irq_add(PIN_IR_BARCODE, APP_GPIO_BOTH,
                                            barcode_edge_isr);
 }
+/** TRUE while the barcode sensor sees black. */
 EXPORT BOOL barcode_black (void)
 {
     return IR_BLACK == app_gpio_get(PIN_IR_BARCODE);
@@ -142,12 +144,14 @@ LOCAL int32_t          g_rel_lo;
 LOCAL int32_t          g_rel_hi; /* S3_BAR_RELATIVE: extremes so far */
 LOCAL volatile uint8_t g_adc_lvl = !IR_BLACK;
 
-/* bigger = blacker, whichever way the module is wired */
+/** bigger = blacker, whichever way the module is wired */
 Inline int32_t adc_blackness (int32_t sample)
 {
     return S3_BAR_BLACK_HIGH ? sample : (4095 - sample);
 }
 
+/** One barcode sensor sample: learned levels, relative edges, edge to the
+ * ring. */
 LOCAL void adc_sample (int32_t sample)
 {
     int32_t black = adc_blackness(sample) << ENV_SH;
@@ -271,6 +275,8 @@ LOCAL void adc_sample (int32_t sample)
     }
 }
 
+/** ADC FIFO interrupt: turns each barcode sensor sample into black / white
+ * edges. */
 LOCAL void adc_fifo_isr (uint32_t intno)
 {
     while (0u == (in_w(ADC_FCS) & FCS_EMPTY))
@@ -281,6 +287,7 @@ LOCAL void adc_fifo_isr (uint32_t intno)
     ClearInt(intno);
 }
 
+/** Sets up the barcode sensor input and its interrupt. */
 EXPORT ER barcode_hw_init (void)
 {
     T_DINT dint;
@@ -323,6 +330,7 @@ EXPORT ER barcode_hw_init (void)
     set_w(ADC_CS, CS_START_MANY);
     return E_OK;
 }
+/** TRUE while the barcode sensor sees black. */
 EXPORT BOOL barcode_black (void)
 {
     return IR_BLACK == g_adc_lvl;
@@ -346,16 +354,18 @@ EXPORT BOOL barcode_adc (int32_t * p_raw, int32_t * p_white, int32_t * p_black)
 
 #endif /* S3_BARCODE_ANALOG */
 
+/** TRUE while the barcode sensor is inside a barcode (Motion slows down). */
 EXPORT BOOL barcode_busy (void)
 {
     return gb_busy;
 }
+/** Barcode sensor edges since boot. */
 EXPORT uint32_t barcode_edges (void)
 {
     return g_ring_w;
 }
 
-/* B is over bars now: an edge in the last S3_IN_BARS_MM (widest element
+/** B is over bars now: an edge in the last S3_IN_BARS_MM (widest element
    10.5 mm).  Motion holds the steering straight then: B sits 85 mm left
    of the robot's centre, so any turn changes B's own speed over the bars
    by +-50 % or more against the odometer, and the widths come out wrong. */
@@ -420,7 +430,7 @@ EXPORT uint32_t barcode_mark (int32_t * p_centre_odo, int32_t * p_width_mm10)
     return seq;
 }
 
-/* The first bar of a run has just ended at end_odo, w counts wide.
+/** The first bar of a run has just ended at end_odo, w counts wide.
    Published at once, not after the quiet gap, so a left branch is known
    while there is still room to turn (B sits behind C).  Every first bar
    is published (also a barcode's narrow start bar and grout lines); the
@@ -442,7 +452,7 @@ EXPORT uint32_t barcode_seq (void)
     return g_seq_now;
 }
 
-/* Forget any half-read code (start of a run, after a manoeuvre).  On 7 Nov
+/** Forget any half-read code (start of a run, after a manoeuvre).  On 7 Nov
    tape held under B at the end of the live view left a code open, and
    the run started with a rescan.  Task context; blocks 30 ms. */
 EXPORT void barcode_reset (void)
@@ -452,6 +462,7 @@ EXPORT void barcode_reset (void)
     gb_paused = FALSE;
 }
 
+/** Copies the latest barcode result. */
 EXPORT void barcode_last (barcode_result_t * p_result)
 {
     uint32_t irq_state;
@@ -461,7 +472,7 @@ EXPORT void barcode_last (barcode_result_t * p_result)
     APP_UNLOCK(irq_state);
 }
 
-/* One character from 9 widths; 0 = no match */
+/** One character from 9 widths; 0 = no match */
 LOCAL uint8_t decode_char (const int32_t * p_elem, int32_t * p_narrow_sum,
                            int32_t * p_wide_sum)
 {
@@ -527,7 +538,7 @@ LOCAL uint8_t decode_char (const int32_t * p_elem, int32_t * p_narrow_sum,
     return 0;
 }
 
-/* Decode n elements; fills r.  TRUE = valid "*...*".  The code may start
+/** Decode n elements; fills r.  TRUE = valid "*...*".  The code may start
    at any bar (off even) and end before the last element: a stray mark
    within S3_QUIET_MM of the code is part of the same run. */
 LOCAL BOOL decode (int32_t * p_elem, int32_t count, barcode_result_t * p_result)
@@ -600,7 +611,7 @@ LOCAL BOOL decode (int32_t * p_elem, int32_t count, barcode_result_t * p_result)
     return FALSE;
 }
 
-/* ---- Forgiving decode (8 Nov) -------------------------------------------
+/** ---- Forgiving decode (8 Nov) -------------------------------------------
    Two ways a real read failed (logs 7-8 Nov):
    - one '*' damaged (the robot started on the first bars: 7.2 5.6 8.0
      mm where 3.4 10 3.4 were): accepted if the other '*' and the data
@@ -637,7 +648,7 @@ LOCAL void sort_w (int32_t * p_values, int32_t count)
     }
 }
 
-/* the 3 widest of 9 at least twice the 6 narrow */
+/** the 3 widest of 9 at least twice the 6 narrow */
 LOCAL BOOL clear_split (const int32_t * p_elem)
 {
     int32_t sorted[9];
@@ -652,6 +663,7 @@ LOCAL BOOL clear_split (const int32_t * p_elem)
     return sorted[6] >= (2 * sorted[5]);
 }
 
+/** Sum of 9 element widths (one character). */
 LOCAL int32_t sum9 (const int32_t * p_elem)
 {
     int32_t sum = 0;
@@ -665,7 +677,7 @@ LOCAL int32_t sum9 (const int32_t * p_elem)
     return sum;
 }
 
-/* typical narrow and wide width of n elements (n <= 32): the median of
+/** typical narrow and wide width of n elements (n <= 32): the median of
    the narrowest two thirds and of the widest quarter */
 LOCAL void nar_wid (const int32_t * p_elem, int32_t count, int32_t * p_nar,
                     int32_t * p_wid)
@@ -688,6 +700,7 @@ LOCAL void nar_wid (const int32_t * p_elem, int32_t count, int32_t * p_nar,
     *p_wid = sorted[count - 1 - ((count / 4) / 2)];
 }
 
+/** Forgiving decode: one start / stop character damaged. */
 LOCAL BOOL decode_one_star (int32_t * p_elem, int32_t count,
                             barcode_result_t * p_result)
 {
@@ -801,6 +814,7 @@ LOCAL BOOL decode_one_star (int32_t * p_elem, int32_t count,
     return TRUE;
 }
 
+/** Forgiving decode: a code with one narrow element lost (27-28 elements). */
 LOCAL BOOL decode_merged (const int32_t * p_elem, int32_t count,
                           barcode_result_t * p_result)
 {
@@ -883,7 +897,7 @@ LOCAL BOOL decode_merged (const int32_t * p_elem, int32_t count,
     return TRUE;
 }
 
-/* Cut short (8 Nov): F's last narrow bar is printed weakly (darkest 1839
+/** Cut short (8 Nov): F's last narrow bar is printed weakly (darkest 1839
    against ~2900 for the others) and was not seen, with the space before
    it: 27 elements, the first 27 of a good F.  27-28 elements: add one or
    two narrow elements at the end, or at the start, and decode cleanly.
@@ -955,6 +969,8 @@ LOCAL BOOL decode_truncated (const int32_t * p_elem, int32_t count,
     return TRUE;
 }
 
+/** The barcode decoder task: builds bar widths from the edges and decodes
+ * each code. */
 EXPORT void barcode_task (int32_t stacd, void * p_exinf)
 {
     int32_t  elem[MAX_ELEM];
@@ -1158,12 +1174,14 @@ EXPORT void barcode_task (int32_t stacd, void * p_exinf)
 
 /* ---- Mapping (B7, B8) ---------------------------------------------- */
 
+/** TRUE for a letter or digit a barcode can carry. */
 LOCAL BOOL is_code_char (uint8_t letter)
 {
     return ((letter >= 'A') && (letter <= 'Z')) ||
            ((letter >= '0') && (letter <= '9'));
 }
 
+/** Takes a new mapping text; FALSE and the reason if it is refused. */
 EXPORT BOOL barcode_set_mapping (const uint8_t * p_text, int32_t len,
                                  uint8_t * p_why, int32_t why_max)
 {
@@ -1265,6 +1283,7 @@ EXPORT BOOL barcode_set_mapping (const uint8_t * p_text, int32_t len,
     return TRUE;
 }
 
+/** The mapped move (MOVE_LEFT ...) for a barcode letter, or MOVE_NONE. */
 EXPORT int32_t barcode_move_for (uint8_t letter)
 {
     int32_t  idx;
@@ -1288,6 +1307,7 @@ EXPORT int32_t barcode_move_for (uint8_t letter)
     return move;
 }
 
+/** The mapping now in use as "K=L,Q=R,X=F,M=U" (empty if none); its length. */
 EXPORT int32_t barcode_mapping_text (uint8_t * p_out, int32_t max)
 {
     uint8_t  letters[4];

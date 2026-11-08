@@ -1,5 +1,5 @@
-/*
- *  app_math.h
+/**
+ * @file    app_math.h
  *  Small maths for the whole team: the build is freestanding (no libm).
  *
  *  app_sqrtf: the start guess is scaled to the right power of 2 first, so
@@ -13,6 +13,7 @@
 
 #include "app_types.h"
 
+/** Square root (no libm): scaled guess, then Newton steps. */
 Inline float32_t app_sqrtf (float32_t value)
 {
     float32_t root   = 1.0f;
@@ -44,7 +45,7 @@ Inline float32_t app_sqrtf (float32_t value)
     return root;
 }
 
-/* sin of an angle in degrees, |deg| <= 90 (Taylor to x^9) */
+/** sin of an angle in degrees, |deg| <= 90 (Taylor to x^9) */
 Inline float32_t app_sin_deg (float32_t deg)
 {
     float32_t rad    = deg * 3.14159265f / 180.0f;
@@ -57,6 +58,7 @@ Inline float32_t app_sin_deg (float32_t deg)
                       (1.0f - (rad_sq / 42.0f * (1.0f - (rad_sq / 72.0f))))))));
 }
 
+/** Absolute value of a float. */
 Inline float32_t app_absf (float32_t value)
 {
     return (value < 0.0f) ? -value : value;

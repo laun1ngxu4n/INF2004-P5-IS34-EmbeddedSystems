@@ -1,5 +1,5 @@
-/*
- *  subsystem4_test.c
+/**
+ * @file    subsystem4_test.c
  *  On-target tests for subsystem 4.  Built only with: make TEST=1
  *
  *  Each TEST_CHECK prints a PASS/FAIL line on the console.  Save the
@@ -14,6 +14,7 @@
 
 #if APP_TEST
 
+/** Subsystem 4's start-up tests (task timing). */
 EXPORT void subsystem4_test (void)
 {
     TEST_INIT();
@@ -45,6 +46,7 @@ EXPORT void subsystem4_test (void)
 #define BUMP_END_MM  300 /* run ends this far after the last bump */
 #define TRACE_MAX    400 /* 10 ms trace lines per run */
 
+/** One S4-R01 run: drives over the hump and prints each bump. */
 LOCAL void ramp_run (uint32_t reports_start)
 {
     int32_t  odo0        = motion_odometer();
@@ -193,6 +195,7 @@ LOCAL void ramp_run (uint32_t reports_start)
         (int32_t)(imu_jolts() - jolts_start));
 }
 
+/** Stage 4 hands-on tests: IMU found, tilt view, ramp height runs. */
 EXPORT void subsystem4_stage_test (void)
 {
     int32_t kdx;

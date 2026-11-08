@@ -1,5 +1,5 @@
-/*
- *  task_mission.c
+/**
+ * @file    task_mission.c
  *  Subsystem 5 -- the Mission Controller task.
  *
  *  Waits on gh_flg_mission (100 ms timeout) and runs the course:
@@ -73,6 +73,7 @@ EXPORT void mission_features (BOOL b_obstacles, BOOL b_imu)
     gb_use_imu       = b_imu;
 }
 
+/** Turns the forward obstacle watch on, if this build uses it. */
 LOCAL void watch_on (void)
 {
     obstacle_watch(gb_use_obstacles);
@@ -89,6 +90,7 @@ EXPORT const char * mission_state_name (void)
     return names[g_mstate];
 }
 
+/** Sets the mission state and tells the panel. */
 LOCAL void set_state (int32_t new_state)
 {
     g_mstate = new_state;
@@ -96,12 +98,13 @@ LOCAL void set_state (int32_t new_state)
     tele_set_state(mission_state_name());
 }
 
+/** Sends a text event to the panel. */
 LOCAL void say (const uint8_t * p_text)
 {
     tele_event(p_text);
 }
 
-/* Wait for a Motion command; FALSE if it did not finish (STOP, timeout) */
+/** Wait for a Motion command; FALSE if it did not finish (STOP, timeout) */
 LOCAL BOOL mv (ID h_cmd)
 {
     motion_status_t status;
@@ -130,6 +133,7 @@ LOCAL BOOL mv (ID h_cmd)
     }
 }
 
+/** Waits until both wheels have stopped (at most 1 s). */
 LOCAL void wait_still (void)
 {
     motion_status_t status;
@@ -148,6 +152,7 @@ LOCAL void wait_still (void)
     }
 }
 
+/** Stops the robot, turns the watches off and reports why. */
 LOCAL void halt (const char * p_why)
 {
     uint8_t msg[TELE_TEXT_MAX];
@@ -162,7 +167,7 @@ LOCAL void halt (const char * p_why)
     say(msg);
 }
 
-/* Follow again; line events back on after a short distance */
+/** Follow again; line events back on after a short distance */
 LOCAL BOOL resume_follow (void)
 {
     int32_t odo0 = motion_odometer();
@@ -191,6 +196,7 @@ LOCAL BOOL resume_follow (void)
     return TRUE;
 }
 
+/** Starts a run: calibrates the IMU, clears old results, follows the line. */
 LOCAL void start_run (void)
 {
     int32_t tick;
@@ -226,6 +232,7 @@ LOCAL void start_run (void)
     set_state(M_RUN);
 }
 
+/** Handles a new barcode result: stores its letter, reports the move. */
 LOCAL void on_barcode (void)
 {
     barcode_result_t result;
@@ -304,6 +311,8 @@ LOCAL void on_barcode (void)
 #define TURN_CENTRE_DEG 12
 LOCAL int32_t spin_line (int32_t deg, int32_t ignore);
 
+/** A junction turn that ends on the new line (fast, then slowly until a
+ * sensor finds it). */
 LOCAL BOOL turn_onto_line (int32_t deg)
 {
     int32_t sgn   = (deg > 0) ? 1 : -1;
@@ -332,6 +341,8 @@ LOCAL BOOL turn_onto_line (int32_t deg)
     return mv(motion_turn(-sgn * TURN_SEARCH_DEG));
 }
 
+/** Handles a junction: waits for a barcode still being read, then does the
+ * move. */
 LOCAL void on_junction (void)
 {
     uint8_t msg[TELE_TEXT_MAX];
@@ -413,7 +424,7 @@ LOCAL void on_junction (void)
     set_state(M_RUN);
 }
 
-/* Check the way ahead is clear for dist_mm before driving it */
+/** Check the way ahead is clear for dist_mm before driving it */
 LOCAL BOOL ahead_clear (int32_t dist_mm)
 {
     int32_t dist = sonar_ping_mm();
@@ -423,7 +434,7 @@ LOCAL BOOL ahead_clear (int32_t dist_mm)
             (dist > (dist_mm + MARGIN_MM))); /* fault = not clear */
 }
 
-/* Drive dist_mm straight; stop as soon as a line sensor sees black, but
+/** Drive dist_mm straight; stop as soon as a line sensor sees black, but
    only after from_mm.  1 = line found, 0 = drove it all, -1 = failed */
 LOCAL int32_t drive_until_line (int32_t dist_mm, int32_t from_mm)
 {
@@ -462,7 +473,12 @@ LOCAL int32_t drive_until_line (int32_t dist_mm, int32_t from_mm)
     }
 }
 
-/* Leg 4, past the box (8 Nov).  With the side look the sonar turns 40 deg
+#define SIDE_TOL_IN_MM  120 /* echo from lat_exp - this ... */
+#define SIDE_TOL_OUT_MM 80  /* ... to lat_exp + this = the box */
+#define SIDE_MISS_PINGS 5   /* no echo in this many = not beside */
+#define SIDE_EXTRA_MM   300 /* at most this past x_pass */
+
+/** Leg 4, past the box (8 Nov).  With the side look the sonar turns 40 deg
    (the cables' limit) toward the box and pings every 60 ms while the
    robot drives.  At 40 deg the beam's axis meets the box's side face at a
    glancing angle (a flat face mostly reflects that away), but the side of
@@ -486,10 +502,6 @@ LOCAL int32_t drive_until_line (int32_t dist_mm, int32_t from_mm)
    mm (fixed distance: 250 mm deep 16 of 36 hit, 350 mm all hit); with
    half the side echoes missed still 53/54.
    1 = line met, 0 = past the box (turn back to the line), -1 = halted */
-#define SIDE_TOL_IN_MM  120 /* echo from lat_exp - this ... */
-#define SIDE_TOL_OUT_MM 80  /* ... to lat_exp + this = the box */
-#define SIDE_MISS_PINGS 5   /* no echo in this many = not beside */
-#define SIDE_EXTRA_MM   300 /* at most this past x_pass */
 LOCAL int32_t pass_box (int32_t sgn, int32_t front, int32_t lat_exp,
                         int32_t x_pass)
 {
@@ -671,7 +683,7 @@ out:
     return -1;
 }
 
-/* Spin slowly by up to deg; stop when a line sensor sees black after
+/** Spin slowly by up to deg; stop when a line sensor sees black after
    ignore degrees.  1 = found, 0 = turned it all, -1 = failed */
 LOCAL int32_t spin_line (int32_t deg, int32_t ignore)
 {
@@ -727,11 +739,14 @@ LOCAL int32_t spin_line (int32_t deg, int32_t ignore)
     }
 }
 
+/** Spins slowly by up to deg until a line sensor finds the tape. */
 LOCAL int32_t spin_until_line (int32_t deg)
 {
     return spin_line(deg, SPIN_IGNORE_DEG);
 }
 
+/** Handles an obstacle ahead: scans its width, drives round it, finds the
+ * line. */
 LOCAL void on_obstacle (void)
 {
     obstacle_profile_t scan_near;
@@ -1011,6 +1026,8 @@ fail:
     halt("bypass step did not finish");
 }
 
+/** The mission task: START / STOP, barcodes, junction moves, obstacles,
+ * line lost. */
 EXPORT void mission_task (int32_t stacd, void * p_exinf)
 {
     /* NOTE: kernel type, tk_wai_flg() writes a UINT (Barr C deviation) */

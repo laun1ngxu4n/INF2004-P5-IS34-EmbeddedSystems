@@ -1,5 +1,5 @@
-/*
- *  app_stop.c
+/**
+ * @file    app_stop.c
  *  The one STOP helper (see app_stop.h).
  */
 
@@ -10,6 +10,7 @@
 LOCAL volatile uint32_t g_stop_reasons;
 LOCAL volatile uint32_t g_stop_time_us;
 
+/** Stops the motors at once and records why; any context, interrupts too. */
 EXPORT void app_stop_request (uint32_t reason)
 {
     uint32_t irq_state;
@@ -26,6 +27,7 @@ EXPORT void app_stop_request (uint32_t reason)
     APP_UNLOCK(irq_state);
 }
 
+/** Clears the given STOP reasons (bit mask). */
 EXPORT void app_stop_clear (uint32_t reason)
 {
     uint32_t irq_state;
@@ -35,11 +37,13 @@ EXPORT void app_stop_clear (uint32_t reason)
     APP_UNLOCK(irq_state);
 }
 
+/** The STOP reasons now set; 0 = free to move. */
 EXPORT uint32_t app_stop_reasons (void)
 {
     return g_stop_reasons;
 }
 
+/** app_time_us() at the last STOP request. */
 EXPORT uint32_t app_stop_time_us (void)
 {
     return g_stop_time_us;

@@ -1,5 +1,5 @@
-/*
- *  subsystem5.h
+/**
+ * @file    subsystem5.h
  *  Subsystem 5 -- Mission Controller + Obstacle Scanner
  *  (Buddy 5, Muhammad Irfan).
  *
@@ -39,7 +39,7 @@ IMPORT ID gh_flg_mission;
 #define PIN_START 20
 #define PIN_STOP  21
 
-/* TRUE while the button on pin is pressed (active low) */
+/** TRUE while the button on pin is pressed (active low) */
 Inline BOOL button_is_down (uint32_t pin)
 {
     return (0u == app_gpio_get(pin));
@@ -117,10 +117,10 @@ typedef struct
     int32_t fault_rays; /* rays where the sensor did not answer */
 } obstacle_profile_t;
 
-/* Blocking: called by Mission (or a test) while the robot stands still.
+/** Blocking: called by Mission (or a test) while the robot stands still.
    Turns the servo, settles, 5 pings per ray, median.  About 7 s. */
 IMPORT void obstacle_scan (obstacle_profile_t * p);
-/* Combine two scans (O5): mean width, uncertainty includes their spread */
+/** Combine two scans (O5): mean width, uncertainty includes their spread */
 IMPORT void obstacle_combine (const obstacle_profile_t * a,
                               const obstacle_profile_t * b,
                               obstacle_profile_t *       out);
@@ -132,17 +132,17 @@ IMPORT void servo_look_side (int32_t side); /* +1 left, -1 right, 0 ahead:
                            S5_SERVO_SIDE_DEG that way */
 IMPORT int32_t
 sonar_ping_mm (void); /* blocking 60 ms; mm, SONAR_OPEN or SONAR_FAULT */
-/* The same in two halves, so the caller can do other things in the 60 ms:
+/** The same in two halves, so the caller can do other things in the 60 ms:
    start, then read at least 60 ms later */
 IMPORT void    sonar_ping_start (void);
 IMPORT int32_t sonar_ping_result (void);
 
-/* ---- Mission ------------------------------------------------------- */
+/** ---- Mission ------------------------------------------------------- */
 IMPORT const char * mission_state_name (void);
-/* Mission reacts to START only when armed: always in the normal image;
+/** Mission reacts to START only when armed: always in the normal image;
    in a test image only after the test arms it (so tests can use START). */
 IMPORT void mission_arm (BOOL on);
-/* Which parts Mission uses (all TRUE in the normal image).  Stage tests
+/** Which parts Mission uses (all TRUE in the normal image).  Stage tests
    switch off the parts not tested yet, so a Stage 2 run does not depend
    on the untested obstacle (Stage 3) or IMU (Stage 4) code. */
 IMPORT void mission_features (BOOL obstacles, BOOL imu);

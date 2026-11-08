@@ -1,5 +1,5 @@
-/*
- *  app.h
+/**
+ * @file    app.h
  *  Definitions shared by the whole team.  Changed only by team agreement.
  *
  *  Anything that belongs to ONE subsystem goes in that subsystem's own
@@ -64,17 +64,17 @@
 
 #define TASK_STACK_SIZE 2048 /* bytes; tm_printf needs ~1 KB */
 
-/* Create and start a task.  prc = TP_PRC1 (core 0), TP_PRC2 (core 1), or
+/** Create and start a task.  prc = TP_PRC1 (core 0), TP_PRC2 (core 1), or
    0 for "any core".  Defined in app_main.c. */
 IMPORT ID app_start_task (FP entry, PRI pri, uint32_t prc, const char * name);
 
-/* Create a cyclic handler that wakes the task whose ID is stored at
+/** Create a cyclic handler that wakes the task whose ID is stored at
    *p_tid every period_ms.  Create it in _init (it starts stopped); start
    it with tk_sta_cyc() in _start, after the task exists.  Defined in
    app_main.c. */
 IMPORT ID app_create_wake_cyclic (ID * p_tid, RELTIM period_ms);
 
-/* ---------------------------------------------------------------------
+/** ---------------------------------------------------------------------
  *  Every subsystem provides these.  usermain() calls ALL the _init()
  *  functions first and only then ALL the _start() functions, so every
  *  kernel object exists before any task can use it.
@@ -105,7 +105,7 @@ IMPORT void
 app_stage_test (void); /* hands-on, TEST_STAGE=n (app_stage_test.c) */
 #endif
 
-/* Print a readable message if a kernel call failed (negative error code) */
+/** Print a readable message if a kernel call failed (negative error code) */
 Inline void app_check (int32_t err, const char * p_what)
 {
     if (err < E_OK)

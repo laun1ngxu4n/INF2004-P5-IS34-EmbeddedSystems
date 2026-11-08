@@ -1,5 +1,5 @@
-/*
- *  subsystem4.c
+/**
+ * @file    subsystem4.c
  *  Subsystem 4 -- Safety + IMU: creates its objects and starts its tasks.
  */
 
@@ -12,6 +12,7 @@ EXPORT ID      gh_tid_imu;
 EXPORT ID      gh_cyc_imu;
 EXPORT int32_t g_tmg_imu;
 
+/** Creates subsystem 4's objects (safety and IMU tasks). */
 EXPORT ER subsystem4_init (void)
 {
     g_tmg_safety  = app_timing_add("safety", PRI_SAFETY, PERIOD_SAFETY_MS);
@@ -37,6 +38,7 @@ EXPORT ER subsystem4_init (void)
     return (gh_cyc_imu < E_OK) ? gh_cyc_imu : E_OK;
 }
 
+/** Starts subsystem 4's tasks (safety, IMU). */
 EXPORT ER subsystem4_start (void)
 {
     gh_tid_safety = app_start_task(safety_task, PRI_SAFETY, 0, "safety_task");

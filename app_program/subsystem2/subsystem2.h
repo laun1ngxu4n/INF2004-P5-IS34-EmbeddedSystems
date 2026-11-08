@@ -1,5 +1,5 @@
-/*
- *  subsystem2.h
+/**
+ * @file    subsystem2.h
  *  Subsystem 2 -- Motion Control (Buddy 2, Ng Chern Loong Branson).
  *
  *  This header is subsystem 2's PUBLIC interface: only what other
@@ -60,7 +60,7 @@ typedef struct
     uint32_t invalid; /* quadrature errors since boot (missed edges) */
 } motion_status_t;
 
-/* Commands.  Each returns the command id (> 0), or E_OBJ while a STOP
+/** Commands.  Each returns the command id (> 0), or E_OBJ while a STOP
    reason is set.  A new command replaces a running one. */
 IMPORT ID motion_drive (int32_t speed_mm_s,
                         int32_t dist_mm); /* speed < 0 = reverse */
@@ -69,20 +69,20 @@ IMPORT ID motion_turn_at (int32_t deg, int32_t wheel_mm_s); /* a slower spin */
 IMPORT ID motion_follow (int32_t speed_mm_s); /* follow the line (IF-03 steering
                          from line_steer_mm_s()) until another command */
 IMPORT void motion_halt (void);               /* stop, no STOP reason */
-/* Line following: never faster than this (0 = no limit).  Changes the
+/** Line following: never faster than this (0 = no limit).  Changes the
    speed of a running follow without restarting it (a new motion_follow
    would start again from standstill). */
 IMPORT void motion_follow_limit (int32_t speed_mm_s);
 IMPORT void motion_get_status (motion_status_t * st);
 
-/* Motors off now.  Any context, also interrupt handlers; used by the
+/** Motors off now.  Any context, also interrupt handlers; used by the
    STOP helper (app_stop.c) and, later, Safety (TEAM.md section 3). */
 IMPORT void motor_safe_off (void);
 
-/* Distance driven since boot, mean of both wheels, in encoder counts
+/** Distance driven since boot, mean of both wheels, in encoder counts
    (0.080 mm each).  Any context, also interrupt handlers (barcode edges). */
 IMPORT int32_t motion_odometer (void);
-/* Odometer counts (a difference of motion_odometer()) to mm */
+/** Odometer counts (a difference of motion_odometer()) to mm */
 Inline int32_t motion_counts_to_mm (int32_t counts)
 {
     return (counts * S2_UM_PER_COUNT) / 1000;

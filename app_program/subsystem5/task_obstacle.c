@@ -1,5 +1,5 @@
-/*
- *  task_obstacle.c
+/**
+ * @file    task_obstacle.c
  *  Subsystem 5 -- the Obstacle Scanner task (every 60 ms) and the
  *  profiling scan.
  *
@@ -62,7 +62,7 @@ LOCAL volatile int32_t g_front_mm = FAR;
 LOCAL volatile BOOL    gb_sensor_fault;
 LOCAL int32_t          g_servo_now = 90;
 
-/* ECHO edges: interrupt context */
+/** ECHO edges: interrupt context */
 LOCAL void sonar_echo_isr (uint32_t pin, uint32_t events)
 {
     uint32_t now = app_time_us();
@@ -85,6 +85,7 @@ LOCAL void sonar_echo_isr (uint32_t pin, uint32_t events)
     (void)events;
 }
 
+/** Sends the sonar's 10 us trigger pulse. */
 LOCAL void trigger (void)
 {
     uint32_t t_start;
@@ -102,7 +103,7 @@ LOCAL void trigger (void)
     gpio_set_val(PIN_TRIG, 0);
 }
 
-/* Result of the last trigger: mm, FAR (nothing in range) or SONAR_FAULT */
+/** Result of the last trigger: mm, FAR (nothing in range) or SONAR_FAULT */
 LOCAL int32_t echo_mm (void)
 {
     if (!gb_echo_rose)
@@ -124,11 +125,13 @@ EXPORT void sonar_ping_start (void)
 {
     trigger();
 }
+/** The result of the ping started by sonar_ping_start(). */
 EXPORT int32_t sonar_ping_result (void)
 {
     return echo_mm();
 }
 
+/** One ping, waiting 60 ms: mm, SONAR_OPEN or SONAR_FAULT. */
 EXPORT int32_t sonar_ping_mm (void)
 {
     int32_t dist_mm;
@@ -148,6 +151,7 @@ EXPORT int32_t sonar_ping_mm (void)
     return dist_mm;
 }
 
+/** Sets the servo pulse for deg at once. */
 LOCAL void servo_write (int32_t deg)
 {
     int32_t pulse_us = 1500 + ((deg - 90) * S5_SERVO_US_PER_DEG *
@@ -164,6 +168,7 @@ LOCAL void servo_write (int32_t deg)
     ((S5_SERVO_SIDE_DEG > S5_SERVO_HALF_DEG) ? S5_SERVO_SIDE_DEG \
                                              : S5_SERVO_HALF_DEG)
 
+/** Turns the sonar servo slowly to deg (90 = ahead); blocks while it turns. */
 EXPORT void servo_set_angle (int32_t deg)
 {
     if (deg < (90 - SERVO_LIMIT))
@@ -191,6 +196,7 @@ EXPORT void servo_set_angle (int32_t deg)
     }
 }
 
+/** Turns the sonar to one side (+1 left, -1 right) by S5_SERVO_SIDE_DEG. */
 EXPORT void servo_look_side (int32_t side)
 {
     int32_t left = S5_SERVO_LEFT_HIGH ? 1 : -1;
@@ -198,23 +204,28 @@ EXPORT void servo_look_side (int32_t side)
     servo_set_angle(90 + (side * left * S5_SERVO_SIDE_DEG));
 }
 
+/** Turns the forward obstacle watch on or off. */
 EXPORT void obstacle_watch (BOOL b_on)
 {
     gb_watch = b_on;
 }
+/** Pinging for the panel while Mission is IDLE, on or off. */
 EXPORT void obstacle_idle_ping (BOOL b_on)
 {
     gb_idle_ping = b_on;
 }
+/** The last straight-ahead distance, mm (SONAR_OPEN = nothing). */
 EXPORT int32_t obstacle_front_mm (void)
 {
     return g_front_mm;
 }
+/** TRUE after 5 pings in a row without an ECHO. */
 EXPORT BOOL obstacle_sensor_fault (void)
 {
     return gb_sensor_fault;
 }
 
+/** Sets up the sonar pins, its ECHO interrupt and the servo PWM. */
 EXPORT ER obstacle_hw_init (void)
 {
     ER err;
@@ -248,6 +259,7 @@ EXPORT ER obstacle_hw_init (void)
 
 /* ---- maths without libm -------------------------------------------- */
 
+/** Median of up to 5 readings (sorts them in place). */
 LOCAL int32_t median5 (int32_t * p_values, int32_t count)
 {
     int32_t idx;
@@ -269,7 +281,7 @@ LOCAL int32_t median5 (int32_t * p_values, int32_t count)
 
 /* ---- the profiling scan --------------------------------------------- */
 
-/* One side: walk outward from straight ahead.  dir = +1 / -1 is the
+/** One side: walk outward from straight ahead.  dir = +1 / -1 is the
    direction in the ray array (which side that is depends on the servo).
    Returns the lateral edge (mm, signed) and its half-step uncertainty. */
 LOCAL void side_edge (const int32_t * p_dist, const int32_t * p_phi,
@@ -477,7 +489,7 @@ EXPORT void obstacle_scan (obstacle_profile_t * p_profile)
     }
 }
 
-/* One side from two scans.  An edge counts from a scan that saw past it;
+/** One side from two scans.  An edge counts from a scan that saw past it;
    a scan the obstacle filled to the end of its travel says nothing about
    that side (it used to make the side "not clear": from 20-25 cm a 20 cm
    box fills +-40 deg once the beam's width is added). */
@@ -545,6 +557,7 @@ EXPORT void obstacle_combine (const obstacle_profile_t * p_near,
 
 /* ---- the task: forward watch ---------------------------------------- */
 
+/** The obstacle task: the forward watch, a ping every 60 ms. */
 EXPORT void obstacle_task (int32_t stacd, void * p_exinf)
 {
     int32_t close_count = 0;

@@ -1,5 +1,5 @@
-/*
- *  task_telemetry.c
+/**
+ * @file    task_telemetry.c
  *  Subsystem 1 -- the Telemetry task (Notification merged in), the event
  *  outbox and the MQTT command inbox.
  *
@@ -55,7 +55,7 @@ LOCAL uint32_t g_log_dropped; /* bytes lost: ring full */
 LOCAL uint32_t g_log_seq;
 LOCAL BOOL     gb_log_turn; /* last message sent was a log chunk */
 
-/* Called by the console driver for every byte it sends: any context */
+/** Called by the console driver for every byte it sends: any context */
 EXPORT void tm_console_mirror (const uint8_t * p_buf, int32_t size)
 {
     uint32_t irq_state;
@@ -84,7 +84,7 @@ EXPORT void tm_console_mirror (const uint8_t * p_buf, int32_t size)
     APP_UNLOCK(irq_state);
 }
 
-/* The next log chunk into buf; 0 = nothing waiting */
+/** The next log chunk into buf; 0 = nothing waiting */
 LOCAL int32_t log_take (char * p_topic, uint32_t tmax, uint8_t * p_buf,
                         uint32_t bmax)
 {
@@ -141,6 +141,7 @@ LOCAL int32_t log_take (char * p_topic, uint32_t tmax, uint8_t * p_buf,
 }
 #endif
 
+/** Queues a message for MQTT; drops the oldest if the queue is full. */
 LOCAL void outbox_put (uint8_t topic, const uint8_t * p_text)
 {
     uint32_t irq_state;
@@ -179,7 +180,7 @@ EXPORT void tele_set_state (const char * p_state)
 
 /* ---- MQTT hooks, called from the WiFi task (mqtt_utk.c) ------------- */
 
-/* TRUE if s starts with prefix; *rest = what follows */
+/** TRUE if s starts with prefix; *rest = what follows */
 LOCAL BOOL starts_with (const char * p_text, const char * p_prefix,
                         const char ** pp_rest)
 {
@@ -195,6 +196,7 @@ LOCAL BOOL starts_with (const char * p_text, const char * p_prefix,
     return TRUE;
 }
 
+/** TRUE if two strings are equal. */
 LOCAL BOOL same (const char * p_first, const char * p_second)
 {
     while ((*p_first != '\0') && (*p_first == *p_second))
@@ -206,6 +208,8 @@ LOCAL BOOL same (const char * p_first, const char * p_second)
     return *p_first == *p_second;
 }
 
+/** Called by the MQTT glue to fetch the next message to send; its length,
+ * or 0. */
 EXPORT int app_mqtt_tx (char * p_topic, unsigned tmax, unsigned char * p_buf,
                         unsigned bmax)
 {
@@ -261,6 +265,7 @@ EXPORT int app_mqtt_tx (char * p_topic, unsigned tmax, unsigned char * p_buf,
     return (int)idx;
 }
 
+/** Called by the MQTT glue for each message received: START, STOP, mapping. */
 EXPORT void app_mqtt_rx (const char * p_topic, const unsigned char * p_data,
                          unsigned len)
 {
@@ -310,6 +315,7 @@ EXPORT void app_mqtt_rx (const char * p_topic, const unsigned char * p_data,
 
 /* ---- the task -------------------------------------------------------- */
 
+/** Builds the 1 s status line for the panel. */
 LOCAL void status_line (void)
 {
     motion_status_t  status;
@@ -332,7 +338,7 @@ LOCAL void status_line (void)
     outbox_put(1, text);
 }
 
-/* Live sensor readings for the laptop panel (not graded, just to see what
+/** Live sensor readings for the laptop panel (not graded, just to see what
    the robot sees): ir = side, centre, barcode (1 = black), steer mm/s,
    hold = steering held straight (B over bars), inbar = inside a barcode, front
    = last forward sonar mm (-1 open, -2 no ECHO), tilt = sin(pitch) x1000, h10 =
@@ -353,6 +359,8 @@ LOCAL void sensor_line (void)
     outbox_put(3, text);
 }
 
+/** The telemetry task: status line every 1 s, sensors every 0.5 s, timing
+ * table. */
 EXPORT void telemetry_task (int32_t stacd, void * p_exinf)
 {
     uint32_t report_tick = 0;

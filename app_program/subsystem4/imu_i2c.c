@@ -1,5 +1,5 @@
-/*
- *  imu_i2c.c
+/**
+ * @file    imu_i2c.c
  *  Subsystem 4 -- polled I2C1 master for the IMU (GP26 SDA, GP27 SCL).
  *
  *  Only imu_task uses I2C1 (TEAM.md section 3).  The kernel keeps I2C1 in
@@ -34,6 +34,7 @@
 #define PIN_SDA 26
 #define PIN_SCL 27
 
+/** TRUE if the I2C block reported an abort; clears it. */
 LOCAL BOOL aborted (void)
 {
     if ((in_w(IC_RAW_INTR_STAT) & RAW_TX_ABRT) != 0u)
@@ -45,6 +46,7 @@ LOCAL BOOL aborted (void)
     return FALSE;
 }
 
+/** Points the I2C block at a device address. */
 LOCAL void set_target (uint8_t addr)
 {
     out_w(IC_ENABLE, 0);
@@ -52,6 +54,7 @@ LOCAL void set_target (uint8_t addr)
     out_w(IC_ENABLE, 1);
 }
 
+/** Sets up I2C1 for the IMU (pins, 100 kHz). */
 EXPORT void imu_i2c_init (void)
 {
     uint32_t pin;
@@ -75,7 +78,7 @@ EXPORT void imu_i2c_init (void)
     out_w(IC_ENABLE, 1);
 }
 
-/* Read n (<= 8) registers from reg up (LSM303D: bit 7 = auto-increment) */
+/** Read n (<= 8) registers from reg up (LSM303D: bit 7 = auto-increment) */
 EXPORT ER imu_i2c_read (uint8_t addr, uint8_t reg, uint8_t * p_buf,
                         int32_t count)
 {
@@ -115,6 +118,7 @@ EXPORT ER imu_i2c_read (uint8_t addr, uint8_t reg, uint8_t * p_buf,
     return E_OK;
 }
 
+/** Writes one register of an I2C device; E_OK or an error. */
 EXPORT ER imu_i2c_write (uint8_t addr, uint8_t reg, uint8_t val)
 {
     uint32_t t_start;

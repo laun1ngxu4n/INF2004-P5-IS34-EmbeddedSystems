@@ -1,5 +1,5 @@
-/*
- *  app_stage_test.h
+/**
+ * @file    app_stage_test.h
  *  Hands-on stage tests (make TEST=1 TEST_STAGE=n).  Shared by the team.
  *  They run after the automatic Stage 0 tests and wait for the START
  *  button (GP20) before anything moves.  STOP (GP21) works at any time.

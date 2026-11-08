@@ -1,5 +1,5 @@
-/*
- *  app_timing.h
+/**
+ * @file    app_timing.h
  *  Per-task timing monitor.  Shared by the whole team.
  *
  *  Every task calls app_timing_wake() right after it wakes and
@@ -40,25 +40,25 @@ typedef struct
     uint32_t test_max_iv_us;
 } app_timing_t;
 
-/* Microseconds since boot from the hardware timer (wraps after ~71 min) */
+/** Microseconds since boot from the hardware timer (wraps after ~71 min) */
 IMPORT uint32_t app_time_us (void);
 
-/* Register a task in a subsystem's _init(); returns its slot (or < 0) */
+/** Register a task in a subsystem's _init(); returns its slot (or < 0) */
 IMPORT int32_t app_timing_add (const char * name, PRI pri, uint32_t period_ms);
 
-/* Call at the top of every cycle; overruns = value returned by tk_can_wup */
+/** Call at the top of every cycle; overruns = value returned by tk_can_wup */
 IMPORT void app_timing_wake (int32_t slot, int32_t overruns);
 
-/* Call when the cycle's work is finished */
+/** Call when the cycle's work is finished */
 IMPORT void app_timing_done (int32_t slot);
 
-/* Start a test window: clears test_max_iv_us (tests only) */
+/** Start a test window: clears test_max_iv_us (tests only) */
 IMPORT void app_timing_test_start (int32_t slot);
 
-/* Copy one slot (for tests); returns E_OK or E_PAR */
+/** Copy one slot (for tests); returns E_OK or E_PAR */
 IMPORT ER app_timing_get (int32_t slot, app_timing_t * p_copy);
 
-/* Print one line per task, then start a new report window */
+/** Print one line per task, then start a new report window */
 IMPORT void app_timing_report (void);
 
 #endif /* APP_TIMING_H */

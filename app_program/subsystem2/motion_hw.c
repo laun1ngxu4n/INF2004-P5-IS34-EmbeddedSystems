@@ -1,5 +1,5 @@
-/*
- *  motion_hw.c
+/**
+ * @file    motion_hw.c
  *  Subsystem 2 -- motor PWM and wheel encoders.
  *
  *  Motors (Robo Pico M1/M2): forward = A driven with PWM and B low,
@@ -40,6 +40,7 @@ LOCAL volatile int32_t
 LOCAL volatile uint32_t g_enc_invalid;
 LOCAL uint8_t           g_enc_prev[2];
 
+/** The A/B level pair of one wheel's encoder. */
 LOCAL uint8_t enc_ab (int32_t wheel)
 {
     uint32_t pins = in_w(GPIO_IN);
@@ -54,7 +55,7 @@ LOCAL uint8_t enc_ab (int32_t wheel)
                      ((pins >> PIN_ENC_R_B) & 1u));
 }
 
-/* Interrupt context, from app_gpio.c */
+/** Interrupt context, from app_gpio.c */
 LOCAL void encoder_edge_isr (uint32_t pin, uint32_t events)
 {
     int32_t wheel =
@@ -83,6 +84,7 @@ LOCAL void encoder_edge_isr (uint32_t pin, uint32_t events)
 #define PWM_CC_L (PWM_BASE + (SLICE_L * 0x14) + PWM_CHx_CC)
 #define PWM_CC_R (PWM_BASE + (SLICE_R * 0x14) + PWM_CHx_CC)
 
+/** PWM compare value pair (A and B halves) for one motor's signed duty. */
 LOCAL uint32_t cc_pair (int32_t duty)
 {
     uint32_t level;
@@ -102,6 +104,7 @@ LOCAL uint32_t cc_pair (int32_t duty)
     return (duty >= 0) ? level : (level << 16);
 }
 
+/** Sets both motor duties, -1000..1000 per mille, in one write per motor. */
 EXPORT void motor_write (int32_t duty_l, int32_t duty_r)
 {
     uint32_t cc_l = cc_pair(duty_l);
@@ -132,7 +135,7 @@ EXPORT int32_t motion_odometer (void)
     return (g_enc_count[WHEEL_R] - g_enc_count[WHEEL_L]) / 2;
 }
 
-/* Counts with + = forward for both wheels */
+/** Counts with + = forward for both wheels */
 EXPORT void encoder_read (int32_t * p_left, int32_t * p_right,
                           uint32_t * p_invalid)
 {
@@ -150,6 +153,7 @@ EXPORT void encoder_read (int32_t * p_left, int32_t * p_right,
     APP_UNLOCK(irq_state);
 }
 
+/** Sets up the motor PWM and the encoder interrupts. */
 EXPORT ER motion_hw_init (void)
 {
     const uint32_t mpins[4] = {PIN_M_L_A, PIN_M_L_B, PIN_M_R_A, PIN_M_R_B};

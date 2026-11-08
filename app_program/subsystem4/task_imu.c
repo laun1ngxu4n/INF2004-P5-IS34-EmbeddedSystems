@@ -1,5 +1,5 @@
-/*
- *  task_imu.c
+/**
+ * @file    task_imu.c
  *  Subsystem 4 -- the IMU / Terrain Monitor task (every 10 ms).
  *
  *  Reads the LSM303D accelerometer (+/-4 g, 100 Hz) and tracks the ramp
@@ -70,48 +70,60 @@ LOCAL volatile int32_t  g_ramp_peak_mm10;
 LOCAL volatile uint32_t g_ramp_reports;
 LOCAL volatile uint32_t g_jolts;
 
+/** TRUE once the IMU answered and was configured. */
 EXPORT BOOL imu_ok (void)
 {
     return gb_chip_ok;
 }
+/** Starts a 1 s level calibration (robot level and still). */
 EXPORT void imu_calibrate (void)
 {
     gb_calibrated  = FALSE;
     gb_cal_request = TRUE;
 }
+/** TRUE once the level calibration is done. */
 EXPORT BOOL imu_calibrated (void)
 {
     return gb_calibrated;
 }
+/** Current climbed height, 0.1 mm. */
 EXPORT int32_t imu_height_mm10 (void)
 {
     return g_height_mm10;
 }
+/** sin(pitch) x 1000, relative to the level. */
 EXPORT int32_t imu_pitch_mdeg_sin (void)
 {
     return g_sin_x1000;
 }
+/** sin(side tilt) x 1000, relative to the level. */
 EXPORT int32_t imu_roll_sin_x1000 (void)
 {
     return g_roll_x1000;
 }
+/** Height of one wheel above the other now (track x sin(side tilt)), 0.1
+ * mm. */
 EXPORT int32_t imu_one_wheel_mm10 (void)
 {
     return g_one_h_mm10;
 }
+/** The last reported ramp height, 0.1 mm. */
 EXPORT int32_t imu_ramp_peak_mm10 (void)
 {
     return g_ramp_peak_mm10;
 }
+/** Ramps reported since boot. */
 EXPORT uint32_t imu_ramp_reports (void)
 {
     return g_ramp_reports;
 }
+/** Samples skipped as jolts since boot. */
 EXPORT uint32_t imu_jolts (void)
 {
     return g_jolts;
 }
 
+/** Checks the LSM303D answers and configures its accelerometer. */
 LOCAL BOOL chip_setup (void)
 {
     uint8_t who = 0;
@@ -132,6 +144,8 @@ LOCAL BOOL chip_setup (void)
            (E_OK == imu_i2c_write(IMU_ADDR, 0x26, 0x00));   /* CTRL7: no HPF */
 }
 
+/** The IMU task: reads the accelerometer, tracks tilt and ramp height,
+ * reports ramps. */
 EXPORT void imu_task (int32_t stacd, void * p_exinf)
 {
     int32_t   retry          = 0;

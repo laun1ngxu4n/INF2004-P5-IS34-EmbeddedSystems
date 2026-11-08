@@ -1,5 +1,5 @@
-/*
- *  task_motion.c
+/**
+ * @file    task_motion.c
  *  Subsystem 2 -- the Motion Control task.
  *
  *  Every 10 ms:
@@ -54,6 +54,7 @@ LOCAL BOOL            gb_cmd_new;
 LOCAL ID              gh_cmd_last_id;
 LOCAL motion_status_t g_status; /* written by the task, under APP_LOCK */
 
+/** Hands a new command to the motion task; its handle. */
 LOCAL ID cmd_post (int32_t type, int32_t speed, int32_t amount)
 {
     uint32_t irq_state;
@@ -82,16 +83,19 @@ EXPORT ID motion_drive (int32_t speed_mm_s, int32_t dist_mm)
     return cmd_post(CMD_DRIVE, speed_mm_s, dist_mm);
 }
 
+/** Spins on the spot by deg degrees (+ = left); its handle. */
 EXPORT ID motion_turn (int32_t deg)
 {
     return cmd_post(CMD_TURN, S2_SPEED_TURN, deg);
 }
 
+/** Spins on the spot by deg degrees at a given wheel speed; its handle. */
 EXPORT ID motion_turn_at (int32_t deg, int32_t wheel_mm_s)
 {
     return cmd_post(CMD_TURN, wheel_mm_s, deg);
 }
 
+/** Follows the line at speed mm/s until another command. */
 EXPORT ID motion_follow (int32_t speed_mm_s)
 {
     return cmd_post(CMD_FOLLOW, speed_mm_s, 0);
@@ -104,11 +108,13 @@ EXPORT void motion_follow_limit (int32_t speed_mm_s)
     g_follow_limit = speed_mm_s;
 }
 
+/** Stops the wheels (no STOP reason). */
 EXPORT void motion_halt (void)
 {
     (void)cmd_post(CMD_HALT, 0, 0);
 }
 
+/** Copies the result of the motion task's last command. */
 EXPORT void motion_get_status (motion_status_t * p_status)
 {
     uint32_t irq_state;
@@ -118,11 +124,13 @@ EXPORT void motion_get_status (motion_status_t * p_status)
     APP_UNLOCK(irq_state);
 }
 
+/** value limited to low..high. */
 LOCAL float32_t clampf (float32_t value, float32_t low, float32_t high)
 {
     return (value < low) ? low : ((value > high) ? high : value);
 }
 
+/** Absolute value of a float. */
 LOCAL float32_t absf (float32_t value)
 {
     return (value < 0.0f) ? -value : value;
@@ -133,6 +141,7 @@ typedef struct
     float32_t integ;
 } wheel_pi_t;
 
+/** Motor duty for one wheel: feed-forward plus PI on its speed. */
 LOCAL int32_t wheel_duty (wheel_pi_t * p_wheel, float32_t target,
                           float32_t measured)
 {
@@ -153,6 +162,8 @@ LOCAL int32_t wheel_duty (wheel_pi_t * p_wheel, float32_t target,
                            1000.0f);
 }
 
+/** The motion task: runs drive, turn and follow commands with wheel speed
+ * control. */
 EXPORT void motion_task (int32_t stacd, void * p_exinf)
 {
     int32_t      hist_l[SPEED_AVG_N] = {0};

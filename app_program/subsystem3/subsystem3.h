@@ -1,5 +1,5 @@
-/*
- *  subsystem3.h
+/**
+ * @file    subsystem3.h
  *  Subsystem 3 -- Line Following + Barcode Decoder (Buddy 3, Lau Ning Xuan).
  *
  *  This header is subsystem 3's PUBLIC interface: only what other
@@ -94,7 +94,7 @@
 #define JUNC_SIDE_S      1 /* a crossing: both line sensors black */
 #define JUNC_SIDE_B      2 /* a left arm, seen by B */
 
-/* IF-03: steering for Motion, mm/s added to the right wheel and taken
+/** IF-03: steering for Motion, mm/s added to the right wheel and taken
    from the left (+ = turn left).  Latest value only. */
 IMPORT int32_t line_steer_mm_s (void);
 
@@ -145,18 +145,18 @@ IMPORT void     barcode_last (barcode_result_t * r);
 IMPORT BOOL     barcode_busy (void);  /* inside a barcode now (Motion slows) */
 IMPORT uint32_t barcode_edges (void); /* barcode sensor edges since boot */
 IMPORT BOOL     barcode_black (void); /* sensor sees black now (either input) */
-/* Analogue input only (S3_BARCODE_ANALOG 1): last raw value and the learned
+/** Analogue input only (S3_BARCODE_ANALOG 1): last raw value and the learned
    white / black levels, 0..4095.  FALSE in the digital build. */
 IMPORT BOOL barcode_adc (int32_t * raw, int32_t * white, int32_t * black);
-/* B is over bars now: hold the steering straight. */
+/** B is over bars now: hold the steering straight. */
 IMPORT BOOL barcode_in_bars (void);
-/* +1 for every result published. */
+/** +1 for every result published. */
 IMPORT uint32_t barcode_seq (void);
-/* Drop a half-read code (start of a run); blocks 30 ms. */
+/** Drop a half-read code (start of a run); blocks 30 ms. */
 IMPORT void barcode_reset (void);
-/* The last code that ended, any length; returns a seq. */
+/** The last code that ended, any length; returns a seq. */
 IMPORT uint32_t barcode_debug (int32_t * n, int32_t * w_mm10, int32_t max);
-/* Last first-bar under B (published as soon as it ends): a left branch
+/** Last first-bar under B (published as soon as it ends): a left branch
    if about one tape wide; else a grout line or a barcode's start bar.
    Its centre (odometer counts) and width.  Returns a seq, +1 for each. */
 IMPORT uint32_t barcode_mark (int32_t * centre_odo, int32_t * width_mm10);

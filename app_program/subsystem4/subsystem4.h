@@ -1,5 +1,5 @@
-/*
- *  subsystem4.h
+/**
+ * @file    subsystem4.h
  *  Subsystem 4 -- Safety / Fault Monitor + IMU / Terrain Monitor
  *  (Buddy 4, Muhammad Haziq).
  *

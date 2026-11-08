@@ -1,5 +1,5 @@
-/*
- *  test_report.h
+/**
+ * @file    test_report.h
  *  Minimal on-target test helpers.
  *
  *  Every check prints ONE line in a fixed format, so a saved console log

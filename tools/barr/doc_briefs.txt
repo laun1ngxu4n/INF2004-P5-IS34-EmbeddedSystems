@@ -1,0 +1,132 @@
+# Brief Doxygen descriptions for functions that had none (Barr C 2.2h).
+# tools/barr/add_briefs.py puts each one above the function's definition.
+gpio_bank0_isr: GPIO bank 0 interrupt: acknowledges each pin's edges and calls its callback.
+io_proc0_inte_reg: Address of the core 0 interrupt-enable register for pin bank reg.
+io_proc0_ints_reg: Address of the core 0 interrupt-status register for pin bank reg.
+usermain: micro T-Kernel's entry point: starts every subsystem, then the tests or the mission.
+app_absf: Absolute value of a float.
+app_sqrtf: Square root (no libm): scaled guess, then Newton steps.
+app_stage_test: Runs the hands-on test chosen at build time (TEST_STAGE).
+test_stop_pressed: TRUE while a STOP reason is set.
+test_use_test_mapping: Loads the test-only barcode mapping A=L, B=R, C=F, D=U.
+test_wait_start: Prints what to do, waits for START (button or panel), then waits 1 s.
+app_stop_clear: Clears the given STOP reasons (bit mask).
+app_stop_reasons: The STOP reasons now set; 0 = free to move.
+app_stop_request: Stops the motors at once and records why; any context, interrupts too.
+app_stop_time_us: app_time_us() at the last STOP request.
+aborted: TRUE if the I2C block reported an abort; clears it.
+imu_i2c_init: Sets up I2C1 for the IMU (pins, 100 kHz).
+imu_i2c_write: Writes one register of an I2C device; E_OK or an error.
+set_target: Points the I2C block at a device address.
+cc_pair: PWM compare value pair (A and B halves) for one motor's signed duty.
+enc_ab: The A/B level pair of one wheel's encoder.
+motion_hw_init: Sets up the motor PWM and the encoder interrupts.
+motor_write: Sets both motor duties, -1000..1000 per mille, in one write per motor.
+subsystem1_start: Starts subsystem 1's task (telemetry).
+subsystem1_test: Subsystem 1's start-up tests (task timing).
+subsystem2_init: Creates subsystem 2's objects (motion): hardware, timing, cyclic handler.
+subsystem2_start: Starts subsystem 2's task (motion) and its cyclic handler.
+res_name: Name of a Motion result code, for test output.
+subsystem2_drive_test: Stage 1 hands-on test: wheel directions, drives, turns, STOP.
+subsystem2_test: Subsystem 2's start-up tests (task timing).
+subsystem3_init: Creates subsystem 3's objects (line and barcode tasks).
+subsystem3_start: Starts subsystem 3's tasks (line following, barcode decoder).
+bar_bench: Stage 2 S3-B00: barcode reads driving straight, four runs.
+bar_bench_run: One S3-B00 run: drives straight over a barcode and prints the profile.
+bench_raw: Bench view: blackness back to the raw analogue reading.
+ir_live: Live view of the IR sensors for secs seconds, with the barcode sensor levels.
+subsystem3_stage_test: Stage 2 hands-on tests: line following, junctions, barcodes, junction moves.
+subsystem3_test: Subsystem 3's start-up tests (task timing).
+subsystem4_init: Creates subsystem 4's objects (safety and IMU tasks).
+subsystem4_start: Starts subsystem 4's tasks (safety, IMU).
+ramp_run: One S4-R01 run: drives over the hump and prints each bump.
+subsystem4_stage_test: Stage 4 hands-on tests: IMU found, tilt view, ramp height runs.
+subsystem4_test: Subsystem 4's start-up tests (task timing).
+subsystem5_init: Creates subsystem 5's objects (mission flag, mission and obstacle tasks, STOP button).
+subsystem5_start: Starts subsystem 5's tasks (mission, obstacle).
+subsystem5_stage_test: Stage 3 hands-on tests: servo, sonar, obstacle width, then the bypass.
+subsystem5_test: Subsystem 5's start-up tests (task timing, Telemetry's ping).
+adc_fifo_isr: ADC FIFO interrupt: turns each barcode sensor sample into black / white edges.
+adc_sample: One barcode sensor sample: learned levels, relative edges, edge to the ring.
+barcode_black: TRUE while the barcode sensor sees black.
+barcode_busy: TRUE while the barcode sensor is inside a barcode (Motion slows down).
+barcode_edges: Barcode sensor edges since boot.
+barcode_hw_init: Sets up the barcode sensor input and its interrupt.
+barcode_last: Copies the latest barcode result.
+barcode_mapping_text: The mapping now in use as "K=L,Q=R,X=F,M=U" (empty if none); its length.
+barcode_move_for: The mapped move (MOVE_LEFT ...) for a barcode letter, or MOVE_NONE.
+barcode_set_mapping: Takes a new mapping text; FALSE and the reason if it is refused.
+barcode_task: The barcode decoder task: builds bar widths from the edges and decodes each code.
+decode_merged: Forgiving decode: a code with one narrow element lost (27-28 elements).
+decode_one_star: Forgiving decode: one start / stop character damaged.
+is_code_char: TRUE for a letter or digit a barcode can carry.
+sum9: Sum of 9 element widths (one character).
+chip_setup: Checks the LSM303D answers and configures its accelerometer.
+imu_calibrate: Starts a 1 s level calibration (robot level and still).
+imu_calibrated: TRUE once the level calibration is done.
+imu_height_mm10: Current climbed height, 0.1 mm.
+imu_jolts: Samples skipped as jolts since boot.
+imu_ok: TRUE once the IMU answered and was configured.
+imu_one_wheel_mm10: Height of one wheel above the other now (track x sin(side tilt)), 0.1 mm.
+imu_pitch_mdeg_sin: sin(pitch) x 1000, relative to the level.
+imu_ramp_peak_mm10: The last reported ramp height, 0.1 mm.
+imu_ramp_reports: Ramps reported since boot.
+imu_roll_sin_x1000: sin(side tilt) x 1000, relative to the level.
+imu_task: The IMU task: reads the accelerometer, tracks tilt and ramp height, reports ramps.
+hist_reset: Forgets the record of where the robot was correcting.
+hist_step: Records where a correction (or search) starts and ends, by odometer.
+junction_at: Reports a junction centred at odometer count centre (one close to the last is the same junction).
+line_any_black: TRUE while either line sensor sees black (raw).
+line_fault: Why the line task stopped with LINE_FAULT (LINE_FAULT_...), or 0.
+line_hw_init: Sets up the two line sensor inputs.
+line_junction_odo: Odometer count where the line sensors crossed the last junction's centre.
+line_junction_sides: The last junction's branches (JUNC_SIDE_S, JUNC_SIDE_B).
+line_junctions: Junctions seen since boot.
+line_set_enabled: Turns junction and line-lost events on or off (off during turns and bypasses).
+line_speed_pct: Share of the follow speed Motion may use now: 100 on the line, less while correcting.
+line_state: The line task's state (LINE_ON, LINE_SEARCH, LINE_LOST, LINE_FAULT).
+line_task: The line following task: steering from the two line sensors, junctions, line lost.
+line_wobble: Corrections begun and sweeps right across the tape since the start.
+halt: Stops the robot, turns the watches off and reports why.
+mission_task: The mission task: START / STOP, barcodes, junction moves, obstacles, line lost.
+on_barcode: Handles a new barcode result: stores its letter, reports the move.
+on_junction: Handles a junction: waits for a barcode still being read, then does the move.
+on_obstacle: Handles an obstacle ahead: scans its width, drives round it, finds the line.
+pass_box: Bypass leg 4, past the box: 1 line met, 0 past the box, -1 halted.
+say: Sends a text event to the panel.
+set_state: Sets the mission state and tells the panel.
+spin_until_line: Spins slowly by up to deg until a line sensor finds the tape.
+start_run: Starts a run: calibrates the IMU, clears old results, follows the line.
+turn_onto_line: A junction turn that ends on the new line (fast, then slowly until a sensor finds it).
+wait_still: Waits until both wheels have stopped (at most 1 s).
+watch_on: Turns the forward obstacle watch on, if this build uses it.
+absf: Absolute value of a float.
+clampf: value limited to low..high.
+cmd_post: Hands a new command to the motion task; its handle.
+motion_follow: Follows the line at speed mm/s until another command.
+motion_get_status: Copies the result of the motion task's last command.
+motion_halt: Stops the wheels (no STOP reason).
+motion_task: The motion task: runs drive, turn and follow commands with wheel speed control.
+motion_turn: Spins on the spot by deg degrees (+ = left); its handle.
+motion_turn_at: Spins on the spot by deg degrees at a given wheel speed; its handle.
+wheel_duty: Motor duty for one wheel: feed-forward plus PI on its speed.
+median5: Median of up to 5 readings (sorts them in place).
+obstacle_front_mm: The last straight-ahead distance, mm (SONAR_OPEN = nothing).
+obstacle_hw_init: Sets up the sonar pins, its ECHO interrupt and the servo PWM.
+obstacle_idle_ping: Pinging for the panel while Mission is IDLE, on or off.
+obstacle_sensor_fault: TRUE after 5 pings in a row without an ECHO.
+obstacle_task: The obstacle task: the forward watch, a ping every 60 ms.
+obstacle_watch: Turns the forward obstacle watch on or off.
+servo_look_side: Turns the sonar to one side (+1 left, -1 right) by S5_SERVO_SIDE_DEG.
+servo_set_angle: Turns the sonar servo slowly to deg (90 = ahead); blocks while it turns.
+servo_write: Sets the servo pulse for deg at once.
+sonar_ping_mm: One ping, waiting 60 ms: mm, SONAR_OPEN or SONAR_FAULT.
+sonar_ping_result: The result of the ping started by sonar_ping_start().
+trigger: Sends the sonar's 10 us trigger pulse.
+safety_task: The safety task: watches the STOP button and the motors.
+app_mqtt_rx: Called by the MQTT glue for each message received: START, STOP, mapping.
+app_mqtt_tx: Called by the MQTT glue to fetch the next message to send; its length, or 0.
+outbox_put: Queues a message for MQTT; drops the oldest if the queue is full.
+same: TRUE if two strings are equal.
+status_line: Builds the 1 s status line for the panel.
+telemetry_task: The telemetry task: status line every 1 s, sensors every 0.5 s, timing table.

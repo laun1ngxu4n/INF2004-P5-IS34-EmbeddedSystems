@@ -1,5 +1,5 @@
-/*
- *  subsystem3_test.c
+/**
+ * @file    subsystem3_test.c
  *  On-target tests for subsystem 3.  Built only with: make TEST=1
  *
  *  Each TEST_CHECK prints a PASS/FAIL line on the console.  Save the
@@ -16,6 +16,7 @@
 
 #if APP_TEST
 
+/** Subsystem 3's start-up tests (task timing). */
 EXPORT void subsystem3_test (void)
 {
     TEST_INIT();
@@ -31,6 +32,8 @@ EXPORT void subsystem3_test (void)
 
 /* ---- Stage 2 hands-on tests ---------------------------------------- */
 
+/** Live view of the IR sensors for secs seconds, with the barcode sensor
+ * levels. */
 LOCAL void ir_live (void)
 {
     int32_t  tick;
@@ -201,7 +204,7 @@ LOCAL void ir_live (void)
 LOCAL int32_t g_j_cross;
 LOCAL int32_t g_j_left;
 
-/* Follow the line for up to secs (and up to max_mm, 0 = no limit); print
+/** Follow the line for up to secs (and up to max_mm, 0 = no limit); print
    junctions, barcodes, line lost */
 LOCAL int32_t follow_and_watch (int32_t secs, int32_t max_mm, int32_t * p_junc,
                                 int32_t * p_lost, int32_t * p_codes_ok,
@@ -409,7 +412,7 @@ LOCAL int32_t follow_and_watch (int32_t secs, int32_t max_mm, int32_t * p_junc,
     return motion_counts_to_mm(motion_odometer() - odo0); /* mm followed */
 }
 
-/* START = run this part, STOP = skip it.  TRUE = run it. */
+/** START = run this part, STOP = skip it.  TRUE = run it. */
 LOCAL BOOL ask_run (const char * p_what)
 {
     uint32_t remote = tele_start_count();
@@ -460,7 +463,7 @@ LOCAL BOOL ask_run (const char * p_what)
     }
 }
 
-/* Print the result of the last code, if a new one came: TRUE = decoded */
+/** Print the result of the last code, if a new one came: TRUE = decoded */
 LOCAL BOOL print_new_code (uint32_t * p_seq, uint32_t * p_dseq)
 {
     barcode_result_t result;
@@ -526,17 +529,19 @@ LOCAL BOOL print_new_code (uint32_t * p_seq, uint32_t * p_dseq)
 LOCAL int32_t  g_bn_odo[BENCH_N];
 LOCAL uint16_t g_bn_v[BENCH_N];
 
-/* Bench view: bigger = blacker, whichever way the module is wired,
+/** Bench view: bigger = blacker, whichever way the module is wired,
    and back to the raw reading */
 Inline int32_t bench_blackness (int32_t raw)
 {
     return S3_BAR_BLACK_HIGH ? raw : (4095 - raw);
 }
+/** Bench view: blackness back to the raw analogue reading. */
 Inline int32_t bench_raw (int32_t blackness)
 {
     return S3_BAR_BLACK_HIGH ? blackness : (4095 - blackness);
 }
 
+/** One S3-B00 run: drives straight over a barcode and prints the profile. */
 LOCAL BOOL bar_bench_run (int32_t speed)
 {
     motion_status_t  status;
@@ -730,6 +735,7 @@ LOCAL BOOL bar_bench_run (int32_t speed)
     return b_ok;
 }
 
+/** Stage 2 S3-B00: barcode reads driving straight, four runs. */
 LOCAL void bar_bench (void)
 {
     static const struct
@@ -768,6 +774,8 @@ LOCAL void bar_bench (void)
     TEST_SUMMARY("subsystem3 S3-B00");
 }
 
+/** Stage 2 hands-on tests: line following, junctions, barcodes, junction
+ * moves. */
 EXPORT void subsystem3_stage_test (void)
 {
     int32_t junc     = 0;

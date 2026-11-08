@@ -1,5 +1,5 @@
-/*
- *  app_timing.c
+/**
+ * @file    app_timing.c
  *  Per-task timing monitor (see app_timing.h).
  *
  *  Each slot is written by its own task (wake/done) and read and reset
@@ -21,7 +21,7 @@ EXPORT uint32_t app_time_us (void)
     return RP2040_TIMERAWL;
 }
 
-/* Called only from the subsystems' _init(), which usermain() runs one
+/** Called only from the subsystems' _init(), which usermain() runs one
    after another before any task starts, so no lock is needed here. */
 EXPORT int32_t app_timing_add (const char * p_name, PRI pri, uint32_t period_ms)
 {
@@ -151,7 +151,7 @@ EXPORT ER app_timing_get (int32_t slot, app_timing_t * p_p_copy)
     return E_OK;
 }
 
-/* Print microseconds as milliseconds with two decimals, e.g. "10.02" */
+/** Print microseconds as milliseconds with two decimals, e.g. "10.02" */
 LOCAL void print_ms (uint32_t micros)
 {
     tm_printf((uint8_t *)"%d.%02d", (int32_t)(micros / 1000),

@@ -1,5 +1,5 @@
-/*
- *  subsystem1_test.c
+/**
+ * @file    subsystem1_test.c
  *  On-target tests for subsystem 1.  Built only with: make TEST=1
  *
  *  Each TEST_CHECK prints a PASS/FAIL line on the console.  Save the
@@ -12,6 +12,7 @@
 
 #if APP_TEST
 
+/** Subsystem 1's start-up tests (task timing). */
 EXPORT void subsystem1_test (void)
 {
     TEST_INIT();

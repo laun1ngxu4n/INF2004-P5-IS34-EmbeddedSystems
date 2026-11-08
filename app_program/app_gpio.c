@@ -1,5 +1,5 @@
-/*
- *  app_gpio.c
+/**
+ * @file    app_gpio.c
  *  The shared GPIO edge-interrupt dispatcher (see app_gpio.h).
  */
 
@@ -10,15 +10,17 @@
 #define INTPRI_IO_BANK0 1  /* above the kernel tick */
 
 /* IO_BANK0 interrupt registers: 4 bits per pin, 8 pins per register */
-/* Interrupt registers of IO bank 0, 8 pins per register */
+/** Interrupt registers of IO bank 0, 8 pins per register */
 Inline uint32_t io_intr_reg (uint32_t reg)
 {
     return IO_BANK0_BASE + 0x0F0u + (reg * 4u);
 }
+/** Address of the core 0 interrupt-enable register for pin bank reg. */
 Inline uint32_t io_proc0_inte_reg (uint32_t reg)
 {
     return IO_BANK0_BASE + 0x100u + (reg * 4u);
 }
+/** Address of the core 0 interrupt-status register for pin bank reg. */
 Inline uint32_t io_proc0_ints_reg (uint32_t reg)
 {
     return IO_BANK0_BASE + 0x120u + (reg * 4u);
@@ -27,6 +29,8 @@ Inline uint32_t io_proc0_ints_reg (uint32_t reg)
 
 LOCAL app_gpio_cb_t g_gpio_cb[GPIO_NUM];
 
+/** GPIO bank 0 interrupt: acknowledges each pin's edges and calls its
+ * callback. */
 LOCAL void gpio_bank0_isr (uint32_t intno)
 {
     uint32_t ints;

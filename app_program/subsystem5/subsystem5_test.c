@@ -1,5 +1,5 @@
-/*
- *  subsystem5_test.c
+/**
+ * @file    subsystem5_test.c
  *  On-target tests for subsystem 5.  Built only with: make TEST=1
  *
  *  Each TEST_CHECK prints a PASS/FAIL line on the console.  Save the
@@ -15,6 +15,7 @@
 
 #if APP_TEST
 
+/** Subsystem 5's start-up tests (task timing, Telemetry's ping). */
 EXPORT void subsystem5_test (void)
 {
     uint32_t pings_start;
@@ -42,6 +43,7 @@ EXPORT void subsystem5_test (void)
 
 /* ---- Stage 3 hands-on tests ---------------------------------------- */
 
+/** Stage 3 hands-on tests: servo, sonar, obstacle width, then the bypass. */
 EXPORT void subsystem5_stage_test (void)
 {
     obstacle_profile_t scan_near;

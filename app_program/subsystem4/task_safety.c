@@ -1,5 +1,5 @@
-/*
- *  task_safety.c
+/**
+ * @file    task_safety.c
  *  Subsystem 4 -- the Safety / Fault Monitor task.
  *
  *  Stage 0: wakes every 20 ms, is timed, raises no faults yet.
@@ -7,6 +7,7 @@
 
 #include "subsystem4.h"
 
+/** The safety task: watches the STOP button and the motors. */
 EXPORT void safety_task (int32_t stacd, void * p_exinf)
 {
     (void)stacd;

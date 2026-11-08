@@ -1,5 +1,5 @@
-/*
- *  task_line.c
+/**
+ * @file    task_line.c
  *  Subsystem 3 -- the Line Following task (every 20 ms).
  *
  *  Two sensors STRADDLE the tape (7 Nov): L left of it, R right of it,
@@ -113,7 +113,7 @@
 #define S3_PAIR_MM       25
 #define S3_STUCK_ONE_MM  300
 #define S3_STUCK_BOTH_MM 150
-/* mm to odometer counts */
+/** mm to odometer counts */
 Inline int32_t mm_to_counts (int32_t dist_mm)
 {
     return (dist_mm * 1000) / S2_UM_PER_COUNT;
@@ -145,39 +145,51 @@ EXPORT int32_t line_steer_mm_s (void)
 {
     return g_steer;
 }
+/** The line task's state (LINE_ON, LINE_SEARCH, LINE_LOST, LINE_FAULT). */
 EXPORT int32_t line_state (void)
 {
     return g_state;
 }
+/** Why the line task stopped with LINE_FAULT (LINE_FAULT_...), or 0. */
 EXPORT int32_t line_fault (void)
 {
     return g_fault_why;
 }
+/** Junctions seen since boot. */
 EXPORT uint32_t line_junctions (void)
 {
     return g_junctions;
 }
+/** Corrections begun and sweeps right across the tape since the start. */
 EXPORT void line_wobble (uint32_t * p_corrections, uint32_t * p_sweeps)
 {
     *p_corrections = g_n_corr;
     *p_sweeps      = g_n_sweep;
 }
+/** Turns junction and line-lost events on or off (off during turns and
+ * bypasses). */
 EXPORT void line_set_enabled (BOOL b_on)
 {
     gb_enabled = b_on;
 }
+/** Share of the follow speed Motion may use now: 100 on the line, less
+ * while correcting. */
 EXPORT int32_t line_speed_pct (void)
 {
     return g_speed_pct;
 }
+/** Odometer count where the line sensors crossed the last junction's
+ * centre. */
 EXPORT int32_t line_junction_odo (void)
 {
     return g_junc_odo;
 }
+/** The last junction's branches (JUNC_SIDE_S, JUNC_SIDE_B). */
 EXPORT int32_t line_junction_sides (void)
 {
     return g_junc_sides;
 }
+/** TRUE while either line sensor sees black (raw). */
 EXPORT BOOL line_any_black (void)
 {
     return (IR_BLACK == app_gpio_get(PIN_IR_LINE_L)) ||
@@ -189,6 +201,8 @@ EXPORT BOOL line_any_black (void)
 LOCAL int32_t g_last_c;
 LOCAL BOOL    gb_have_last;
 
+/** Reports a junction centred at odometer count centre (one close to the
+ * last is the same junction). */
 LOCAL void junction_at (int32_t centre, int32_t side)
 {
     int32_t delta = centre - g_last_c;
@@ -221,6 +235,7 @@ LOCAL uint32_t g_off_n;
 LOCAL BOOL     gb_off_open;
 LOCAL int32_t  g_hist_from; /* nothing known before this */
 
+/** Forgets the record of where the robot was correcting. */
 LOCAL void hist_reset (int32_t odo)
 {
     g_off_n     = 0;
@@ -228,6 +243,7 @@ LOCAL void hist_reset (int32_t odo)
     g_hist_from = odo;
 }
 
+/** Records where a correction (or search) starts and ends, by odometer. */
 LOCAL void hist_step (int32_t odo, BOOL b_busy)
 {
     if (b_busy && (!gb_off_open))
@@ -247,7 +263,7 @@ LOCAL void hist_step (int32_t odo, BOOL b_busy)
     }
 }
 
-/* TRUE if the robot drove straight (no correction) all of [a, b] */
+/** TRUE if the robot drove straight (no correction) all of [a, b] */
 LOCAL BOOL quiet_over (int32_t from_odo, int32_t to_odo, int32_t now)
 {
     uint32_t idx;
@@ -283,6 +299,7 @@ LOCAL BOOL quiet_over (int32_t from_odo, int32_t to_odo, int32_t now)
     return TRUE;
 }
 
+/** Sets up the two line sensor inputs. */
 EXPORT ER line_hw_init (void)
 {
     ER err = app_gpio_input(PIN_IR_LINE_L, FALSE); /* modules drive D0 */
@@ -290,6 +307,8 @@ EXPORT ER line_hw_init (void)
     return (err < E_OK) ? err : app_gpio_input(PIN_IR_LINE_R, FALSE);
 }
 
+/** The line following task: steering from the two line sensors, junctions,
+ * line lost. */
 EXPORT void line_task (int32_t stacd, void * p_exinf)
 {
     uint32_t  stable        = 0u;

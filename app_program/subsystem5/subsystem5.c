@@ -1,5 +1,5 @@
-/*
- *  subsystem5.c
+/**
+ * @file    subsystem5.c
  *  Subsystem 5 -- Mission + Obstacle: creates its objects and starts its
  *  tasks.
  */
@@ -14,7 +14,7 @@ EXPORT ID       gh_tid_obstacle;
 EXPORT ID       gh_cyc_obstacle;
 EXPORT int32_t  g_tmg_obstacle;
 
-/* GP21 pressed: interrupt context.  Stop first, then tell Mission. */
+/** GP21 pressed: interrupt context.  Stop first, then tell Mission. */
 LOCAL void stop_button_isr (uint32_t pin, uint32_t events)
 {
     (void)pin;
@@ -23,6 +23,8 @@ LOCAL void stop_button_isr (uint32_t pin, uint32_t events)
     tk_set_flg(gh_flg_mission, MSN_FLG_STOP);
 }
 
+/** Creates subsystem 5's objects (mission flag, mission and obstacle tasks,
+ * STOP button). */
 EXPORT ER subsystem5_init (void)
 {
     T_CFLG cflg = {0};
@@ -86,6 +88,7 @@ EXPORT ER subsystem5_init (void)
     return (gh_cyc_obstacle < E_OK) ? gh_cyc_obstacle : E_OK;
 }
 
+/** Starts subsystem 5's tasks (mission, obstacle). */
 EXPORT ER subsystem5_start (void)
 {
     gh_tid_mission =

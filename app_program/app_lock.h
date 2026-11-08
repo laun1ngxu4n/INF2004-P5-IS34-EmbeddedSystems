@@ -1,5 +1,5 @@
-/*
- *  app_lock.h
+/**
+ * @file    app_lock.h
  *  The one lock for shared data.  Shared by the whole team.
  *
  *  Use it for every variable that more than one task or interrupt

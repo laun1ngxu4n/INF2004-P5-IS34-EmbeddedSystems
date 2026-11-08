@@ -1,5 +1,5 @@
-/*
- *  app_main.c
+/**
+ * @file    app_main.c
  *  START HERE.  usermain() below is your program's entry point.
  *
  *  How micro T-Kernel starts your code
@@ -52,7 +52,7 @@
 
 #include "app.h"
 
-/*
+/**
  * Create and start one task (declared in app.h for every subsystem).
  *   prc = TP_PRC1 (core 0), TP_PRC2 (core 1), or 0 for "any core".
  */
@@ -93,7 +93,7 @@ EXPORT ID app_start_task (FP p_entry, PRI pri, uint32_t prc,
     return h_tid;
 }
 
-/* Cyclic handler body shared by every periodic task: exinf points at the
+/** Cyclic handler body shared by every periodic task: exinf points at the
    task's ID variable.  Interrupt context: short, never waits. */
 LOCAL void wake_handler (void * p_exinf)
 {
@@ -112,6 +112,8 @@ EXPORT ID app_create_wake_cyclic (ID * p_p_tid, RELTIM period_ms)
     return tk_cre_cyc(&ccyc);
 }
 
+/** micro T-Kernel's entry point: starts every subsystem, then the tests or
+ * the mission. */
 EXPORT int32_t usermain (void)
 {
     T_RVER ver;

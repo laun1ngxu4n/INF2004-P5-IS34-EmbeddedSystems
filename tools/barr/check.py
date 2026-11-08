@@ -356,6 +356,14 @@ def main():
     for f in files():
         check_file(f, hits)
     module_checks(files(), hits)
+    # 2.2h: a function documented at its prototype (in a header) counts
+    documented = set()
+    for f in files():
+        src = open(f, encoding='utf-8').read()
+        for m in re.finditer(r'/\*\*(?:(?!\*/).)*\*/[ \t]*\n[ \t]*(?:[\w\*]+[ \t]+)*?\**[ \t]*(\w+)[ \t]*\(',
+                             src, re.S):
+            documented.add(m.group(1))
+    hits['2.2h'] = [h for h in hits.get('2.2h', []) if h.rsplit(': ', 1)[-1] not in documented]
     if len(sys.argv) > 2 and sys.argv[1] == '--list':
         for h in hits.get(sys.argv[2], []):
             print(h)

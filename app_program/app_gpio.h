@@ -1,5 +1,5 @@
-/*
- *  app_gpio.h
+/**
+ * @file    app_gpio.h
  *  The one GPIO edge-interrupt dispatcher.  Shared by the whole team.
  *
  *  The RP2040 has ONE interrupt (IO_IRQ_BANK0) for every GPIO pin, so
@@ -27,24 +27,24 @@
 
 typedef void (*app_gpio_cb_t)(uint32_t pin, uint32_t events);
 
-/* Called once by usermain() before any subsystemN_init() */
+/** Called once by usermain() before any subsystemN_init() */
 IMPORT ER app_gpio_init (void);
 
-/* Make pin an input, with or without the internal pull-up */
+/** Make pin an input, with or without the internal pull-up */
 IMPORT ER app_gpio_input (uint32_t pin, BOOL pull_up);
 
-/* Call cb on the given edges of pin.  One callback per pin. */
+/** Call cb on the given edges of pin.  One callback per pin. */
 IMPORT ER app_gpio_irq_add (uint32_t pin, uint32_t events, app_gpio_cb_t cb);
 
-/* Take peripheral blocks out of reset (RESETS_RESET_PWM, _I2C1, ...).
+/** Take peripheral blocks out of reset (RESETS_RESET_PWM, _I2C1, ...).
    The kernel only releases what its own drivers use: with USE_PTMR = 0
    the PWM block stays in reset, so motors and servo must call this. */
 IMPORT void app_hw_release (uint32_t resets_mask);
 
-/* Make pin a plain output (low) */
+/** Make pin a plain output (low) */
 IMPORT ER app_gpio_output (uint32_t pin);
 
-/* Current level of an input pin (0 or 1) */
+/** Current level of an input pin (0 or 1) */
 Inline uint32_t app_gpio_get (uint32_t pin)
 {
     return (in_w(GPIO_IN) >> pin) & 1u;

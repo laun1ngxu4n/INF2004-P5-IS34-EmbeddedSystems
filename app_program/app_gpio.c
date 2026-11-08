@@ -10,6 +10,10 @@
 #define INTPRI_IO_BANK0 1  /* above the kernel tick */
 
 /* IO_BANK0 interrupt registers: 4 bits per pin, 8 pins per register */
+#define IO_INT_REGS     4u /* GP0..GP29 */
+#define IO_PINS_PER_REG 8u
+#define IO_BITS_PER_PIN 4u
+
 /** Interrupt registers of IO bank 0, 8 pins per register */
 Inline uint32_t io_intr_reg (uint32_t reg)
 {
@@ -38,7 +42,7 @@ LOCAL void gpio_bank0_isr (uint32_t intno)
     uint32_t pin;
     uint32_t slot;
 
-    for (reg = 0; reg < 4; reg++)
+    for (reg = 0; reg < IO_INT_REGS; reg++)
     {
         ints = in_w(io_proc0_ints_reg(reg));
 
@@ -50,10 +54,11 @@ LOCAL void gpio_bank0_isr (uint32_t intno)
         /* Acknowledge first, so an edge during the callbacks is kept */
         out_w(io_intr_reg(reg), ints & IO_EDGE_BITS);
 
-        for (slot = 0; slot < 8; slot++)
+        for (slot = 0; slot < IO_PINS_PER_REG; slot++)
         {
-            uint32_t events = (ints >> (slot * 4)) & APP_GPIO_BOTH;
-            pin             = (reg * 8) + slot;
+            uint32_t events =
+                (ints >> (slot * IO_BITS_PER_PIN)) & APP_GPIO_BOTH;
+            pin = (reg * IO_PINS_PER_REG) + slot;
 
             if ((events != 0u) && (pin < GPIO_NUM) && (g_gpio_cb[pin] != NULL))
             {
@@ -89,7 +94,7 @@ EXPORT void app_hw_release (uint32_t resets_mask)
 
     while ((in_w(RESETS_RESET_DONE) & resets_mask) != resets_mask)
     {
-        ;
+        /* nothing: wait for the blocks to come out of reset */
     }
 }
 

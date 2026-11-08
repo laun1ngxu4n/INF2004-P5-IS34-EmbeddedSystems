@@ -49,6 +49,8 @@
 #define REJOIN_FAR_MM   400
 #define SPIN_SEARCH_DEG 170 /* rejoin spin: at most this far ... */
 #define SPIN_IGNORE_DEG 20  /* ... and black only after this */
+#define STILL_TICKS     100 /* 1 s at 10 ms */
+#define IMU_CAL_TICKS   200 /* 2 s at 10 ms */
 /* each wheel, mm/s: slow, so it stops on the 20 mm tape */
 #define SPIN_SPEED 40
 
@@ -139,7 +141,7 @@ LOCAL void wait_still (void)
     motion_status_t status;
     int32_t         tick;
 
-    for (tick = 0; tick < 100; tick++)
+    for (tick = 0; tick < STILL_TICKS; tick++)
     {
         motion_get_status(&status);
 
@@ -209,7 +211,7 @@ LOCAL void start_run (void)
     {
         imu_calibrate();
 
-        for (tick = 0; (tick < 200) && (!imu_calibrated()); tick++)
+        for (tick = 0; (tick < IMU_CAL_TICKS) && (!imu_calibrated()); tick++)
         {
             tk_dly_tsk(10);
         }
@@ -251,7 +253,7 @@ LOCAL void on_barcode (void)
     if (!result.b_ok)
     {
         int32_t dbg_count;
-        int32_t dbg_widths[40];
+        int32_t dbg_widths[BARCODE_DBG_MAX];
         int32_t kdx;
 
         tm_sprintf(msg, (const uint8_t *)"barcode READ_FAIL (%d elements)",
@@ -259,10 +261,10 @@ LOCAL void on_barcode (void)
         say(msg);
         /* the widths to the log, so a failed read can be looked at
            (8 Nov: a 27-element failure had nothing to go on) */
-        (void)barcode_debug(&dbg_count, dbg_widths, 40);
+        (void)barcode_debug(&dbg_count, dbg_widths, BARCODE_DBG_MAX);
         tm_printf((uint8_t *)"[S3] READ_FAIL widths (mm):");
 
-        for (kdx = 0; (kdx < dbg_count) && (kdx < 40); kdx++)
+        for (kdx = 0; (kdx < dbg_count) && (kdx < BARCODE_DBG_MAX); kdx++)
         {
             tm_printf((uint8_t *)" %d.%d", dbg_widths[kdx] / 10,
                       dbg_widths[kdx] % 10);

@@ -16,6 +16,10 @@
 
 #if APP_TEST
 
+#define TICKS_PER_S   100  /* 10 ms each */
+#define IR_VIEW_TICKS 3000 /* 30 s at 10 ms */
+#define BAR_RUNS      3    /* the prompts say 3 */
+
 /** Subsystem 3's start-up tests (task timing). */
 EXPORT void subsystem3_test (void)
 {
@@ -103,7 +107,7 @@ LOCAL void ir_live (void)
         }
     }
 
-    for (tick = 0; tick < 3000; tick++)
+    for (tick = 0; tick < IR_VIEW_TICKS; tick++)
     {
         uint32_t now =
             ((uint32_t)(IR_BLACK == app_gpio_get(PIN_IR_LINE_L)) << 2) |
@@ -221,12 +225,12 @@ LOCAL int32_t follow_and_watch (int32_t secs, int32_t max_mm, int32_t * p_junc,
     int32_t          traced     = 0;
     uint32_t         lc_prev    = 0xFFu;
     int32_t          dbg_count;
-    int32_t          dbg_widths[40];
+    int32_t          dbg_widths[BARCODE_DBG_MAX];
     int32_t          kdx;
-    uint32_t         dseq = barcode_debug(&dbg_count, dbg_widths, 40);
-    int32_t          mark_odo;
-    int32_t          mark_width;
-    uint32_t         mseq = barcode_mark(&mark_odo, &mark_width);
+    uint32_t dseq = barcode_debug(&dbg_count, dbg_widths, BARCODE_DBG_MAX);
+    int32_t  mark_odo;
+    int32_t  mark_width;
+    uint32_t mseq = barcode_mark(&mark_odo, &mark_width);
 
     barcode_last(&result);
     seq       = result.seq;
@@ -244,7 +248,8 @@ LOCAL int32_t follow_and_watch (int32_t secs, int32_t max_mm, int32_t * p_junc,
         return 0;
     }
 
-    for (tick = 0; (tick < (secs * 100)) && (!test_stop_pressed()); tick++)
+    for (tick = 0; (tick < (secs * TICKS_PER_S)) && (!test_stop_pressed());
+         tick++)
     {
         uint32_t pattern;
 
@@ -320,9 +325,9 @@ LOCAL int32_t follow_and_watch (int32_t secs, int32_t max_mm, int32_t * p_junc,
             }
         }
 
-        if (barcode_debug(&dbg_count, dbg_widths, 40) != dseq)
+        if (barcode_debug(&dbg_count, dbg_widths, BARCODE_DBG_MAX) != dseq)
         {
-            dseq = barcode_debug(&dbg_count, dbg_widths, 40);
+            dseq = barcode_debug(&dbg_count, dbg_widths, BARCODE_DBG_MAX);
 
             if (dbg_count >= 2)
             {
@@ -330,7 +335,8 @@ LOCAL int32_t follow_and_watch (int32_t secs, int32_t max_mm, int32_t * p_junc,
                 tm_printf((uint8_t *)"[S3] code ended, %d elements (mm):",
                           dbg_count);
 
-                for (kdx = 0; (kdx < dbg_count) && (kdx < 40); kdx++)
+                for (kdx = 0; (kdx < dbg_count) && (kdx < BARCODE_DBG_MAX);
+                     kdx++)
                 {
                     tm_printf((uint8_t *)"%s%d.%d",
                               ((0 == (kdx % 10)) && (kdx > 0)) ? " | " : " ",
@@ -468,16 +474,16 @@ LOCAL BOOL print_new_code (uint32_t * p_seq, uint32_t * p_dseq)
 {
     barcode_result_t result;
     int32_t          dbg_count;
-    int32_t          dbg_widths[40];
+    int32_t          dbg_widths[BARCODE_DBG_MAX];
     int32_t          kdx;
     BOOL             b_ok = FALSE;
 
-    if (barcode_debug(&dbg_count, dbg_widths, 40) != *p_dseq)
+    if (barcode_debug(&dbg_count, dbg_widths, BARCODE_DBG_MAX) != *p_dseq)
     {
-        *p_dseq = barcode_debug(&dbg_count, dbg_widths, 40);
+        *p_dseq = barcode_debug(&dbg_count, dbg_widths, BARCODE_DBG_MAX);
         tm_printf((uint8_t *)"[S3] code ended, %d elements (mm):", dbg_count);
 
-        for (kdx = 0; (kdx < dbg_count) && (kdx < 40); kdx++)
+        for (kdx = 0; (kdx < dbg_count) && (kdx < BARCODE_DBG_MAX); kdx++)
         {
             tm_printf((uint8_t *)"%s%d.%d",
                       ((0 == (kdx % 10)) && (kdx > 0)) ? " | " : " ",
@@ -524,8 +530,10 @@ LOCAL BOOL print_new_code (uint32_t * p_seq, uint32_t * p_dseq)
    and prints each bar and space with its darkest / lightest reading; one
    with little contrast to its neighbour is marked '!' (the sensor's spot
    is nearly as wide as the bar: lower the module). */
-#define BENCH_MM 300
-#define BENCH_N  1000
+#define BENCH_MM        300
+#define BENCH_N         1000
+#define BENCH_TICKS     2000 /* 20 s at 10 ms */
+#define BENCH_PRINT_MAX 80   /* edges printed */
 LOCAL int32_t  g_bn_odo[BENCH_N];
 LOCAL uint16_t g_bn_v[BENCH_N];
 
@@ -551,7 +559,7 @@ LOCAL BOOL bar_bench_run (int32_t speed)
     int32_t          count = 0;
     int32_t          tick;
     int32_t          dbg_count;
-    int32_t          dbg_widths[40];
+    int32_t          dbg_widths[BARCODE_DBG_MAX];
     int32_t          raw;
     int32_t          white_lvl;
     int32_t          black_lvl;
@@ -561,7 +569,7 @@ LOCAL BOOL bar_bench_run (int32_t speed)
 
     barcode_last(&result);
     seq  = result.seq;
-    dseq = barcode_debug(&dbg_count, dbg_widths, 40);
+    dseq = barcode_debug(&dbg_count, dbg_widths, BARCODE_DBG_MAX);
     barcode_reset();
 
     if (motion_drive(speed, BENCH_MM) < E_OK)
@@ -569,7 +577,7 @@ LOCAL BOOL bar_bench_run (int32_t speed)
         return FALSE;
     }
 
-    for (tick = 0; (tick < 2000) && (!test_stop_pressed()); tick++)
+    for (tick = 0; (tick < BENCH_TICKS) && (!test_stop_pressed()); tick++)
     {
         tk_dly_tsk(10);
         b_ana = barcode_adc(&raw, &white_lvl, &black_lvl);
@@ -619,7 +627,7 @@ LOCAL BOOL bar_bench_run (int32_t speed)
 
         low = high = bench_blackness(g_bn_v[0]);
 
-        for (idx = 1; (idx < count) && (cnt < 80); idx++)
+        for (idx = 1; (idx < count) && (cnt < BENCH_PRINT_MAX); idx++)
         {
             int32_t blackness = bench_blackness(g_bn_v[idx]);
             BOOL    b_change;
@@ -908,7 +916,7 @@ EXPORT void subsystem3_stage_test (void)
             "Before each run write down the codes on the track in the "
             "order the robot meets them; compare with the printed ones ---"))
     {
-        for (kdx = 1; kdx <= 3; kdx++)
+        for (kdx = 1; kdx <= BAR_RUNS; kdx++)
         {
             int32_t part_junc = 0;
             int32_t part_lost = 0;

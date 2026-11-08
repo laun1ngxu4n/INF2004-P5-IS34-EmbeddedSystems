@@ -13,6 +13,13 @@
 
 #include "app_types.h"
 
+/* app_sqrtf: the value is scaled by 4s into APP_SQRT_LO .. APP_SQRT_HI
+   (the root by 2s), where APP_SQRT_STEPS Newton steps from 1 reach
+   full precision */
+#define APP_SQRT_HI    4.0f
+#define APP_SQRT_LO    0.25f
+#define APP_SQRT_STEPS 6
+
 /** Square root (no libm): scaled guess, then Newton steps. */
 Inline float32_t app_sqrtf (float32_t value)
 {
@@ -25,19 +32,19 @@ Inline float32_t app_sqrtf (float32_t value)
         return 0.0f;
     }
 
-    while (scaled >= 4.0f)
+    while (scaled >= APP_SQRT_HI)
     {
         scaled *= 0.25f;
         root *= 2.0f;
     }
 
-    while (scaled < 0.25f)
+    while (scaled < APP_SQRT_LO)
     {
         scaled *= 4.0f;
         root *= 0.5f;
     }
 
-    for (iter = 0; iter < 6; iter++)
+    for (iter = 0; iter < APP_SQRT_STEPS; iter++)
     {
         root = 0.5f * (root + (value / root));
     }

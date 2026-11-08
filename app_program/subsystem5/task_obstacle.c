@@ -23,6 +23,7 @@
 #define PIN_ECHO    7
 #define PIN_SERVO   14 /* PWM slice 7 A */
 #define SERVO_SLICE 7
+#define TRIG_US     12u /* trigger pulse: the HC-SR04 wants >= 10 us */
 
 #define SCAN_FROM     (90 - S5_SERVO_HALF_DEG) /* servo degrees */
 #define SCAN_TO       (90 + S5_SERVO_HALF_DEG)
@@ -95,9 +96,9 @@ LOCAL void trigger (void)
     gpio_set_val(PIN_TRIG, 1);
     t_start = app_time_us();
 
-    while ((app_time_us() - t_start) < 12u)
+    while ((app_time_us() - t_start) < TRIG_US)
     {
-        ;
+        /* nothing: the trigger pulse is the wait itself */
     }
 
     gpio_set_val(PIN_TRIG, 0);

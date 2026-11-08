@@ -88,7 +88,9 @@ def check_file(f, hits):
         if s.endswith('{') and s != '{' and not re.search(r'=\s*\{$', s) \
                 and not s.startswith(('/*', '*', '#')) and not s.endswith('\\{'):
             hit('1.3b', n, line)
-        if re.match(r'^(if|else if|for|while)\b.*\)\s*[^{;\s].*;\s*$', s) or \
+        # (a header that goes on to the next line is not a body)
+        if (re.match(r'^(if|else if|for|while)\b.*\)\s*[^{;\s].*;\s*$', s) and
+                s.count('(') == s.count(')')) or \
                 re.match(r'^else\s+[^{i].*;\s*$', s):
             hit('1.3a', n, line)
         m = re.match(r'#\s*define\s+(\w+)', s)
@@ -278,12 +280,15 @@ def check_structure(f, src, lines, toks, idx, code, line_of, hit):
             if word == 'for':
                 semi = [i for i, t in enumerate(parts) if t.text == ';']
                 parts = parts[:semi[1]] if len(semi) >= 2 else parts
-            for t in parts:
-                if t.kind == 'number' and t.text.rstrip('uUlL') not in ('0', '1'):
-                    hit('8.4a', ln(kw), ' '.join(x.text for x in parts)[:60])
-                    break
-        # 8.4d: empty loop body needs braces and a comment
-        if word in ('for', 'while') and bc == bo + 1:
+            for pi, t in enumerate(parts):
+                if t.kind != 'number' or t.text.rstrip('uUlL') in ('0', '1'):
+                    continue
+                if t.text.rstrip('uUlL') == '2' and pi > 0 and parts[pi - 1].text == '/':
+                    continue            # count / 2: half way, not a magic number
+                hit('8.4a', ln(kw), ' '.join(x.text for x in parts)[:60])
+                break
+        # 8.4d: empty loop body needs braces and a comment ('{ ; }' is empty)
+        if word in ('for', 'while') and all(c.text == ';' for c in code[bo + 1:bc]):
             ti_a, ti_b = idx[bo], idx[bc]
             if not any(toks[t].kind == 'comment' for t in range(ti_a, ti_b)):
                 hit('8.4d', ln(kw))

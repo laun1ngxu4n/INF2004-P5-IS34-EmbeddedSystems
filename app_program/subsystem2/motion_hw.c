@@ -22,6 +22,8 @@
 #define PIN_ENC_L_B 5
 #define PIN_ENC_R_A 16
 #define PIN_ENC_R_B 17
+#define MOTOR_PINS  4 /* L A, L B, R A, R B */
+#define ENC_PINS    4 /* L A, L B, R A, R B */
 
 #define PWM_WRAP  12499u /* 10 kHz */
 #define DUTY_FULL 1000   /* duty is in per mille */
@@ -156,16 +158,17 @@ EXPORT void encoder_read (int32_t * p_left, int32_t * p_right,
 /** Sets up the motor PWM and the encoder interrupts. */
 EXPORT ER motion_hw_init (void)
 {
-    const uint32_t mpins[4] = {PIN_M_L_A, PIN_M_L_B, PIN_M_R_A, PIN_M_R_B};
-    const uint32_t epins[4] = {PIN_ENC_L_A, PIN_ENC_L_B, PIN_ENC_R_A,
-                               PIN_ENC_R_B};
+    const uint32_t mpins[MOTOR_PINS] = {PIN_M_L_A, PIN_M_L_B, PIN_M_R_A,
+                                        PIN_M_R_B};
+    const uint32_t epins[ENC_PINS]   = {PIN_ENC_L_A, PIN_ENC_L_B, PIN_ENC_R_A,
+                                        PIN_ENC_R_B};
     ER             err;
     int32_t        idx;
 
     app_hw_release(RESETS_RESET_PWM); /* not released by the kernel */
     motor_safe_off();
 
-    for (idx = 0; idx < 4; idx++)
+    for (idx = 0; idx < MOTOR_PINS; idx++)
     {
         pwm_set_pin(mpins[idx]);
     }
@@ -175,7 +178,7 @@ EXPORT ER motion_hw_init (void)
     pwm_set_enabled(PIN_M_L_A, TRUE);
     pwm_set_enabled(PIN_M_R_A, TRUE);
 
-    for (idx = 0; idx < 4; idx++)
+    for (idx = 0; idx < ENC_PINS; idx++)
     {
         /* pull-up: harmless for push-pull, needed for open-collector */
         err = app_gpio_input(epins[idx], TRUE);
@@ -189,7 +192,7 @@ EXPORT ER motion_hw_init (void)
     g_enc_prev[WHEEL_L] = enc_ab(WHEEL_L);
     g_enc_prev[WHEEL_R] = enc_ab(WHEEL_R);
 
-    for (idx = 0; idx < 4; idx++)
+    for (idx = 0; idx < ENC_PINS; idx++)
     {
         err = app_gpio_irq_add(epins[idx], APP_GPIO_BOTH, encoder_edge_isr);
 

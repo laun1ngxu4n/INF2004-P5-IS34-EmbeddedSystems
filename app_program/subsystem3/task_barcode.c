@@ -29,6 +29,18 @@
  * bar: 3.5 mm small codes = 44 counts */
 #define MERGE_COUNTS    15
 #define MIN_ELEM_REPORT 20 /* fewer elements = noise, not reported */
+
+/* Code 39 */
+#define C39_CHAR_ELEMS 9  /* bars and spaces in a character */
+#define C39_WIDE_ELEMS 3  /* the wide ones among them */
+#define C39_CHAR_PITCH 10 /* a character and the gap after it */
+#define C39_MIN_CHARS  3  /* start, one letter, stop */
+#define C39_MIN_ELEMS  29 /* their elements: 3 x 10 - 1 */
+#define DECODE_PASSES  2  /* as read, then reversed */
+#define WIDTH_OPTS     2  /* narrow or wide */
+#define CUT_MAX        2  /* elements cut off at most */
+#define CUT_SIDES      2  /* at the start or at the end */
+#define BAR_MOVES      4  /* L, R, F, U: one letter each */
 /* the 3 widest of 9 at least 1.3 x the rest. Was 1.5: blur widens a narrow
  * element beside a wide one (4.6 mm against 7.0 wide, simulated "A small"),
  * and 1.5 lost 4 reads in 18 at spot sigma 1.6 mm; 1.3 none. Random widths:
@@ -53,8 +65,8 @@ LOCAL volatile int32_t  g_edge_pub; /* odometer at the last clean edge */
 #define S3_IN_BARS_MM 15 /* edge this recent = B over bars */
 
 LOCAL barcode_result_t g_last;
-LOCAL uint8_t          g_map_ch[4];
-LOCAL uint8_t          g_map_mv[4];
+LOCAL uint8_t          g_map_ch[BAR_MOVES];
+LOCAL uint8_t          g_map_mv[BAR_MOVES];
 LOCAL BOOL             gb_map_set;
 
 /* Code 39: 9 elements bar/space/bar..., 1 = wide.  Bit 8 = first bar. */
@@ -303,7 +315,7 @@ EXPORT ER barcode_hw_init (void)
 
     while (0u == (in_w(ADC_CS) & CS_READY))
     {
-        ;
+        /* nothing: wait for the ADC to be ready */
     }
 
     out_w(ADC_DIV, (uint32_t)((48000000 / ADC_RATE_HZ) - 1)
@@ -390,8 +402,7 @@ EXPORT BOOL barcode_in_bars (void)
 
 /* Debug (Stage 2 tests): the element widths of the last code that ended,
    even one too short to report, so a test can show what the sensor saw */
-#define DBG_MAX 40
-LOCAL int32_t           g_dbg_w[DBG_MAX]; /* 0.1 mm */
+LOCAL int32_t           g_dbg_w[BARCODE_DBG_MAX]; /* 0.1 mm */
 LOCAL int32_t           g_dbg_n;
 LOCAL volatile uint32_t g_dbg_seq;
 
@@ -404,7 +415,8 @@ EXPORT uint32_t barcode_debug (int32_t * p_count, int32_t * p_w_mm10,
     APP_LOCK(irq_state);
 
     *p_count = g_dbg_n;
-    for (idx = 0; (idx < g_dbg_n) && (idx < DBG_MAX) && (idx < max); idx++)
+    for (idx = 0; (idx < g_dbg_n) && (idx < BARCODE_DBG_MAX) && (idx < max);
+         idx++)
     {
         p_w_mm10[idx] = g_dbg_w[idx];
     }
@@ -478,16 +490,16 @@ LOCAL uint8_t decode_char (const int32_t * p_elem, int32_t * p_narrow_sum,
 {
     int32_t  idx;
     int32_t  jdx;
-    int32_t  wide[3] = {-1, -1, -1};
-    uint16_t pat     = 0;
+    int32_t  wide[C39_WIDE_ELEMS] = {-1, -1, -1};
+    uint16_t pat                  = 0;
     int32_t  min_wide;
     int32_t  max_narrow = 0;
 
-    for (jdx = 0; jdx < 3; jdx++)
+    for (jdx = 0; jdx < C39_WIDE_ELEMS; jdx++)
     {
         int32_t best = -1;
 
-        for (idx = 0; idx < 9; idx++)
+        for (idx = 0; idx < C39_CHAR_ELEMS; idx++)
         {
             if ((idx == wide[0]) || (idx == wide[1]))
             {
@@ -506,7 +518,7 @@ LOCAL uint8_t decode_char (const int32_t * p_elem, int32_t * p_narrow_sum,
 
     min_wide = p_elem[wide[2]];
 
-    for (idx = 0; idx < 9; idx++)
+    for (idx = 0; idx < C39_CHAR_ELEMS; idx++)
     {
         if ((pat & (1u << (8 - idx))) != 0u)
         {
@@ -553,14 +565,14 @@ LOCAL BOOL decode (int32_t * p_elem, int32_t count, barcode_result_t * p_result)
     p_result->b_ok     = FALSE;
     p_result->elements = count;
 
-    if (count < 29)
+    if (count < C39_MIN_ELEMS)
     {
         return FALSE;
     }
 
-    for (pass = 0; pass < 2; pass++)
+    for (pass = 0; pass < DECODE_PASSES; pass++)
     {
-        for (off = 0; (off + 29) <= count; off += 2)
+        for (off = 0; (off + C39_MIN_ELEMS) <= count; off += 2)
         {
             narrow_sum = wide_sum = 0;
 
@@ -569,7 +581,8 @@ LOCAL BOOL decode (int32_t * p_elem, int32_t count, barcode_result_t * p_result)
                 continue;
             }
 
-            for (kdx = (count - off + 1) / 10; kdx >= 3; kdx--)
+            for (kdx = (count - off + 1) / C39_CHAR_PITCH; kdx >= C39_MIN_CHARS;
+                 kdx--)
             {
                 uint8_t letter;
 
@@ -651,10 +664,10 @@ LOCAL void sort_w (int32_t * p_values, int32_t count)
 /** the 3 widest of 9 at least twice the 6 narrow */
 LOCAL BOOL clear_split (const int32_t * p_elem)
 {
-    int32_t sorted[9];
+    int32_t sorted[C39_CHAR_ELEMS];
     int32_t idx;
 
-    for (idx = 0; idx < 9; idx++)
+    for (idx = 0; idx < C39_CHAR_ELEMS; idx++)
     {
         sorted[idx] = p_elem[idx];
     }
@@ -669,7 +682,7 @@ LOCAL int32_t sum9 (const int32_t * p_elem)
     int32_t sum = 0;
     int32_t idx;
 
-    for (idx = 0; idx < 9; idx++)
+    for (idx = 0; idx < C39_CHAR_ELEMS; idx++)
     {
         sum += p_elem[idx];
     }
@@ -712,14 +725,14 @@ LOCAL BOOL decode_one_star (int32_t * p_elem, int32_t count,
     int32_t f_nar       = 0;
     int32_t f_wid       = 0;
 
-    if (count < 29)
+    if (count < C39_MIN_ELEMS)
     {
         return FALSE;
     }
 
-    for (pass = 0; pass < 2; pass++)
+    for (pass = 0; pass < DECODE_PASSES; pass++)
     {
-        for (off = 0; (off + 29) <= count; off += 2)
+        for (off = 0; (off + C39_MIN_ELEMS) <= count; off += 2)
         {
             int32_t narrow_sum = 0;
             int32_t wide_sum   = 0;
@@ -727,7 +740,7 @@ LOCAL BOOL decode_one_star (int32_t * p_elem, int32_t count,
             int32_t wid;
             int32_t sum_mid;
             int32_t sum_other;
-            int32_t sorted[29];
+            int32_t sorted[C39_MIN_ELEMS];
             uint8_t first_ch;
             uint8_t letter;
             uint8_t last_ch;
@@ -746,12 +759,12 @@ LOCAL BOOL decode_one_star (int32_t * p_elem, int32_t count,
 
             b_a_ok = ('*' == first_ch);
 
-            for (kdx = 0; kdx < 29; kdx++)
+            for (kdx = 0; kdx < C39_MIN_ELEMS; kdx++)
             {
                 sorted[kdx] = p_elem[off + kdx];
             }
 
-            sort_w(sorted, 29); /* m[14]: the median, a narrow one */
+            sort_w(sorted, C39_MIN_ELEMS); /* m[14]: the median, a narrow one */
 
             if (((p_elem[off + 9] * 10) >= (sorted[14] * 16)) ||
                 ((p_elem[off + 19] * 10) >= (sorted[14] * 16)))
@@ -822,7 +835,7 @@ LOCAL BOOL decode_merged (const int32_t * p_elem, int32_t count,
     int32_t          nar;
     int32_t          wid;
     int32_t          tot;
-    int32_t          opt[2];
+    int32_t          opt[WIDTH_OPTS];
     int32_t          idx;
     int32_t          first_opt;
     int32_t          last_opt;
@@ -843,9 +856,9 @@ LOCAL BOOL decode_merged (const int32_t * p_elem, int32_t count,
 
     for (idx = 0; idx < count; idx++)
     {
-        for (first_opt = 0; first_opt < 2; first_opt++)
+        for (first_opt = 0; first_opt < WIDTH_OPTS; first_opt++)
         {
-            for (last_opt = 0; last_opt < 2; last_opt++)
+            for (last_opt = 0; last_opt < WIDTH_OPTS; last_opt++)
             {
                 tot = opt[first_opt] + nar + opt[last_opt];
 
@@ -924,14 +937,14 @@ LOCAL BOOL decode_truncated (const int32_t * p_elem, int32_t count,
     keep = *p_result;
     nar_wid(p_elem, count, &nar, &wid);
 
-    for (kdx = 1; kdx <= 2; kdx++)
+    for (kdx = 1; kdx <= CUT_MAX; kdx++)
     {
-        if ((count + kdx) < 29)
+        if ((count + kdx) < C39_MIN_ELEMS)
         {
             continue;
         }
 
-        for (side = 0; side < 2; side++)
+        for (side = 0; side < CUT_SIDES; side++)
         {
             for (jdx = 0; jdx < (count + kdx); jdx++)
             {
@@ -1131,7 +1144,8 @@ EXPORT void barcode_task (int32_t stacd, void * p_exinf)
                     APP_LOCK(irq_state);
                     g_dbg_n = count;
 
-                    for (idx = 0; (idx < count) && (idx < DBG_MAX); idx++)
+                    for (idx = 0; (idx < count) && (idx < BARCODE_DBG_MAX);
+                         idx++)
                     {
                         g_dbg_w[idx] =
                             (int32_t)(elem[idx] * S2_UM_PER_COUNT / 100);
@@ -1185,8 +1199,8 @@ LOCAL BOOL is_code_char (uint8_t letter)
 EXPORT BOOL barcode_set_mapping (const uint8_t * p_text, int32_t len,
                                  uint8_t * p_why, int32_t why_max)
 {
-    uint8_t  letters[4];
-    uint8_t  moves[4];
+    uint8_t  letters[BAR_MOVES];
+    uint8_t  moves[BAR_MOVES];
     int32_t  pairs = 0;
     int32_t  idx   = 0;
     int32_t  first;
@@ -1254,9 +1268,9 @@ EXPORT BOOL barcode_set_mapping (const uint8_t * p_text, int32_t len,
         return FALSE;
     }
 
-    for (first = 0; first < 4; first++)
+    for (first = 0; first < BAR_MOVES; first++)
     {
-        for (second = first + 1; second < 4; second++)
+        for (second = first + 1; second < BAR_MOVES; second++)
         {
             if ((letters[first] == letters[second]) ||
                 (moves[first] == moves[second]))
@@ -1272,7 +1286,7 @@ EXPORT BOOL barcode_set_mapping (const uint8_t * p_text, int32_t len,
     (void)why_max;
     APP_LOCK(irq_state);
 
-    for (first = 0; first < 4; first++)
+    for (first = 0; first < BAR_MOVES; first++)
     {
         g_map_ch[first] = letters[first];
         g_map_mv[first] = moves[first];
@@ -1294,7 +1308,7 @@ EXPORT int32_t barcode_move_for (uint8_t letter)
 
     if (gb_map_set)
     {
-        for (idx = 0; idx < 4; idx++)
+        for (idx = 0; idx < BAR_MOVES; idx++)
         {
             if (g_map_ch[idx] == letter)
             {
@@ -1310,8 +1324,8 @@ EXPORT int32_t barcode_move_for (uint8_t letter)
 /** The mapping now in use as "K=L,Q=R,X=F,M=U" (empty if none); its length. */
 EXPORT int32_t barcode_mapping_text (uint8_t * p_out, int32_t max)
 {
-    uint8_t  letters[4];
-    uint8_t  moves[4];
+    uint8_t  letters[BAR_MOVES];
+    uint8_t  moves[BAR_MOVES];
     BOOL     b_set;
     uint32_t irq_state;
     int32_t  idx;
@@ -1319,7 +1333,7 @@ EXPORT int32_t barcode_mapping_text (uint8_t * p_out, int32_t max)
     APP_LOCK(irq_state);
     b_set = gb_map_set;
 
-    for (idx = 0; idx < 4; idx++)
+    for (idx = 0; idx < BAR_MOVES; idx++)
     {
         letters[idx] = g_map_ch[idx];
         moves[idx]   = g_map_mv[idx];

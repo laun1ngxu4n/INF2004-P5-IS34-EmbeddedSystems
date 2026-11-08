@@ -41,10 +41,14 @@ EXPORT void subsystem4_test (void)
    humps in one 1.5 m run, neither reported, and the 0.5 s trace missed
    the short nose-up on each. */
 #define RUN_MAX_MM   1500
-#define BUMP_SIN     40  /* x1000: about 2.3 deg */
-#define BUMP_FLAT_MM 60  /* level this far = the bump is over */
-#define BUMP_END_MM  300 /* run ends this far after the last bump */
-#define TRACE_MAX    400 /* 10 ms trace lines per run */
+#define BUMP_SIN     40   /* x1000: about 2.3 deg */
+#define BUMP_FLAT_MM 60   /* level this far = the bump is over */
+#define BUMP_END_MM  300  /* run ends this far after the last bump */
+#define TRACE_MAX    400  /* 10 ms trace lines per run */
+#define RUN_TICKS    2000 /* 20 s at 10 ms: the run's time limit */
+#define IMU_WAIT     30   /* 3 s at 100 ms for the IMU to answer */
+#define TILT_LINES   30   /* 15 s at 0.5 s */
+#define RAMP_RUNS    5    /* the prompts say 5 */
 
 /** One S4-R01 run: drives over the hump and prints each bump. */
 LOCAL void ramp_run (uint32_t reports_start)
@@ -69,7 +73,7 @@ LOCAL void ramp_run (uint32_t reports_start)
 
     (void)motion_drive(S2_SPEED_BARCODE, RUN_MAX_MM);
 
-    for (tick = 0; tick < 2000; tick++)
+    for (tick = 0; tick < RUN_TICKS; tick++)
     {
         motion_status_t status;
         int32_t         dist_mm = motion_counts_to_mm(motion_odometer() - odo0);
@@ -204,7 +208,7 @@ EXPORT void subsystem4_stage_test (void)
 
     tm_printf((uint8_t *)"\n[DRIVE] === Stage 4: IMU ramp height ===\n");
 
-    for (tick = 0; (tick < 30) && (!imu_ok()); tick++)
+    for (tick = 0; (tick < IMU_WAIT) && (!imu_ok()); tick++)
     {
         tk_dly_tsk(100);
     }
@@ -231,7 +235,7 @@ EXPORT void subsystem4_stage_test (void)
                    "in "
                    "mm)\n");
 
-    for (tick = 0; tick < 30; tick++)
+    for (tick = 0; tick < TILT_LINES; tick++)
     {
         int32_t one = imu_one_wheel_mm10();
 
@@ -241,7 +245,7 @@ EXPORT void subsystem4_stage_test (void)
         tk_dly_tsk(500);
     }
 
-    for (kdx = 1; kdx <= 5; kdx++)
+    for (kdx = 1; kdx <= RAMP_RUNS; kdx++)
     {
         uint32_t reports_start = imu_ramp_reports();
 

@@ -31,7 +31,12 @@ EXPORT void subsystem2_test (void)
 
 /* ---- Stage 1 drive tests ------------------------------------------- */
 
-#define PI_F 3.14159f
+#define PI_F            3.14159f
+#define WAIT_DONE_TICKS 1500 /* 15 s at 10 ms */
+#define TURN_ROUNDS     3    /* the prompts say 3 */
+#define TURNS           3    /* left 90, right 90, 180 */
+#define DIR_LEGS        2    /* forward, then backward */
+#define STOP_RUNS       5    /* S2-M07 runs */
 
 /** Name of a Motion result code, for test output. */
 LOCAL const char * res_name (int32_t res)
@@ -56,7 +61,7 @@ LOCAL int32_t wait_done (ID h_cmd, motion_status_t * p_status)
 {
     int32_t tick;
 
-    for (tick = 0; tick < 1500; tick++)
+    for (tick = 0; tick < WAIT_DONE_TICKS; tick++)
     {
         motion_get_status(p_status);
 
@@ -76,8 +81,8 @@ LOCAL int32_t wait_done (ID h_cmd, motion_status_t * p_status)
 /** S2-M02: three rounds of left 90, right 90, 180 */
 LOCAL BOOL test_turns (void)
 {
-    static const int32_t turns[3] = {90, -90, 180};
-    static const char *  names[3] = {"left 90", "right 90", "180 (left)"};
+    static const int32_t turns[TURNS] = {90, -90, 180};
+    static const char *  names[3]     = {"left 90", "right 90", "180 (left)"};
     motion_status_t      status;
     BOOL                 b_all_done = TRUE;
     int32_t              round;
@@ -87,9 +92,9 @@ LOCAL BOOL test_turns (void)
         "S2-M02 turns: robot on the floor, mark its heading "
         "(tape along one side). 3 rounds of: left 90, right 90, 180.");
 
-    for (round = 1; round <= 3; round++)
+    for (round = 1; round <= TURN_ROUNDS; round++)
     {
-        for (kdx = 0; kdx < 3; kdx++)
+        for (kdx = 0; kdx < TURNS; kdx++)
         {
             int32_t  left_start;
             int32_t  right_start;
@@ -340,7 +345,7 @@ LOCAL BOOL test_directions (void)
                     "wheels turn forward 300 mm, then backward 300 mm. Watch "
                     "that both turn the robot's forward way first.");
 
-    for (kdx = 0; kdx < 2; kdx++)
+    for (kdx = 0; kdx < DIR_LEGS; kdx++)
     {
         int32_t left_start;
         int32_t right_start;
@@ -416,7 +421,7 @@ EXPORT void subsystem2_drive_test (void)
                "all 9 turn COMMANDS finished. This is not the angle check: "
                "pass/fail is your measured angles (90 +/- 10, 180 +/- 15)");
 
-    for (kdx = 1; kdx <= 5; kdx++)
+    for (kdx = 1; kdx <= STOP_RUNS; kdx++)
     {
         if (test_stop_once(kdx, FALSE))
         {

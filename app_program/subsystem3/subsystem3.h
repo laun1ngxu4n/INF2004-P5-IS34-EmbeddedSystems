@@ -154,6 +154,7 @@ IMPORT BOOL barcode_in_bars (void);
 IMPORT uint32_t barcode_seq (void);
 /** Drop a half-read code (start of a run); blocks 30 ms. */
 IMPORT void barcode_reset (void);
+#define BARCODE_DBG_MAX 40 /* barcode_debug(): widths kept */
 /** The last code that ended, any length; returns a seq. */
 IMPORT uint32_t barcode_debug (int32_t * n, int32_t * w_mm10, int32_t max);
 /** Last first-bar under B (published as soon as it ends): a left branch

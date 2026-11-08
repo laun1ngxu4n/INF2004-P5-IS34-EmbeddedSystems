@@ -15,6 +15,10 @@
 
 #if APP_TEST
 
+#define SIDE_VIEW_PINGS  40 /* about 12 s */
+#define FRONT_VIEW_PINGS 30 /* about 10 s */
+#define WIDTH_TRIES      3  /* the prompts say 3 */
+
 /** Subsystem 5's start-up tests (task timing, Telemetry's ping). */
 EXPORT void subsystem5_test (void)
 {
@@ -84,7 +88,7 @@ EXPORT void subsystem5_stage_test (void)
                        "reading should go away once the box is behind it.\n",
             S5_SERVO_SIDE_DEG);
 
-        for (tick = 0; tick < 40; tick++)
+        for (tick = 0; tick < SIDE_VIEW_PINGS; tick++)
         {
             tm_printf((uint8_t *)"[S5] side %d mm\n", sonar_ping_mm());
             tk_dly_tsk(240);
@@ -96,13 +100,13 @@ EXPORT void subsystem5_stage_test (void)
     tm_printf(
         (uint8_t *)"[S5] forward distance for 10 s: move your hand in front\n");
 
-    for (tick = 0; tick < 30; tick++)
+    for (tick = 0; tick < FRONT_VIEW_PINGS; tick++)
     {
         tm_printf((uint8_t *)"[S5] front %d mm\n", sonar_ping_mm());
         tk_dly_tsk(270);
     }
 
-    for (kdx = 1; kdx <= 3; kdx++)
+    for (kdx = 1; kdx <= WIDTH_TRIES; kdx++)
     {
         tm_printf(
             (uint8_t *)"\n[DRIVE] S5-O01 width, try %d of 3 (a different box "

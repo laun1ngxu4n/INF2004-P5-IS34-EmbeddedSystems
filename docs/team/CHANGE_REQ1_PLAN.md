@@ -5,8 +5,9 @@ requirement and our Tribunal 1 decisions (PostTri, Versions B and C) ask
 for, what the code does now, and what to change, subsystem by subsystem.
 Nothing here has been changed in the code yet.
 
-Sources: `Change Requirement 1.docx`, `IS34_PostTri1.doc.docx` (Version B
-decisions, Version C fixes).
+Sources: [`course/CHANGE_REQUIREMENT_1.md`](course/CHANGE_REQUIREMENT_1.md)
+and [`course/TRIBUNAL1_POSTTRI.md`](course/TRIBUNAL1_POSTTRI.md) (Version B
+decisions, Version C fixes): text copies of the course `.docx` files.
 
 ## 1. In short: how much will it change?
 

@@ -43,38 +43,44 @@ Team (subsystem owners, `TEAM.md` section 1):
   Word files outside the repo. They are not edited; `TEAM.md` section 7
   overrides them.
 
-## 3. Status (1 Nov)
+## 3. Status (9 Nov)
 
-| Stage | What | Status |
-|---|---|---|
-| Bring-up | every part tested stand-alone (no RTOS) | done 22-26 Oct, `bringup/docs/bringup_results.md` |
-| 0 | RTOS frame: 8 tasks at their priorities/periods, timing monitor | **tested on the robot 26 Oct: 17/17 PASS, 60 s run PASS** |
-| 1 | Motion + STOP | **built, not run on the robot** |
-| 2 | Line following, junctions, A-Z barcode decoder (both directions) | **built, not run**; decoder checked in a simulation (all 26 letters, both directions, +/-15 % width noise: 2600/2600) |
-| 3 | Obstacle watch, profiling scan, width +/-, bypass | **built, not run**; width maths checked in a simulation |
-| 4 | IMU ramp height | **built, not run** |
-| 5 | Telemetry + MQTT commands | **built, compiles with placeholder WiFi details; not run** |
-| 6 | Mission: whole course | **built, not run** |
+The test status, stage by stage, is in
+[`testing/TEST_STATUS.md`](../../testing/TEST_STATUS.md) (the record; this
+file does not repeat it). In short: Stages 0, 1, 3 and 5 passed on the
+robot; 2 (line, barcodes, junction moves) and 4 (hump) work but not every
+run; 6 (whole course) not run yet.
 
-All images build with 0 warnings (Pico SDK 2.2.0, arm-none-eabi-gcc
-13.2.1). "Built" means compiled and reviewed, nothing more. Expect the
-first runs to need tuning (section 8).
+Since the last robot runs (8 Nov) the code was brought to the **Barr C
+coding standard** (9 Nov, commits `f639186`..`79b9ca4`; deviations and
+how it was checked: [`BARR_C_DEVIATIONS.md`](BARR_C_DEVIATIONS.md)).
+Most steps were proven byte-identical, but `bool` instead of `BOOL` and
+the if-nesting refactors changed the code of every stage, so **every
+stage needs one confirmation run** (the next steps below). The robot
+should behave exactly as on 8 Nov; one real fix: a drive or turn at
+speed 0 is now refused (it was undefined behaviour; nothing passes 0).
 
-### Review fixes (1 Nov)
-An outside review of the stage tests found real problems, fixed:
-- `sqrt` used 12 Newton steps from x: for IMU-sized numbers (6.7e7) it
-  gave 17,700 instead of 8,185, so every pitch and height was wrong. Now
-  one correct `app_sqrtf` in `app_program/app_math.h` for everyone.
-- Sonar failure policy: ECHO that never rises is now a sensor fault
-  (`SONAR_FAULT`), never open space; 5 in a row during a run stop the
-  robot, and a scan ray with no ECHO counts as blocked.
-- Ramp report suppression used the odometer, which goes negative after a
-  reverse; now a distance counter.
-- Tests: Stage 1 starts with the wheels lifted (directions S2-M05, STOP
-  S2-M06), asks for the measured real distance, and says the turn PASS is
-  not the angle check. S3-L01 needs 3 m followed. Stage 2's Mission part
-  runs with obstacle watch and IMU off (`mission_features`). Gates in
-  `TESTING_GUIDE.md`.
+### Next steps (in this order)
+
+1. **Confirmation runs on the current code** (one per stage, WiFi images
+   in `images/wifi/`, power bank only): full course with the mission
+   image first, then Stage 2 (S3-B00 x2, one 2B run), Stage 1, Stage 3
+   (one width, covered sonar, one bypass), Stage 4 (1-2 hump runs).
+   Same results as 8 Nov expected. A failure: save the log; the images
+   before the clean-up are in git at `61cc060` (USB images only).
+2. **Turn tuning** (turns end a little past the angle): run S2-M02 on the
+   course floor, write down the 9 real angles next to the printed
+   encoder angles. Encoder angle over the target = coasting after the
+   motors switch off (end the turn early or brake); real over encoder =
+   `S2_TRACK_MM` (new = 123 x encoder / real). Nothing changed yet.
+3. **Record the "before" numbers for Change Requirement 1** (RAM, message
+   sizes, timing table): [`CHANGE_REQ1_PLAN.md`](CHANGE_REQ1_PLAN.md)
+   section 2. Must be done before any packing change.
+4. **Change Requirement 1, Minimum-Bit Data Representation** (Week 13):
+   the whole plan, field by field, is
+   [`CHANGE_REQ1_PLAN.md`](CHANGE_REQ1_PLAN.md); the requirement and the
+   tribunal decisions it builds on are in [`course/`](course/).
+   Then the full stage retest again.
 
 ## 4. Hardware (measured in bring-up)
 
@@ -236,6 +242,8 @@ Week 6 document section by section: what to change, add or drop.
 
 - Safety task: collision (2 g), stall, fault latching (FR9 minus battery)
   are not in the essentials plan; `safety_task` is the Stage 0 stub.
+  Change Requirement 1 and the tribunal (Safety cuts the motors if
+  Motion hangs) need it: `CHANGE_REQ1_PLAN.md` section 3.
 - Notification (NeoPixel / buzzer) not built.
 - NFR measurements (CPU load, stack use, reconnect trials) not done.
 - Questions for the instructor: may we change `mqtt_utk.c` and
@@ -252,9 +260,20 @@ Week 6 document section by section: what to change, add or drop.
 
 - Only the owner edits a subsystem folder; shared files (`app_*.c/h`,
   `TEAM.md`) by team agreement.
-- Style: the template's C style (tabs, `LOCAL`/`EXPORT`, T-Kernel types
-  `INT`, `UW`, `BOOL`, `tm_printf`), short comments that say why.
+- Style: the **Barr C** coding standard (`BARR_C_DEVIATIONS.md`):
+  `int32_t` / `uint32_t` / `bool` / `float32_t`, Barr names (`g_` globals,
+  `p_` pointers, `b_` booleans, `h_` kernel IDs), public functions prefixed
+  with their module (`line_...`, `barcode_...`), every cast commented,
+  braces always, `if` nesting at most 2. Formatting:
+  `app_program/.clang-format`. Check before committing:
+  `python tools/barr/check.py` (0 for every rule but the deviations).
+- A change meant not to alter the program (formatting, renames): prove it
+  with `bash tools/barr/compare.sh save <dir>` before and `check <dir>`
+  after (all 12 images byte-identical).
 - Interrupt callbacks: a few lines, never wait, no printing.
 - Every test row goes in `testing/*/TEST_LOG.md` with the commit, tester
   and log file; never invent results; bench results are bench results.
-- Commit to `rtos-stage0`, fast-forward `main`, push both.
+- Commit to `main`, fast-forward `rtos-stage0`, push both. Rebuild the
+  images after a code change (`images/*.uf2` committed with `git add -f`;
+  `images/wifi/` never: it holds the WiFi password).
+

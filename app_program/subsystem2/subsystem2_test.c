@@ -78,12 +78,12 @@ LOCAL int32_t wait_done (ID h_cmd, motion_status_t * p_status)
 }
 
 /** S2-M02: three rounds of left 90, right 90, 180 */
-LOCAL BOOL test_turns (void)
+LOCAL bool test_turns (void)
 {
     static const int32_t turns[TURNS] = {90, -90, 180};
     static const char *  names[3]     = {"left 90", "right 90", "180 (left)"};
     motion_status_t      status;
-    BOOL                 b_all_done = TRUE;
+    bool                 b_all_done = true;
     int32_t              round;
     int32_t              kdx;
 
@@ -110,7 +110,7 @@ LOCAL BOOL test_turns (void)
             if (h_cmd < E_OK)
             {
                 tm_printf(app_str("[DRIVE] STOP is set, turn not started\n"));
-                return FALSE;
+                return false;
             }
 
             res = wait_done(h_cmd, &status);
@@ -131,11 +131,11 @@ LOCAL BOOL test_turns (void)
 
             if (res != MOT_RES_DONE)
             {
-                b_all_done = FALSE;
+                b_all_done = false;
 
                 if (MOT_RES_STOPPED == res)
                 {
-                    return FALSE;
+                    return false;
                 }
             }
 
@@ -157,7 +157,7 @@ LOCAL BOOL test_turns (void)
 }
 
 /** S2-M03: 500 mm at the barcode speed; speed over the middle 300 mm */
-LOCAL BOOL test_slow_speed (void)
+LOCAL bool test_slow_speed (void)
 {
     motion_status_t status;
     int32_t         left_start;
@@ -185,7 +185,7 @@ LOCAL BOOL test_slow_speed (void)
 
     if (h_cmd < E_OK)
     {
-        return FALSE;
+        return false;
     }
 
     do
@@ -244,7 +244,7 @@ LOCAL BOOL test_slow_speed (void)
 }
 
 /** S2-M04: drive, press STOP; time from press to wheels stopped */
-LOCAL BOOL test_stop_once (int32_t run, BOOL b_lifted)
+LOCAL bool test_stop_once (int32_t run, bool b_lifted)
 {
     motion_status_t status;
     ID              h_cmd;
@@ -254,7 +254,7 @@ LOCAL BOOL test_stop_once (int32_t run, BOOL b_lifted)
     int32_t         c0_r        = 0;
     uint32_t        t_press     = 0;
     uint32_t        t_last_move = 0;
-    BOOL            b_pressed   = FALSE;
+    bool            b_pressed   = false;
     int32_t         res;
 
     if (b_lifted)
@@ -276,7 +276,7 @@ LOCAL BOOL test_stop_once (int32_t run, BOOL b_lifted)
 
     if (h_cmd < E_OK)
     {
-        return FALSE;
+        return false;
     }
 
     motion_get_status(&status);
@@ -290,7 +290,7 @@ LOCAL BOOL test_stop_once (int32_t run, BOOL b_lifted)
 
         if ((!b_pressed) && (app_stop_reasons() != 0u))
         {
-            b_pressed   = TRUE;
+            b_pressed   = true;
             t_press     = app_stop_time_us();
             c0_l        = status.count_l;
             c0_r        = status.count_r;
@@ -322,7 +322,7 @@ LOCAL BOOL test_stop_once (int32_t run, BOOL b_lifted)
     {
         tm_printf(app_str("[%s] try %d: no STOP pressed (%s), not counted\n"),
                   b_lifted ? "S2-M06" : "S2-M04", run, res_name(res));
-        return FALSE;
+        return false;
     }
 
     /* the wheels stop within seconds of the press: the ms fit %d */
@@ -336,11 +336,11 @@ LOCAL BOOL test_stop_once (int32_t run, BOOL b_lifted)
 }
 
 /** S2-M05: wheels lifted, both wheels forward then back; check both signs */
-LOCAL BOOL test_directions (void)
+LOCAL bool test_directions (void)
 {
     static const int32_t dir[2] = {+1, -1};
     motion_status_t      status;
-    BOOL                 b_ok = TRUE;
+    bool                 b_ok = true;
     int32_t              kdx;
 
     test_wait_start("S2-M05 directions: LIFT THE WHEELS off the table. Both "
@@ -374,12 +374,12 @@ LOCAL BOOL test_directions (void)
             ((delta_left * 4 * dir[kdx]) < (delta_right * 3 * dir[kdx])) ||
             ((delta_right * 4 * dir[kdx]) < (delta_left * 3 * dir[kdx])))
         {
-            b_ok = FALSE;
+            b_ok = false;
         }
 
         if (MOT_RES_STOPPED == res)
         {
-            return FALSE;
+            return false;
         }
 
         tk_dly_tsk(700);
@@ -412,7 +412,7 @@ EXPORT void subsystem2_drive_test (void)
     TEST_CHECK("S2-M05", test_directions(),
                "wheels lifted: both encoders count the commanded way, "
                "within 25 % of each other");
-    TEST_CHECK("S2-M06", test_stop_once(0, TRUE),
+    TEST_CHECK("S2-M06", test_stop_once(0, true),
                "wheels lifted: STOP stopped the wheels within 500 ms");
     tm_printf(app_str("\n[DRIVE] From here: robot ON THE FLOOR.\n"));
     TEST_CHECK("S2-M03", test_slow_speed(),
@@ -424,7 +424,7 @@ EXPORT void subsystem2_drive_test (void)
 
     for (kdx = 1; kdx <= STOP_RUNS; kdx++)
     {
-        if (test_stop_once(kdx, FALSE))
+        if (test_stop_once(kdx, false))
         {
             stops++;
         }

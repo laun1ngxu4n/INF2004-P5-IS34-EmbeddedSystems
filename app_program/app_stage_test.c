@@ -50,8 +50,8 @@ EXPORT void test_wait_start (const char * p_what)
     tk_dly_tsk(1000);
 }
 
-/** TRUE while a STOP reason is set. */
-EXPORT BOOL test_stop_pressed (void)
+/** true while a STOP reason is set. */
+EXPORT bool test_stop_pressed (void)
 {
     return app_stop_reasons() != 0u;
 }
@@ -80,7 +80,7 @@ EXPORT void test_use_test_mapping (void)
 
 /** Mission in charge.  Stage 2 runs it without obstacle watch and IMU
    (not tested yet), Stage 3 adds obstacles, Stage 6 uses everything. */
-EXPORT void app_course_test (BOOL b_obstacles, BOOL b_imu)
+EXPORT void app_course_test (bool b_obstacles, bool b_imu)
 {
     uint8_t map[24];
 
@@ -135,7 +135,7 @@ EXPORT void app_course_test (BOOL b_obstacles, BOOL b_imu)
     tm_printf(
         app_str("[DRIVE] Mission armed: press START to run, STOP to stop.\n"
                 "[DRIVE] Every result is printed as an [EVT] line.\n"));
-    mission_arm(TRUE);
+    mission_arm(true);
 }
 
 /** Runs the hands-on test chosen at build time (TEST_STAGE). */
@@ -156,7 +156,7 @@ EXPORT void app_stage_test (void)
             subsystem4_stage_test();
         break;
         case 6:
-            app_course_test(TRUE, TRUE);
+            app_course_test(true, true);
         break;
         default:
             tm_printf(app_str("[DRIVE] no hands-on test for TEST_STAGE=%d\n"),

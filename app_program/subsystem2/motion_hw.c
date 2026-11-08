@@ -178,13 +178,13 @@ EXPORT ER motion_hw_init (void)
 
     pwm_set_wrap(PIN_M_L_A, PWM_WRAP);
     pwm_set_wrap(PIN_M_R_A, PWM_WRAP);
-    pwm_set_enabled(PIN_M_L_A, TRUE);
-    pwm_set_enabled(PIN_M_R_A, TRUE);
+    pwm_set_enabled(PIN_M_L_A, true);
+    pwm_set_enabled(PIN_M_R_A, true);
 
     for (idx = 0; idx < ENC_PINS; idx++)
     {
         /* pull-up: harmless for push-pull, needed for open-collector */
-        err = app_gpio_input(epins[idx], TRUE);
+        err = app_gpio_input(epins[idx], true);
 
         if (err < E_OK)
         {

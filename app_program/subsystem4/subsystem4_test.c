@@ -59,15 +59,15 @@ LOCAL void ramp_run (uint32_t reports_start)
     int32_t  tick;
     int32_t  bumps     = 0;
     int32_t  traced    = 0;
-    BOOL     b_in_bump = FALSE;
-    int32_t  b_from    = 0;
-    int32_t  b_flat    = 0;
-    int32_t  b_up      = 0;
-    int32_t  b_down    = 0;
-    int32_t  b_h0      = 0;
-    int32_t  b_hmax    = 0;
-    int32_t  b_roll    = 0;
-    int32_t  b_one     = 0;
+    bool     b_in_bump = false;
+    int32_t  bump_from = 0;
+    int32_t  bump_flat = 0;
+    int32_t  bump_up   = 0;
+    int32_t  bump_down = 0;
+    int32_t  bump_h0   = 0;
+    int32_t  bump_hmax = 0;
+    int32_t  bump_roll = 0;
+    int32_t  bump_one  = 0;
     int32_t  last_end  = -1;
     uint32_t seen      = reports_start;
 
@@ -98,48 +98,48 @@ LOCAL void ramp_run (uint32_t reports_start)
         if ((!b_in_bump) && ((sin_pitch > BUMP_SIN) ||
                              (sin_pitch < -BUMP_SIN) || (roll_abs > BUMP_SIN)))
         {
-            b_in_bump = TRUE;
-            b_from    = dist_mm;
-            b_flat    = dist_mm;
-            b_up = b_down = 0;
-            b_roll = b_one = 0;
-            b_h0 = b_hmax = height;
-            jolts_bump    = imu_jolts();
+            b_in_bump = true;
+            bump_from = dist_mm;
+            bump_flat = dist_mm;
+            bump_up = bump_down = 0;
+            bump_roll = bump_one = 0;
+            bump_h0 = bump_hmax = height;
+            jolts_bump          = imu_jolts();
             tm_printf(app_str("[S4] bump %d starts at %d mm\n"), bumps + 1,
                       dist_mm);
         }
 
         if (b_in_bump)
         {
-            if (sin_pitch > b_up)
+            if (sin_pitch > bump_up)
             {
-                b_up = sin_pitch;
+                bump_up = sin_pitch;
             }
 
-            if (sin_pitch < b_down)
+            if (sin_pitch < bump_down)
             {
-                b_down = sin_pitch;
+                bump_down = sin_pitch;
             }
 
-            if (height > b_hmax)
+            if (height > bump_hmax)
             {
-                b_hmax = height;
+                bump_hmax = height;
             }
 
-            if (roll_abs > b_roll)
+            if (roll_abs > bump_roll)
             {
-                b_roll = roll_abs;
+                bump_roll = roll_abs;
             }
 
-            if (one > b_one)
+            if (one > bump_one)
             {
-                b_one = one;
+                bump_one = one;
             }
 
             if ((sin_pitch > BUMP_SIN) || (sin_pitch < -BUMP_SIN) ||
                 (roll_abs > BUMP_SIN))
             {
-                b_flat = dist_mm;
+                bump_flat = dist_mm;
             }
 
             if (traced < TRACE_MAX)
@@ -154,12 +154,12 @@ LOCAL void ramp_run (uint32_t reports_start)
                 traced++;
             }
 
-            if ((dist_mm - b_flat) >= BUMP_FLAT_MM)
+            if ((dist_mm - bump_flat) >= BUMP_FLAT_MM)
             {
-                int32_t l10 = b_up * S4_L_MM / 100; /* 0.1 mm */
-                int32_t c10 = b_hmax - b_h0;
+                int32_t l10 = bump_up * S4_L_MM / 100; /* 0.1 mm */
+                int32_t c10 = bump_hmax - bump_h0;
 
-                b_in_bump = FALSE;
+                b_in_bump = false;
                 bumps++;
                 last_end = dist_mm;
                 /* samples skipped in one run, hundreds at most: fit %d */
@@ -167,12 +167,12 @@ LOCAL void ramp_run (uint32_t reports_start)
                                   "nose-down peak %d, L x sin(up) %d.%d mm, "
                                   "climbed "
                                   "%d.%d mm, %d readings skipped as jolts\n"),
-                          bumps, b_from, b_flat, b_up, b_down, l10 / 10,
-                          l10 % 10, c10 / 10, c10 % 10,
+                          bumps, bump_from, bump_flat, bump_up, bump_down,
+                          l10 / 10, l10 % 10, c10 / 10, c10 % 10,
                           (int32_t)(imu_jolts() - jolts_bump));
                 tm_printf(app_str("[S4] bump %d one wheel: side tilt peak "
                                   "sin %d/1000, height T x sin = %d.%d mm\n"),
-                          bumps, b_roll, b_one / 10, b_one % 10);
+                          bumps, bump_roll, bump_one / 10, bump_one % 10);
             }
         }
 

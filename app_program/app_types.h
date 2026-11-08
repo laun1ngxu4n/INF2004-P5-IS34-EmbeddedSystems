@@ -6,7 +6,7 @@
  * C99 has no name for a 32-bit float, so float32_t is defined here (the
  * Cortex-M0+ float is IEEE 754 single precision).
  *
- * The micro T-Kernel types (INT, UINT, ID, ER, BOOL, ...) are used only
+ * The micro T-Kernel types (INT, UINT, ID, ER, bool, ...) are used only
  * where a kernel call needs them: docs/team/BARR_C_DEVIATIONS.md.
  */
 

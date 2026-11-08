@@ -48,14 +48,14 @@ EXPORT ER subsystem5_init (void)
         return err;
     }
 
-    err = app_gpio_input(PIN_START, TRUE);
+    err = app_gpio_input(PIN_START, true);
 
     if (err < E_OK)
     {
         return err;
     }
 
-    err = app_gpio_input(PIN_STOP, TRUE);
+    err = app_gpio_input(PIN_STOP, true);
 
     if (err < E_OK)
     {

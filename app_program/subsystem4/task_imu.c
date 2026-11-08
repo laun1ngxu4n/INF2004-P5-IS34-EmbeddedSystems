@@ -59,9 +59,9 @@ IMPORT void imu_i2c_init (void);
 IMPORT ER   imu_i2c_read (uint8_t addr, uint8_t reg, uint8_t * buf, int32_t n);
 IMPORT ER   imu_i2c_write (uint8_t addr, uint8_t reg, uint8_t val);
 
-LOCAL volatile BOOL     gb_chip_ok;
-LOCAL volatile BOOL     gb_cal_request = TRUE; /* calibrate once at boot too */
-LOCAL volatile BOOL     gb_calibrated;
+LOCAL volatile bool     gb_chip_ok;
+LOCAL volatile bool     gb_cal_request = true; /* calibrate once at boot too */
+LOCAL volatile bool     gb_calibrated;
 LOCAL volatile int32_t  g_height_mm10;
 LOCAL volatile int32_t  g_sin_x1000;
 LOCAL volatile int32_t  g_roll_x1000;
@@ -70,19 +70,19 @@ LOCAL volatile int32_t  g_ramp_peak_mm10;
 LOCAL volatile uint32_t g_ramp_reports;
 LOCAL volatile uint32_t g_jolts;
 
-/** TRUE once the IMU answered and was configured. */
-EXPORT BOOL imu_ok (void)
+/** true once the IMU answered and was configured. */
+EXPORT bool imu_ok (void)
 {
     return gb_chip_ok;
 }
 /** Starts a 1 s level calibration (robot level and still). */
 EXPORT void imu_calibrate (void)
 {
-    gb_calibrated  = FALSE;
-    gb_cal_request = TRUE;
+    gb_calibrated  = false;
+    gb_cal_request = true;
 }
-/** TRUE once the level calibration is done. */
-EXPORT BOOL imu_calibrated (void)
+/** true once the level calibration is done. */
+EXPORT bool imu_calibrated (void)
 {
     return gb_calibrated;
 }
@@ -124,14 +124,14 @@ EXPORT uint32_t imu_jolts (void)
 }
 
 /** Checks the LSM303D answers and configures its accelerometer. */
-LOCAL BOOL chip_setup (void)
+LOCAL bool chip_setup (void)
 {
     uint8_t who = 0;
 
     if ((imu_i2c_read(IMU_ADDR, REG_WHO_AM_I, &who, 1) != E_OK) ||
         (who != WHO_AM_I_VAL))
     {
-        return FALSE;
+        return false;
     }
 
     return (E_OK == imu_i2c_write(IMU_ADDR, 0x20,
@@ -205,7 +205,7 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
 
         if (imu_i2c_read(IMU_ADDR, REG_OUT_X_L_A, raw, 6) != E_OK)
         {
-            gb_chip_ok = FALSE;
+            gb_chip_ok = false;
             tele_event(app_str("IMU read failed, retrying"));
             goto done;
         }
@@ -248,8 +248,8 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
                     side_level = cal_y / CAL_SAMPLES;
                     cal_s = cal_c = cal_m = cal_y = 0.0f;
                     ncal                          = 0;
-                    gb_cal_request                = FALSE;
-                    gb_calibrated                 = TRUE;
+                    gb_cal_request                = false;
+                    gb_calibrated                 = true;
                     height = peak = peak_sin = 0.0f;
                     sin_f = base = tilt = 0.0f;
                     roll_f = base_r = roll = 0.0f;

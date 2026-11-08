@@ -7,7 +7,7 @@
  *  (TEAM.md section 3, "GPIO interrupts").  Each owner registers its pins
  *  in its subsystemN_init():
  *
- *      app_gpio_input(PIN_STOP, TRUE);
+ *      app_gpio_input(PIN_STOP, true);
  *      app_gpio_irq_add(PIN_STOP, APP_GPIO_FALL, stop_isr);
  *
  *  The callback runs in interrupt context: keep it a few lines long, never
@@ -31,7 +31,7 @@ typedef void (*app_gpio_cb_t)(uint32_t pin, uint32_t events);
 IMPORT ER app_gpio_init (void);
 
 /** Make pin an input, with or without the internal pull-up */
-IMPORT ER app_gpio_input (uint32_t pin, BOOL pull_up);
+IMPORT ER app_gpio_input (uint32_t pin, bool pull_up);
 
 /** Call cb on the given edges of pin.  One callback per pin. */
 IMPORT ER app_gpio_irq_add (uint32_t pin, uint32_t events, app_gpio_cb_t cb);

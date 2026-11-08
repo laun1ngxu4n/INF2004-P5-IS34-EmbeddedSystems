@@ -57,8 +57,8 @@ LOCAL bar_edge_t        g_ring[RING];
 LOCAL volatile uint32_t g_ring_w; /* written by the interrupt */
 LOCAL uint32_t          g_ring_r; /* read by the task */
 
-LOCAL volatile BOOL     gb_busy;    /* inside a barcode (in_code) */
-LOCAL volatile BOOL     gb_paused;  /* barcode_reset(): ignore edges */
+LOCAL volatile bool     gb_busy;    /* inside a barcode (in_code) */
+LOCAL volatile bool     gb_paused;  /* barcode_reset(): ignore edges */
 LOCAL volatile uint32_t g_seq_now;  /* results published so far */
 LOCAL volatile int32_t  g_edge_pub; /* odometer at the last clean edge */
 
@@ -67,7 +67,7 @@ LOCAL volatile int32_t  g_edge_pub; /* odometer at the last clean edge */
 LOCAL barcode_result_t g_last;
 LOCAL uint8_t          g_map_ch[BAR_MOVES];
 LOCAL uint8_t          g_map_mv[BAR_MOVES];
-LOCAL BOOL             gb_map_set;
+LOCAL bool             gb_map_set;
 
 /* Code 39: 9 elements bar/space/bar..., 1 = wide.  Bit 8 = first bar. */
 typedef struct
@@ -103,21 +103,21 @@ LOCAL void barcode_edge_isr (uint32_t pin, uint32_t events)
 /** Sets up the barcode sensor input and its interrupt. */
 EXPORT ER barcode_hw_init (void)
 {
-    ER err = app_gpio_input(PIN_IR_BARCODE, FALSE);
+    ER err = app_gpio_input(PIN_IR_BARCODE, false);
 
     return (err < E_OK) ? err
                         : app_gpio_irq_add(PIN_IR_BARCODE, APP_GPIO_BOTH,
                                            barcode_edge_isr);
 }
-/** TRUE while the barcode sensor sees black. */
-EXPORT BOOL barcode_black (void)
+/** true while the barcode sensor sees black. */
+EXPORT bool barcode_black (void)
 {
     return IR_BLACK == app_gpio_get(PIN_IR_BARCODE);
 }
-EXPORT BOOL barcode_adc (int32_t * p_raw, int32_t * p_white, int32_t * p_black)
+EXPORT bool barcode_adc (int32_t * p_raw, int32_t * p_white, int32_t * p_black)
 {
     *p_raw = *p_white = *p_black = 0;
-    return FALSE;
+    return false;
 }
 
 #else /* S3_BARCODE_ANALOG */
@@ -347,12 +347,12 @@ EXPORT ER barcode_hw_init (void)
     set_w(ADC_CS, CS_START_MANY);
     return E_OK;
 }
-/** TRUE while the barcode sensor sees black. */
-EXPORT BOOL barcode_black (void)
+/** true while the barcode sensor sees black. */
+EXPORT bool barcode_black (void)
 {
     return IR_BLACK == g_adc_lvl;
 }
-EXPORT BOOL barcode_adc (int32_t * p_raw, int32_t * p_white, int32_t * p_black)
+EXPORT bool barcode_adc (int32_t * p_raw, int32_t * p_white, int32_t * p_black)
 {
     int32_t white = g_env_w;
     int32_t black = g_env_b;
@@ -366,13 +366,13 @@ EXPORT BOOL barcode_adc (int32_t * p_raw, int32_t * p_white, int32_t * p_black)
         *p_black = 4095 - *p_black;
     }
 
-    return TRUE;
+    return true;
 }
 
 #endif /* S3_BARCODE_ANALOG */
 
-/** TRUE while the barcode sensor is inside a barcode (Motion slows down). */
-EXPORT BOOL barcode_busy (void)
+/** true while the barcode sensor is inside a barcode (Motion slows down). */
+EXPORT bool barcode_busy (void)
 {
     return gb_busy;
 }
@@ -386,13 +386,13 @@ EXPORT uint32_t barcode_edges (void)
    10.5 mm).  Motion holds the steering straight then: B sits 85 mm left
    of the robot's centre, so any turn changes B's own speed over the bars
    by +-50 % or more against the odometer, and the widths come out wrong. */
-EXPORT BOOL barcode_in_bars (void)
+EXPORT bool barcode_in_bars (void)
 {
     int32_t since;
 
     if (!gb_busy)
     {
-        return FALSE;
+        return false;
     }
 
     since = motion_odometer() - g_edge_pub;
@@ -474,9 +474,9 @@ EXPORT uint32_t barcode_seq (void)
    the run started with a rescan.  Task context; blocks 30 ms. */
 EXPORT void barcode_reset (void)
 {
-    gb_paused = TRUE;
+    gb_paused = true;
     tk_dly_tsk(30); /* the task drops it within 10 ms */
-    gb_paused = FALSE;
+    gb_paused = false;
 }
 
 /** Copies the latest barcode result. */
@@ -556,10 +556,10 @@ LOCAL uint8_t decode_char (const int32_t * p_elem, int32_t * p_narrow_sum,
     return 0;
 }
 
-/** Decode n elements; fills r.  TRUE = valid "*...*".  The code may start
+/** Decode n elements; fills r.  true = valid "*...*".  The code may start
    at any bar (off even) and end before the last element: a stray mark
    within S3_QUIET_MM of the code is part of the same run. */
-LOCAL BOOL decode (int32_t * p_elem, int32_t count, barcode_result_t * p_result)
+LOCAL bool decode (int32_t * p_elem, int32_t count, barcode_result_t * p_result)
 {
     int32_t kdx;
     int32_t pass;
@@ -568,12 +568,12 @@ LOCAL BOOL decode (int32_t * p_elem, int32_t count, barcode_result_t * p_result)
     int32_t narrow_sum = 0;
     int32_t wide_sum   = 0;
 
-    p_result->b_ok     = FALSE;
+    p_result->b_ok     = false;
     p_result->elements = count;
 
     if (count < C39_MIN_ELEMS)
     {
-        return FALSE;
+        return false;
     }
 
     for (pass = 0; pass < DECODE_PASSES; pass++)
@@ -605,7 +605,7 @@ LOCAL BOOL decode (int32_t * p_elem, int32_t count, barcode_result_t * p_result)
 
                 if ((letter != 0) && (letter != '*'))
                 {
-                    p_result->b_ok       = TRUE;
+                    p_result->b_ok       = true;
                     p_result->letter     = letter;
                     p_result->b_reversed = (1 == pass);
                     /* 3 chars of 6 narrow + 3 wide counted above */
@@ -613,7 +613,7 @@ LOCAL BOOL decode (int32_t * p_elem, int32_t count, barcode_result_t * p_result)
                         (narrow_sum * S2_UM_PER_COUNT / 100 / 18);
                     p_result->wide_mm10 =
                         (wide_sum * S2_UM_PER_COUNT / 100 / 9);
-                    return TRUE;
+                    return true;
                 }
             }
         }
@@ -627,7 +627,7 @@ LOCAL BOOL decode (int32_t * p_elem, int32_t count, barcode_result_t * p_result)
         }
     }
 
-    return FALSE;
+    return false;
 }
 
 /** ---- Forgiving decode (8 Nov) -------------------------------------------
@@ -668,7 +668,7 @@ LOCAL void sort_w (int32_t * p_values, int32_t count)
 }
 
 /** the 3 widest of 9 at least twice the 6 narrow */
-LOCAL BOOL clear_split (const int32_t * p_elem)
+LOCAL bool clear_split (const int32_t * p_elem)
 {
     int32_t sorted[C39_CHAR_ELEMS];
     int32_t idx;
@@ -720,20 +720,20 @@ LOCAL void nar_wid (const int32_t * p_elem, int32_t count, int32_t * p_nar,
 }
 
 /** Forgiving decode: one start / stop character damaged. */
-LOCAL BOOL decode_one_star (int32_t * p_elem, int32_t count,
+LOCAL bool decode_one_star (int32_t * p_elem, int32_t count,
                             barcode_result_t * p_result)
 {
     int32_t pass;
     int32_t off;
     int32_t idx;
     uint8_t found       = 0;
-    BOOL    b_rev_found = FALSE;
+    bool    b_rev_found = false;
     int32_t f_nar       = 0;
     int32_t f_wid       = 0;
 
     if (count < C39_MIN_ELEMS)
     {
-        return FALSE;
+        return false;
     }
 
     for (pass = 0; pass < DECODE_PASSES; pass++)
@@ -750,7 +750,7 @@ LOCAL BOOL decode_one_star (int32_t * p_elem, int32_t count,
             uint8_t first_ch;
             uint8_t letter;
             uint8_t last_ch;
-            BOOL    b_a_ok;
+            bool    b_a_ok;
             int32_t kdx;
 
             first_ch = decode_char(&p_elem[off], &narrow_sum, &wide_sum);
@@ -821,20 +821,20 @@ LOCAL BOOL decode_one_star (int32_t * p_elem, int32_t count,
 
     if ((0 == found) || (0xFF == found))
     {
-        return FALSE;
+        return false;
     }
 
-    p_result->b_ok        = TRUE;
+    p_result->b_ok        = true;
     p_result->letter      = found;
     p_result->b_reversed  = b_rev_found;
     p_result->fixed       = BAR_FIX_STAR;
     p_result->narrow_mm10 = f_nar * S2_UM_PER_COUNT / 100;
     p_result->wide_mm10   = f_wid * S2_UM_PER_COUNT / 100;
-    return TRUE;
+    return true;
 }
 
 /** Forgiving decode: a code with one narrow element lost (27-28 elements). */
-LOCAL BOOL decode_merged (const int32_t * p_elem, int32_t count,
+LOCAL bool decode_merged (const int32_t * p_elem, int32_t count,
                           barcode_result_t * p_result)
 {
     int32_t          trial_elems[31];
@@ -852,7 +852,7 @@ LOCAL BOOL decode_merged (const int32_t * p_elem, int32_t count,
 
     if ((count != 27) && (count != 28))
     {
-        return FALSE;
+        return false;
     }
 
     keep = *p_result;
@@ -895,7 +895,7 @@ LOCAL BOOL decode_merged (const int32_t * p_elem, int32_t count,
                 {
                     if ((found != 0) && (found != trial.letter))
                     {
-                        return FALSE; /* two answers */
+                        return false; /* two answers */
                     }
 
                     found = trial.letter;
@@ -907,13 +907,13 @@ LOCAL BOOL decode_merged (const int32_t * p_elem, int32_t count,
 
     if (0 == found)
     {
-        return FALSE;
+        return false;
     }
 
     keep.elements = count;
     keep.fixed    = BAR_FIX_MERGED;
     *p_result     = keep;
-    return TRUE;
+    return true;
 }
 
 /** Cut short (8 Nov): F's last narrow bar is printed weakly (darkest 1839
@@ -922,7 +922,7 @@ LOCAL BOOL decode_merged (const int32_t * p_elem, int32_t count,
    two narrow elements at the end, or at the start, and decode cleanly.
    Logs' good reads with 1-2 elements cut off either end: 33 right, 0
    wrong, 11 not read; 50 000 random 27-28 element patterns: 1 decoded. */
-LOCAL BOOL decode_truncated (const int32_t * p_elem, int32_t count,
+LOCAL bool decode_truncated (const int32_t * p_elem, int32_t count,
                              barcode_result_t * p_result)
 {
     int32_t          trial_elems[31];
@@ -937,7 +937,7 @@ LOCAL BOOL decode_truncated (const int32_t * p_elem, int32_t count,
 
     if ((count != 27) && (count != 28))
     {
-        return FALSE;
+        return false;
     }
 
     keep = *p_result;
@@ -968,7 +968,7 @@ LOCAL BOOL decode_truncated (const int32_t * p_elem, int32_t count,
             {
                 if ((found != 0) && (found != trial.letter))
                 {
-                    return FALSE; /* two answers */
+                    return false; /* two answers */
                 }
 
                 found = trial.letter;
@@ -979,13 +979,13 @@ LOCAL BOOL decode_truncated (const int32_t * p_elem, int32_t count,
 
     if (0 == found)
     {
-        return FALSE;
+        return false;
     }
 
     keep.elements = count;
     keep.fixed    = BAR_FIX_CUT;
     *p_result     = keep;
-    return TRUE;
+    return true;
 }
 
 /** The barcode decoder task: builds bar widths from the edges and decodes
@@ -995,14 +995,14 @@ EXPORT void barcode_task (int32_t stacd, void * p_exinf)
     int32_t  elem[MAX_ELEM];
     int32_t  count      = 0;
     int32_t  prev_odo   = 0;
-    BOOL     b_in_code  = FALSE;
-    BOOL     b_too_long = FALSE;
+    bool     b_in_code  = false;
+    bool     b_too_long = false;
     uint32_t seq        = 0;
     uint32_t end;
     uint8_t  stable   = !IR_BLACK; /* debounced level */
     uint8_t  raw_lvl  = !IR_BLACK; /* level after the last raw edge */
     int32_t  raw_odo  = 0;         /* where that raw edge was */
-    BOOL     b_raw_ok = FALSE;
+    bool     b_raw_ok = false;
 
     /* A level counts only once it has held for MERGE_COUNTS of travel:
        then it starts where its last raw edge was.  Flicker never holds,
@@ -1018,12 +1018,12 @@ EXPORT void barcode_task (int32_t stacd, void * p_exinf)
             {                                  \
                 if ((lvl) == IR_BLACK)         \
                 {                              \
-                    b_in_code  = TRUE;         \
-                    b_too_long = FALSE;        \
+                    b_in_code  = true;         \
+                    b_too_long = false;        \
                     count      = 0;            \
                     prev_odo   = (pos);        \
                     g_edge_pub = (pos);        \
-                    gb_busy    = TRUE;         \
+                    gb_busy    = true;         \
                 }                              \
             }                                  \
             else                               \
@@ -1034,7 +1034,7 @@ EXPORT void barcode_task (int32_t stacd, void * p_exinf)
                 if (count < MAX_ELEM)          \
                     elem[count++] = w_;        \
                 else                           \
-                    b_too_long = TRUE;         \
+                    b_too_long = true;         \
                 if (count == 1)                \
                     mark_pub((pos), w_);       \
                 prev_odo   = (pos);            \
@@ -1058,11 +1058,11 @@ EXPORT void barcode_task (int32_t stacd, void * p_exinf)
         if (gb_paused)
         {
             g_ring_r  = g_ring_w;
-            b_in_code = FALSE;
+            b_in_code = false;
             count     = 0;
-            gb_busy   = FALSE;
+            gb_busy   = false;
             stable    = !IR_BLACK;
-            b_raw_ok  = FALSE;
+            b_raw_ok  = false;
             app_timing_done(g_tmg_barcode);
             continue;
         }
@@ -1078,10 +1078,10 @@ EXPORT void barcode_task (int32_t stacd, void * p_exinf)
             if (avail > RING)
             {
                 g_ring_r  = g_ring_w - RING;
-                b_in_code = FALSE;
+                b_in_code = false;
                 count     = 0;
                 stable    = !IR_BLACK;
-                b_raw_ok  = FALSE;
+                b_raw_ok  = false;
                 avail     = RING;
             }
 
@@ -1111,7 +1111,7 @@ EXPORT void barcode_task (int32_t stacd, void * p_exinf)
 
             raw_lvl  = edge.level;
             raw_odo  = edge.odo;
-            b_raw_ok = TRUE;
+            b_raw_ok = true;
         }
 
         /* The latest level may have held long enough by now */
@@ -1142,7 +1142,7 @@ EXPORT void barcode_task (int32_t stacd, void * p_exinf)
 
             if (motion_counts_to_mm(gap) > S3_QUIET_MM)
             {
-                b_in_code = FALSE;
+                b_in_code = false;
                 {
                     int32_t  idx;
                     uint32_t irq_state;
@@ -1193,15 +1193,15 @@ EXPORT void barcode_task (int32_t stacd, void * p_exinf)
 
 /* ---- Mapping (B7, B8) ---------------------------------------------- */
 
-/** TRUE for a letter or digit a barcode can carry. */
-LOCAL BOOL is_code_char (uint8_t letter)
+/** true for a letter or digit a barcode can carry. */
+LOCAL bool is_code_char (uint8_t letter)
 {
     return ((letter >= 'A') && (letter <= 'Z')) ||
            ((letter >= '0') && (letter <= '9'));
 }
 
-/** Takes a new mapping text; FALSE and the reason if it is refused. */
-EXPORT BOOL barcode_set_mapping (const uint8_t * p_text, int32_t len,
+/** Takes a new mapping text; false and the reason if it is refused. */
+EXPORT bool barcode_set_mapping (const uint8_t * p_text, int32_t len,
                                  uint8_t * p_why, int32_t why_max)
 {
     uint8_t  letters[BAR_MOVES];
@@ -1232,7 +1232,7 @@ EXPORT BOOL barcode_set_mapping (const uint8_t * p_text, int32_t len,
         if ((4 == pairs) || ((idx + 2) >= len) || (p_text[idx + 1] != '='))
         {
             tm_sprintf(p_why, app_str("expected 4 pairs like K=L,Q=R,X=F,M=U"));
-            return FALSE;
+            return false;
         }
 
         letter  = p_text[idx];
@@ -1254,7 +1254,7 @@ EXPORT BOOL barcode_set_mapping (const uint8_t * p_text, int32_t len,
         {
             tm_sprintf(p_why, app_str("pair %d: '%c=%c' not A-Z/0-9 = L/R/F/U"),
                        pairs + 1, letter, move_ch);
-            return FALSE;
+            return false;
         }
 
         letters[pairs] = letter;
@@ -1266,7 +1266,7 @@ EXPORT BOOL barcode_set_mapping (const uint8_t * p_text, int32_t len,
     if (pairs != 4)
     {
         tm_sprintf(p_why, app_str("%d pairs, need exactly 4"), pairs);
-        return FALSE;
+        return false;
     }
 
     for (first = 0; first < BAR_MOVES; first++)
@@ -1278,7 +1278,7 @@ EXPORT BOOL barcode_set_mapping (const uint8_t * p_text, int32_t len,
             {
                 tm_sprintf(p_why,
                            app_str("each character and each move only once"));
-                return FALSE;
+                return false;
             }
         }
     }
@@ -1292,9 +1292,9 @@ EXPORT BOOL barcode_set_mapping (const uint8_t * p_text, int32_t len,
         g_map_mv[first] = moves[first];
     }
 
-    gb_map_set = TRUE;
+    gb_map_set = true;
     APP_UNLOCK(irq_state);
-    return TRUE;
+    return true;
 }
 
 /** The mapped move (MOVE_LEFT ...) for a barcode letter, or MOVE_NONE. */
@@ -1326,7 +1326,7 @@ EXPORT int32_t barcode_mapping_text (uint8_t * p_out, int32_t max)
 {
     uint8_t  letters[BAR_MOVES];
     uint8_t  moves[BAR_MOVES];
-    BOOL     b_set;
+    bool     b_set;
     uint32_t irq_state;
     int32_t  idx;
 

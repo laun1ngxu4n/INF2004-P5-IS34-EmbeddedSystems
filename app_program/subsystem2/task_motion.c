@@ -50,7 +50,7 @@ typedef struct
 } motion_cmd_t;
 
 LOCAL motion_cmd_t    g_cmd_slot; /* written by callers, under APP_LOCK */
-LOCAL BOOL            gb_cmd_new;
+LOCAL bool            gb_cmd_new;
 LOCAL ID              gh_cmd_last_id;
 LOCAL motion_status_t g_status; /* written by the task, under APP_LOCK */
 
@@ -79,7 +79,7 @@ LOCAL ID cmd_post (int32_t type, int32_t speed, int32_t amount)
     g_cmd_slot.h_cmd_id = h_cmd;
     g_cmd_slot.speed    = speed;
     g_cmd_slot.amount   = amount;
-    gb_cmd_new          = TRUE;
+    gb_cmd_new          = true;
     g_status.h_cmd_id   = h_cmd;
     g_status.result     = MOT_RES_BUSY;
     APP_UNLOCK(irq_state);
@@ -209,7 +209,7 @@ EXPORT void motion_task (int32_t stacd, void * p_exinf)
         int32_t   sum_l  = 0;
         int32_t   sum_r  = 0;
         int32_t   idx;
-        BOOL      b_fresh;
+        bool      b_fresh;
 
         tk_slp_tsk(TMO_FEVR); /* woken every 10 ms */
         app_timing_wake(g_tmg_motion, tk_can_wup(TSK_SELF));
@@ -237,14 +237,14 @@ EXPORT void motion_task (int32_t stacd, void * p_exinf)
             (float32_t)sum_r * S2_UM_PER_COUNT / (1000.0f * SPEED_AVG_N * DT_S);
 
         /* Take a new command (it replaces a running one) */
-        b_fresh = FALSE;
+        b_fresh = false;
         APP_LOCK(irq_state);
 
         if (gb_cmd_new)
         {
             cur        = g_cmd_slot;
-            gb_cmd_new = FALSE;
-            b_fresh    = TRUE;
+            gb_cmd_new = false;
+            b_fresh    = true;
         }
 
         APP_UNLOCK(irq_state);
@@ -315,7 +315,7 @@ EXPORT void motion_task (int32_t stacd, void * p_exinf)
             /* speeds are mm/s, |v| <= 1000: exact as floats (here and below) */
             float32_t cap   = absf((float32_t)cur.speed);
             int32_t   pct   = line_speed_pct(); /* 100 = on track */
-            BOOL      b_off = (pct < 100);
+            bool      b_off = (pct < 100);
 
             if ((g_follow_limit > 0) &&
                 (cap > (float32_t)g_follow_limit)) /* mm/s */
@@ -334,7 +334,7 @@ EXPORT void motion_task (int32_t stacd, void * p_exinf)
             if (barcode_in_bars())
             {
                 steer = 0.0f;
-                b_off = FALSE;
+                b_off = false;
                 pct   = 100;
             }
 

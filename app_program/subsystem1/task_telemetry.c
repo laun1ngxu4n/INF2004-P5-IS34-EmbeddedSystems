@@ -53,7 +53,7 @@ LOCAL uint32_t g_log_w;
 LOCAL uint32_t g_log_r;       /* under APP_LOCK */
 LOCAL uint32_t g_log_dropped; /* bytes lost: ring full */
 LOCAL uint32_t g_log_seq;
-LOCAL BOOL     gb_log_turn; /* last message sent was a log chunk */
+LOCAL bool     gb_log_turn; /* last message sent was a log chunk */
 
 /** Called by the console driver for every byte it sends: any context */
 EXPORT void tm_console_mirror (const uint8_t * p_buf, int32_t size)
@@ -183,24 +183,24 @@ EXPORT void tele_set_state (const char * p_state)
 
 /* ---- MQTT hooks, called from the WiFi task (mqtt_utk.c) ------------- */
 
-/** TRUE if s starts with prefix; *rest = what follows */
-LOCAL BOOL starts_with (const char * p_text, const char * p_prefix,
+/** true if s starts with prefix; *rest = what follows */
+LOCAL bool starts_with (const char * p_text, const char * p_prefix,
                         const char ** pp_rest)
 {
     while (*p_prefix != '\0')
     {
         if (*p_text++ != *p_prefix++)
         {
-            return FALSE;
+            return false;
         }
     }
 
     *pp_rest = p_text;
-    return TRUE;
+    return true;
 }
 
-/** TRUE if two strings are equal. */
-LOCAL BOOL same (const char * p_first, const char * p_second)
+/** true if two strings are equal. */
+LOCAL bool same (const char * p_first, const char * p_second)
 {
     while ((*p_first != '\0') && (*p_first == *p_second))
     {
@@ -221,7 +221,7 @@ EXPORT int app_mqtt_tx (char * p_topic, unsigned tmax, unsigned char * p_buf,
     tele_msg_t          msg;
     uint32_t            irq_state;
     uint32_t            idx;
-    BOOL                b_have;
+    bool                b_have;
 
     APP_LOCK(irq_state);
     b_have = (g_ob_r != g_ob_w);
@@ -234,12 +234,12 @@ EXPORT int app_mqtt_tx (char * p_topic, unsigned tmax, unsigned char * p_buf,
 
         if (len > 0)
         {
-            gb_log_turn = TRUE;
+            gb_log_turn = true;
             return len;
         }
     }
 
-    gb_log_turn = FALSE;
+    gb_log_turn = false;
 #endif
     APP_LOCK(irq_state);
 

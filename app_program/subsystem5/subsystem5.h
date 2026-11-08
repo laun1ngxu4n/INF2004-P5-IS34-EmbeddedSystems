@@ -39,8 +39,8 @@ IMPORT ID gh_flg_mission;
 #define PIN_START 20
 #define PIN_STOP  21
 
-/** TRUE while the button on pin is pressed (active low) */
-Inline BOOL button_is_down (uint32_t pin)
+/** true while the button on pin is pressed (active low) */
+Inline bool button_is_down (uint32_t pin)
 {
     return (0u == app_gpio_get(pin));
 }
@@ -91,26 +91,26 @@ Inline BOOL button_is_down (uint32_t pin)
 #define SONAR_OPEN  (-1)
 #define SONAR_FAULT (-2)
 
-IMPORT void obstacle_watch (BOOL on); /* forward watch during line following */
-IMPORT void obstacle_idle_ping (BOOL on); /* mission image: ping for the panel
+IMPORT void obstacle_watch (bool on); /* forward watch during line following */
+IMPORT void obstacle_idle_ping (bool on); /* mission image: ping for the panel
                          while Mission is IDLE (never during manoeuvres) */
-IMPORT BOOL    obstacle_sensor_fault (void); /* 5 pings in a row without ECHO */
+IMPORT bool    obstacle_sensor_fault (void); /* 5 pings in a row without ECHO */
 IMPORT int32_t obstacle_front_mm (void); /* last forward reading, -1 = none */
 
 typedef struct
 {
-    BOOL    b_found;      /* an obstacle straight ahead */
+    bool    b_found;      /* an obstacle straight ahead */
     int32_t front_mm;     /* distance straight ahead */
     int32_t left_mm;      /* left edge, mm left of the robot's centre line */
     int32_t right_mm;     /* right edge, mm (negative = right of centre) */
     int32_t width_mm;     /* left - right */
     int32_t unc_mm;       /* +/- uncertainty */
-    BOOL    b_left_clear; /* open space beyond the left edge */
-    BOOL    b_right_clear;
-    BOOL    b_left_seen; /* the scan saw past the left edge (FALSE:
+    bool    b_left_clear; /* open space beyond the left edge */
+    bool    b_right_clear;
+    bool    b_left_seen; /* the scan saw past the left edge (false:
                   the obstacle filled the scan that side,
                   edge and clear unknown) */
-    BOOL    b_right_seen;
+    bool    b_right_seen;
     int32_t left_unc; /* +/- of each edge */
     int32_t right_unc;
     int32_t rays;       /* rays scanned */
@@ -141,11 +141,11 @@ IMPORT int32_t sonar_ping_result (void);
 IMPORT const char * mission_state_name (void);
 /** Mission reacts to START only when armed: always in the normal image;
    in a test image only after the test arms it (so tests can use START). */
-IMPORT void mission_arm (BOOL on);
-/** Which parts Mission uses (all TRUE in the normal image).  Stage tests
+IMPORT void mission_arm (bool on);
+/** Which parts Mission uses (all true in the normal image).  Stage tests
    switch off the parts not tested yet, so a Stage 2 run does not depend
    on the untested obstacle (Stage 3) or IMU (Stage 4) code. */
-IMPORT void mission_features (BOOL obstacles, BOOL imu);
+IMPORT void mission_features (bool obstacles, bool imu);
 
 /* Private to subsystem 5, shared between its own .c files */
 IMPORT ID       gh_tid_mission;

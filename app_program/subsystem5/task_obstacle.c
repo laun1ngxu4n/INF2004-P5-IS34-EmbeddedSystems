@@ -54,13 +54,13 @@
 
 LOCAL volatile uint32_t g_echo_rise_us;
 LOCAL volatile uint32_t g_echo_width_us;
-LOCAL volatile BOOL     gb_echo_rose;
-LOCAL volatile BOOL     gb_echo_done;
-LOCAL volatile BOOL     gb_watch;
-LOCAL volatile BOOL gb_idle_ping = TRUE; /* Mission IDLE: ping for the panel */
-LOCAL volatile BOOL gb_scanning;
+LOCAL volatile bool     gb_echo_rose;
+LOCAL volatile bool     gb_echo_done;
+LOCAL volatile bool     gb_watch;
+LOCAL volatile bool gb_idle_ping = true; /* Mission IDLE: ping for the panel */
+LOCAL volatile bool gb_scanning;
 LOCAL volatile int32_t g_front_mm = FAR;
-LOCAL volatile BOOL    gb_sensor_fault;
+LOCAL volatile bool    gb_sensor_fault;
 LOCAL int32_t          g_servo_now = 90;
 
 /** ECHO edges: interrupt context */
@@ -71,12 +71,12 @@ LOCAL void sonar_echo_isr (uint32_t pin, uint32_t events)
     if (app_gpio_get(pin) != 0u)
     {
         g_echo_rise_us = now;
-        gb_echo_rose   = TRUE;
+        gb_echo_rose   = true;
     }
     else if (gb_echo_rose)
     {
         g_echo_width_us = now - g_echo_rise_us;
-        gb_echo_done    = TRUE;
+        gb_echo_done    = true;
     }
     else
     {
@@ -91,8 +91,8 @@ LOCAL void trigger (void)
 {
     uint32_t t_start;
 
-    gb_echo_rose = FALSE;
-    gb_echo_done = FALSE;
+    gb_echo_rose = false;
+    gb_echo_done = false;
     gpio_set_val(PIN_TRIG, 1);
     t_start = app_time_us();
 
@@ -207,12 +207,12 @@ EXPORT void servo_look_side (int32_t side)
 }
 
 /** Turns the forward obstacle watch on or off. */
-EXPORT void obstacle_watch (BOOL b_on)
+EXPORT void obstacle_watch (bool b_on)
 {
     gb_watch = b_on;
 }
 /** Pinging for the panel while Mission is IDLE, on or off. */
-EXPORT void obstacle_idle_ping (BOOL b_on)
+EXPORT void obstacle_idle_ping (bool b_on)
 {
     gb_idle_ping = b_on;
 }
@@ -221,8 +221,8 @@ EXPORT int32_t obstacle_front_mm (void)
 {
     return g_front_mm;
 }
-/** TRUE after 5 pings in a row without an ECHO. */
-EXPORT BOOL obstacle_sensor_fault (void)
+/** true after 5 pings in a row without an ECHO. */
+EXPORT bool obstacle_sensor_fault (void)
 {
     return gb_sensor_fault;
 }
@@ -238,7 +238,7 @@ EXPORT ER obstacle_hw_init (void)
     pwm_set_wrap(PIN_SERVO, 19999);
     pwm_set_cc(PIN_SERVO, 1500);
     pwm_set_pin(PIN_SERVO);
-    pwm_set_enabled(PIN_SERVO, TRUE);
+    pwm_set_enabled(PIN_SERVO, true);
 
     err = app_gpio_output(PIN_TRIG);
 
@@ -247,7 +247,7 @@ EXPORT ER obstacle_hw_init (void)
         return err;
     }
 
-    err = app_gpio_input(PIN_ECHO, FALSE);
+    err = app_gpio_input(PIN_ECHO, false);
 
     if (err < E_OK)
     {
@@ -288,14 +288,14 @@ LOCAL int32_t median5 (int32_t * p_values, int32_t count)
    Returns the lateral edge (mm, signed) and its half-step uncertainty. */
 LOCAL void side_edge (const int32_t * p_dist, const int32_t * p_phi,
                       int32_t centre, int32_t dir, int32_t front,
-                      int32_t * p_edge_mm, int32_t * p_unc_mm, BOOL * pb_clear,
-                      BOOL * pb_seen)
+                      int32_t * p_edge_mm, int32_t * p_unc_mm, bool * pb_clear,
+                      bool * pb_seen)
 {
     int32_t idx       = centre;
     int32_t last_in   = centre;
     int32_t out_run   = 0;
     int32_t first_out = -1;
-    BOOL    b_other   = FALSE;
+    bool    b_other   = false;
 
     for (idx = centre + dir; (idx >= 0) && (idx < NRAYS); idx += dir)
     {
@@ -305,14 +305,14 @@ LOCAL void side_edge (const int32_t * p_dist, const int32_t * p_phi,
         int32_t expd =
             (int32_t)((float32_t)front / app_sin_deg((float32_t)(90 - angle)));
         int32_t tol          = GEO_TOL_MM + (expd * GEO_TOL_PCT / 100);
-        BOOL    b_near_front = (p_dist[idx] >= 0) &&
+        bool    b_near_front = (p_dist[idx] >= 0) &&
                                ((p_dist[idx] - front) <= IN_MM) &&
                                ((front - p_dist[idx]) <= IN_MM);
-        BOOL    b_on_box =
+        bool    b_on_box =
             (p_dist[idx] >= 0) &&
             (((angle <= CENTRE_DEG) && b_near_front) ||
              (((p_dist[idx] - expd) <= tol) && ((expd - p_dist[idx]) <= tol)));
-        BOOL b_lobe = (!b_on_box) && (p_dist[idx] >= 0) &&
+        bool b_lobe = (!b_on_box) && (p_dist[idx] >= 0) &&
                       (p_dist[idx] < (expd - tol)) &&
                       (p_dist[idx] >= (front - IN_MM)); /* side-of-beam echo */
 
@@ -337,7 +337,7 @@ LOCAL void side_edge (const int32_t * p_dist, const int32_t * p_phi,
                  ((p_dist[idx] >= 0) && (p_dist[idx] < (front + BG_MM)) &&
                   (!b_lobe))))
             {
-                b_other = TRUE; /* something nearer, or unknown */
+                b_other = true; /* something nearer, or unknown */
             }
         }
         else
@@ -352,12 +352,12 @@ LOCAL void side_edge (const int32_t * p_dist, const int32_t * p_phi,
         *p_edge_mm = (int32_t)((float32_t)p_dist[last_in] *
                                app_sin_deg((float32_t)p_phi[last_in]));
         *p_unc_mm  = 50;
-        *pb_clear  = FALSE;
-        *pb_seen   = FALSE;
+        *pb_clear  = false;
+        *pb_seen   = false;
         return;
     }
 
-    *pb_seen = TRUE;
+    *pb_seen = true;
     {
         /* ray angles, |deg| <= 40: exact as floats */
         float32_t a_in  = (float32_t)p_phi[last_in];
@@ -398,7 +398,7 @@ EXPORT void obstacle_scan (obstacle_profile_t * p_profile)
     int32_t unc_left;
     int32_t unc_right;
 
-    gb_scanning = TRUE;
+    gb_scanning = true;
 
     for (kdx = 0; kdx < NRAYS; kdx++)
     {
@@ -443,7 +443,7 @@ EXPORT void obstacle_scan (obstacle_profile_t * p_profile)
 
     servo_set_angle(90);
     tk_dly_tsk(60 * SETTLE_MS_DEG);
-    gb_scanning = FALSE;
+    gb_scanning = false;
 
     tm_printf(app_str("[SCAN] rays (deg:mm, -1 = open, -2 = no ECHO):"));
 
@@ -474,8 +474,8 @@ EXPORT void obstacle_scan (obstacle_profile_t * p_profile)
         p_profile->width_mm = p_profile->unc_mm = p_profile->left_mm =
             p_profile->right_mm                 = 0;
         p_profile->left_unc = p_profile->right_unc = 0;
-        p_profile->b_left_clear = p_profile->b_right_clear = TRUE;
-        p_profile->b_left_seen = p_profile->b_right_seen = FALSE;
+        p_profile->b_left_clear = p_profile->b_right_clear = true;
+        p_profile->b_left_seen = p_profile->b_right_seen = false;
         return;
     }
 
@@ -505,10 +505,10 @@ EXPORT void obstacle_scan (obstacle_profile_t * p_profile)
    a scan the obstacle filled to the end of its travel says nothing about
    that side (it used to make the side "not clear": from 20-25 cm a 20 cm
    box fills +-40 deg once the beam's width is added). */
-LOCAL void pick_edge (int32_t edge_a, int32_t unc_a, BOOL b_seen_a,
-                      BOOL b_clear_a, int32_t edge_b, int32_t unc_b,
-                      BOOL b_seen_b, BOOL b_clear_b, int32_t * p_edge,
-                      int32_t * p_unc, BOOL * pb_seen, BOOL * pb_clear)
+LOCAL void pick_edge (int32_t edge_a, int32_t unc_a, bool b_seen_a,
+                      bool b_clear_a, int32_t edge_b, int32_t unc_b,
+                      bool b_seen_b, bool b_clear_b, int32_t * p_edge,
+                      int32_t * p_unc, bool * pb_seen, bool * pb_clear)
 {
     if (b_seen_a && b_seen_b)
     {
@@ -519,14 +519,14 @@ LOCAL void pick_edge (int32_t edge_a, int32_t unc_a, BOOL b_seen_a,
         (void)unc_b;
         *p_edge   = edge_a;
         *p_unc    = unc_a;
-        *pb_seen  = TRUE;
+        *pb_seen  = true;
         *pb_clear = b_clear_a && b_clear_b;
     }
     else if (b_seen_a || b_seen_b)
     {
         *p_edge   = b_seen_a ? edge_a : edge_b;
         *p_unc    = b_seen_a ? unc_a : unc_b;
-        *pb_seen  = TRUE;
+        *pb_seen  = true;
         *pb_clear = b_seen_a ? b_clear_a : b_clear_b;
     }
     else
@@ -537,8 +537,8 @@ LOCAL void pick_edge (int32_t edge_a, int32_t unc_a, BOOL b_seen_a,
 
         *p_edge   = (abs_a > abs_b) ? edge_a : edge_b;
         *p_unc    = 50;
-        *pb_seen  = FALSE;
-        *pb_clear = FALSE;
+        *pb_seen  = false;
+        *pb_clear = false;
     }
 }
 
@@ -576,8 +576,8 @@ EXPORT void obstacle_task (int32_t stacd, void * p_exinf)
 {
     int32_t close_count = 0;
     int32_t fault_count = 0;
-    BOOL    b_pinged    = FALSE;
-    BOOL    b_told      = FALSE;
+    bool    b_pinged    = false;
+    bool    b_told      = false;
 
     (void)stacd;
     (void)p_exinf;
@@ -591,11 +591,11 @@ EXPORT void obstacle_task (int32_t stacd, void * p_exinf)
         {
             close_count = 0;
             fault_count = 0;
-            b_told      = FALSE;
+            b_told      = false;
 
             if (!gb_scanning)
             {
-                gb_sensor_fault = FALSE; /* fresh start next watch */
+                gb_sensor_fault = false; /* fresh start next watch */
             }
 #if !APP_TEST
             /* Idle: keep pinging ahead so the laptop panel shows a live
@@ -618,14 +618,14 @@ EXPORT void obstacle_task (int32_t stacd, void * p_exinf)
                 }
 
                 trigger();
-                b_pinged = TRUE;
+                b_pinged = true;
             }
             else
             {
-                b_pinged = FALSE;
+                b_pinged = false;
             }
 #else
-            b_pinged = FALSE;
+            b_pinged = false;
 #endif
         }
         else
@@ -641,8 +641,8 @@ EXPORT void obstacle_task (int32_t stacd, void * p_exinf)
 
                 if ((fault_count >= 5) && (!b_told))
                 {
-                    gb_sensor_fault = TRUE;
-                    b_told          = TRUE;
+                    gb_sensor_fault = true;
+                    b_told          = true;
                     tk_set_flg(gh_flg_mission, MSN_FLG_OBSTACLE);
                 }
 
@@ -650,7 +650,7 @@ EXPORT void obstacle_task (int32_t stacd, void * p_exinf)
                 {
                     if ((++close_count >= 2) && (!b_told))
                     {
-                        b_told = TRUE;
+                        b_told = true;
                         tk_set_flg(gh_flg_mission, MSN_FLG_OBSTACLE);
                     }
                 }
@@ -666,7 +666,7 @@ EXPORT void obstacle_task (int32_t stacd, void * p_exinf)
             }
 
             trigger();
-            b_pinged = TRUE;
+            b_pinged = true;
         }
 
         app_timing_done(g_tmg_obstacle);

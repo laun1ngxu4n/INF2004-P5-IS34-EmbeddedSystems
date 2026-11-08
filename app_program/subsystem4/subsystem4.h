@@ -31,9 +31,9 @@
  */
 #define S4_L_MM 80 /* axle to front support, measured 6 Nov */
 
-IMPORT BOOL    imu_ok (void);        /* chip found and configured */
+IMPORT bool    imu_ok (void);        /* chip found and configured */
 IMPORT void    imu_calibrate (void); /* robot level and still: 1 s */
-IMPORT BOOL    imu_calibrated (void);
+IMPORT bool    imu_calibrated (void);
 IMPORT int32_t imu_height_mm10 (void);    /* current height, 0.1 mm */
 IMPORT int32_t imu_pitch_mdeg_sin (void); /* sin(pitch) x 1000, relative */
 IMPORT int32_t imu_roll_sin_x1000 (void); /* sin(side tilt) x 1000, relative */

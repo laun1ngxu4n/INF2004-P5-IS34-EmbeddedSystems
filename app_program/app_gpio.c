@@ -106,7 +106,7 @@ EXPORT ER app_gpio_output (uint32_t pin)
     return gpio_set_pin(pin, GPIO_MODE_OUT);
 }
 
-EXPORT ER app_gpio_input (uint32_t pin, BOOL b_pull_up)
+EXPORT ER app_gpio_input (uint32_t pin, bool b_pull_up)
 {
     ER err;
 

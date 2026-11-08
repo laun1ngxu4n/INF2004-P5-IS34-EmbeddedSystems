@@ -48,7 +48,7 @@ LOCAL void ir_live (void)
     int32_t  high       = 0;
     uint32_t prev       = 0xFFu;
     uint32_t edges_prev = barcode_edges();
-    BOOL     b_ana      = barcode_adc(&raw, &white_lvl, &black_lvl);
+    bool     b_ana      = barcode_adc(&raw, &white_lvl, &black_lvl);
 
     tm_printf(
         app_str("\n[S3] IR live view for 30 s: slide black tape under each "
@@ -239,7 +239,7 @@ LOCAL int32_t follow_and_watch (int32_t secs, int32_t max_mm, int32_t * p_junc,
     seq       = result.seq;
     g_j_cross = g_j_left = 0;
     barcode_reset(); /* nothing left over from the live view */
-    line_set_enabled(TRUE);
+    line_set_enabled(true);
     tm_printf(
         app_str("[S3] at start: L %d  R %d (want L 0, R 0: the tape centred "
                 "between them)\n"),
@@ -401,7 +401,7 @@ LOCAL int32_t follow_and_watch (int32_t secs, int32_t max_mm, int32_t * p_junc,
     }
 
     motion_halt();
-    line_set_enabled(FALSE); /* the next run starts clean */
+    line_set_enabled(false); /* the next run starts clean */
     /* edges in one run, thousands at most: fit %d */
     tm_printf(app_str("[S3] barcode sensor B: %d edges this run "
                       "(0 = it never saw black)\n"),
@@ -426,8 +426,8 @@ LOCAL int32_t follow_and_watch (int32_t secs, int32_t max_mm, int32_t * p_junc,
     return motion_counts_to_mm(motion_odometer() - odo0); /* mm followed */
 }
 
-/** START = run this part, STOP = skip it.  TRUE = run it. */
-LOCAL BOOL ask_run (const char * p_what)
+/** START = run this part, STOP = skip it.  true = run it. */
+LOCAL bool ask_run (const char * p_what)
 {
     uint32_t remote = tele_start_count();
 
@@ -450,12 +450,12 @@ LOCAL BOOL ask_run (const char * p_what)
             tk_dly_tsk(50);
             app_stop_clear(STOP_BUTTON | STOP_MQTT);
             tm_printf(app_str("[DRIVE] skipped\n"));
-            return FALSE;
+            return false;
         }
 
         if (tele_start_count() != remote)
         {
-            return TRUE;
+            return true;
         }
 
         if (button_is_down(PIN_START))
@@ -469,7 +469,7 @@ LOCAL BOOL ask_run (const char * p_what)
                     tk_dly_tsk(10);
                 }
 
-                return TRUE;
+                return true;
             }
         }
 
@@ -477,14 +477,14 @@ LOCAL BOOL ask_run (const char * p_what)
     }
 }
 
-/** Print the result of the last code, if a new one came: TRUE = decoded */
-LOCAL BOOL print_new_code (uint32_t * p_seq, uint32_t * p_dseq)
+/** Print the result of the last code, if a new one came: true = decoded */
+LOCAL bool print_new_code (uint32_t * p_seq, uint32_t * p_dseq)
 {
     barcode_result_t result;
     int32_t          dbg_count;
     int32_t          dbg_widths[BARCODE_DBG_MAX];
     int32_t          kdx;
-    BOOL             b_ok = FALSE;
+    bool             b_ok = false;
 
     if (barcode_debug(&dbg_count, dbg_widths, BARCODE_DBG_MAX) != *p_dseq)
     {
@@ -508,7 +508,7 @@ LOCAL BOOL print_new_code (uint32_t * p_seq, uint32_t * p_dseq)
         *p_seq = result.seq;
         if (result.b_ok)
         {
-            b_ok = TRUE;
+            b_ok = true;
             tm_printf(app_str("[S3] barcode %c%s%s, narrow %d.%d mm, wide "
                               "%d.%d mm\n"),
                       result.letter, result.b_reversed ? " (backwards)" : "",
@@ -558,7 +558,7 @@ Inline int32_t bench_raw (int32_t blackness)
 }
 
 /** One S3-B00 run: drives straight over a barcode and prints the profile. */
-LOCAL BOOL bar_bench_run (int32_t speed)
+LOCAL bool bar_bench_run (int32_t speed)
 {
     motion_status_t  status;
     barcode_result_t result;
@@ -572,8 +572,8 @@ LOCAL BOOL bar_bench_run (int32_t speed)
     int32_t          white_lvl;
     int32_t          black_lvl;
     int32_t          idx;
-    BOOL             b_ana = FALSE;
-    BOOL             b_ok  = FALSE;
+    bool             b_ana = false;
+    bool             b_ok  = false;
 
     barcode_last(&result);
     seq  = result.seq;
@@ -582,7 +582,7 @@ LOCAL BOOL bar_bench_run (int32_t speed)
 
     if (motion_drive(speed, BENCH_MM) < E_OK)
     {
-        return FALSE;
+        return false;
     }
 
     for (tick = 0; (tick < BENCH_TICKS) && (!test_stop_pressed()); tick++)
@@ -599,7 +599,7 @@ LOCAL BOOL bar_bench_run (int32_t speed)
 
         if (print_new_code(&seq, &dseq))
         {
-            b_ok = TRUE;
+            b_ok = true;
         }
 
         motion_get_status(&status);
@@ -615,7 +615,7 @@ LOCAL BOOL bar_bench_run (int32_t speed)
 
     if (print_new_code(&seq, &dseq))
     {
-        b_ok = TRUE;
+        b_ok = true;
     }
 
     if (b_ana && (count > 0))
@@ -629,8 +629,8 @@ LOCAL BOOL bar_bench_run (int32_t speed)
         int32_t high;
         int32_t ref       = 0;
         int32_t weak      = 0;
-        BOOL    b_blk     = FALSE;
-        BOOL    b_started = FALSE;
+        bool    b_blk     = false;
+        bool    b_started = false;
         int32_t st_odo    = 0;
 
         low = high = bench_blackness(g_bn_v[0]);
@@ -638,7 +638,7 @@ LOCAL BOOL bar_bench_run (int32_t speed)
         for (idx = 1; (idx < count) && (cnt < BENCH_PRINT_MAX); idx++)
         {
             int32_t blackness = bench_blackness(g_bn_v[idx]);
-            BOOL    b_change;
+            bool    b_change;
 
             if (!b_blk)
             {
@@ -667,7 +667,7 @@ LOCAL BOOL bar_bench_run (int32_t speed)
 
             if (!b_started)
             {
-                b_started = TRUE; /* the white before the code */
+                b_started = true; /* the white before the code */
                 tm_printf(
                     app_str("[S3] B profile, bar (B) and space (s): width "
                             "mm / darkest or lightest reading; '!' = under "
@@ -681,7 +681,7 @@ LOCAL BOOL bar_bench_run (int32_t speed)
                 int32_t mm10 =
                     ((width < 0) ? -width : width) * S2_UM_PER_COUNT / 100;
                 int32_t ext = b_blk ? high : low;
-                BOOL    b_bad =
+                bool    b_bad =
                     (b_blk ? ext - ref : ref - ext) < (2 * S3_BAR_DELTA);
 
                 if (b_bad)
@@ -705,12 +705,12 @@ LOCAL BOOL bar_bench_run (int32_t speed)
             if (!b_blk)
             {
                 ref   = low;
-                b_blk = TRUE;
+                b_blk = true;
                 high  = blackness;
             }
             else
             {
-                b_blk = FALSE;
+                b_blk = false;
                 low   = blackness;
             }
         }
@@ -774,7 +774,7 @@ LOCAL void bar_bench (void)
     /* a handful of entries: the count fits int32_t (here and below) */
     for (idx = 0; idx < (int32_t)(sizeof(run) / sizeof(run[0])); idx++)
     {
-        BOOL b_ok;
+        bool b_ok;
 
         /* a handful of entries: the count fits %d */
         tm_printf(
@@ -837,7 +837,7 @@ EXPORT void subsystem3_stage_test (void)
                 int32_t      max_mm;
                 int32_t      want_cross;
                 int32_t      want_left;
-                BOOL b_want_fault; /* TRUE: must stop with LINE_FAULT_ONE */
+                bool b_want_fault; /* true: must stop with LINE_FAULT_ONE */
             } pl[] = {
                 /* S3-L04 (right-only branch) dropped 7 Nov: the track has
                    none, and with the sensors straddling the tape it looks
@@ -872,7 +872,7 @@ EXPORT void subsystem3_stage_test (void)
                  "along)",
                  "stops with LINE SENSOR FAULT (one sensor black) within "
                  "about 30 cm",
-                 1000, 0, 0, TRUE},
+                 1000, 0, 0, true},
             };
             int32_t idx;
 
@@ -951,7 +951,7 @@ EXPORT void subsystem3_stage_test (void)
                 "over, obstacle watch and IMU OFF (untested until Stages 3 "
                 "and 4) ---"))
     {
-        app_course_test(FALSE, FALSE);
+        app_course_test(false, false);
     }
 }
 

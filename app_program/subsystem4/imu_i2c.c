@@ -34,16 +34,16 @@
 #define PIN_SDA 26
 #define PIN_SCL 27
 
-/** TRUE if the I2C block reported an abort; clears it. */
-LOCAL BOOL aborted (void)
+/** true if the I2C block reported an abort; clears it. */
+LOCAL bool aborted (void)
 {
     if ((in_w(IC_RAW_INTR_STAT) & RAW_TX_ABRT) != 0u)
     {
         (void)in_w(IC_CLR_TX_ABRT);
-        return TRUE;
+        return true;
     }
 
-    return FALSE;
+    return false;
 }
 
 /** Points the I2C block at a device address. */

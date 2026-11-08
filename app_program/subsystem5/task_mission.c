@@ -60,16 +60,16 @@
 #define M_MANOEUVRE 3
 
 LOCAL int32_t       g_mstate = M_IDLE;
-LOCAL volatile BOOL gb_armed = !APP_TEST;
+LOCAL volatile bool gb_armed = !APP_TEST;
 LOCAL uint8_t       g_pending;  /* latest unconsumed barcode, 0 = none */
 LOCAL uint32_t      g_bar_seen; /* barcode result already handled */
 /* A junction waits at most this far past its centre for a barcode that
    is still being read (see on_junction) */
 #define JUNC_WAIT_MM 150
-LOCAL BOOL gb_use_obstacles = TRUE;
-LOCAL BOOL gb_use_imu       = TRUE;
+LOCAL bool gb_use_obstacles = true;
+LOCAL bool gb_use_imu       = true;
 
-EXPORT void mission_features (BOOL b_obstacles, BOOL b_imu)
+EXPORT void mission_features (bool b_obstacles, bool b_imu)
 {
     gb_use_obstacles = b_obstacles;
     gb_use_imu       = b_imu;
@@ -81,7 +81,7 @@ LOCAL void watch_on (void)
     obstacle_watch(gb_use_obstacles);
 }
 
-EXPORT void mission_arm (BOOL b_on)
+EXPORT void mission_arm (bool b_on)
 {
     gb_armed = b_on;
 }
@@ -106,14 +106,14 @@ LOCAL void say (const uint8_t * p_text)
     tele_event(p_text);
 }
 
-/** Wait for a Motion command; FALSE if it did not finish (STOP, timeout) */
-LOCAL BOOL mv (ID h_cmd)
+/** Wait for a Motion command; false if it did not finish (STOP, timeout) */
+LOCAL bool mv (ID h_cmd)
 {
     motion_status_t status;
 
     if (h_cmd < E_OK)
     {
-        return FALSE;
+        return false;
     }
 
     for (;;)
@@ -127,7 +127,7 @@ LOCAL BOOL mv (ID h_cmd)
 
         if (app_stop_reasons() != 0u)
         {
-            return FALSE;
+            return false;
         }
 
         tk_dly_tsk(10);
@@ -160,15 +160,15 @@ LOCAL void halt (const char * p_why)
 
     motion_halt();
     motion_follow_limit(0);
-    obstacle_watch(FALSE);
-    line_set_enabled(FALSE);
+    obstacle_watch(false);
+    line_set_enabled(false);
     set_state(M_IDLE);
     tm_sprintf(msg, app_str("stopped: %s (press START to go again)"), p_why);
     say(msg);
 }
 
 /** Follow again; line events back on after a short distance */
-LOCAL BOOL resume_follow (void)
+LOCAL bool resume_follow (void)
 {
     int32_t odo0 = motion_odometer();
 
@@ -176,24 +176,24 @@ LOCAL BOOL resume_follow (void)
 
     if (motion_follow(S5_FOLLOW_SPEED) < E_OK)
     {
-        return FALSE;
+        return false;
     }
 
     while (motion_counts_to_mm(motion_odometer() - odo0) < REJOIN_ENABLE_MM)
     {
         if (app_stop_reasons() != 0u)
         {
-            return FALSE;
+            return false;
         }
 
         tk_dly_tsk(10);
     }
 
-    line_set_enabled(TRUE);
+    line_set_enabled(true);
     watch_on();
     tk_clr_flg(gh_flg_mission, ~(MSN_FLG_JUNCTION | MSN_FLG_LINE_LOST |
                                  MSN_FLG_OBSTACLE | MSN_FLG_BARCODE));
-    return TRUE;
+    return true;
 }
 
 /** Starts a run: calibrates the IMU, clears old results, follows the line. */
@@ -227,7 +227,7 @@ LOCAL void start_run (void)
         return;
     }
 
-    line_set_enabled(TRUE);
+    line_set_enabled(true);
     watch_on();
     set_state(M_RUN);
 }
@@ -313,7 +313,7 @@ LOCAL int32_t spin_line (int32_t deg, int32_t ignore);
 
 /** A junction turn that ends on the new line (fast, then slowly until a
  * sensor finds it). */
-LOCAL BOOL turn_onto_line (int32_t deg)
+LOCAL bool turn_onto_line (int32_t deg)
 {
     int32_t sgn   = (deg > 0) ? 1 : -1;
     int32_t angle = deg * sgn;
@@ -321,14 +321,14 @@ LOCAL BOOL turn_onto_line (int32_t deg)
 
     if (!mv(motion_turn(sgn * (angle - TURN_SEARCH_DEG))))
     {
-        return FALSE;
+        return false;
     }
 
     found = spin_line(sgn * 2 * TURN_SEARCH_DEG, 0);
 
     if (found < 0)
     {
-        return FALSE;
+        return false;
     }
 
     if (found)
@@ -405,8 +405,8 @@ LOCAL void on_junction (void)
     }
 
     set_state(M_MANOEUVRE);
-    line_set_enabled(FALSE);
-    obstacle_watch(FALSE);
+    line_set_enabled(false);
+    obstacle_watch(false);
     deg = (MOVE_LEFT == move) ? 90 : (MOVE_RIGHT == move) ? -90 : 180;
     /* wheels over the junction centre, then spin.  The line task says
        where the line sensors crossed the centre: a left branch is
@@ -427,7 +427,7 @@ LOCAL void on_junction (void)
 }
 
 /** Check the way ahead is clear for dist_mm before driving it */
-LOCAL BOOL ahead_clear (int32_t dist_mm)
+LOCAL bool ahead_clear (int32_t dist_mm)
 {
     int32_t dist = sonar_ping_mm();
 
@@ -508,9 +508,9 @@ LOCAL int32_t pass_box (int32_t sgn, int32_t front, int32_t lat_exp,
                         int32_t x_pass)
 {
     uint8_t         msg[TELE_TEXT_MAX];
-    BOOL            b_side    = (S5_SERVO_SIDE_DEG > 0);
-    BOOL            b_seen    = FALSE;
-    BOOL            b_told    = FALSE;
+    bool            b_side    = (S5_SERVO_SIDE_DEG > 0);
+    bool            b_seen    = false;
+    bool            b_told    = false;
     int32_t         line_from = front + D_MAX_MM + 30;
     int32_t         first     = 0;
     int32_t         last      = 0;
@@ -579,7 +579,7 @@ LOCAL int32_t pass_box (int32_t sgn, int32_t front, int32_t lat_exp,
                     first = done;
                 }
 
-                b_seen = TRUE;
+                b_seen = true;
                 last   = done;
                 miss   = 0;
 
@@ -597,7 +597,7 @@ LOCAL int32_t pass_box (int32_t sgn, int32_t front, int32_t lat_exp,
 
             if ((!b_told) && (done >= x_pass))
             {
-                b_told = TRUE;
+                b_told = true;
 
                 if (!b_seen)
                 {
@@ -767,8 +767,8 @@ LOCAL void on_obstacle (void)
 
     set_state(M_MANOEUVRE);
     motion_halt();
-    obstacle_watch(FALSE);
-    line_set_enabled(FALSE);
+    obstacle_watch(false);
+    line_set_enabled(false);
     /* stopped in the middle of a barcode: the backing up would run B
        back over the bars and garble it; drop that read, say so */
 
@@ -1034,7 +1034,7 @@ EXPORT void mission_task (int32_t stacd, void * p_exinf)
     /* NOTE: kernel type, tk_wai_flg() writes a UINT (Barr C deviation) */
     UINT ptn;
     ER   err;
-    BOOL b_start_was_down = FALSE;
+    bool b_start_was_down = false;
 
     (void)stacd;
     (void)p_exinf;
@@ -1059,21 +1059,21 @@ EXPORT void mission_task (int32_t stacd, void * p_exinf)
         /* STOP: the motors are already off (app_stop_request) */
         if ((g_mstate != M_IDLE) && (app_stop_reasons() != 0u))
         {
-            obstacle_watch(FALSE);
-            line_set_enabled(FALSE);
+            obstacle_watch(false);
+            line_set_enabled(false);
             set_state(M_IDLE);
             say(app_str("STOP"));
         }
 
         if ((M_IDLE == g_mstate) && gb_armed)
         {
-            BOOL b_down =
+            bool b_down =
                 (button_is_down(PIN_START)) && (!button_is_down(PIN_STOP));
-            BOOL b_go = (ptn & MSN_FLG_START) != 0u;
+            bool b_go = (ptn & MSN_FLG_START) != 0u;
 
             if (b_start_was_down && (!b_down))
             {
-                b_go = TRUE; /* released */
+                b_go = true; /* released */
             }
 
             b_start_was_down = b_down;

@@ -11,11 +11,13 @@
 #ifndef APP_MATH_H
 #define APP_MATH_H
 
-Inline float app_sqrtf (float value)
+#include "app_types.h"
+
+Inline float32_t app_sqrtf (float32_t value)
 {
-    float root   = 1.0f;
-    float scaled = value;
-    int   iter;
+    float32_t root   = 1.0f;
+    float32_t scaled = value;
+    int32_t   iter;
 
     if (value <= 0.0f)
     {
@@ -39,10 +41,10 @@ Inline float app_sqrtf (float value)
 }
 
 /* sin of an angle in degrees, |deg| <= 90 (Taylor to x^9) */
-Inline float app_sin_deg (float deg)
+Inline float32_t app_sin_deg (float32_t deg)
 {
-    float rad    = deg * 3.14159265f / 180.0f;
-    float rad_sq = rad * rad;
+    float32_t rad    = deg * 3.14159265f / 180.0f;
+    float32_t rad_sq = rad * rad;
 
     return rad *
            (1.0f -
@@ -51,7 +53,7 @@ Inline float app_sin_deg (float deg)
                       (1.0f - (rad_sq / 42.0f * (1.0f - (rad_sq / 72.0f))))))));
 }
 
-Inline float app_absf (float value)
+Inline float32_t app_absf (float32_t value)
 {
     return (value < 0.0f) ? -value : value;
 }

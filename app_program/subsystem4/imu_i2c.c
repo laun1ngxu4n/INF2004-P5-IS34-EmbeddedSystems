@@ -44,7 +44,7 @@ LOCAL BOOL aborted (void)
     return FALSE;
 }
 
-LOCAL void set_target (UB addr)
+LOCAL void set_target (uint8_t addr)
 {
     out_w(IC_ENABLE, 0);
     out_w(IC_TAR, addr);
@@ -53,7 +53,7 @@ LOCAL void set_target (UB addr)
 
 EXPORT void imu_i2c_init (void)
 {
-    UINT pin;
+    uint32_t pin;
 
     app_hw_release(RESETS_RESET_I2C1);
     for (pin = PIN_SDA; pin <= PIN_SCL; pin++)
@@ -73,14 +73,15 @@ EXPORT void imu_i2c_init (void)
 }
 
 /* Read n (<= 8) registers from reg up (LSM303D: bit 7 = auto-increment) */
-EXPORT ER imu_i2c_read (UB addr, UB reg, UB * p_buf, INT count)
+EXPORT ER imu_i2c_read (uint8_t addr, uint8_t reg, uint8_t * p_buf,
+                        int32_t count)
 {
-    UW  t_start;
-    INT idx;
+    uint32_t t_start;
+    int32_t  idx;
 
     set_target(addr);
     (void)aborted();
-    out_w(IC_DATA_CMD, (UW)(reg | ((count > 1) ? 0x80u : 0u)));
+    out_w(IC_DATA_CMD, (uint32_t)(reg | ((count > 1) ? 0x80u : 0u)));
     for (idx = 0; idx < count; idx++)
     {
         out_w(IC_DATA_CMD, CMD_READ | ((0 == idx) ? CMD_RESTART : 0u) |
@@ -100,19 +101,19 @@ EXPORT ER imu_i2c_read (UB addr, UB reg, UB * p_buf, INT count)
                 return E_TMOUT;
             }
         }
-        p_buf[idx] = (UB)(in_w(IC_DATA_CMD) & 0xFFu);
+        p_buf[idx] = (uint8_t)(in_w(IC_DATA_CMD) & 0xFFu);
     }
     return E_OK;
 }
 
-EXPORT ER imu_i2c_write (UB addr, UB reg, UB val)
+EXPORT ER imu_i2c_write (uint8_t addr, uint8_t reg, uint8_t val)
 {
-    UW t_start;
+    uint32_t t_start;
 
     set_target(addr);
     (void)aborted();
     out_w(IC_DATA_CMD, reg);
-    out_w(IC_DATA_CMD, (UW)val | CMD_STOP);
+    out_w(IC_DATA_CMD, (uint32_t)val | CMD_STOP);
     t_start = app_time_us();
     while ((0u == (in_w(IC_STATUS) & STATUS_TFE)) ||
            ((in_w(IC_STATUS) & STATUS_ACTIVITY) != 0u))

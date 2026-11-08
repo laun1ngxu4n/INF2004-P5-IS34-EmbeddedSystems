@@ -14,7 +14,8 @@
 IMPORT void
 test_wait_start (const char * what);  /* START pressed and released */
 IMPORT BOOL test_stop_pressed (void); /* a STOP reason is set */
-IMPORT void test_print_x10 (const char * before, INT x10, const char * after);
+IMPORT void test_print_x10 (const char * before, int32_t x10,
+                            const char * after);
 IMPORT void test_use_test_mapping (void); /* A=L,B=R,C=F,D=U, tests only */
 
 IMPORT void subsystem2_drive_test (void); /* stage 1 */

@@ -5,9 +5,9 @@
 
 #include "subsystem1.h"
 
-EXPORT ID  gh_tid_telemetry;
-EXPORT ID  gh_cyc_telemetry;
-EXPORT INT g_tmg_telemetry;
+EXPORT ID      gh_tid_telemetry;
+EXPORT ID      gh_cyc_telemetry;
+EXPORT int32_t g_tmg_telemetry;
 
 EXPORT ER subsystem1_init (void)
 {

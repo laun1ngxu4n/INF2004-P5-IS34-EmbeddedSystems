@@ -17,6 +17,8 @@
 #include <tm/tmonitor.h> /* T-Monitor API: tm_printf() console output */
 #include <bsp/libbsp.h>  /* Board helpers: gpio_set_pin/val, pwm_... */
 
+#include "app_types.h" /* int32_t, bool, float32_t ... (Barr C 5.2) */
+
 #include "app_lock.h"   /* APP_LOCK / APP_UNLOCK for shared data */
 #include "app_timing.h" /* per-task period and run-time monitor */
 #include "app_gpio.h"   /* the shared GPIO interrupt dispatcher */
@@ -64,7 +66,7 @@
 
 /* Create and start a task.  prc = TP_PRC1 (core 0), TP_PRC2 (core 1), or
    0 for "any core".  Defined in app_main.c. */
-IMPORT ID app_start_task (FP entry, PRI pri, UW prc, const char * name);
+IMPORT ID app_start_task (FP entry, PRI pri, uint32_t prc, const char * name);
 
 /* Create a cyclic handler that wakes the task whose ID is stored at
    *p_tid every period_ms.  Create it in _init (it starts stopped); start
@@ -104,14 +106,14 @@ app_stage_test (void); /* hands-on, TEST_STAGE=n (app_stage_test.c) */
 #endif
 
 /* Print a readable message if a kernel call failed (negative error code) */
-#define CHECK(er, what)                                           \
-    do                                                            \
-    {                                                             \
-        INT check_er_ = (INT)(er); /* evaluate once */            \
-        if (check_er_ < E_OK)                                     \
-        {                                                         \
-            tm_printf((UB *)"ERROR %s: %d\n", (what), check_er_); \
-        }                                                         \
+#define CHECK(er, what)                                                \
+    do                                                                 \
+    {                                                                  \
+        int32_t check_er_ = (int32_t)(er); /* evaluate once */         \
+        if (check_er_ < E_OK)                                          \
+        {                                                              \
+            tm_printf((uint8_t *)"ERROR %s: %d\n", (what), check_er_); \
+        }                                                              \
     } while (0)
 
 #endif /* APP_H */

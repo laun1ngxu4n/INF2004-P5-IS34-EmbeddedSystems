@@ -56,7 +56,8 @@
  * Create and start one task (declared in app.h for every subsystem).
  *   prc = TP_PRC1 (core 0), TP_PRC2 (core 1), or 0 for "any core".
  */
-EXPORT ID app_start_task (FP p_entry, PRI pri, UW prc, const char * p_name)
+EXPORT ID app_start_task (FP p_entry, PRI pri, uint32_t prc,
+                          const char * p_name)
 {
     T_CTSK ctsk = {0};
     ID     h_tid;
@@ -110,29 +111,29 @@ EXPORT ID app_create_wake_cyclic (ID * p_p_tid, RELTIM period_ms)
     return tk_cre_cyc(&ccyc);
 }
 
-EXPORT INT usermain (void)
+EXPORT int32_t usermain (void)
 {
     T_RVER ver;
 
     /* tk_ref_ver: ask the kernel who it is */
     tk_ref_ver(&ver);
-    tm_printf((UB *)"\n=== micro T-Kernel on Raspberry Pi Pico W"
-                    " (spec 0x%04x, product 0x%04x) ===\n",
+    tm_printf((uint8_t *)"\n=== micro T-Kernel on Raspberry Pi Pico W"
+                         " (spec 0x%04x, product 0x%04x) ===\n",
               ver.spver, ver.prver);
 #if TK_SUPPORT_SMP
-    tm_printf((UB *)"dual-core (SMP) build, usermain on core %d\n",
+    tm_printf((uint8_t *)"dual-core (SMP) build, usermain on core %d\n",
               tk_get_prc() - 1); /* tk_get_prc() counts from 1 */
 #else
-    tm_printf((UB *)"single-core build\n");
+    tm_printf((uint8_t *)"single-core build\n");
 #endif
 #if APP_TEST
-    tm_printf((UB *)"P5-IS34 test image, hands-on TEST_STAGE=%d. "
-                    "Kernel tick %d ms\n",
-              APP_TEST_STAGE, (INT)CNF_TIMER_PERIOD);
+    tm_printf((uint8_t *)"P5-IS34 test image, hands-on TEST_STAGE=%d. "
+                         "Kernel tick %d ms\n",
+              APP_TEST_STAGE, (int32_t)CNF_TIMER_PERIOD);
 #else
-    tm_printf((UB *)"P5-IS34 mission image. "
-                    "Kernel tick %d ms\n",
-              (INT)CNF_TIMER_PERIOD);
+    tm_printf((uint8_t *)"P5-IS34 mission image. "
+                         "Kernel tick %d ms\n",
+              (int32_t)CNF_TIMER_PERIOD);
 #endif
 
     /* The shared GPIO interrupt (app_gpio.c), before anyone registers */
@@ -152,7 +153,7 @@ EXPORT INT usermain (void)
     CHECK(subsystem4_start(), "subsystem4_start");
     CHECK(subsystem5_start(), "subsystem5_start");
 
-    tm_printf((UB *)"all subsystems started\n\n");
+    tm_printf((uint8_t *)"all subsystems started\n\n");
 
 #if APP_TEST
     /* Test build (make TEST=1): run every subsystem's tests in turn,
@@ -162,16 +163,16 @@ EXPORT INT usermain (void)
        task for about 120 ms at about 0.6 s (measured 26 Oct), which is
        not what the timing tests are meant to judge.  The timing table's
        "boot max" still records it. */
-    tm_printf((UB *)"[TEST] waiting %d ms for start-up to finish\n",
+    tm_printf((uint8_t *)"[TEST] waiting %d ms for start-up to finish\n",
               APP_TEST_SETTLE_MS);
     tk_dly_tsk(APP_TEST_SETTLE_MS);
-    tm_printf((UB *)"[TEST] === test run start ===\n");
+    tm_printf((uint8_t *)"[TEST] === test run start ===\n");
     subsystem1_test();
     subsystem2_test();
     subsystem3_test();
     subsystem4_test();
     subsystem5_test();
-    tm_printf((UB *)"[TEST] === test run end ===\n");
+    tm_printf((uint8_t *)"[TEST] === test run end ===\n");
 
     /* Hands-on test of the stage picked with TEST_STAGE=n; each move
        waits for the START button */

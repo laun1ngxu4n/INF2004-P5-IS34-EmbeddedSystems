@@ -51,21 +51,21 @@
 #define MAX_FRONT_MM 600 /* nothing nearer = no obstacle */
 #define BEAM_UNC_DEG 3   /* +/- on the beam correction */
 
-LOCAL volatile UW   g_echo_rise_us;
-LOCAL volatile UW   g_echo_width_us;
-LOCAL volatile BOOL gb_echo_rose;
-LOCAL volatile BOOL gb_echo_done;
-LOCAL volatile BOOL gb_watch;
+LOCAL volatile uint32_t g_echo_rise_us;
+LOCAL volatile uint32_t g_echo_width_us;
+LOCAL volatile BOOL     gb_echo_rose;
+LOCAL volatile BOOL     gb_echo_done;
+LOCAL volatile BOOL     gb_watch;
 LOCAL volatile BOOL gb_idle_ping = TRUE; /* Mission IDLE: ping for the panel */
 LOCAL volatile BOOL gb_scanning;
-LOCAL volatile INT  g_front_mm = FAR;
-LOCAL volatile BOOL gb_sensor_fault;
-LOCAL INT           g_servo_now = 90;
+LOCAL volatile int32_t g_front_mm = FAR;
+LOCAL volatile BOOL    gb_sensor_fault;
+LOCAL int32_t          g_servo_now = 90;
 
 /* ECHO edges: interrupt context */
-LOCAL void sonar_echo_isr (UINT pin, UW events)
+LOCAL void sonar_echo_isr (uint32_t pin, uint32_t events)
 {
-    UW now = app_time_us();
+    uint32_t now = app_time_us();
 
     if (app_gpio_get(pin) != 0u)
     {
@@ -82,7 +82,7 @@ LOCAL void sonar_echo_isr (UINT pin, UW events)
 
 LOCAL void trigger (void)
 {
-    UW t_start;
+    uint32_t t_start;
 
     gb_echo_rose = FALSE;
     gb_echo_done = FALSE;
@@ -96,7 +96,7 @@ LOCAL void trigger (void)
 }
 
 /* Result of the last trigger: mm, FAR (nothing in range) or SONAR_FAULT */
-LOCAL INT echo_mm (void)
+LOCAL int32_t echo_mm (void)
 {
     if (!gb_echo_rose)
     {
@@ -107,21 +107,22 @@ LOCAL INT echo_mm (void)
     {
         return FAR;
     }
-    return (INT)(g_echo_width_us * 174u / 1000u); /* 0.348 mm/us at 28 C, / 2 */
+    return (int32_t)(g_echo_width_us * 174u /
+                     1000u); /* 0.348 mm/us at 28 C, / 2 */
 }
 
 EXPORT void sonar_ping_start (void)
 {
     trigger();
 }
-EXPORT INT sonar_ping_result (void)
+EXPORT int32_t sonar_ping_result (void)
 {
     return echo_mm();
 }
 
-EXPORT INT sonar_ping_mm (void)
+EXPORT int32_t sonar_ping_mm (void)
 {
-    INT dist_mm;
+    int32_t dist_mm;
 
     trigger();
     tk_dly_tsk(60);
@@ -136,12 +137,12 @@ EXPORT INT sonar_ping_mm (void)
     return dist_mm;
 }
 
-LOCAL void servo_write (INT deg)
+LOCAL void servo_write (int32_t deg)
 {
-    INT pulse_us = 1500 + ((deg - 90) * S5_SERVO_US_PER_DEG *
-                           (S5_SERVO_LEFT_HIGH ? 1 : -1));
+    int32_t pulse_us = 1500 + ((deg - 90) * S5_SERVO_US_PER_DEG *
+                               (S5_SERVO_LEFT_HIGH ? 1 : -1));
 
-    pwm_set_cc(PIN_SERVO, (UW)pulse_us); /* 1 count = 1 us */
+    pwm_set_cc(PIN_SERVO, (uint32_t)pulse_us); /* 1 count = 1 us */
     g_servo_now = deg;
 }
 
@@ -152,7 +153,7 @@ LOCAL void servo_write (INT deg)
     ((S5_SERVO_SIDE_DEG > S5_SERVO_HALF_DEG) ? S5_SERVO_SIDE_DEG \
                                              : S5_SERVO_HALF_DEG)
 
-EXPORT void servo_set_angle (INT deg)
+EXPORT void servo_set_angle (int32_t deg)
 {
     if (deg < (90 - SERVO_LIMIT))
     {
@@ -164,8 +165,8 @@ EXPORT void servo_set_angle (INT deg)
     }
     while (g_servo_now != deg)
     {
-        INT next = g_servo_now + ((deg > g_servo_now) ? S5_SERVO_DEG_STEP
-                                                      : -S5_SERVO_DEG_STEP);
+        int32_t next = g_servo_now + ((deg > g_servo_now) ? S5_SERVO_DEG_STEP
+                                                          : -S5_SERVO_DEG_STEP);
 
         if ((deg > g_servo_now) ? (next > deg) : (next < deg))
         {
@@ -176,9 +177,9 @@ EXPORT void servo_set_angle (INT deg)
     }
 }
 
-EXPORT void servo_look_side (INT side)
+EXPORT void servo_look_side (int32_t side)
 {
-    INT left = S5_SERVO_LEFT_HIGH ? 1 : -1;
+    int32_t left = S5_SERVO_LEFT_HIGH ? 1 : -1;
 
     servo_set_angle(90 + (side * left * S5_SERVO_SIDE_DEG));
 }
@@ -191,7 +192,7 @@ EXPORT void obstacle_idle_ping (BOOL b_on)
 {
     gb_idle_ping = b_on;
 }
-EXPORT INT obstacle_front_mm (void)
+EXPORT int32_t obstacle_front_mm (void)
 {
     return g_front_mm;
 }
@@ -229,11 +230,11 @@ EXPORT ER obstacle_hw_init (void)
 
 /* ---- maths without libm -------------------------------------------- */
 
-LOCAL INT median5 (INT * p_values, INT count)
+LOCAL int32_t median5 (int32_t * p_values, int32_t count)
 {
-    INT idx;
-    INT jdx;
-    INT tmp;
+    int32_t idx;
+    int32_t jdx;
+    int32_t tmp;
 
     for (idx = 1; idx < count; idx++)
     {
@@ -252,25 +253,27 @@ LOCAL INT median5 (INT * p_values, INT count)
 /* One side: walk outward from straight ahead.  dir = +1 / -1 is the
    direction in the ray array (which side that is depends on the servo).
    Returns the lateral edge (mm, signed) and its half-step uncertainty. */
-LOCAL void side_edge (const INT * p_dist, const INT * p_phi, INT centre,
-                      INT dir, INT front, INT * p_edge_mm, INT * p_unc_mm,
-                      BOOL * pb_clear, BOOL * pb_seen)
+LOCAL void side_edge (const int32_t * p_dist, const int32_t * p_phi,
+                      int32_t centre, int32_t dir, int32_t front,
+                      int32_t * p_edge_mm, int32_t * p_unc_mm, BOOL * pb_clear,
+                      BOOL * pb_seen)
 {
-    INT  idx       = centre;
-    INT  last_in   = centre;
-    INT  out_run   = 0;
-    INT  first_out = -1;
-    BOOL b_other   = FALSE;
+    int32_t idx       = centre;
+    int32_t last_in   = centre;
+    int32_t out_run   = 0;
+    int32_t first_out = -1;
+    BOOL    b_other   = FALSE;
 
     for (idx = centre + dir; (idx >= 0) && (idx < NRAYS); idx += dir)
     {
-        INT  angle = (p_phi[idx] < 0) ? -p_phi[idx] : p_phi[idx];
-        INT  expd  = (INT)((float)front / app_sin_deg((float)(90 - angle)));
-        INT  tol   = GEO_TOL_MM + (expd * GEO_TOL_PCT / 100);
-        BOOL b_near_front = (p_dist[idx] >= 0) &&
-                            ((p_dist[idx] - front) <= IN_MM) &&
-                            ((front - p_dist[idx]) <= IN_MM);
-        BOOL b_on_box =
+        int32_t angle = (p_phi[idx] < 0) ? -p_phi[idx] : p_phi[idx];
+        int32_t expd =
+            (int32_t)((float32_t)front / app_sin_deg((float32_t)(90 - angle)));
+        int32_t tol          = GEO_TOL_MM + (expd * GEO_TOL_PCT / 100);
+        BOOL    b_near_front = (p_dist[idx] >= 0) &&
+                               ((p_dist[idx] - front) <= IN_MM) &&
+                               ((front - p_dist[idx]) <= IN_MM);
+        BOOL    b_on_box =
             (p_dist[idx] >= 0) &&
             (((angle <= CENTRE_DEG) && b_near_front) ||
              (((p_dist[idx] - expd) <= tol) && ((expd - p_dist[idx]) <= tol)));
@@ -304,29 +307,29 @@ LOCAL void side_edge (const INT * p_dist, const INT * p_phi, INT centre,
     if ((out_run < 2) || (first_out < 0))
     {
         /* obstacle wider than the scan on this side */
-        *p_edge_mm =
-            (INT)((float)p_dist[last_in] * app_sin_deg((float)p_phi[last_in]));
-        *p_unc_mm = 50;
-        *pb_clear = FALSE;
-        *pb_seen  = FALSE;
+        *p_edge_mm = (int32_t)((float32_t)p_dist[last_in] *
+                               app_sin_deg((float32_t)p_phi[last_in]));
+        *p_unc_mm  = 50;
+        *pb_clear  = FALSE;
+        *pb_seen   = FALSE;
         return;
     }
     *pb_seen = TRUE;
     {
-        float a_in  = (float)p_phi[last_in];
-        float a_out = (float)p_phi[first_out];
-        float side  = (a_out > 0.0f) ? 1.0f : -1.0f; /* + = left */
-        float a_edge =
-            (0.5f * (a_in + a_out)) - (side * (float)S5_BEAM_HALF_DEG);
-        float range = (float)p_dist[last_in];
+        float32_t a_in  = (float32_t)p_phi[last_in];
+        float32_t a_out = (float32_t)p_phi[first_out];
+        float32_t side  = (a_out > 0.0f) ? 1.0f : -1.0f; /* + = left */
+        float32_t a_edge =
+            (0.5f * (a_in + a_out)) - (side * (float32_t)S5_BEAM_HALF_DEG);
+        float32_t range = (float32_t)p_dist[last_in];
 
         if ((a_edge * side) < 0.0f)
         {
             a_edge = 0.0f; /* never past the centre */
         }
-        *p_edge_mm = (INT)(range * app_sin_deg(a_edge));
+        *p_edge_mm = (int32_t)(range * app_sin_deg(a_edge));
         *p_unc_mm =
-            (INT)(range * (app_sin_deg(a_out) - app_sin_deg(a_in)) / 2.0f);
+            (int32_t)(range * (app_sin_deg(a_out) - app_sin_deg(a_in)) / 2.0f);
         if (*p_unc_mm < 0)
         {
             *p_unc_mm = -*p_unc_mm;
@@ -337,29 +340,30 @@ LOCAL void side_edge (const INT * p_dist, const INT * p_phi, INT centre,
 
 EXPORT void obstacle_scan (obstacle_profile_t * p_profile)
 {
-    INT dist[NRAYS];
-    INT phi[NRAYS];
-    INT kdx;
-    INT centre = (90 - SCAN_FROM) / SCAN_STEP;
-    INT unc_left;
-    INT unc_right;
+    int32_t dist[NRAYS];
+    int32_t phi[NRAYS];
+    int32_t kdx;
+    int32_t centre = (90 - SCAN_FROM) / SCAN_STEP;
+    int32_t unc_left;
+    int32_t unc_right;
 
     gb_scanning = TRUE;
     for (kdx = 0; kdx < NRAYS; kdx++)
     {
-        INT ang  = SCAN_FROM + (kdx * SCAN_STEP);
-        INT move = (ang > g_servo_now) ? ang - g_servo_now : g_servo_now - ang;
-        INT settle = move * SETTLE_MS_DEG;
-        INT value[PINGS];
-        INT valid  = 0;
-        INT nfault = 0;
-        INT jdx;
+        int32_t ang = SCAN_FROM + (kdx * SCAN_STEP);
+        int32_t move =
+            (ang > g_servo_now) ? ang - g_servo_now : g_servo_now - ang;
+        int32_t settle = move * SETTLE_MS_DEG;
+        int32_t value[PINGS];
+        int32_t valid  = 0;
+        int32_t nfault = 0;
+        int32_t jdx;
 
         servo_set_angle(ang);
         tk_dly_tsk((settle > SETTLE_MIN_MS) ? settle : SETTLE_MIN_MS); /* O1 */
         for (jdx = 0; jdx < PINGS; jdx++)
         { /* O2 */
-            INT dist_mm = sonar_ping_mm();
+            int32_t dist_mm = sonar_ping_mm();
             if (dist_mm >= 0)
             {
                 value[valid++] = dist_mm;
@@ -380,12 +384,12 @@ EXPORT void obstacle_scan (obstacle_profile_t * p_profile)
     tk_dly_tsk(60 * SETTLE_MS_DEG);
     gb_scanning = FALSE;
 
-    tm_printf((UB *)"[SCAN] rays (deg:mm, -1 = open, -2 = no ECHO):");
+    tm_printf((uint8_t *)"[SCAN] rays (deg:mm, -1 = open, -2 = no ECHO):");
     for (kdx = 0; kdx < NRAYS; kdx++)
     {
-        tm_printf((UB *)" %d:%d", phi[kdx], dist[kdx]);
+        tm_printf((uint8_t *)" %d:%d", phi[kdx], dist[kdx]);
     }
-    tm_printf((UB *)"\n");
+    tm_printf((uint8_t *)"\n");
 
     p_profile->rays       = NRAYS;
     p_profile->fault_rays = 0;
@@ -419,10 +423,10 @@ EXPORT void obstacle_scan (obstacle_profile_t * p_profile)
     p_profile->right_unc = unc_right;
     p_profile->width_mm  = p_profile->left_mm - p_profile->right_mm;
     {
-        float beam =
-            2.0f * (float)dist[centre] * app_sin_deg((float)BEAM_UNC_DEG);
-        p_profile->unc_mm = (INT)app_sqrtf(
-            (float)((unc_left * unc_left) + (unc_right * unc_right)) +
+        float32_t beam    = 2.0f * (float32_t)dist[centre] *
+                            app_sin_deg((float32_t)BEAM_UNC_DEG);
+        p_profile->unc_mm = (int32_t)app_sqrtf(
+            (float32_t)((unc_left * unc_left) + (unc_right * unc_right)) +
             (beam * beam));
     }
 }
@@ -431,10 +435,10 @@ EXPORT void obstacle_scan (obstacle_profile_t * p_profile)
    a scan the obstacle filled to the end of its travel says nothing about
    that side (it used to make the side "not clear": from 20-25 cm a 20 cm
    box fills +-40 deg once the beam's width is added). */
-LOCAL void pick_edge (INT edge_a, INT unc_a, BOOL b_seen_a, BOOL b_clear_a,
-                      INT edge_b, INT unc_b, BOOL b_seen_b, BOOL b_clear_b,
-                      INT * p_edge, INT * p_unc, BOOL * pb_seen,
-                      BOOL * pb_clear)
+LOCAL void pick_edge (int32_t edge_a, int32_t unc_a, BOOL b_seen_a,
+                      BOOL b_clear_a, int32_t edge_b, int32_t unc_b,
+                      BOOL b_seen_b, BOOL b_clear_b, int32_t * p_edge,
+                      int32_t * p_unc, BOOL * pb_seen, BOOL * pb_clear)
 {
     if (b_seen_a && b_seen_b)
     {
@@ -458,8 +462,8 @@ LOCAL void pick_edge (INT edge_a, INT unc_a, BOOL b_seen_a, BOOL b_clear_a,
     else
     {
         /* neither saw it: the wider of the two, not clear */
-        INT abs_a = (edge_a < 0) ? -edge_a : edge_a;
-        INT abs_b = (edge_b < 0) ? -edge_b : edge_b;
+        int32_t abs_a = (edge_a < 0) ? -edge_a : edge_a;
+        int32_t abs_b = (edge_b < 0) ? -edge_b : edge_b;
 
         *p_edge   = (abs_a > abs_b) ? edge_a : edge_b;
         *p_unc    = 50;
@@ -472,7 +476,7 @@ EXPORT void obstacle_combine (const obstacle_profile_t * p_near,
                               const obstacle_profile_t * p_far,
                               obstacle_profile_t *       p_out)
 {
-    float beam;
+    float32_t beam;
 
     *p_out         = *p_far;
     p_out->b_found = (p_near->b_found) && (p_far->b_found);
@@ -485,21 +489,22 @@ EXPORT void obstacle_combine (const obstacle_profile_t * p_near,
               p_far->b_right_seen, p_far->b_right_clear, &p_out->right_mm,
               &p_out->right_unc, &p_out->b_right_seen, &p_out->b_right_clear);
     p_out->width_mm = p_out->left_mm - p_out->right_mm;
-    beam = 2.0f * (float)p_out->front_mm * app_sin_deg((float)BEAM_UNC_DEG);
+    beam            = 2.0f * (float32_t)p_out->front_mm *
+                      app_sin_deg((float32_t)BEAM_UNC_DEG);
     p_out->unc_mm =
-        (INT)app_sqrtf((float)((p_out->left_unc * p_out->left_unc) +
-                               (p_out->right_unc * p_out->right_unc)) +
-                       (beam * beam));
+        (int32_t)app_sqrtf((float32_t)((p_out->left_unc * p_out->left_unc) +
+                                       (p_out->right_unc * p_out->right_unc)) +
+                           (beam * beam));
 }
 
 /* ---- the task: forward watch ---------------------------------------- */
 
-EXPORT void obstacle_task (INT stacd, void * p_exinf)
+EXPORT void obstacle_task (int32_t stacd, void * p_exinf)
 {
-    INT  close_count = 0;
-    INT  fault_count = 0;
-    BOOL b_pinged    = FALSE;
-    BOOL b_told      = FALSE;
+    int32_t close_count = 0;
+    int32_t fault_count = 0;
+    BOOL    b_pinged    = FALSE;
+    BOOL    b_told      = FALSE;
 
     (void)stacd;
     (void)p_exinf;
@@ -550,7 +555,7 @@ EXPORT void obstacle_task (INT stacd, void * p_exinf)
         {
             if (b_pinged)
             {
-                INT dist_mm = echo_mm();
+                int32_t dist_mm = echo_mm();
 
                 g_front_mm = dist_mm;
                 /* No ECHO 5 times in a row (300 ms): the sensor is

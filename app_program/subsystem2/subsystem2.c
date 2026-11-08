@@ -6,9 +6,9 @@
 
 #include "subsystem2.h"
 
-EXPORT ID  gh_tid_motion;
-EXPORT ID  gh_cyc_motion;
-EXPORT INT g_tmg_motion;
+EXPORT ID      gh_tid_motion;
+EXPORT ID      gh_cyc_motion;
+EXPORT int32_t g_tmg_motion;
 
 EXPORT ER subsystem2_init (void)
 {

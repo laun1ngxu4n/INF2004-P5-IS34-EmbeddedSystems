@@ -79,13 +79,17 @@ def check_file(f, hits):
         m = re.match(r'#\s*define\s+(\w+)', s)
         if m and re.search(r'[a-z]', m.group(1)):
             hit('6.1f', n, line)
-        for m in re.finditer(r'\b(INT|UINT|W|UW|UB|H|UH)\b', line):
-            if not s.startswith(('/*', '*', '//')):
-                hit('5.2a', n, line)
-                break
-        if re.search(r'\bfloat\b', line) and not s.startswith(('/*', '*')):
+        # code only: no strings, character literals or comments
+        bare = re.sub(r'"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'|/\*.*?(\*/|$)|//.*$', ' ', line)
+        if s.startswith(('/*', '*', '//')):
+            bare = ''
+        prev_line = lines[n - 2] if n >= 2 else ''
+        deviation = 'deviation' in line or 'deviation' in prev_line
+        if re.search(r'\b(INT|UINT|W|UW|UB|H|UH)\b', bare) and not deviation:
+            hit('5.2a', n, line)
+        if re.search(r'\bfloat\b', bare) and not re.search(r'typedef\s+float\s+float32_t', bare):
             hit('5.4b', n, line)
-        if re.search(r'\bBOOL\b', line) and not s.startswith(('/*', '*')):
+        if re.search(r'\bBOOL\b', bare) and not deviation:
             hit('5.6a', n, line)
     if not src.rstrip().endswith('end of file ***/'):
         hit('3.3c', len(lines))

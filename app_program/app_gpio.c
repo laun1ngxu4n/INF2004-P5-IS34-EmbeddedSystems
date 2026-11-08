@@ -17,12 +17,12 @@
 
 LOCAL app_gpio_cb_t g_gpio_cb[GPIO_NUM];
 
-LOCAL void gpio_bank0_isr (UINT intno)
+LOCAL void gpio_bank0_isr (uint32_t intno)
 {
-    UW   ints;
-    UINT reg;
-    UINT pin;
-    UINT slot;
+    uint32_t ints;
+    uint32_t reg;
+    uint32_t pin;
+    uint32_t slot;
 
     for (reg = 0; reg < 4; reg++)
     {
@@ -35,8 +35,8 @@ LOCAL void gpio_bank0_isr (UINT intno)
         out_w(IO_INTR(reg), ints & IO_EDGE_BITS);
         for (slot = 0; slot < 8; slot++)
         {
-            UW events = (ints >> (slot * 4)) & APP_GPIO_BOTH;
-            pin       = (reg * 8) + slot;
+            uint32_t events = (ints >> (slot * 4)) & APP_GPIO_BOTH;
+            pin             = (reg * 8) + slot;
             if ((events != 0u) && (pin < GPIO_NUM) && (g_gpio_cb[pin] != NULL))
             {
                 g_gpio_cb[pin](pin, events);
@@ -62,7 +62,7 @@ EXPORT ER app_gpio_init (void)
     return E_OK;
 }
 
-EXPORT void app_hw_release (UW resets_mask)
+EXPORT void app_hw_release (uint32_t resets_mask)
 {
     clr_w(RESETS_RESET, resets_mask);
     while ((in_w(RESETS_RESET_DONE) & resets_mask) != resets_mask)
@@ -71,13 +71,13 @@ EXPORT void app_hw_release (UW resets_mask)
     }
 }
 
-EXPORT ER app_gpio_output (UINT pin)
+EXPORT ER app_gpio_output (uint32_t pin)
 {
     gpio_set_val(pin, 0);
     return gpio_set_pin(pin, GPIO_MODE_OUT);
 }
 
-EXPORT ER app_gpio_input (UINT pin, BOOL b_pull_up)
+EXPORT ER app_gpio_input (uint32_t pin, BOOL b_pull_up)
 {
     ER err;
 
@@ -95,10 +95,11 @@ EXPORT ER app_gpio_input (UINT pin, BOOL b_pull_up)
     return E_OK;
 }
 
-EXPORT ER app_gpio_irq_add (UINT pin, UW events, app_gpio_cb_t p_callback)
+EXPORT ER app_gpio_irq_add (uint32_t pin, uint32_t events,
+                            app_gpio_cb_t p_callback)
 {
-    UINT irq_state;
-    UW   bits;
+    uint32_t irq_state;
+    uint32_t bits;
 
     if ((pin >= GPIO_NUM) || (NULL == p_callback) ||
         ((events & ~APP_GPIO_BOTH) != 0u))

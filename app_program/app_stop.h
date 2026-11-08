@@ -19,10 +19,10 @@
 #define STOP_MQTT   0x0002u /* STOP from the PC (S1, later) */
 #define STOP_FAULT  0x0004u /* Safety fault (S4, later) */
 
-IMPORT void app_stop_request (UW reason); /* any context */
-IMPORT void app_stop_clear (UW reason);
-IMPORT UW   app_stop_reasons (void); /* 0 = free to move */
-IMPORT UW   app_stop_time_us (void); /* app_time_us() of the last request */
+IMPORT void     app_stop_request (uint32_t reason); /* any context */
+IMPORT void     app_stop_clear (uint32_t reason);
+IMPORT uint32_t app_stop_reasons (void); /* 0 = free to move */
+IMPORT uint32_t app_stop_time_us (void); /* app_time_us() of the last request */
 
 #endif /* APP_STOP_H */
 

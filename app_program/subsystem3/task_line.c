@@ -113,7 +113,7 @@
 #define S3_PAIR_MM       25
 #define S3_STUCK_ONE_MM  300
 #define S3_STUCK_BOTH_MM 150
-#define MM(mm)           ((W)(mm) * 1000 / S2_UM_PER_COUNT) /* mm -> counts */
+#define MM(mm) ((int32_t)(mm) * 1000 / S2_UM_PER_COUNT) /* mm -> counts */
 
 /* Left arm under B, centre at cc (where the line sensors crossed it):
    no correction from cc - S3_ARM_BEFORE_MM to cc - S3_ARM_SELF_MM (L
@@ -126,34 +126,34 @@
 #define PAT_L 2u
 #define PAT_R 1u
 
-LOCAL volatile INT  g_steer;
-LOCAL volatile INT  g_state = LINE_ON;
-LOCAL volatile UW   g_junctions;
-LOCAL volatile BOOL gb_enabled  = FALSE; /* until a start (Mission or a test) */
-LOCAL volatile INT  g_speed_pct = 100;
-LOCAL volatile W    g_junc_odo; /* last junction centre */
-LOCAL volatile INT  g_junc_sides;
-LOCAL volatile INT  g_fault_why;
-LOCAL volatile UW   g_n_corr;  /* corrections since the start */
-LOCAL volatile UW   g_n_sweep; /* sweeps right across the tape */
+LOCAL volatile int32_t  g_steer;
+LOCAL volatile int32_t  g_state = LINE_ON;
+LOCAL volatile uint32_t g_junctions;
+LOCAL volatile BOOL gb_enabled = FALSE; /* until a start (Mission or a test) */
+LOCAL volatile int32_t  g_speed_pct = 100;
+LOCAL volatile int32_t  g_junc_odo; /* last junction centre */
+LOCAL volatile int32_t  g_junc_sides;
+LOCAL volatile int32_t  g_fault_why;
+LOCAL volatile uint32_t g_n_corr;  /* corrections since the start */
+LOCAL volatile uint32_t g_n_sweep; /* sweeps right across the tape */
 
-EXPORT INT line_steer_mm_s (void)
+EXPORT int32_t line_steer_mm_s (void)
 {
     return g_steer;
 }
-EXPORT INT line_state (void)
+EXPORT int32_t line_state (void)
 {
     return g_state;
 }
-EXPORT INT line_fault (void)
+EXPORT int32_t line_fault (void)
 {
     return g_fault_why;
 }
-EXPORT UW line_junctions (void)
+EXPORT uint32_t line_junctions (void)
 {
     return g_junctions;
 }
-EXPORT void line_wobble (UW * p_corrections, UW * p_sweeps)
+EXPORT void line_wobble (uint32_t * p_corrections, uint32_t * p_sweeps)
 {
     *p_corrections = g_n_corr;
     *p_sweeps      = g_n_sweep;
@@ -162,15 +162,15 @@ EXPORT void line_set_enabled (BOOL b_on)
 {
     gb_enabled = b_on;
 }
-EXPORT INT line_speed_pct (void)
+EXPORT int32_t line_speed_pct (void)
 {
     return g_speed_pct;
 }
-EXPORT W line_junction_odo (void)
+EXPORT int32_t line_junction_odo (void)
 {
     return g_junc_odo;
 }
-EXPORT INT line_junction_sides (void)
+EXPORT int32_t line_junction_sides (void)
 {
     return g_junc_sides;
 }
@@ -182,12 +182,12 @@ EXPORT BOOL line_any_black (void)
 
 /* A junction centred at c (odometer counts).  One close to the last one
    is another view of the same junction. */
-LOCAL W    g_last_c;
-LOCAL BOOL gb_have_last;
+LOCAL int32_t g_last_c;
+LOCAL BOOL    gb_have_last;
 
-LOCAL void junction_at (W centre, INT side)
+LOCAL void junction_at (int32_t centre, int32_t side)
 {
-    W delta = centre - g_last_c;
+    int32_t delta = centre - g_last_c;
 
     if (delta < 0)
     {
@@ -209,20 +209,20 @@ LOCAL void junction_at (W centre, INT side)
 /* Where the robot was correcting or searching: the last OFFS stretches,
    by odometer.  The newest is still open while it is. */
 #define OFFS 16
-LOCAL W    g_off_a[OFFS];
-LOCAL W    g_off_b[OFFS];
-LOCAL UW   g_off_n;
-LOCAL BOOL gb_off_open;
-LOCAL W    g_hist_from; /* nothing known before this */
+LOCAL int32_t  g_off_a[OFFS];
+LOCAL int32_t  g_off_b[OFFS];
+LOCAL uint32_t g_off_n;
+LOCAL BOOL     gb_off_open;
+LOCAL int32_t  g_hist_from; /* nothing known before this */
 
-LOCAL void hist_reset (W odo)
+LOCAL void hist_reset (int32_t odo)
 {
     g_off_n     = 0;
     gb_off_open = FALSE;
     g_hist_from = odo;
 }
 
-LOCAL void hist_step (W odo, BOOL b_busy)
+LOCAL void hist_step (int32_t odo, BOOL b_busy)
 {
     if (b_busy && (!gb_off_open))
     {
@@ -238,9 +238,9 @@ LOCAL void hist_step (W odo, BOOL b_busy)
 }
 
 /* TRUE if the robot drove straight (no correction) all of [a, b] */
-LOCAL BOOL quiet_over (W from_odo, W to_odo, W now)
+LOCAL BOOL quiet_over (int32_t from_odo, int32_t to_odo, int32_t now)
 {
-    UW idx;
+    uint32_t idx;
 
     if (to_odo < g_hist_from)
     {
@@ -257,8 +257,8 @@ LOCAL BOOL quiet_over (W from_odo, W to_odo, W now)
     }
     for (idx = (g_off_n > OFFS) ? g_off_n - OFFS : 0; idx < g_off_n; idx++)
     {
-        W corr_from = g_off_a[idx % OFFS];
-        W corr_to =
+        int32_t corr_from = g_off_a[idx % OFFS];
+        int32_t corr_to =
             (gb_off_open && (idx == (g_off_n - 1))) ? now : g_off_b[idx % OFFS];
 
         if ((corr_from <= to_odo) && (corr_to >= from_odo))
@@ -276,35 +276,35 @@ EXPORT ER line_hw_init (void)
     return (err < E_OK) ? err : app_gpio_input(PIN_IR_LINE_R, FALSE);
 }
 
-EXPORT void line_task (INT stacd, void * p_exinf)
+EXPORT void line_task (int32_t stacd, void * p_exinf)
 {
-    UW    stable        = 0u;
-    UW    cand          = 0u; /* filtered pattern: PAT_L | PAT_R */
-    INT   cand_n        = 0;
-    INT   out           = 0;
-    BOOL  b_was_enabled = FALSE;
-    INT   last_side     = 0;     /* +1 line last seen on the left, -1 right */
-    W     single_from   = 0;     /* start of the current one-sensor stretch */
-    BOOL  b_long_corr   = FALSE; /* the last correction was long */
-    W     white_from    = 0;     /* start of the current all-white stretch */
-    BOOL  b_searching   = FALSE;
-    W     search_from   = 0;
-    INT   search_n      = 0;
-    W     both_from     = 0;
-    UW    before_both   = 0u; /* the one-sensor pattern before a both-black */
-    BOOL  b_bpend       = FALSE; /* B patch waiting until the sensors pass it */
-    INT   probe         = 0;     /* probing for the tape: +1 left, -1 right */
-    INT   probe_leg     = 0;     /* 1 first way, 2 back the other way */
-    W     probe_from    = 0;
-    BOOL  b_probe_none  = FALSE; /* probed both ways: no tape */
-    float mem           = 0.0f;  /* steering memory, mm/s */
-    W     mem_odo       = 0;
-    W     bpend_c       = 0;
-    W     pair_c        = 0; /* centre of the last both-black, for B */
-    BOOL  b_pair_ok     = FALSE;
-    W     mark_centre;
-    INT   mark_width;
-    UW    mark_seen = barcode_mark(&mark_centre, &mark_width);
+    uint32_t  stable        = 0u;
+    uint32_t  cand          = 0u; /* filtered pattern: PAT_L | PAT_R */
+    int32_t   cand_n        = 0;
+    int32_t   out           = 0;
+    BOOL      b_was_enabled = FALSE;
+    int32_t   last_side     = 0; /* +1 line last seen on the left, -1 right */
+    int32_t   single_from   = 0; /* start of the current one-sensor stretch */
+    BOOL      b_long_corr   = FALSE; /* the last correction was long */
+    int32_t   white_from    = 0; /* start of the current all-white stretch */
+    BOOL      b_searching   = FALSE;
+    int32_t   search_from   = 0;
+    int32_t   search_n      = 0;
+    int32_t   both_from     = 0;
+    uint32_t  before_both = 0u; /* the one-sensor pattern before a both-black */
+    BOOL      b_bpend   = FALSE; /* B patch waiting until the sensors pass it */
+    int32_t   probe     = 0;     /* probing for the tape: +1 left, -1 right */
+    int32_t   probe_leg = 0;     /* 1 first way, 2 back the other way */
+    int32_t   probe_from   = 0;
+    BOOL      b_probe_none = FALSE; /* probed both ways: no tape */
+    float32_t mem          = 0.0f;  /* steering memory, mm/s */
+    int32_t   mem_odo      = 0;
+    int32_t   bpend_c      = 0;
+    int32_t   pair_c       = 0; /* centre of the last both-black, for B */
+    BOOL      b_pair_ok    = FALSE;
+    int32_t   mark_centre;
+    int32_t   mark_width;
+    uint32_t  mark_seen = barcode_mark(&mark_centre, &mark_width);
 
     (void)stacd;
     (void)p_exinf;
@@ -312,16 +312,16 @@ EXPORT void line_task (INT stacd, void * p_exinf)
 
     for (;;)
     {
-        BOOL b_raw_left;
-        BOOL b_raw_right;
-        BOOL b_left;
-        BOOL b_right;
-        BOOL b_single;
-        W    odo;
-        INT  demand;
-        INT  target;
-        UW   pat;
-        UW   prev;
+        BOOL     b_raw_left;
+        BOOL     b_raw_right;
+        BOOL     b_left;
+        BOOL     b_right;
+        BOOL     b_single;
+        int32_t  odo;
+        int32_t  demand;
+        int32_t  target;
+        uint32_t pat;
+        uint32_t prev;
 
         tk_slp_tsk(TMO_FEVR); /* woken every 20 ms */
         app_timing_wake(g_tmg_line, tk_can_wup(TSK_SELF));
@@ -476,17 +476,17 @@ EXPORT void line_task (INT stacd, void * p_exinf)
         {
             /* centred, gap or crossing: keep part of the recent
                steering (a curve keeps turning) */
-            float mem_part = S3_MEM_K * mem;
+            float32_t mem_part = S3_MEM_K * mem;
 
-            if (mem_part > (float)S3_MEM_MAX)
+            if (mem_part > (float32_t)S3_MEM_MAX)
             {
-                mem_part = (float)S3_MEM_MAX;
+                mem_part = (float32_t)S3_MEM_MAX;
             }
-            if (mem_part < -(float)S3_MEM_MAX)
+            if (mem_part < -(float32_t)S3_MEM_MAX)
             {
-                mem_part = -(float)S3_MEM_MAX;
+                mem_part = -(float32_t)S3_MEM_MAX;
             }
-            demand = (INT)mem_part;
+            demand = (int32_t)mem_part;
         }
         /* Build a turn up gently (STEER_STEP per period), but ease off
            at once: ramping down too kept the robot turning after it
@@ -516,17 +516,18 @@ EXPORT void line_task (INT stacd, void * p_exinf)
         g_steer = out;
         /* steering memory: average of the steering by distance */
         {
-            W step = odo - mem_odo;
+            int32_t step = odo - mem_odo;
 
             if (step > 0)
             {
-                float share = (float)S2_COUNTS_TO_MM(step) / (float)S3_MEM_MM;
+                float32_t share =
+                    (float32_t)S2_COUNTS_TO_MM(step) / (float32_t)S3_MEM_MM;
 
                 if (share > 1.0f)
                 {
                     share = 1.0f;
                 }
-                mem += ((float)out - mem) * share;
+                mem += ((float32_t)out - mem) * share;
             }
             mem_odo = odo;
         }
@@ -538,7 +539,7 @@ EXPORT void line_task (INT stacd, void * p_exinf)
         }
         else
         {
-            INT cap;
+            int32_t cap;
 
             if (b_single && ((odo - single_from) >= MM(S3_LOW_AFTER_MM)))
             {
@@ -552,7 +553,7 @@ EXPORT void line_task (INT stacd, void * p_exinf)
             {
                 g_speed_pct = 100;
             }
-            cap = 100 - (INT)(S3_MEM_SLOW * ((mem < 0.0f) ? -mem : mem));
+            cap = 100 - (int32_t)(S3_MEM_SLOW * ((mem < 0.0f) ? -mem : mem));
             if (cap < 35)
             {
                 cap = 35;
@@ -576,7 +577,7 @@ EXPORT void line_task (INT stacd, void * p_exinf)
         /* ---- Lost, and stuck sensors ---- */
         if ((g_state != LINE_FAULT) && (g_state != LINE_LOST))
         {
-            INT why = 0;
+            int32_t why = 0;
 
             if (b_searching)
             {
@@ -618,7 +619,7 @@ EXPORT void line_task (INT stacd, void * p_exinf)
         /* ---- Crossing: the end of a "both black" ---- */
         if ((prev == (PAT_L | PAT_R)) && (stable != prev))
         {
-            W len = odo - both_from;
+            int32_t len = odo - both_from;
 
             if ((len >= MM(S3_JUNC_MIN_MM)) && (len <= MM(S3_CROSS_MAX_MM)) &&
                 (quiet_over(both_from - MM(S3_CROSS_BEFORE_MM),
@@ -645,12 +646,12 @@ EXPORT void line_task (INT stacd, void * p_exinf)
            where the line sensors crossed the same place (B is
            S3_BAR_AHEAD_MM in front of them; negative = behind) ---- */
         {
-            UW seq = barcode_mark(&mark_centre, &mark_width);
+            uint32_t seq = barcode_mark(&mark_centre, &mark_width);
 
             if (seq != mark_seen)
             {
-                W centre = mark_centre + MM(S3_BAR_AHEAD_MM);
-                W gap    = centre - pair_c;
+                int32_t centre = mark_centre + MM(S3_BAR_AHEAD_MM);
+                int32_t gap    = centre - pair_c;
 
                 mark_seen = seq;
                 if (gap < 0)
@@ -674,7 +675,7 @@ EXPORT void line_task (INT stacd, void * p_exinf)
         }
         if (b_bpend && ((odo - bpend_c) >= MM(S3_ARM_AFTER_MM)))
         {
-            W centre = bpend_c;
+            int32_t centre = bpend_c;
 
             b_bpend = FALSE;
             if (quiet_over(centre - MM(S3_ARM_BEFORE_MM),

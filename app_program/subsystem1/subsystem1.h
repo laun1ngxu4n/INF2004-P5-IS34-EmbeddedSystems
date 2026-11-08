@@ -44,20 +44,20 @@
 #define TELE_TEXT_MAX 160
 
 /* Report one event line (any task; not from interrupt handlers) */
-IMPORT void tele_event (const UB * text);
+IMPORT void tele_event (const uint8_t * text);
 
 /* Mission state text for the status line (set by Mission) */
 IMPORT void tele_set_state (const char * state);
 
 /* START commands received over MQTT since boot (the stage tests accept
    the panel's START as well as the button) */
-IMPORT UW tele_start_count (void);
+IMPORT uint32_t tele_start_count (void);
 
 /* Private to subsystem 1, shared between its own .c files */
-IMPORT ID   gh_tid_telemetry;
-IMPORT ID   gh_cyc_telemetry;
-IMPORT INT  g_tmg_telemetry;
-IMPORT void telemetry_task (INT stacd, void * exinf);
+IMPORT ID      gh_tid_telemetry;
+IMPORT ID      gh_cyc_telemetry;
+IMPORT int32_t g_tmg_telemetry;
+IMPORT void    telemetry_task (int32_t stacd, void * exinf);
 
 #endif /* SUBSYSTEM1_H */
 

@@ -32,7 +32,7 @@ EXPORT void subsystem2_test (void)
 
 #define PI_F 3.14159f
 
-LOCAL const char * res_name (INT res)
+LOCAL const char * res_name (int32_t res)
 {
     switch (res)
     {
@@ -50,14 +50,14 @@ LOCAL const char * res_name (INT res)
 }
 
 /* Wait until command id is no longer BUSY (at most 15 s) */
-LOCAL INT wait_done (ID h_cmd, motion_status_t * p_status)
+LOCAL int32_t wait_done (ID h_cmd, motion_status_t * p_status)
 {
-    INT tick;
+    int32_t tick;
 
     for (tick = 0; tick < 1500; tick++)
     {
         motion_get_status(p_status);
-        if ((p_status->cmd_id == (UW)h_cmd) &&
+        if ((p_status->cmd_id == (uint32_t)h_cmd) &&
             (p_status->result != MOT_RES_BUSY))
         {
             return p_status->result;
@@ -71,12 +71,12 @@ LOCAL INT wait_done (ID h_cmd, motion_status_t * p_status)
 /* S2-M02: three rounds of left 90, right 90, 180 */
 LOCAL BOOL test_turns (void)
 {
-    static const INT    turns[3] = {90, -90, 180};
-    static const char * names[3] = {"left 90", "right 90", "180 (left)"};
-    motion_status_t     status;
-    BOOL                b_all_done = TRUE;
-    INT                 round;
-    INT                 kdx;
+    static const int32_t turns[3] = {90, -90, 180};
+    static const char *  names[3] = {"left 90", "right 90", "180 (left)"};
+    motion_status_t      status;
+    BOOL                 b_all_done = TRUE;
+    int32_t              round;
+    int32_t              kdx;
 
     test_wait_start(
         "S2-M02 turns: robot on the floor, mark its heading "
@@ -85,12 +85,12 @@ LOCAL BOOL test_turns (void)
     {
         for (kdx = 0; kdx < 3; kdx++)
         {
-            W   left_start;
-            W   right_start;
-            UW  t_start = app_time_us();
-            ID  h_cmd;
-            INT res;
-            INT deg10;
+            int32_t  left_start;
+            int32_t  right_start;
+            uint32_t t_start = app_time_us();
+            ID       h_cmd;
+            int32_t  res;
+            int32_t  deg10;
 
             motion_get_status(&status);
             left_start  = status.count_l;
@@ -98,20 +98,20 @@ LOCAL BOOL test_turns (void)
             h_cmd       = motion_turn(turns[kdx]);
             if (h_cmd < E_OK)
             {
-                tm_printf((UB *)"[DRIVE] STOP is set, turn not started\n");
+                tm_printf((uint8_t *)"[DRIVE] STOP is set, turn not started\n");
                 return FALSE;
             }
             res = wait_done(h_cmd, &status);
             tk_dly_tsk(300); /* let it settle, then count */
             motion_get_status(&status);
             /* spin angle from the wheels: (right - left) / track */
-            deg10 =
-                (INT)((float)((status.count_r - right_start) -
-                              (status.count_l - left_start)) *
-                      S2_UM_PER_COUNT / 1000.0f / S2_TRACK_MM * 1800.0f / PI_F);
-            tm_printf((UB *)"[S2-M02] round %d %s: %s in %d ms, ", round,
+            deg10 = (int32_t)((float32_t)((status.count_r - right_start) -
+                                          (status.count_l - left_start)) *
+                              S2_UM_PER_COUNT / 1000.0f / S2_TRACK_MM *
+                              1800.0f / PI_F);
+            tm_printf((uint8_t *)"[S2-M02] round %d %s: %s in %d ms, ", round,
                       names[kdx], res_name(res),
-                      (INT)((app_time_us() - t_start) / 1000u) - 300);
+                      (int32_t)((app_time_us() - t_start) / 1000u) - 300);
             test_print_x10("encoder angle ", deg10, " deg\n");
             if (res != MOT_RES_DONE)
             {
@@ -123,8 +123,8 @@ LOCAL BOOL test_turns (void)
             }
             tk_dly_tsk(700);
         }
-        tm_printf((UB *)"[S2-M02] round %d done: write down the real "
-                        "angles (left 90, right 90, 180) from the tape\n",
+        tm_printf((uint8_t *)"[S2-M02] round %d done: write down the real "
+                             "angles (left 90, right 90, 180) from the tape\n",
                   round);
         if (round < 3)
         {
@@ -139,18 +139,18 @@ LOCAL BOOL test_turns (void)
 LOCAL BOOL test_slow_speed (void)
 {
     motion_status_t status;
-    W               left_start;
-    W               right_start;
-    INT             count = 0;
-    INT             vmin  = 100000;
-    INT             vmax  = -100000;
-    W               vsum  = 0;
+    int32_t         left_start;
+    int32_t         right_start;
+    int32_t         count = 0;
+    int32_t         vmin  = 100000;
+    int32_t         vmax  = -100000;
+    int32_t         vsum  = 0;
     ID              h_cmd;
-    INT             res;
-    INT             mean = 0;
-    INT             diff_mm;
+    int32_t         res;
+    int32_t         mean = 0;
+    int32_t         diff_mm;
 
-    UW t_start;
+    uint32_t t_start;
 
     test_wait_start(
         "S2-M03 slow speed: 0.5 m clear in front of the robot. "
@@ -167,14 +167,14 @@ LOCAL BOOL test_slow_speed (void)
     }
     do
     {
-        INT dist_mm;
-        INT value;
+        int32_t dist_mm;
+        int32_t value;
 
         tk_dly_tsk(20);
         motion_get_status(&status);
-        dist_mm = (INT)(((status.count_l - left_start) +
-                         (status.count_r - right_start)) /
-                        2 * S2_UM_PER_COUNT / 1000);
+        dist_mm = (int32_t)(((status.count_l - left_start) +
+                             (status.count_r - right_start)) /
+                            2 * S2_UM_PER_COUNT / 1000);
         if ((dist_mm >= 100) && (dist_mm <= 400))
         {
             value = (status.speed_l + status.speed_r) / 2;
@@ -189,56 +189,57 @@ LOCAL BOOL test_slow_speed (void)
                 vmax = value;
             }
         }
-    } while (
-        !((status.cmd_id == (UW)h_cmd) && (status.result != MOT_RES_BUSY)));
+    } while (!((status.cmd_id == (uint32_t)h_cmd) &&
+               (status.result != MOT_RES_BUSY)));
     res = status.result;
     if (count > 0)
     {
-        mean = (INT)(vsum / count);
+        mean = (int32_t)(vsum / count);
     }
-    diff_mm =
-        (INT)(((status.count_l - left_start) - (status.count_r - right_start)) *
-              S2_UM_PER_COUNT / 1000);
-    tm_printf((UB *)"[S2-M03] %s; target %d mm/s; middle 300 mm: mean %d, "
-                    "min %d, max %d mm/s (%d samples); left - right %d mm\n",
-              res_name(res), S2_SPEED_BARCODE, mean, vmin, vmax, count,
-              diff_mm);
+    diff_mm = (int32_t)(((status.count_l - left_start) -
+                         (status.count_r - right_start)) *
+                        S2_UM_PER_COUNT / 1000);
     tm_printf(
-        (UB *)"[S2-M03] encoders say %d mm in %d ms. WRITE DOWN the real "
-              "distance: more than 25 mm off 500 = wrong mm/count scale\n",
-        (INT)(((status.count_l - left_start) + (status.count_r - right_start)) /
-              2 * S2_UM_PER_COUNT / 1000),
-        (INT)((app_time_us() - t_start) / 1000u));
+        (uint8_t *)"[S2-M03] %s; target %d mm/s; middle 300 mm: mean %d, "
+                   "min %d, max %d mm/s (%d samples); left - right %d mm\n",
+        res_name(res), S2_SPEED_BARCODE, mean, vmin, vmax, count, diff_mm);
+    tm_printf(
+        (uint8_t *)"[S2-M03] encoders say %d mm in %d ms. WRITE DOWN the real "
+                   "distance: more than 25 mm off 500 = wrong mm/count scale\n",
+        (int32_t)(((status.count_l - left_start) +
+                   (status.count_r - right_start)) /
+                  2 * S2_UM_PER_COUNT / 1000),
+        (int32_t)((app_time_us() - t_start) / 1000u));
     return (MOT_RES_DONE == res) && (count > 0) &&
            (mean >= (S2_SPEED_BARCODE * 9 / 10)) &&
            (mean <= (S2_SPEED_BARCODE * 11 / 10));
 }
 
 /* S2-M04: drive, press STOP; time from press to wheels stopped */
-LOCAL BOOL test_stop_once (INT run, BOOL b_lifted)
+LOCAL BOOL test_stop_once (int32_t run, BOOL b_lifted)
 {
     motion_status_t status;
     ID              h_cmd;
-    W               last_l;
-    W               last_r;
-    W               c0_l        = 0;
-    W               c0_r        = 0;
-    UW              t_press     = 0;
-    UW              t_last_move = 0;
+    int32_t         last_l;
+    int32_t         last_r;
+    int32_t         c0_l        = 0;
+    int32_t         c0_r        = 0;
+    uint32_t        t_press     = 0;
+    uint32_t        t_last_move = 0;
     BOOL            b_pressed   = FALSE;
-    INT             res;
+    int32_t         res;
 
     if (b_lifted)
     {
         tm_printf(
-            (UB *)"\n[DRIVE] S2-M06 STOP check, wheels LIFTED: the wheels "
-                  "turn forward; PRESS STOP (GP21) after a second.\n");
+            (uint8_t *)"\n[DRIVE] S2-M06 STOP check, wheels LIFTED: the wheels "
+                       "turn forward; PRESS STOP (GP21) after a second.\n");
     }
     else
     {
         tm_printf(
-            (UB *)"\n[DRIVE] S2-M04 try %d of 5: it drives up to 1.5 m at "
-                  "%d mm/s. PRESS STOP (GP21) while it drives.\n",
+            (uint8_t *)"\n[DRIVE] S2-M04 try %d of 5: it drives up to 1.5 m at "
+                       "%d mm/s. PRESS STOP (GP21) while it drives.\n",
             run, S2_SPEED_LINE);
     }
     test_wait_start(b_lifted ? "S2-M06 STOP (wheels lifted)" : "S2-M04 STOP");
@@ -272,7 +273,7 @@ LOCAL BOOL test_stop_once (INT run, BOOL b_lifted)
         {
             break; /* no count for 100 ms: stopped */
         }
-        if ((!b_pressed) && (status.cmd_id == (UW)h_cmd) &&
+        if ((!b_pressed) && (status.cmd_id == (uint32_t)h_cmd) &&
             (status.result != MOT_RES_BUSY))
         {
             break; /* finished without a STOP */
@@ -281,37 +282,37 @@ LOCAL BOOL test_stop_once (INT run, BOOL b_lifted)
     res = status.result;
     if (!b_pressed)
     {
-        tm_printf((UB *)"[%s] try %d: no STOP pressed (%s), not counted\n",
+        tm_printf((uint8_t *)"[%s] try %d: no STOP pressed (%s), not counted\n",
                   b_lifted ? "S2-M06" : "S2-M04", run, res_name(res));
         return FALSE;
     }
-    tm_printf((UB *)"[%s] try %d: %s; wheels stopped %d ms after the "
-                    "press; rolled %d mm after the press\n",
+    tm_printf((uint8_t *)"[%s] try %d: %s; wheels stopped %d ms after the "
+                         "press; rolled %d mm after the press\n",
               b_lifted ? "S2-M06" : "S2-M04", run, res_name(res),
-              (INT)((t_last_move - t_press) / 1000u),
-              (INT)(((last_l - c0_l) + (last_r - c0_r)) / 2 * S2_UM_PER_COUNT /
-                    1000));
+              (int32_t)((t_last_move - t_press) / 1000u),
+              (int32_t)(((last_l - c0_l) + (last_r - c0_r)) / 2 *
+                        S2_UM_PER_COUNT / 1000));
     return (MOT_RES_STOPPED == res) && ((t_last_move - t_press) < 500000u);
 }
 
 /* S2-M05: wheels lifted, both wheels forward then back; check both signs */
 LOCAL BOOL test_directions (void)
 {
-    static const INT dir[2] = {+1, -1};
-    motion_status_t  status;
-    BOOL             b_ok = TRUE;
-    INT              kdx;
+    static const int32_t dir[2] = {+1, -1};
+    motion_status_t      status;
+    BOOL                 b_ok = TRUE;
+    int32_t              kdx;
 
     test_wait_start("S2-M05 directions: LIFT THE WHEELS off the table. Both "
                     "wheels turn forward 300 mm, then backward 300 mm. Watch "
                     "that both turn the robot's forward way first.");
     for (kdx = 0; kdx < 2; kdx++)
     {
-        W   left_start;
-        W   right_start;
-        W   delta_left;
-        W   delta_right;
-        INT res;
+        int32_t left_start;
+        int32_t right_start;
+        int32_t delta_left;
+        int32_t delta_right;
+        int32_t res;
 
         motion_get_status(&status);
         left_start  = status.count_l;
@@ -322,10 +323,11 @@ LOCAL BOOL test_directions (void)
         motion_get_status(&status);
         delta_left  = status.count_l - left_start;
         delta_right = status.count_r - right_start;
-        tm_printf((UB *)"[S2-M05] %s: %s, left %d counts, right %d counts "
-                        "(expected about %s3750 each)\n",
+        tm_printf((uint8_t *)"[S2-M05] %s: %s, left %d counts, right %d counts "
+                             "(expected about %s3750 each)\n",
                   (0 == kdx) ? "forward" : "backward", res_name(res),
-                  (INT)delta_left, (INT)delta_right, (0 == kdx) ? "+" : "-");
+                  (int32_t)delta_left, (int32_t)delta_right,
+                  (0 == kdx) ? "+" : "-");
         /* both the commanded sign, and within 25 % of each other */
         if (((delta_left * dir[kdx]) <= 0) || ((delta_right * dir[kdx]) <= 0) ||
             ((delta_left * 4 * dir[kdx]) < (delta_right * 3 * dir[kdx])) ||
@@ -345,18 +347,19 @@ LOCAL BOOL test_directions (void)
 EXPORT void subsystem2_drive_test (void)
 {
     motion_status_t status;
-    INT             kdx;
-    INT             stops = 0;
+    int32_t         kdx;
+    int32_t         stops = 0;
     TEST_INIT();
 
     tm_printf(
-        (UB *)"\n[DRIVE] === Stage 1 drive tests ===\n"
-              "[DRIVE] Laptop USB only (never USB and the power bank "
-              "together).\n"
-              "[DRIVE] Wheels LIFTED for S2-M05 and S2-M06, then on the floor\n"
-              "[DRIVE] with about 1.5 m clear in front.\n"
-              "[DRIVE] STOP (GP21) stops the motors at any time.\n"
-              "[DRIVE] Track width used for turns: %d mm (S2_TRACK_MM)\n",
+        (uint8_t *)"\n[DRIVE] === Stage 1 drive tests ===\n"
+                   "[DRIVE] Laptop USB only (never USB and the power bank "
+                   "together).\n"
+                   "[DRIVE] Wheels LIFTED for S2-M05 and S2-M06, then on the "
+                   "floor\n"
+                   "[DRIVE] with about 1.5 m clear in front.\n"
+                   "[DRIVE] STOP (GP21) stops the motors at any time.\n"
+                   "[DRIVE] Track width used for turns: %d mm (S2_TRACK_MM)\n",
         S2_TRACK_MM);
 
     /* Order (review 1 Nov): directions and STOP with the wheels lifted,
@@ -366,7 +369,7 @@ EXPORT void subsystem2_drive_test (void)
                "within 25 % of each other");
     TEST_CHECK("S2-M06", test_stop_once(0, TRUE),
                "wheels lifted: STOP stopped the wheels within 500 ms");
-    tm_printf((UB *)"\n[DRIVE] From here: robot ON THE FLOOR.\n");
+    tm_printf((uint8_t *)"\n[DRIVE] From here: robot ON THE FLOOR.\n");
     TEST_CHECK("S2-M03", test_slow_speed(),
                "barcode speed: mean within 10 % (encoders); "
                "ALSO record the measured real distance");
@@ -380,14 +383,14 @@ EXPORT void subsystem2_drive_test (void)
             stops++;
         }
     }
-    tm_printf((UB *)"[S2-M04] %d of 5 stopped within 500 ms\n", stops);
+    tm_printf((uint8_t *)"[S2-M04] %d of 5 stopped within 500 ms\n", stops);
     TEST_CHECK("S2-M04", 5 == stops, "STOP stops the wheels, 5 of 5");
 
     motion_get_status(&status);
-    tm_printf((UB *)"[DRIVE] encoder quadrature errors since boot: %d\n",
-              (INT)status.invalid);
+    tm_printf((uint8_t *)"[DRIVE] encoder quadrature errors since boot: %d\n",
+              (int32_t)status.invalid);
     TEST_SUMMARY("subsystem2 drive");
-    tm_printf((UB *)"[DRIVE] === Stage 1 drive tests end ===\n");
+    tm_printf((uint8_t *)"[DRIVE] === Stage 1 drive tests end ===\n");
 }
 
 #endif /* APP_TEST */

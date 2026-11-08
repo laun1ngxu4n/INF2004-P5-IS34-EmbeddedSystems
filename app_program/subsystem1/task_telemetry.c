@@ -27,18 +27,18 @@
 
 typedef struct
 {
-    UB topic; /* 0 event, 1 telemetry, 2 ack/map, 3 sensors */
-    UB text[TELE_TEXT_MAX];
+    uint8_t topic; /* 0 event, 1 telemetry, 2 ack/map, 3 sensors */
+    uint8_t text[TELE_TEXT_MAX];
 } tele_msg_t;
 
-LOCAL tele_msg_t   g_outbox[OUTBOX_N];
-LOCAL UW           g_ob_w;
-LOCAL UW           g_ob_r; /* under APP_LOCK */
-LOCAL UW           g_out_dropped;
-LOCAL const char * gp_state_text = "IDLE";
-LOCAL volatile UW  g_start_count; /* MQTT START commands since boot */
+LOCAL tele_msg_t        g_outbox[OUTBOX_N];
+LOCAL uint32_t          g_ob_w;
+LOCAL uint32_t          g_ob_r; /* under APP_LOCK */
+LOCAL uint32_t          g_out_dropped;
+LOCAL const char *      gp_state_text = "IDLE";
+LOCAL volatile uint32_t g_start_count; /* MQTT START commands since boot */
 
-EXPORT UW tele_start_count (void)
+EXPORT uint32_t tele_start_count (void)
 {
     return g_start_count;
 }
@@ -48,18 +48,18 @@ EXPORT UW tele_start_count (void)
    output until the WiFi is up (~4 KB), and a few seconds of the busiest
    test output; the link takes about 2.5 KB/s. */
 #define LOG_RING 8192 /* a power of 2 */
-LOCAL UB   g_log_ring[LOG_RING];
-LOCAL UW   g_log_w;
-LOCAL UW   g_log_r;       /* under APP_LOCK */
-LOCAL UW   g_log_dropped; /* bytes lost: ring full */
-LOCAL UW   g_log_seq;
-LOCAL BOOL gb_log_turn; /* last message sent was a log chunk */
+LOCAL uint8_t  g_log_ring[LOG_RING];
+LOCAL uint32_t g_log_w;
+LOCAL uint32_t g_log_r;       /* under APP_LOCK */
+LOCAL uint32_t g_log_dropped; /* bytes lost: ring full */
+LOCAL uint32_t g_log_seq;
+LOCAL BOOL     gb_log_turn; /* last message sent was a log chunk */
 
 /* Called by the console driver for every byte it sends: any context */
-EXPORT void tm_console_mirror (const UB * p_buf, INT size)
+EXPORT void tm_console_mirror (const uint8_t * p_buf, int32_t size)
 {
-    UINT irq_state;
-    INT  idx;
+    uint32_t irq_state;
+    int32_t  idx;
 
     APP_LOCK(irq_state);
     for (idx = 0; idx < size; idx++)
@@ -82,15 +82,15 @@ EXPORT void tm_console_mirror (const UB * p_buf, INT size)
 }
 
 /* The next log chunk into buf; 0 = nothing waiting */
-LOCAL int log_take (char * p_topic, unsigned tmax, unsigned char * p_buf,
-                    unsigned bmax)
+LOCAL int32_t log_take (char * p_topic, uint32_t tmax, uint8_t * p_buf,
+                        uint32_t bmax)
 {
-    UB       head[24];
-    UINT     irq_state;
-    unsigned idx;
-    unsigned count;
-    unsigned head_len;
-    UW       avail;
+    uint8_t  head[24];
+    uint32_t irq_state;
+    uint32_t idx;
+    uint32_t count;
+    uint32_t head_len;
+    uint32_t avail;
 
     APP_LOCK(irq_state);
     avail = g_log_w - g_log_r;
@@ -100,8 +100,9 @@ LOCAL int log_take (char * p_topic, unsigned tmax, unsigned char * p_buf,
         return 0;
     }
 
-    head_len = (unsigned)tm_sprintf(head, (const UB *)"L%d %d|",
-                                    (INT)(g_log_seq + 1u), (INT)g_log_dropped);
+    head_len =
+        (uint32_t)tm_sprintf(head, (const uint8_t *)"L%d %d|",
+                             (int32_t)(g_log_seq + 1u), (int32_t)g_log_dropped);
     for (idx = 0; idx < head_len; idx++)
     {
         p_buf[idx] = head[idx];
@@ -109,7 +110,7 @@ LOCAL int log_take (char * p_topic, unsigned tmax, unsigned char * p_buf,
     count = bmax - 1u - head_len;
     if (count > avail)
     {
-        count = (unsigned)avail;
+        count = (uint32_t)avail;
     }
     APP_LOCK(irq_state);
     for (idx = 0; idx < count; idx++)
@@ -125,14 +126,14 @@ LOCAL int log_take (char * p_topic, unsigned tmax, unsigned char * p_buf,
         p_topic[idx] = TOPIC_LOG[idx];
     }
     p_topic[idx] = '\0';
-    return (int)(head_len + count);
+    return (int32_t)(head_len + count);
 }
 #endif
 
-LOCAL void outbox_put (UB topic, const UB * p_text)
+LOCAL void outbox_put (uint8_t topic, const uint8_t * p_text)
 {
-    UINT irq_state;
-    INT  idx;
+    uint32_t irq_state;
+    int32_t  idx;
 
     APP_LOCK(irq_state);
     if ((g_ob_w - g_ob_r) >= OUTBOX_N)
@@ -150,9 +151,9 @@ LOCAL void outbox_put (UB topic, const UB * p_text)
     APP_UNLOCK(irq_state);
 }
 
-EXPORT void tele_event (const UB * p_text)
+EXPORT void tele_event (const uint8_t * p_text)
 {
-    tm_printf((UB *)"[EVT] %s\n", p_text);
+    tm_printf((uint8_t *)"[EVT] %s\n", p_text);
     outbox_put(0, p_text);
 }
 
@@ -194,8 +195,8 @@ EXPORT int app_mqtt_tx (char * p_topic, unsigned tmax, unsigned char * p_buf,
     static const char * names[4] = {TOPIC_EVENT, TOPIC_TELEMETRY, TOPIC_ACK_MAP,
                                     TOPIC_SENSORS};
     tele_msg_t          msg;
-    UINT                irq_state;
-    unsigned            idx;
+    uint32_t            irq_state;
+    uint32_t            idx;
     BOOL                b_have;
 
     APP_LOCK(irq_state);
@@ -205,7 +206,7 @@ EXPORT int app_mqtt_tx (char * p_topic, unsigned tmax, unsigned char * p_buf,
     /* Outbox and log take turns, so a long log never holds up an event */
     if ((!b_have) || (!gb_log_turn))
     {
-        int len = log_take(p_topic, tmax, p_buf, bmax);
+        int32_t len = log_take(p_topic, tmax, p_buf, bmax);
         if (len > 0)
         {
             gb_log_turn = TRUE;
@@ -240,8 +241,8 @@ EXPORT void app_mqtt_rx (const char * p_topic, const unsigned char * p_data,
                          unsigned len)
 {
     const char * p_cmd;
-    UB           why[64];
-    UB           msg[TELE_TEXT_MAX];
+    uint8_t      why[64];
+    uint8_t      msg[TELE_TEXT_MAX];
 
     if (!starts_with(p_topic, TOPIC_CMD_PREFIX, &p_cmd))
     {
@@ -249,22 +250,23 @@ EXPORT void app_mqtt_rx (const char * p_topic, const unsigned char * p_data,
     }
     if (same(p_cmd, "map"))
     {
-        if (barcode_set_mapping(p_data, (INT)len, why, sizeof(why)))
+        if (barcode_set_mapping(p_data, (int32_t)len, why, sizeof(why)))
         {
-            UB map[24];
+            uint8_t map[24];
             barcode_mapping_text(map, sizeof(map));
-            tm_sprintf(msg, (const UB *)"OK %s", map);
+            tm_sprintf(msg, (const uint8_t *)"OK %s", map);
         }
         else
         {
-            tm_sprintf(msg, (const UB *)"REJECTED %s (old mapping kept)", why);
+            tm_sprintf(msg, (const uint8_t *)"REJECTED %s (old mapping kept)",
+                       why);
         }
-        tm_printf((UB *)"[MQTT] map: %s\n", msg);
+        tm_printf((uint8_t *)"[MQTT] map: %s\n", msg);
         outbox_put(2, msg);
     }
     else if (same(p_cmd, "start"))
     {
-        tm_printf((UB *)"[MQTT] start\n");
+        tm_printf((uint8_t *)"[MQTT] start\n");
         g_start_count++;
         tk_set_flg(gh_flg_mission, MSN_FLG_START);
     }
@@ -272,7 +274,7 @@ EXPORT void app_mqtt_rx (const char * p_topic, const unsigned char * p_data,
     {
         app_stop_request(STOP_MQTT);
         tk_set_flg(gh_flg_mission, MSN_FLG_STOP);
-        tm_printf((UB *)"[MQTT] stop\n");
+        tm_printf((uint8_t *)"[MQTT] stop\n");
     }
 }
 
@@ -282,21 +284,21 @@ LOCAL void status_line (void)
 {
     motion_status_t  status;
     barcode_result_t last_code;
-    UB               text[TELE_TEXT_MAX];
-    UB               map[24];
+    uint8_t          text[TELE_TEXT_MAX];
+    uint8_t          map[24];
 
     motion_get_status(&status);
     barcode_last(&last_code);
     barcode_mapping_text(map, sizeof(map));
-    tm_sprintf(text,
-               (const UB *)"state=%s speed=%d,%d dist=%d line=%d junctions=%d "
-                           "barcode=%c map=%s ramp_peak=%d.%d stop=%d",
-               gp_state_text, status.speed_l, status.speed_r,
-               (INT)S2_COUNTS_TO_MM(motion_odometer()), line_state(),
-               (INT)line_junctions(), (last_code.b_ok ? last_code.letter : '-'),
-               (map[0] != '\0') ? (char *)map : "none",
-               imu_ramp_peak_mm10() / 10, imu_ramp_peak_mm10() % 10,
-               (INT)app_stop_reasons());
+    tm_sprintf(
+        text,
+        (const uint8_t *)"state=%s speed=%d,%d dist=%d line=%d junctions=%d "
+                         "barcode=%c map=%s ramp_peak=%d.%d stop=%d",
+        gp_state_text, status.speed_l, status.speed_r,
+        (int32_t)S2_COUNTS_TO_MM(motion_odometer()), line_state(),
+        (int32_t)line_junctions(), (last_code.b_ok ? last_code.letter : '-'),
+        (map[0] != '\0') ? (char *)map : "none", imu_ramp_peak_mm10() / 10,
+        imu_ramp_peak_mm10() % 10, (int32_t)app_stop_reasons());
     outbox_put(1, text);
 }
 
@@ -307,25 +309,26 @@ LOCAL void status_line (void)
    climbed height in 0.1 mm, imu = IMU answering */
 LOCAL void sensor_line (void)
 {
-    UB text[TELE_TEXT_MAX];
+    uint8_t text[TELE_TEXT_MAX];
 
     tm_sprintf(text,
-               (const UB *)"ir=%d%d%d steer=%d hold=%d inbar=%d front=%d "
-                           "tilt=%d h10=%d imu=%d",
-               (INT)(IR_BLACK == app_gpio_get(PIN_IR_LINE_L)),
-               (INT)(IR_BLACK == app_gpio_get(PIN_IR_LINE_R)),
-               (INT)barcode_black(), line_steer_mm_s(), (INT)barcode_in_bars(),
-               (INT)barcode_busy(), obstacle_front_mm(), imu_pitch_mdeg_sin(),
-               imu_height_mm10(), (INT)imu_ok());
+               (const uint8_t *)"ir=%d%d%d steer=%d hold=%d inbar=%d front=%d "
+                                "tilt=%d h10=%d imu=%d",
+               (int32_t)(IR_BLACK == app_gpio_get(PIN_IR_LINE_L)),
+               (int32_t)(IR_BLACK == app_gpio_get(PIN_IR_LINE_R)),
+               (int32_t)barcode_black(), line_steer_mm_s(),
+               (int32_t)barcode_in_bars(), (int32_t)barcode_busy(),
+               obstacle_front_mm(), imu_pitch_mdeg_sin(), imu_height_mm10(),
+               (int32_t)imu_ok());
     outbox_put(3, text);
 }
 
-EXPORT void telemetry_task (INT stacd, void * p_exinf)
+EXPORT void telemetry_task (int32_t stacd, void * p_exinf)
 {
-    UINT report_tick = 0;
-    UINT ping_tick   = 0;
-    UINT status_tick = 0;
-    UINT sensor_tick = 0;
+    uint32_t report_tick = 0;
+    uint32_t ping_tick   = 0;
+    uint32_t status_tick = 0;
+    uint32_t sensor_tick = 0;
 
     (void)stacd;
     (void)p_exinf;

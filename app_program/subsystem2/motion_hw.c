@@ -31,34 +31,35 @@
 #define QDEC_BAD 2
 
 /* (previous AB << 2) | new AB -> +1 / -1 count, 0 no change, 2 invalid */
-LOCAL const B g_qdec[16] = {0,        +1, -1, QDEC_BAD, -1, 0,
-                            QDEC_BAD, +1, +1, QDEC_BAD, 0,  -1,
-                            QDEC_BAD, -1, +1, 0};
+LOCAL const int8_t g_qdec[16] = {0,        +1, -1, QDEC_BAD, -1, 0,
+                                 QDEC_BAD, +1, +1, QDEC_BAD, 0,  -1,
+                                 QDEC_BAD, -1, +1, 0};
 
-LOCAL volatile W  g_enc_count[2]; /* raw: the left one counts down forward */
-LOCAL volatile UW g_enc_invalid;
-LOCAL UB          g_enc_prev[2];
+LOCAL volatile int32_t
+    g_enc_count[2]; /* raw: the left one counts down forward */
+LOCAL volatile uint32_t g_enc_invalid;
+LOCAL uint8_t           g_enc_prev[2];
 
-LOCAL UB enc_ab (INT wheel)
+LOCAL uint8_t enc_ab (int32_t wheel)
 {
-    UW pins = in_w(GPIO_IN);
+    uint32_t pins = in_w(GPIO_IN);
 
     if (WHEEL_L == wheel)
     {
-        return (UB)((((pins >> PIN_ENC_L_A) & 1u) << 1) |
-                    ((pins >> PIN_ENC_L_B) & 1u));
+        return (uint8_t)((((pins >> PIN_ENC_L_A) & 1u) << 1) |
+                         ((pins >> PIN_ENC_L_B) & 1u));
     }
-    return (UB)((((pins >> PIN_ENC_R_A) & 1u) << 1) |
-                ((pins >> PIN_ENC_R_B) & 1u));
+    return (uint8_t)((((pins >> PIN_ENC_R_A) & 1u) << 1) |
+                     ((pins >> PIN_ENC_R_B) & 1u));
 }
 
 /* Interrupt context, from app_gpio.c */
-LOCAL void encoder_edge_isr (UINT pin, UW events)
+LOCAL void encoder_edge_isr (uint32_t pin, uint32_t events)
 {
-    INT wheel =
+    int32_t wheel =
         ((PIN_ENC_L_A == pin) || (PIN_ENC_L_B == pin)) ? WHEEL_L : WHEEL_R;
-    UB state_ab = enc_ab(wheel);
-    B  step     = g_qdec[(g_enc_prev[wheel] << 2) | state_ab];
+    uint8_t state_ab = enc_ab(wheel);
+    int8_t  step     = g_qdec[(g_enc_prev[wheel] << 2) | state_ab];
 
     (void)events;
     if (QDEC_BAD == step)
@@ -78,9 +79,9 @@ LOCAL void encoder_edge_isr (UINT pin, UW events)
 #define SLICE_L             4 /* GP8 = A, GP9 = B */
 #define SLICE_R             5 /* GP10 = A, GP11 = B */
 
-LOCAL UW cc_pair (INT duty)
+LOCAL uint32_t cc_pair (int32_t duty)
 {
-    UW level;
+    uint32_t level;
 
     if (duty > DUTY_FULL)
     {
@@ -90,15 +91,16 @@ LOCAL UW cc_pair (INT duty)
     {
         duty = -DUTY_FULL;
     }
-    level = (UW)((duty >= 0) ? duty : -duty) * (PWM_WRAP + 1u) / DUTY_FULL;
+    level =
+        (uint32_t)((duty >= 0) ? duty : -duty) * (PWM_WRAP + 1u) / DUTY_FULL;
     return (duty >= 0) ? level : (level << 16);
 }
 
-EXPORT void motor_write (INT duty_l, INT duty_r)
+EXPORT void motor_write (int32_t duty_l, int32_t duty_r)
 {
-    UW   cc_l = cc_pair(duty_l);
-    UW   cc_r = cc_pair(duty_r);
-    UINT irq_state;
+    uint32_t cc_l = cc_pair(duty_l);
+    uint32_t cc_r = cc_pair(duty_r);
+    uint32_t irq_state;
 
     APP_LOCK(irq_state);
     if (app_stop_reasons() != 0u)
@@ -117,15 +119,16 @@ EXPORT void motor_safe_off (void)
     out_w(PWM_SLICE_CC(SLICE_R), 0u);
 }
 
-EXPORT W motion_odometer (void)
+EXPORT int32_t motion_odometer (void)
 {
     return (g_enc_count[WHEEL_R] - g_enc_count[WHEEL_L]) / 2;
 }
 
 /* Counts with + = forward for both wheels */
-EXPORT void encoder_read (W * p_left, W * p_right, UW * p_invalid)
+EXPORT void encoder_read (int32_t * p_left, int32_t * p_right,
+                          uint32_t * p_invalid)
 {
-    UINT irq_state;
+    uint32_t irq_state;
 
     APP_LOCK(irq_state);
     *p_left  = -g_enc_count[WHEEL_L];
@@ -139,10 +142,11 @@ EXPORT void encoder_read (W * p_left, W * p_right, UW * p_invalid)
 
 EXPORT ER motion_hw_init (void)
 {
-    const UINT mpins[4] = {PIN_M_L_A, PIN_M_L_B, PIN_M_R_A, PIN_M_R_B};
-    const UINT epins[4] = {PIN_ENC_L_A, PIN_ENC_L_B, PIN_ENC_R_A, PIN_ENC_R_B};
-    ER         err;
-    INT        idx;
+    const uint32_t mpins[4] = {PIN_M_L_A, PIN_M_L_B, PIN_M_R_A, PIN_M_R_B};
+    const uint32_t epins[4] = {PIN_ENC_L_A, PIN_ENC_L_B, PIN_ENC_R_A,
+                               PIN_ENC_R_B};
+    ER             err;
+    int32_t        idx;
 
     app_hw_release(RESETS_RESET_PWM); /* not released by the kernel */
     motor_safe_off();

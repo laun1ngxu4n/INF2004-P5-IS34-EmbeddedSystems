@@ -6,11 +6,11 @@
 
 #include "subsystem3.h"
 
-EXPORT ID  gh_tid_line;
-EXPORT ID  gh_cyc_line;
-EXPORT INT g_tmg_line;
-EXPORT ID  gh_tid_barcode;
-EXPORT INT g_tmg_barcode;
+EXPORT ID      gh_tid_line;
+EXPORT ID      gh_cyc_line;
+EXPORT int32_t g_tmg_line;
+EXPORT ID      gh_tid_barcode;
+EXPORT int32_t g_tmg_barcode;
 
 EXPORT ER subsystem3_init (void)
 {

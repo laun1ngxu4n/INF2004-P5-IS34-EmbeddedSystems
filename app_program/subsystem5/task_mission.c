@@ -57,10 +57,10 @@
 #define M_RUN       2
 #define M_MANOEUVRE 3
 
-LOCAL INT           g_mstate = M_IDLE;
+LOCAL int32_t       g_mstate = M_IDLE;
 LOCAL volatile BOOL gb_armed = !APP_TEST;
-LOCAL UB            g_pending;  /* latest unconsumed barcode, 0 = none */
-LOCAL UW            g_bar_seen; /* barcode result already handled */
+LOCAL uint8_t       g_pending;  /* latest unconsumed barcode, 0 = none */
+LOCAL uint32_t      g_bar_seen; /* barcode result already handled */
 /* A junction waits at most this far past its centre for a barcode that
    is still being read (see on_junction) */
 #define JUNC_WAIT_MM 150
@@ -89,14 +89,14 @@ EXPORT const char * mission_state_name (void)
     return names[g_mstate];
 }
 
-LOCAL void set_state (INT new_state)
+LOCAL void set_state (int32_t new_state)
 {
     g_mstate = new_state;
     obstacle_idle_ping(M_IDLE == new_state);
     tele_set_state(mission_state_name());
 }
 
-LOCAL void say (const UB * p_text)
+LOCAL void say (const uint8_t * p_text)
 {
     tele_event(p_text);
 }
@@ -113,7 +113,8 @@ LOCAL BOOL mv (ID h_cmd)
     for (;;)
     {
         motion_get_status(&status);
-        if ((status.cmd_id == (UW)h_cmd) && (status.result != MOT_RES_BUSY))
+        if ((status.cmd_id == (uint32_t)h_cmd) &&
+            (status.result != MOT_RES_BUSY))
         {
             return MOT_RES_DONE == status.result;
         }
@@ -128,7 +129,7 @@ LOCAL BOOL mv (ID h_cmd)
 LOCAL void wait_still (void)
 {
     motion_status_t status;
-    INT             tick;
+    int32_t         tick;
 
     for (tick = 0; tick < 100; tick++)
     {
@@ -143,21 +144,22 @@ LOCAL void wait_still (void)
 
 LOCAL void halt (const char * p_why)
 {
-    UB msg[TELE_TEXT_MAX];
+    uint8_t msg[TELE_TEXT_MAX];
 
     motion_halt();
     motion_follow_limit(0);
     obstacle_watch(FALSE);
     line_set_enabled(FALSE);
     set_state(M_IDLE);
-    tm_sprintf(msg, (const UB *)"stopped: %s (press START to go again)", p_why);
+    tm_sprintf(msg, (const uint8_t *)"stopped: %s (press START to go again)",
+               p_why);
     say(msg);
 }
 
 /* Follow again; line events back on after a short distance */
 LOCAL BOOL resume_follow (void)
 {
-    W odo0 = motion_odometer();
+    int32_t odo0 = motion_odometer();
 
     barcode_reset(); /* a spin can leave a half-read code */
     if (motion_follow(S5_FOLLOW_SPEED) < E_OK)
@@ -181,9 +183,9 @@ LOCAL BOOL resume_follow (void)
 
 LOCAL void start_run (void)
 {
-    INT tick;
+    int32_t tick;
 
-    say((const UB *)"start");
+    say((const uint8_t *)"start");
     set_state(M_CAL);
     motion_halt();
     if (gb_use_imu && (imu_ok()))
@@ -212,8 +214,8 @@ LOCAL void start_run (void)
 LOCAL void on_barcode (void)
 {
     barcode_result_t result;
-    UB               msg[TELE_TEXT_MAX];
-    INT              move;
+    uint8_t          msg[TELE_TEXT_MAX];
+    int32_t          move;
 
     barcode_last(&result);
     if (result.seq == g_bar_seen)
@@ -223,23 +225,23 @@ LOCAL void on_barcode (void)
     g_bar_seen = result.seq;
     if (!result.b_ok)
     {
-        INT dbg_count;
-        INT dbg_widths[40];
-        INT kdx;
+        int32_t dbg_count;
+        int32_t dbg_widths[40];
+        int32_t kdx;
 
-        tm_sprintf(msg, (const UB *)"barcode READ_FAIL (%d elements)",
+        tm_sprintf(msg, (const uint8_t *)"barcode READ_FAIL (%d elements)",
                    result.elements);
         say(msg);
         /* the widths to the log, so a failed read can be looked at
            (8 Nov: a 27-element failure had nothing to go on) */
         (void)barcode_debug(&dbg_count, dbg_widths, 40);
-        tm_printf((UB *)"[S3] READ_FAIL widths (mm):");
+        tm_printf((uint8_t *)"[S3] READ_FAIL widths (mm):");
         for (kdx = 0; (kdx < dbg_count) && (kdx < 40); kdx++)
         {
-            tm_printf((UB *)" %d.%d", dbg_widths[kdx] / 10,
+            tm_printf((uint8_t *)" %d.%d", dbg_widths[kdx] / 10,
                       dbg_widths[kdx] % 10);
         }
-        tm_printf((UB *)"\n");
+        tm_printf((uint8_t *)"\n");
         return;
     }
     g_pending = result.letter;
@@ -249,21 +251,21 @@ LOCAL void on_barcode (void)
         ((MOVE_LEFT == move) || (MOVE_RIGHT == move) || (MOVE_UTURN == move))
             ? S5_APPROACH_SPEED
             : 0);
-    tm_sprintf(
-        msg,
-        (const UB *)"barcode %c%s%s (narrow %d.%d mm, wide %d.%d mm) -> %s",
-        result.letter, result.b_reversed ? " read backwards" : "",
-        (BAR_FIX_STAR == result.fixed)     ? " (one * damaged)"
-        : (BAR_FIX_MERGED == result.fixed) ? " (a lost bar put back)"
-        : (BAR_FIX_CUT == result.fixed)    ? " (a missing end bar put back)"
-                                           : "",
-        result.narrow_mm10 / 10, result.narrow_mm10 % 10, result.wide_mm10 / 10,
-        result.wide_mm10 % 10,
-        (MOVE_LEFT == move)      ? "LEFT at next junction"
-        : (MOVE_RIGHT == move)   ? "RIGHT at next junction"
-        : (MOVE_FORWARD == move) ? "FORWARD at next junction"
-        : (MOVE_UTURN == move)   ? "U-TURN at next junction"
-                                 : "NO MAPPING");
+    tm_sprintf(msg,
+               (const uint8_t *)"barcode %c%s%s (narrow %d.%d mm, wide %d.%d "
+                                "mm) -> %s",
+               result.letter, result.b_reversed ? " read backwards" : "",
+               (BAR_FIX_STAR == result.fixed)     ? " (one * damaged)"
+               : (BAR_FIX_MERGED == result.fixed) ? " (a lost bar put back)"
+               : (BAR_FIX_CUT == result.fixed) ? " (a missing end bar put back)"
+                                               : "",
+               result.narrow_mm10 / 10, result.narrow_mm10 % 10,
+               result.wide_mm10 / 10, result.wide_mm10 % 10,
+               (MOVE_LEFT == move)      ? "LEFT at next junction"
+               : (MOVE_RIGHT == move)   ? "RIGHT at next junction"
+               : (MOVE_FORWARD == move) ? "FORWARD at next junction"
+               : (MOVE_UTURN == move)   ? "U-TURN at next junction"
+                                        : "NO MAPPING");
     say(msg);
 }
 
@@ -279,13 +281,13 @@ LOCAL void on_barcode (void)
    so the search (from 30 short) meets the arm it is turning to first. */
 #define TURN_SEARCH_DEG 30
 #define TURN_CENTRE_DEG 12
-LOCAL INT spin_line (INT deg, INT ignore);
+LOCAL int32_t spin_line (int32_t deg, int32_t ignore);
 
-LOCAL BOOL turn_onto_line (INT deg)
+LOCAL BOOL turn_onto_line (int32_t deg)
 {
-    INT sgn   = (deg > 0) ? 1 : -1;
-    INT angle = deg * sgn;
-    INT found;
+    int32_t sgn   = (deg > 0) ? 1 : -1;
+    int32_t angle = deg * sgn;
+    int32_t found;
 
     if (!mv(motion_turn(sgn * (angle - TURN_SEARCH_DEG))))
     {
@@ -300,19 +302,20 @@ LOCAL BOOL turn_onto_line (INT deg)
     {
         return mv(motion_turn(sgn * TURN_CENTRE_DEG));
     }
-    say((const UB *)"junction turn: no tape found, back to the planned angle");
+    say((const uint8_t *)"junction turn: no tape found, back to the planned "
+                         "angle");
     return mv(motion_turn(-sgn * TURN_SEARCH_DEG));
 }
 
 LOCAL void on_junction (void)
 {
-    UB  msg[TELE_TEXT_MAX];
-    UB  letter;
-    INT move;
-    INT deg;
-    INT sides = line_junction_sides();
-    INT to_go;
-    W   junc_odo = line_junction_odo();
+    uint8_t msg[TELE_TEXT_MAX];
+    uint8_t letter;
+    int32_t move;
+    int32_t deg;
+    int32_t sides = line_junction_sides();
+    int32_t to_go;
+    int32_t junc_odo = line_junction_odo();
 
     /* A barcode just before the junction may still be being read: B is
        40 mm behind the line sensors, and a code only ends after 40 mm
@@ -338,13 +341,13 @@ LOCAL void on_junction (void)
     motion_follow_limit(0);
     if ((letter != 0) && (MOVE_NONE == move))
     {
-        tm_sprintf(msg, (const UB *)"no mapping for barcode %c", letter);
+        tm_sprintf(msg, (const uint8_t *)"no mapping for barcode %c", letter);
         halt((const char *)msg);
         return;
     }
     g_pending = 0;
-    tm_sprintf(msg, (const UB *)"junction %d (%s): %s (barcode %c)",
-               (INT)line_junctions(),
+    tm_sprintf(msg, (const uint8_t *)"junction %d (%s): %s (barcode %c)",
+               (int32_t)line_junctions(),
                ((sides & JUNC_SIDE_S) != 0) ? "crossing" : "branch left",
                (MOVE_LEFT == move)    ? "LEFT"
                : (MOVE_RIGHT == move) ? "RIGHT"
@@ -366,7 +369,7 @@ LOCAL void on_junction (void)
        reported later than a crossing (B is behind them), so measure
        from there. */
     to_go = S3_SENSOR_TO_AXLE_MM -
-            (INT)S2_COUNTS_TO_MM(motion_odometer() - line_junction_odo());
+            (int32_t)S2_COUNTS_TO_MM(motion_odometer() - line_junction_odo());
     if (((to_go > 0) && (!mv(motion_drive(S5_FOLLOW_SPEED, to_go)))) ||
         ((to_go < 0) && (!mv(motion_drive(-S5_FOLLOW_SPEED, -to_go)))) ||
         (!turn_onto_line(deg)) || (!resume_follow()))
@@ -378,9 +381,9 @@ LOCAL void on_junction (void)
 }
 
 /* Check the way ahead is clear for dist_mm before driving it */
-LOCAL BOOL ahead_clear (INT dist_mm)
+LOCAL BOOL ahead_clear (int32_t dist_mm)
 {
-    INT dist = sonar_ping_mm();
+    int32_t dist = sonar_ping_mm();
 
     return (SONAR_OPEN == dist) ||
            ((dist >= 0) &&
@@ -389,9 +392,9 @@ LOCAL BOOL ahead_clear (INT dist_mm)
 
 /* Drive dist_mm straight; stop as soon as a line sensor sees black, but
    only after from_mm.  1 = line found, 0 = drove it all, -1 = failed */
-LOCAL INT drive_until_line (INT dist_mm, INT from_mm)
+LOCAL int32_t drive_until_line (int32_t dist_mm, int32_t from_mm)
 {
-    W odo0 = motion_odometer();
+    int32_t odo0 = motion_odometer();
 
     if (motion_drive(S5_FOLLOW_SPEED, dist_mm) < E_OK)
     {
@@ -449,23 +452,24 @@ LOCAL INT drive_until_line (INT dist_mm, INT from_mm)
 #define SIDE_TOL_OUT_MM 80  /* ... to lat_exp + this = the box */
 #define SIDE_MISS_PINGS 5   /* no echo in this many = not beside */
 #define SIDE_EXTRA_MM   300 /* at most this past x_pass */
-LOCAL INT pass_box (INT sgn, INT front, INT lat_exp, INT x_pass)
+LOCAL int32_t pass_box (int32_t sgn, int32_t front, int32_t lat_exp,
+                        int32_t x_pass)
 {
-    UB              msg[TELE_TEXT_MAX];
+    uint8_t         msg[TELE_TEXT_MAX];
     BOOL            b_side    = (S5_SERVO_SIDE_DEG > 0);
     BOOL            b_seen    = FALSE;
     BOOL            b_told    = FALSE;
-    INT             line_from = front + D_MAX_MM + 30;
-    INT             first     = 0;
-    INT             last      = 0;
-    INT             miss      = SIDE_MISS_PINGS;
-    INT             stop_at   = x_pass;
-    INT             dist;
-    INT             done;
-    INT             sonar_mm;
-    INT             outcome = -1;
-    UW              t_ping;
-    W               odo0;
+    int32_t         line_from = front + D_MAX_MM + 30;
+    int32_t         first     = 0;
+    int32_t         last      = 0;
+    int32_t         miss      = SIDE_MISS_PINGS;
+    int32_t         stop_at   = x_pass;
+    int32_t         dist;
+    int32_t         done;
+    int32_t         sonar_mm;
+    int32_t         outcome = -1;
+    uint32_t        t_ping;
+    int32_t         odo0;
     motion_status_t status;
 
     /* how far it may go: the way ahead must be clear */
@@ -499,7 +503,7 @@ LOCAL INT pass_box (INT sgn, INT front, INT lat_exp, INT x_pass)
         {
             goto out;
         }
-        done = (INT)S2_COUNTS_TO_MM(motion_odometer() - odo0);
+        done = (int32_t)S2_COUNTS_TO_MM(motion_odometer() - odo0);
 
         if (b_side && ((app_time_us() - t_ping) >= 60000u))
         {
@@ -533,12 +537,13 @@ LOCAL INT pass_box (INT sgn, INT front, INT lat_exp, INT x_pass)
                 b_told = TRUE;
                 if (!b_seen)
                 {
-                    say((const UB *)"side look heard nothing: assuming "
-                                    "the box is at most 150 mm deep");
+                    say((const uint8_t *)"side look heard nothing: assuming "
+                                         "the box is at most 150 mm deep");
                 }
                 else if (stop_at > x_pass)
                 {
-                    say((const UB *)"side look: box still beside, going on");
+                    say((const uint8_t *)"side look: box still beside, going "
+                                         "on");
                 }
             }
         }
@@ -582,8 +587,8 @@ LOCAL INT pass_box (INT sgn, INT front, INT lat_exp, INT x_pass)
         if (b_seen)
         {
             tm_sprintf(msg,
-                       (const UB *)"side look: box heard from %d to %d "
-                                   "mm along, leg %d mm (fixed %d)",
+                       (const uint8_t *)"side look: box heard from %d to %d "
+                                        "mm along, leg %d mm (fixed %d)",
                        first, last, done, x_pass);
             say(msg);
         }
@@ -601,11 +606,11 @@ out:
 
 /* Spin slowly by up to deg; stop when a line sensor sees black after
    ignore degrees.  1 = found, 0 = turned it all, -1 = failed */
-LOCAL INT spin_line (INT deg, INT ignore)
+LOCAL int32_t spin_line (int32_t deg, int32_t ignore)
 {
     motion_status_t status;
-    W               left_start;
-    W               right_start;
+    int32_t         left_start;
+    int32_t         right_start;
 
     motion_get_status(&status);
     left_start  = status.count_l;
@@ -616,8 +621,8 @@ LOCAL INT spin_line (INT deg, INT ignore)
     }
     for (;;)
     {
-        W   wheel_diff;
-        INT turned;
+        int32_t wheel_diff;
+        int32_t turned;
 
         if (app_stop_reasons() != 0u)
         {
@@ -631,8 +636,8 @@ LOCAL INT spin_line (INT deg, INT ignore)
             wheel_diff = -wheel_diff;
         }
         /* counts -> mm of wheel difference -> degrees over the track */
-        turned = (INT)((wheel_diff * S2_UM_PER_COUNT / 1000) * 573 /
-                       (S2_TRACK_MM * 10));
+        turned = (int32_t)((wheel_diff * S2_UM_PER_COUNT / 1000) * 573 /
+                           (S2_TRACK_MM * 10));
         if ((turned >= ignore) && (line_any_black()))
         {
             motion_halt();
@@ -647,7 +652,7 @@ LOCAL INT spin_line (INT deg, INT ignore)
     }
 }
 
-LOCAL INT spin_until_line (INT deg)
+LOCAL int32_t spin_until_line (int32_t deg)
 {
     return spin_line(deg, SPIN_IGNORE_DEG);
 }
@@ -657,16 +662,16 @@ LOCAL void on_obstacle (void)
     obstacle_profile_t scan_near;
     obstacle_profile_t scan_far;
     obstacle_profile_t profile;
-    UB                 msg[TELE_TEXT_MAX];
-    INT                sgn;
-    INT                w_plan;
-    INT                centre;
-    INT                edge_meas;
-    INT                edge_plan;
-    INT                y_off;
-    INT                x_pass;
-    INT                found;
-    W                  odo0;
+    uint8_t            msg[TELE_TEXT_MAX];
+    int32_t            sgn;
+    int32_t            w_plan;
+    int32_t            centre;
+    int32_t            edge_meas;
+    int32_t            edge_plan;
+    int32_t            y_off;
+    int32_t            x_pass;
+    int32_t            found;
+    int32_t            odo0;
 
     set_state(M_MANOEUVRE);
     motion_halt();
@@ -677,8 +682,8 @@ LOCAL void on_obstacle (void)
     if (barcode_busy())
     {
         barcode_reset();
-        say((const UB *)"obstacle while reading a barcode: that read is "
-                        "dropped");
+        say((const uint8_t *)"obstacle while reading a barcode: that read is "
+                             "dropped");
     }
     wait_still();
     if (obstacle_sensor_fault())
@@ -686,14 +691,14 @@ LOCAL void on_obstacle (void)
         halt("ultrasonic not answering (no ECHO), not driving blind");
         return;
     }
-    tm_sprintf(msg, (const UB *)"obstacle ahead at %d mm: scanning",
+    tm_sprintf(msg, (const uint8_t *)"obstacle ahead at %d mm: scanning",
                obstacle_front_mm());
     say(msg);
 
     /* first scan from here, unless it stopped nearer than SCAN_NEAR_MM */
     {
-        INT dist = sonar_ping_mm();
-        INT back = SCAN_NEAR_MM - ((dist >= 0) ? dist : S5_TRIP_MM);
+        int32_t dist = sonar_ping_mm();
+        int32_t back = SCAN_NEAR_MM - ((dist >= 0) ? dist : S5_TRIP_MM);
 
         if (back > 10)
         {
@@ -713,7 +718,7 @@ LOCAL void on_obstacle (void)
     }
     if (!scan_near.b_found)
     {
-        say((const UB *)"scan found nothing ahead, going on");
+        say((const uint8_t *)"scan found nothing ahead, going on");
         if (!resume_follow())
         {
             halt("could not restart");
@@ -734,8 +739,8 @@ LOCAL void on_obstacle (void)
     obstacle_combine(&scan_near, &scan_far, &profile);
     tm_sprintf(
         msg,
-        (const UB *)"obstacle width %d +/- %d mm (scan 1: %d +/- %d, "
-                    "scan 2: %d +/- %d); edges L %d R %d mm; front %d mm",
+        (const uint8_t *)"obstacle width %d +/- %d mm (scan 1: %d +/- %d, "
+                         "scan 2: %d +/- %d); edges L %d R %d mm; front %d mm",
         profile.width_mm, profile.unc_mm, scan_near.width_mm, scan_near.unc_mm,
         scan_far.width_mm, scan_far.unc_mm, profile.left_mm, profile.right_mm,
         profile.front_mm);
@@ -787,10 +792,10 @@ LOCAL void on_obstacle (void)
     }
     y_off  = (sgn * edge_plan) + (S2_ROBOT_WIDTH_MM / 2) + MARGIN_MM;
     x_pass = profile.front_mm + D_MAX_MM + S2_ROBOT_LENGTH_MM + MARGIN_MM;
-    tm_sprintf(
-        msg,
-        (const UB *)"bypass %s: planned width %d mm, out %d mm, past %d mm",
-        (sgn > 0) ? "LEFT" : "RIGHT", w_plan, y_off, x_pass);
+    tm_sprintf(msg,
+               (const uint8_t *)"bypass %s: planned width %d mm, out %d mm, "
+                                "past %d mm",
+               (sgn > 0) ? "LEFT" : "RIGHT", w_plan, y_off, x_pass);
     say(msg);
 
     /* legs 1-4.  The leg past the box (pass_box) watches the line
@@ -829,8 +834,8 @@ LOCAL void on_obstacle (void)
     }
     if (found)
     {
-        tm_sprintf(msg, (const UB *)"line met behind the box, %d mm along",
-                   (INT)S2_COUNTS_TO_MM(motion_odometer() - odo0));
+        tm_sprintf(msg, (const uint8_t *)"line met behind the box, %d mm along",
+                   (int32_t)S2_COUNTS_TO_MM(motion_odometer() - odo0));
         say(msg);
     }
     else
@@ -852,8 +857,8 @@ LOCAL void on_obstacle (void)
             halt("line not found after the bypass");
             return;
         }
-        tm_sprintf(msg, (const UB *)"line found %d mm after the last turn",
-                   (INT)S2_COUNTS_TO_MM(motion_odometer() - odo0));
+        tm_sprintf(msg, (const uint8_t *)"line found %d mm after the last turn",
+                   (int32_t)S2_COUNTS_TO_MM(motion_odometer() - odo0));
         say(msg);
     }
 
@@ -885,15 +890,16 @@ LOCAL void on_obstacle (void)
     {
         goto fail;
     }
-    say((const UB *)"bypass done, following the line");
+    say((const uint8_t *)"bypass done, following the line");
     set_state(M_RUN);
     return;
 fail:
     halt("bypass step did not finish");
 }
 
-EXPORT void mission_task (INT stacd, void * p_exinf)
+EXPORT void mission_task (int32_t stacd, void * p_exinf)
 {
+    /* NOTE: kernel type, tk_wai_flg() writes a UINT (Barr C deviation) */
     UINT ptn;
     ER   err;
     BOOL b_start_was_down = FALSE;
@@ -923,7 +929,7 @@ EXPORT void mission_task (INT stacd, void * p_exinf)
             obstacle_watch(FALSE);
             line_set_enabled(FALSE);
             set_state(M_IDLE);
-            say((const UB *)"STOP");
+            say((const uint8_t *)"STOP");
         }
 
         if ((M_IDLE == g_mstate) && gb_armed)

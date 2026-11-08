@@ -33,26 +33,26 @@
 #define TEST_WHERE_LINE __LINE__
 #endif
 
-#define TEST_INIT() INT test_pass_ = 0, test_fail_ = 0
+#define TEST_INIT() int32_t test_pass_ = 0, test_fail_ = 0
 
-#define TEST_CHECK(id, cond, desc)                                          \
-    do                                                                      \
-    {                                                                       \
-        if (cond)                                                           \
-        {                                                                   \
-            test_pass_++;                                                   \
-            tm_printf((UB *)"[TEST] %s PASS  %s\n", (id), (desc));          \
-        }                                                                   \
-        else                                                                \
-        {                                                                   \
-            test_fail_++;                                                   \
-            tm_printf((UB *)"[TEST] %s FAIL  %s   (%s:%d)\n", (id), (desc), \
-                      TEST_WHERE_FILE, TEST_WHERE_LINE);                    \
-        }                                                                   \
+#define TEST_CHECK(id, cond, desc)                                       \
+    do                                                                   \
+    {                                                                    \
+        if (cond)                                                        \
+        {                                                                \
+            test_pass_++;                                                \
+            tm_printf((uint8_t *)"[TEST] %s PASS  %s\n", (id), (desc));  \
+        }                                                                \
+        else                                                             \
+        {                                                                \
+            test_fail_++;                                                \
+            tm_printf((uint8_t *)"[TEST] %s FAIL  %s   (%s:%d)\n", (id), \
+                      (desc), TEST_WHERE_FILE, TEST_WHERE_LINE);         \
+        }                                                                \
     } while (0)
 
-#define TEST_SUMMARY(name)                                              \
-    tm_printf((UB *)"[TEST] %s SUMMARY %d passed, %d failed\n", (name), \
+#define TEST_SUMMARY(name)                                                   \
+    tm_printf((uint8_t *)"[TEST] %s SUMMARY %d passed, %d failed\n", (name), \
               test_pass_, test_fail_)
 
 /*
@@ -74,32 +74,34 @@
 #define APP_TEST_WINDOW_MS 2000
 #define APP_TEST_SLACK_MS  15 /* one 10 ms tick + 5 ms */
 
-#define TEST_TIMED_(id_rate, id_time, slot, is_periodic)                       \
-    do                                                                         \
-    {                                                                          \
-        app_timing_t a_, b_;                                                   \
-        INT          per_, exp_, got_, ovr_, lim_ms_;                          \
-        app_timing_test_start(slot);                                           \
-        app_timing_get((slot), &a_);                                           \
-        tk_dly_tsk(APP_TEST_WINDOW_MS);                                        \
-        app_timing_get((slot), &b_);                                           \
-        per_    = (INT)b_.period_ms;                                           \
-        got_    = (INT)(b_.count - a_.count);                                  \
-        ovr_    = (INT)(b_.overruns - a_.overruns);                            \
-        exp_    = APP_TEST_WINDOW_MS / ((is_periodic) ? per_ : per_ + 10);     \
-        lim_ms_ = per_ + APP_TEST_SLACK_MS + ((is_periodic) ? 0 : 10);         \
-        tm_printf((UB *)"[TEST] %s: %d wakes in %d ms (expected %s%d), "       \
-                        "longest interval %d us (limit %d ms), overruns %d\n", \
-                  b_.p_name, got_, APP_TEST_WINDOW_MS,                         \
-                  (is_periodic) ? "" : "about ", exp_, (INT)b_.test_max_iv_us, \
-                  lim_ms_, ovr_);                                              \
-        TEST_CHECK((id_rate),                                                  \
-                   (got_ * 10 >= exp_ * 9) &&                                  \
-                       (!(is_periodic) || got_ * 10 <= exp_ * 11 + 10),        \
-                   "wake rate");                                               \
-        TEST_CHECK((id_time),                                                  \
-                   ovr_ == 0 && b_.test_max_iv_us <= (UW)lim_ms_ * 1000u,      \
-                   "no overrun, longest interval within limit");               \
+#define TEST_TIMED_(id_rate, id_time, slot, is_periodic)                      \
+    do                                                                        \
+    {                                                                         \
+        app_timing_t a_, b_;                                                  \
+        int32_t      per_, exp_, got_, ovr_, lim_ms_;                         \
+        app_timing_test_start(slot);                                          \
+        app_timing_get((slot), &a_);                                          \
+        tk_dly_tsk(APP_TEST_WINDOW_MS);                                       \
+        app_timing_get((slot), &b_);                                          \
+        per_    = (int32_t)b_.period_ms;                                      \
+        got_    = (int32_t)(b_.count - a_.count);                             \
+        ovr_    = (int32_t)(b_.overruns - a_.overruns);                       \
+        exp_    = APP_TEST_WINDOW_MS / ((is_periodic) ? per_ : per_ + 10);    \
+        lim_ms_ = per_ + APP_TEST_SLACK_MS + ((is_periodic) ? 0 : 10);        \
+        tm_printf(                                                            \
+            (uint8_t *)"[TEST] %s: %d wakes in %d ms (expected %s%d), "       \
+                       "longest interval %d us (limit %d ms), overruns %d\n", \
+            b_.p_name, got_, APP_TEST_WINDOW_MS,                              \
+            (is_periodic) ? "" : "about ", exp_, (int32_t)b_.test_max_iv_us,  \
+            lim_ms_, ovr_);                                                   \
+        TEST_CHECK((id_rate),                                                 \
+                   (got_ * 10 >= exp_ * 9) &&                                 \
+                       (!(is_periodic) || got_ * 10 <= exp_ * 11 + 10),       \
+                   "wake rate");                                              \
+        TEST_CHECK((id_time),                                                 \
+                   ovr_ == 0 &&                                               \
+                       b_.test_max_iv_us <= (uint32_t)lim_ms_ * 1000u,        \
+                   "no overrun, longest interval within limit");              \
     } while (0)
 
 #define TEST_PERIODIC(id_rate, id_time, slot) \

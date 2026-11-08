@@ -5,12 +5,12 @@
 
 #include "subsystem4.h"
 
-EXPORT ID  gh_tid_safety;
-EXPORT ID  gh_cyc_safety;
-EXPORT INT g_tmg_safety;
-EXPORT ID  gh_tid_imu;
-EXPORT ID  gh_cyc_imu;
-EXPORT INT g_tmg_imu;
+EXPORT ID      gh_tid_safety;
+EXPORT ID      gh_cyc_safety;
+EXPORT int32_t g_tmg_safety;
+EXPORT ID      gh_tid_imu;
+EXPORT ID      gh_cyc_imu;
+EXPORT int32_t g_tmg_imu;
 
 EXPORT ER subsystem4_init (void)
 {

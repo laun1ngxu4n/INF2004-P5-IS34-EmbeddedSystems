@@ -96,7 +96,7 @@
 
 /* IF-03: steering for Motion, mm/s added to the right wheel and taken
    from the left (+ = turn left).  Latest value only. */
-IMPORT INT line_steer_mm_s (void);
+IMPORT int32_t line_steer_mm_s (void);
 
 /* Line state, for Mission and telemetry */
 #define LINE_ON     0 /* following */
@@ -105,60 +105,61 @@ IMPORT INT line_steer_mm_s (void);
 /* a line sensor looks stuck (line_fault() says which); Mission stops as for
  * LINE_LOST */
 #define LINE_FAULT 3
-IMPORT INT line_state (void);
-#define LINE_FAULT_BOTH 1          /* both black for S3_STUCK_BOTH_MM */
-#define LINE_FAULT_ONE  2          /* one black for S3_STUCK_ONE_MM */
-IMPORT INT  line_fault (void);     /* LINE_FAULT_... or 0 */
-IMPORT UW   line_junctions (void); /* junctions seen since boot */
-IMPORT void line_wobble (UW * corrections, UW * sweeps); /* since the start:
-                            corrections begun, and sweeps right
+IMPORT int32_t line_state (void);
+#define LINE_FAULT_BOTH 1              /* both black for S3_STUCK_BOTH_MM */
+#define LINE_FAULT_ONE  2              /* one black for S3_STUCK_ONE_MM */
+IMPORT int32_t  line_fault (void);     /* LINE_FAULT_... or 0 */
+IMPORT uint32_t line_junctions (void); /* junctions seen since boot */
+IMPORT void line_wobble (uint32_t * corrections, uint32_t * sweeps); /* since
+                            the start: corrections begun, and sweeps right
                             across the tape (zigzag) */
-IMPORT W line_junction_odo (void);      /* last junction's centre, where the
-                           line sensors crossed it (odometer
-                           counts) */
-IMPORT INT  line_junction_sides (void); /* its branches: JUNC_SIDE_S | _B */
-IMPORT void line_set_enabled (BOOL on); /* FALSE: no junction / lost events
-                           (during turns and bypasses) */
-IMPORT BOOL line_any_black (void);      /* raw: either line sensor on black */
-IMPORT INT  line_speed_pct (void);      /* % of the follow speed Motion may
-                           use: 100 on track, less while
-                           correcting or searching */
+IMPORT int32_t line_junction_odo (void);   /* last junction's centre, where the
+                        line sensors crossed it (odometer
+                        counts) */
+IMPORT int32_t line_junction_sides (void); /* its branches: JUNC_SIDE_S | _B */
+IMPORT void    line_set_enabled (BOOL on); /* FALSE: no junction / lost events
+                              (during turns and bypasses) */
+IMPORT BOOL    line_any_black (void); /* raw: either line sensor on black */
+IMPORT int32_t line_speed_pct (void); /* % of the follow speed Motion may
+                     use: 100 on track, less while
+                     correcting or searching */
 
 /* Barcode results */
 typedef struct
 {
-    UW   seq;         /* +1 for every decode attempt */
-    BOOL b_ok;        /* FALSE = READ_FAIL */
-    UB   letter;      /* decoded data character ('A'..'Z', '0'..'9', ...) */
-    BOOL b_reversed;  /* read backwards */
-    INT  elements;    /* bars + spaces seen */
-    INT  narrow_mm10; /* mean narrow element, 0.1 mm */
-    INT  wide_mm10;   /* mean wide element, 0.1 mm */
-    UB   fixed;       /* 0 clean read; BAR_FIX_STAR one '*' damaged;
-                     BAR_FIX_MERGED a lost narrow element put back;
-                     BAR_FIX_CUT a missing end bar put back */
+    uint32_t seq;         /* +1 for every decode attempt */
+    BOOL     b_ok;        /* FALSE = READ_FAIL */
+    uint8_t  letter;      /* decoded data character ('A'..'Z', '0'..'9', ...) */
+    BOOL     b_reversed;  /* read backwards */
+    int32_t  elements;    /* bars + spaces seen */
+    int32_t  narrow_mm10; /* mean narrow element, 0.1 mm */
+    int32_t  wide_mm10;   /* mean wide element, 0.1 mm */
+    uint8_t  fixed;       /* 0 clean read; BAR_FIX_STAR one '*' damaged;
+                    BAR_FIX_MERGED a lost narrow element put back;
+                    BAR_FIX_CUT a missing end bar put back */
 } barcode_result_t;
 #define BAR_FIX_STAR   1
 #define BAR_FIX_MERGED 2
 #define BAR_FIX_CUT    3 /* a weak narrow bar at an end not seen */
-IMPORT void barcode_last (barcode_result_t * r);
-IMPORT BOOL barcode_busy (void);  /* inside a barcode now (Motion slows) */
-IMPORT UW   barcode_edges (void); /* barcode sensor edges since boot */
-IMPORT BOOL barcode_black (void); /* sensor sees black now (either input) */
+IMPORT void     barcode_last (barcode_result_t * r);
+IMPORT BOOL     barcode_busy (void);  /* inside a barcode now (Motion slows) */
+IMPORT uint32_t barcode_edges (void); /* barcode sensor edges since boot */
+IMPORT BOOL     barcode_black (void); /* sensor sees black now (either input) */
 /* Analogue input only (S3_BARCODE_ANALOG 1): last raw value and the learned
    white / black levels, 0..4095.  FALSE in the digital build. */
-IMPORT BOOL barcode_adc (INT * raw, INT * white, INT * black);
-IMPORT BOOL barcode_in_bars (void); /* B is over bars now: hold the
-                       steering straight */
-IMPORT UW   barcode_seq (void);     /* +1 for every result published */
-IMPORT void barcode_reset (void);   /* drop a half-read code (start of
-                       a run); blocks 30 ms */
-IMPORT UW barcode_debug (INT * n, INT * w_mm10, INT max); /* last code that
-                         ended, any length; returns a seq */
+IMPORT BOOL barcode_adc (int32_t * raw, int32_t * white, int32_t * black);
+/* B is over bars now: hold the steering straight. */
+IMPORT BOOL barcode_in_bars (void);
+/* +1 for every result published. */
+IMPORT uint32_t barcode_seq (void);
+/* Drop a half-read code (start of a run); blocks 30 ms. */
+IMPORT void barcode_reset (void);
+/* The last code that ended, any length; returns a seq. */
+IMPORT uint32_t barcode_debug (int32_t * n, int32_t * w_mm10, int32_t max);
 /* Last first-bar under B (published as soon as it ends): a left branch
    if about one tape wide; else a grout line or a barcode's start bar.
    Its centre (odometer counts) and width.  Returns a seq, +1 for each. */
-IMPORT UW barcode_mark (W * centre_odo, INT * width_mm10);
+IMPORT uint32_t barcode_mark (int32_t * centre_odo, int32_t * width_mm10);
 
 /* Mapping (TEAM.md 7.1 B7/B8): exactly 4 pairs "K=L,Q=R,X=F,M=U".
    L left, R right, F forward, U U-turn.  Returns TRUE if accepted.  On
@@ -168,21 +169,22 @@ IMPORT UW barcode_mark (W * centre_odo, INT * width_mm10);
 #define MOVE_RIGHT   'R'
 #define MOVE_FORWARD 'F'
 #define MOVE_UTURN   'U'
-IMPORT BOOL barcode_set_mapping (const UB * text, INT len, UB * why,
-                                 INT why_max);
-IMPORT INT  barcode_move_for (UB ch); /* MOVE_... or MOVE_NONE */
-IMPORT INT  barcode_mapping_text (UB * out, INT max); /* "K=L,Q=R,..." or "" */
+IMPORT BOOL    barcode_set_mapping (const uint8_t * text, int32_t len,
+                                    uint8_t * why, int32_t why_max);
+IMPORT int32_t barcode_move_for (uint8_t ch); /* MOVE_... or MOVE_NONE */
+IMPORT int32_t barcode_mapping_text (uint8_t * out,
+                                     int32_t   max); /* "K=L,Q=R,..." or "" */
 
 /* Private to subsystem 3, shared between its own .c files */
-IMPORT ID   gh_tid_line;
-IMPORT ID   gh_cyc_line;
-IMPORT INT  g_tmg_line;
-IMPORT ID   gh_tid_barcode;
-IMPORT INT  g_tmg_barcode;
-IMPORT void line_task (INT stacd, void * exinf);
-IMPORT void barcode_task (INT stacd, void * exinf);
-IMPORT ER   barcode_hw_init (void);
-IMPORT ER   line_hw_init (void);
+IMPORT ID      gh_tid_line;
+IMPORT ID      gh_cyc_line;
+IMPORT int32_t g_tmg_line;
+IMPORT ID      gh_tid_barcode;
+IMPORT int32_t g_tmg_barcode;
+IMPORT void    line_task (int32_t stacd, void * exinf);
+IMPORT void    barcode_task (int32_t stacd, void * exinf);
+IMPORT ER      barcode_hw_init (void);
+IMPORT ER      line_hw_init (void);
 
 #endif /* SUBSYSTEM3_H */
 

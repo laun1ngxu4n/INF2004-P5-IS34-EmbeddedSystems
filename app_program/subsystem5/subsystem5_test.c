@@ -17,7 +17,7 @@
 
 EXPORT void subsystem5_test (void)
 {
-    UW pings_start;
+    uint32_t pings_start;
 
     TEST_INIT();
 
@@ -30,8 +30,8 @@ EXPORT void subsystem5_test (void)
     /* INT-01: Telemetry's 1 Hz ping (IF-01) reaches Mission */
     pings_start = g_mission_pings;
     tk_dly_tsk(3000);
-    tm_printf((UB *)"[TEST] mission: %d pings in 3000 ms (expected 3)\n",
-              (INT)(g_mission_pings - pings_start));
+    tm_printf((uint8_t *)"[TEST] mission: %d pings in 3000 ms (expected 3)\n",
+              (int32_t)(g_mission_pings - pings_start));
     TEST_CHECK("INT-01",
                ((g_mission_pings - pings_start) >= 2) &&
                    ((g_mission_pings - pings_start) <= 4),
@@ -48,11 +48,11 @@ EXPORT void subsystem5_stage_test (void)
     obstacle_profile_t scan_far;
     obstacle_profile_t profile;
     motion_status_t    status;
-    INT                kdx;
-    INT                tick;
+    int32_t            kdx;
+    int32_t            tick;
     TEST_INIT();
 
-    tm_printf((UB *)"\n[DRIVE] === Stage 3: obstacle ===\n");
+    tm_printf((uint8_t *)"\n[DRIVE] === Stage 3: obstacle ===\n");
     servo_set_angle(90);
     test_wait_start("Servo check: the ultrasonic should point STRAIGHT AHEAD "
                     "(if not, refit the horn while it is powered).");
@@ -71,34 +71,37 @@ EXPORT void subsystem5_stage_test (void)
         test_wait_start("Side look check next (12 s): get a box ready to hold "
                         "beside the robot on the right, then press START.");
         tm_printf(
-            (UB *)"[S5] side look check, 12 s: the sonar points %d deg "
-                  "right. Hold a box BESIDE the robot on the right, its face "
-                  "parallel to the robot's side (as when driving past it), "
-                  "about 20 cm out, level with the sonar: it should read "
-                  "about 200. Then slide it backwards past the sonar: the "
-                  "reading should go away once the box is behind it.\n",
+            (uint8_t *)"[S5] side look check, 12 s: the sonar points %d deg "
+                       "right. Hold a box BESIDE the robot on the right, its "
+                       "face "
+                       "parallel to the robot's side (as when driving past "
+                       "it), "
+                       "about 20 cm out, level with the sonar: it should read "
+                       "about 200. Then slide it backwards past the sonar: the "
+                       "reading should go away once the box is behind it.\n",
             S5_SERVO_SIDE_DEG);
         for (tick = 0; tick < 40; tick++)
         {
-            tm_printf((UB *)"[S5] side %d mm\n", sonar_ping_mm());
+            tm_printf((uint8_t *)"[S5] side %d mm\n", sonar_ping_mm());
             tk_dly_tsk(240);
         }
     }
     servo_set_angle(90);
 
     tm_printf(
-        (UB *)"[S5] forward distance for 10 s: move your hand in front\n");
+        (uint8_t *)"[S5] forward distance for 10 s: move your hand in front\n");
     for (tick = 0; tick < 30; tick++)
     {
-        tm_printf((UB *)"[S5] front %d mm\n", sonar_ping_mm());
+        tm_printf((uint8_t *)"[S5] front %d mm\n", sonar_ping_mm());
         tk_dly_tsk(270);
     }
 
     for (kdx = 1; kdx <= 3; kdx++)
     {
-        tm_printf((UB *)"\n[DRIVE] S5-O01 width, try %d of 3 (a different box "
-                        "each time, 10-20 cm wide; STOP ends early)\n",
-                  kdx);
+        tm_printf(
+            (uint8_t *)"\n[DRIVE] S5-O01 width, try %d of 3 (a different box "
+                       "each time, 10-20 cm wide; STOP ends early)\n",
+            kdx);
         test_wait_start(
             "Box about 250 mm straight ahead of the sensor (where "
             "the forward watch stops and the bypass scans first), "
@@ -115,10 +118,11 @@ EXPORT void subsystem5_stage_test (void)
         obstacle_scan(&scan_far);
         obstacle_combine(&scan_near, &scan_far, &profile);
         tm_printf(
-            (UB *)"[S5-O01] try %d: width %d +/- %d mm (scan 1 %d +/- %d, "
-                  "scan 2 %d +/- %d), edges L %d R %d, front %d, clear L %d R "
-                  "%d, "
-                  "edge seen by scan 1 L %d R %d, scan 2 L %d R %d\n",
+            (uint8_t *)"[S5-O01] try %d: width %d +/- %d mm (scan 1 %d +/- %d, "
+                       "scan 2 %d +/- %d), edges L %d R %d, front %d, clear L "
+                       "%d R "
+                       "%d, "
+                       "edge seen by scan 1 L %d R %d, scan 2 L %d R %d\n",
             kdx, profile.width_mm, profile.unc_mm, scan_near.width_mm,
             scan_near.unc_mm, scan_far.width_mm, scan_far.unc_mm,
             profile.left_mm, profile.right_mm, profile.front_mm,
@@ -132,9 +136,9 @@ EXPORT void subsystem5_stage_test (void)
     }
     TEST_SUMMARY("subsystem5 stage 3");
 
-    tm_printf(
-        (UB *)"\n[DRIVE] S5-O02 bypass: Mission takes over. Put an obstacle "
-              "on the line ahead of the robot.\n");
+    tm_printf((uint8_t *)"\n[DRIVE] S5-O02 bypass: Mission takes over. Put an "
+                         "obstacle "
+                         "on the line ahead of the robot.\n");
     app_course_test(TRUE, FALSE); /* IMU is Stage 4 */
 }
 

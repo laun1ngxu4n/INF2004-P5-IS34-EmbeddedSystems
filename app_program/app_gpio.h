@@ -25,24 +25,24 @@
 #define APP_GPIO_RISE 0x8u /* rising edge */
 #define APP_GPIO_BOTH (APP_GPIO_FALL | APP_GPIO_RISE)
 
-typedef void (*app_gpio_cb_t)(UINT pin, UW events);
+typedef void (*app_gpio_cb_t)(uint32_t pin, uint32_t events);
 
 /* Called once by usermain() before any subsystemN_init() */
 IMPORT ER app_gpio_init (void);
 
 /* Make pin an input, with or without the internal pull-up */
-IMPORT ER app_gpio_input (UINT pin, BOOL pull_up);
+IMPORT ER app_gpio_input (uint32_t pin, BOOL pull_up);
 
 /* Call cb on the given edges of pin.  One callback per pin. */
-IMPORT ER app_gpio_irq_add (UINT pin, UW events, app_gpio_cb_t cb);
+IMPORT ER app_gpio_irq_add (uint32_t pin, uint32_t events, app_gpio_cb_t cb);
 
 /* Take peripheral blocks out of reset (RESETS_RESET_PWM, _I2C1, ...).
    The kernel only releases what its own drivers use: with USE_PTMR = 0
    the PWM block stays in reset, so motors and servo must call this. */
-IMPORT void app_hw_release (UW resets_mask);
+IMPORT void app_hw_release (uint32_t resets_mask);
 
 /* Make pin a plain output (low) */
-IMPORT ER app_gpio_output (UINT pin);
+IMPORT ER app_gpio_output (uint32_t pin);
 
 /* Current level of an input pin (0 or 1) */
 #define app_gpio_get(pin) ((in_w(GPIO_IN) >> (pin)) & 1u)

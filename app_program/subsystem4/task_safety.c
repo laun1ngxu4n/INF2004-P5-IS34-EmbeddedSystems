@@ -7,7 +7,7 @@
 
 #include "subsystem4.h"
 
-EXPORT void safety_task (INT stacd, void * p_exinf)
+EXPORT void safety_task (int32_t stacd, void * p_exinf)
 {
     (void)stacd;
     (void)p_exinf;

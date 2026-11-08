@@ -89,27 +89,27 @@ IMPORT ID gh_flg_mission;
 IMPORT void obstacle_watch (BOOL on); /* forward watch during line following */
 IMPORT void obstacle_idle_ping (BOOL on); /* mission image: ping for the panel
                          while Mission is IDLE (never during manoeuvres) */
-IMPORT BOOL obstacle_sensor_fault (void); /* 5 pings in a row without ECHO */
-IMPORT INT  obstacle_front_mm (void);     /* last forward reading, -1 = none */
+IMPORT BOOL    obstacle_sensor_fault (void); /* 5 pings in a row without ECHO */
+IMPORT int32_t obstacle_front_mm (void); /* last forward reading, -1 = none */
 
 typedef struct
 {
-    BOOL b_found;      /* an obstacle straight ahead */
-    INT  front_mm;     /* distance straight ahead */
-    INT  left_mm;      /* left edge, mm left of the robot's centre line */
-    INT  right_mm;     /* right edge, mm (negative = right of centre) */
-    INT  width_mm;     /* left - right */
-    INT  unc_mm;       /* +/- uncertainty */
-    BOOL b_left_clear; /* open space beyond the left edge */
-    BOOL b_right_clear;
-    BOOL b_left_seen; /* the scan saw past the left edge (FALSE:
-               the obstacle filled the scan that side,
-               edge and clear unknown) */
-    BOOL b_right_seen;
-    INT  left_unc; /* +/- of each edge */
-    INT  right_unc;
-    INT  rays;       /* rays scanned */
-    INT  fault_rays; /* rays where the sensor did not answer */
+    BOOL    b_found;      /* an obstacle straight ahead */
+    int32_t front_mm;     /* distance straight ahead */
+    int32_t left_mm;      /* left edge, mm left of the robot's centre line */
+    int32_t right_mm;     /* right edge, mm (negative = right of centre) */
+    int32_t width_mm;     /* left - right */
+    int32_t unc_mm;       /* +/- uncertainty */
+    BOOL    b_left_clear; /* open space beyond the left edge */
+    BOOL    b_right_clear;
+    BOOL    b_left_seen; /* the scan saw past the left edge (FALSE:
+                  the obstacle filled the scan that side,
+                  edge and clear unknown) */
+    BOOL    b_right_seen;
+    int32_t left_unc; /* +/- of each edge */
+    int32_t right_unc;
+    int32_t rays;       /* rays scanned */
+    int32_t fault_rays; /* rays where the sensor did not answer */
 } obstacle_profile_t;
 
 /* Blocking: called by Mission (or a test) while the robot stands still.
@@ -119,18 +119,18 @@ IMPORT void obstacle_scan (obstacle_profile_t * p);
 IMPORT void obstacle_combine (const obstacle_profile_t * a,
                               const obstacle_profile_t * b,
                               obstacle_profile_t *       out);
-IMPORT void servo_set_angle (INT deg);  /* 90 = ahead, clamped to 90 +/-
+IMPORT void servo_set_angle (int32_t deg);  /* 90 = ahead, clamped to 90 +/-
                            the larger of S5_SERVO_HALF_DEG and
                            S5_SERVO_SIDE_DEG; blocks while it
                            turns (slowly) */
-IMPORT void servo_look_side (INT side); /* +1 left, -1 right, 0 ahead:
+IMPORT void servo_look_side (int32_t side); /* +1 left, -1 right, 0 ahead:
                            S5_SERVO_SIDE_DEG that way */
-IMPORT INT
+IMPORT int32_t
 sonar_ping_mm (void); /* blocking 60 ms; mm, SONAR_OPEN or SONAR_FAULT */
 /* The same in two halves, so the caller can do other things in the 60 ms:
    start, then read at least 60 ms later */
-IMPORT void sonar_ping_start (void);
-IMPORT INT  sonar_ping_result (void);
+IMPORT void    sonar_ping_start (void);
+IMPORT int32_t sonar_ping_result (void);
 
 /* ---- Mission ------------------------------------------------------- */
 IMPORT const char * mission_state_name (void);
@@ -143,15 +143,15 @@ IMPORT void mission_arm (BOOL on);
 IMPORT void mission_features (BOOL obstacles, BOOL imu);
 
 /* Private to subsystem 5, shared between its own .c files */
-IMPORT ID   gh_tid_mission;
-IMPORT INT  g_tmg_mission;
-IMPORT UW   g_mission_pings; /* written only by the Mission task */
-IMPORT ID   gh_tid_obstacle;
-IMPORT ID   gh_cyc_obstacle;
-IMPORT INT  g_tmg_obstacle;
-IMPORT void mission_task (INT stacd, void * exinf);
-IMPORT void obstacle_task (INT stacd, void * exinf);
-IMPORT ER   obstacle_hw_init (void);
+IMPORT ID       gh_tid_mission;
+IMPORT int32_t  g_tmg_mission;
+IMPORT uint32_t g_mission_pings; /* written only by the Mission task */
+IMPORT ID       gh_tid_obstacle;
+IMPORT ID       gh_cyc_obstacle;
+IMPORT int32_t  g_tmg_obstacle;
+IMPORT void     mission_task (int32_t stacd, void * exinf);
+IMPORT void     obstacle_task (int32_t stacd, void * exinf);
+IMPORT ER       obstacle_hw_init (void);
 
 #endif /* SUBSYSTEM5_H */
 

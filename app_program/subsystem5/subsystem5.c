@@ -6,16 +6,16 @@
 
 #include "subsystem5.h"
 
-EXPORT ID  gh_flg_mission; /* IF-01 */
-EXPORT ID  gh_tid_mission;
-EXPORT INT g_tmg_mission;
-EXPORT UW  g_mission_pings;
-EXPORT ID  gh_tid_obstacle;
-EXPORT ID  gh_cyc_obstacle;
-EXPORT INT g_tmg_obstacle;
+EXPORT ID       gh_flg_mission; /* IF-01 */
+EXPORT ID       gh_tid_mission;
+EXPORT int32_t  g_tmg_mission;
+EXPORT uint32_t g_mission_pings;
+EXPORT ID       gh_tid_obstacle;
+EXPORT ID       gh_cyc_obstacle;
+EXPORT int32_t  g_tmg_obstacle;
 
 /* GP21 pressed: interrupt context.  Stop first, then tell Mission. */
-LOCAL void stop_button_isr (UINT pin, UW events)
+LOCAL void stop_button_isr (uint32_t pin, uint32_t events)
 {
     (void)pin;
     (void)events;

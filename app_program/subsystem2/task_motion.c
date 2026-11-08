@@ -63,6 +63,7 @@ LOCAL ID cmd_post (int32_t type, int32_t speed, int32_t amount)
     {
         return E_OBJ;
     }
+
     APP_LOCK(irq_state);
     h_cmd               = ++gh_cmd_last_id;
     g_cmd_slot.type     = type;
@@ -143,6 +144,7 @@ LOCAL int32_t wheel_duty (wheel_pi_t * p_wheel, float32_t target,
         p_wheel->integ = 0.0f;
         return 0;
     }
+
     feedfwd =
         (FF_PER_MM_S * target) + ((target > 0.0f) ? FF_OFFSET : -FF_OFFSET);
     p_wheel->integ =
@@ -199,11 +201,13 @@ EXPORT void motion_task (int32_t stacd, void * p_exinf)
         hist_pos         = (hist_pos + 1) % SPEED_AVG_N;
         prev_l           = count_left;
         prev_r           = count_right;
+
         for (idx = 0; idx < SPEED_AVG_N; idx++)
         {
             sum_l += hist_l[idx];
             sum_r += hist_r[idx];
         }
+
         /* counts per 40 ms -> mm/s */
         vel_left =
             (float32_t)sum_l * S2_UM_PER_COUNT / (1000.0f * SPEED_AVG_N * DT_S);
@@ -213,23 +217,27 @@ EXPORT void motion_task (int32_t stacd, void * p_exinf)
         /* Take a new command (it replaces a running one) */
         b_fresh = FALSE;
         APP_LOCK(irq_state);
+
         if (gb_cmd_new)
         {
             cur        = g_cmd_slot;
             gb_cmd_new = FALSE;
             b_fresh    = TRUE;
         }
+
         APP_UNLOCK(irq_state);
 
         /* 2. STOP wins over everything */
         if (app_stop_reasons() != 0u)
         {
             motor_safe_off();
+
             if (cur.type != CMD_NONE)
             {
                 result   = MOT_RES_STOPPED;
                 cur.type = CMD_NONE;
             }
+
             pi_l.integ = pi_r.integ = 0.0f;
             v_prof                  = 0.0f;
             goto publish;
@@ -244,6 +252,7 @@ EXPORT void motion_task (int32_t stacd, void * p_exinf)
             v_prof     = 0.0f;
             pi_l.integ = pi_r.integ = 0.0f;
             result                  = MOT_RES_BUSY;
+
             if (CMD_DRIVE == cur.type)
             {
                 limit_ms = (uint32_t)(2000 * absf((float32_t)cur.amount) /
@@ -262,7 +271,8 @@ EXPORT void motion_task (int32_t stacd, void * p_exinf)
                 limit_ms = 0; /* runs until replaced */
             }
             else
-            { /* HALT */
+            {
+                /* HALT */
                 result   = MOT_RES_DONE;
                 cur.type = CMD_NONE;
             }
@@ -290,6 +300,7 @@ EXPORT void motion_task (int32_t stacd, void * p_exinf)
                broke a read into pieces).  The code is read in one
                pass; the back-up-and-reread (2-7 Nov) was removed on
                7 Nov. */
+
             if (barcode_in_bars())
             {
                 steer = 0.0f;
@@ -303,21 +314,27 @@ EXPORT void motion_task (int32_t stacd, void * p_exinf)
                does not run past the line (Stage 2 run, 7 Nov: the tape
                slipped out past the sensor on tight left curves).  Over a
                barcode: slow. */
+
             if (b_off)
             {
                 cap = cap * (float32_t)pct / 100.0f;
             }
+
             if ((barcode_busy()) && (cap > (float32_t)S2_SPEED_IN_BARCODE))
             {
                 cap = (float32_t)S2_SPEED_IN_BARCODE;
             }
+
             v_prof += ACCEL_MM_S2 * DT_S;
+
             if (v_prof > cap)
             {
                 v_prof = cap;
             }
+
             t_l = v_prof - steer;
             t_r = v_prof + steer;
+
             if (!b_off)
             {
                 /* on the line: never run a wheel backwards */
@@ -325,11 +342,13 @@ EXPORT void motion_task (int32_t stacd, void * p_exinf)
                 {
                     t_l = 0.0f;
                 }
+
                 if (t_r < 0.0f)
                 {
                     t_r = 0.0f;
                 }
             }
+
             duty_l = wheel_duty(&pi_l, t_l, vel_left);
             duty_r = wheel_duty(&pi_r, t_r, vel_right);
             motor_write(duty_l, duty_r);
@@ -364,6 +383,7 @@ EXPORT void motion_task (int32_t stacd, void * p_exinf)
                 done_left  = (cur.amount >= 0) ? -dl_mm : dl_mm;
                 done_right = (cur.amount >= 0) ? dr_mm : -dr_mm;
             }
+
             done   = 0.5f * (done_left + done_right);
             remain = target - done;
 
@@ -379,15 +399,19 @@ EXPORT void motion_task (int32_t stacd, void * p_exinf)
 
             /* Profile: ramp up, never faster than can stop in 'remain' */
             v_cap = app_sqrtf(2.0f * ACCEL_MM_S2 * remain);
+
             if (v_cap < V_MIN_MM_S)
             {
                 v_cap = V_MIN_MM_S;
             }
+
             v_prof += ACCEL_MM_S2 * DT_S;
+
             if (v_prof > absf((float32_t)cur.speed))
             {
                 v_prof = absf((float32_t)cur.speed);
             }
+
             if (v_prof > v_cap)
             {
                 v_prof = v_cap;
@@ -405,10 +429,12 @@ EXPORT void motion_task (int32_t stacd, void * p_exinf)
                 {
                     t_l = 0.0f;
                 }
+
                 if (t_r < 0.0f)
                 {
                     t_r = 0.0f;
                 }
+
                 /* measured speeds in the same "along the move" sense */
                 if (CMD_DRIVE == cur.type)
                 {
@@ -420,9 +446,11 @@ EXPORT void motion_task (int32_t stacd, void * p_exinf)
                     m_l = (cur.amount >= 0) ? -vel_left : vel_left;
                     m_r = (cur.amount >= 0) ? vel_right : -vel_right;
                 }
+
                 duty_l = wheel_duty(&pi_l, t_l, m_l);
                 duty_r = wheel_duty(&pi_r, t_r, m_r);
             }
+
             /* back to wheel directions */
             if (CMD_DRIVE == cur.type)
             {
@@ -440,6 +468,7 @@ EXPORT void motion_task (int32_t stacd, void * p_exinf)
             {
                 duty_r = -duty_r;
             }
+
             motor_write(duty_l, duty_r);
         }
         else
@@ -449,10 +478,13 @@ EXPORT void motion_task (int32_t stacd, void * p_exinf)
 
     publish:
         APP_LOCK(irq_state);
+
         if (!gb_cmd_new)
-        { /* a newer command keeps its BUSY */
+        {
+            /* a newer command keeps its BUSY */
             g_status.result = result;
         }
+
         g_status.count_l = count_left;
         g_status.count_r = count_right;
         g_status.speed_l = (int32_t)vel_left;

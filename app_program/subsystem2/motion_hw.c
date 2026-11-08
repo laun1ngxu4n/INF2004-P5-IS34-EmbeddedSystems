@@ -49,6 +49,7 @@ LOCAL uint8_t enc_ab (int32_t wheel)
         return (uint8_t)((((pins >> PIN_ENC_L_A) & 1u) << 1) |
                          ((pins >> PIN_ENC_L_B) & 1u));
     }
+
     return (uint8_t)((((pins >> PIN_ENC_R_A) & 1u) << 1) |
                      ((pins >> PIN_ENC_R_B) & 1u));
 }
@@ -62,6 +63,7 @@ LOCAL void encoder_edge_isr (uint32_t pin, uint32_t events)
     int8_t  step     = g_qdec[(g_enc_prev[wheel] << 2) | state_ab];
 
     (void)events;
+
     if (QDEC_BAD == step)
     {
         g_enc_invalid++;
@@ -70,6 +72,7 @@ LOCAL void encoder_edge_isr (uint32_t pin, uint32_t events)
     {
         g_enc_count[wheel] += step;
     }
+
     g_enc_prev[wheel] = state_ab;
 }
 
@@ -88,10 +91,12 @@ LOCAL uint32_t cc_pair (int32_t duty)
     {
         duty = DUTY_FULL;
     }
+
     if (duty < -DUTY_FULL)
     {
         duty = -DUTY_FULL;
     }
+
     level =
         (uint32_t)((duty >= 0) ? duty : -duty) * (PWM_WRAP + 1u) / DUTY_FULL;
     return (duty >= 0) ? level : (level << 16);
@@ -104,11 +109,13 @@ EXPORT void motor_write (int32_t duty_l, int32_t duty_r)
     uint32_t irq_state;
 
     APP_LOCK(irq_state);
+
     if (app_stop_reasons() != 0u)
     {
         cc_l = 0u; /* STOP always wins */
         cc_r = 0u;
     }
+
     out_w(PWM_CC_L, cc_l);
     out_w(PWM_CC_R, cc_r);
     APP_UNLOCK(irq_state);
@@ -132,12 +139,14 @@ EXPORT void encoder_read (int32_t * p_left, int32_t * p_right,
     uint32_t irq_state;
 
     APP_LOCK(irq_state);
+
     *p_left  = -g_enc_count[WHEEL_L];
     *p_right = g_enc_count[WHEEL_R];
     if (p_invalid != NULL)
     {
         *p_invalid = g_enc_invalid;
     }
+
     APP_UNLOCK(irq_state);
 }
 
@@ -151,10 +160,12 @@ EXPORT ER motion_hw_init (void)
 
     app_hw_release(RESETS_RESET_PWM); /* not released by the kernel */
     motor_safe_off();
+
     for (idx = 0; idx < 4; idx++)
     {
         pwm_set_pin(mpins[idx]);
     }
+
     pwm_set_wrap(PIN_M_L_A, PWM_WRAP);
     pwm_set_wrap(PIN_M_R_A, PWM_WRAP);
     pwm_set_enabled(PIN_M_L_A, TRUE);
@@ -164,21 +175,26 @@ EXPORT ER motion_hw_init (void)
     {
         /* pull-up: harmless for push-pull, needed for open-collector */
         err = app_gpio_input(epins[idx], TRUE);
+
         if (err < E_OK)
         {
             return err;
         }
     }
+
     g_enc_prev[WHEEL_L] = enc_ab(WHEEL_L);
     g_enc_prev[WHEEL_R] = enc_ab(WHEEL_R);
+
     for (idx = 0; idx < 4; idx++)
     {
         err = app_gpio_irq_add(epins[idx], APP_GPIO_BOTH, encoder_edge_isr);
+
         if (err < E_OK)
         {
             return err;
         }
     }
+
     return E_OK;
 }
 

@@ -121,6 +121,7 @@ LOCAL BOOL chip_setup (void)
     {
         return FALSE;
     }
+
     return (E_OK == imu_i2c_write(IMU_ADDR, 0x20,
                                   0x6F)) && /* CTRL1: 100 Hz, BDU, XYZ */
            (E_OK == imu_i2c_write(IMU_ADDR, 0x21, 0xC8)) && /* CTRL2: +/-4 g, 50
@@ -178,19 +179,23 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
             {
                 retry      = 100; /* try again in 1 s */
                 gb_chip_ok = chip_setup();
+
                 if (gb_chip_ok)
                 {
                     tm_printf((uint8_t *)"[IMU] LSM303D found at 0x1D\n");
                 }
             }
+
             goto done;
         }
+
         if (imu_i2c_read(IMU_ADDR, REG_OUT_X_L_A, raw, 6) != E_OK)
         {
             gb_chip_ok = FALSE;
             tele_event((const uint8_t *)"IMU read failed, retrying");
             goto done;
         }
+
         {
             float32_t acc_x = (float32_t)(int16_t)(raw[0] | (raw[1] << 8));
             float32_t acc_y = (float32_t)(int16_t)(raw[2] | (raw[3] << 8));
@@ -205,6 +210,7 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
             {
                 goto done;
             }
+
             sin_pitch = acc_x / mag; /* sin(pitch) */
             cos_pitch = app_sqrtf((acc_y * acc_y) + (acc_z * acc_z)) /
                         mag; /* cos(pitch) */
@@ -215,6 +221,7 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
                 cal_c += cos_pitch;
                 cal_m += mag;
                 cal_y += acc_y / mag;
+
                 if (++ncal >= CAL_SAMPLES)
                 {
                     sin_level  = cal_s / CAL_SAMPLES;
@@ -230,27 +237,34 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
                     roll_f = base_r = roll = 0.0f;
                     one_peak = one_pitch_peak = roll_peak = 0.0f;
                 }
+
                 goto done;
             }
+
             /* sin(pitch - level pitch), low-pass filtered; jolts
                skipped (the pitch from before them is kept) */
+
             if (app_absf(mag - mag_level) <= (JOLT_FRAC * mag_level))
             {
                 rel = (sin_pitch * cos_level) - (cos_pitch * sin_level);
                 sin_f += LPF_K * (rel - sin_f);
+
                 if (app_absf(sin_f - base) < BASE_WIN)
                 {
                     base += BASE_K * (sin_f - base);
                 }
+
                 tilt        = sin_f - base;
                 g_sin_x1000 = (int32_t)(tilt * 1000.0f);
                 /* side tilt, the same way (level offset, filter,
                    slowly following driving level) */
                 roll_f += ROLL_LPF_K * (((acc_y / mag) - side_level) - roll_f);
+
                 if (app_absf(roll_f - base_r) < BASE_WIN)
                 {
                     base_r += BASE_K * (roll_f - base_r);
                 }
+
                 roll         = roll_f - base_r;
                 g_roll_x1000 = (int32_t)(roll * 1000.0f);
             }
@@ -272,14 +286,17 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
             /* climbs only: a nose-down dip (rear wheels on the
                hump, or coming off it) is not a ramp (6 Nov run 1
                reported a -56 mm dip as 56 mm) */
+
             if (height > peak)
             {
                 peak = height;
             }
+
             if (tilt > peak_sin)
             {
                 peak_sin = tilt;
             }
+
             /* one wheel up: h = T x sin(side tilt); cross-check
                from the nose-down tilt, 2 L x sin(pitch) */
             {
@@ -287,11 +304,13 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
                 float32_t height_roll = (float32_t)S2_TRACK_MM * roll_abs;
 
                 g_one_h_mm10 = (int32_t)(height_roll * 10.0f);
+
                 if (height_roll > one_peak)
                 {
                     one_peak  = height_roll;
                     roll_peak = roll_abs;
                 }
+
                 if (tilt < 0.0f)
                 {
                     float32_t height_pitch = 2.0f * (float32_t)S4_L_MM * -tilt;
@@ -307,6 +326,7 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
             {
                 quiet_mm10 -= (int32_t)(app_absf(step_mm) * 10.0f);
             }
+
             if ((app_absf(tilt) < FLAT_SIN) && (app_absf(roll) < FLAT_SIN))
             {
                 flat_mm10 += (int32_t)(app_absf(step_mm) * 10.0f);
@@ -315,6 +335,7 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
             {
                 flat_mm10 = 0;
             }
+
             if (flat_mm10 > (FLAT_MM * 10))
             {
                 int32_t p10 = (int32_t)(peak * 10.0f);
@@ -356,6 +377,11 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
                     tele_event(msg);
                     quiet_mm10 = QUIET_AFTER_MM * 10;
                 }
+                else
+                {
+                    /* nothing to do for any other case */
+                }
+
                 height = peak = peak_sin = 0.0f; /* back on the floor */
                 one_peak = one_pitch_peak = roll_peak = 0.0f;
                 flat_mm10                             = 0;

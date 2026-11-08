@@ -37,22 +37,27 @@ LOCAL void gpio_bank0_isr (uint32_t intno)
     for (reg = 0; reg < 4; reg++)
     {
         ints = in_w(io_proc0_ints_reg(reg));
+
         if (0u == ints)
         {
             continue;
         }
+
         /* Acknowledge first, so an edge during the callbacks is kept */
         out_w(io_intr_reg(reg), ints & IO_EDGE_BITS);
+
         for (slot = 0; slot < 8; slot++)
         {
             uint32_t events = (ints >> (slot * 4)) & APP_GPIO_BOTH;
             pin             = (reg * 8) + slot;
+
             if ((events != 0u) && (pin < GPIO_NUM) && (g_gpio_cb[pin] != NULL))
             {
                 g_gpio_cb[pin](pin, events);
             }
         }
     }
+
     ClearInt(intno);
 }
 
@@ -64,10 +69,12 @@ EXPORT ER app_gpio_init (void)
     dint.intatr = TA_HLNG;
     dint.inthdr = (FP)gpio_bank0_isr;
     err         = tk_def_int(INTNO_IO_BANK0, &dint);
+
     if (err < E_OK)
     {
         return err;
     }
+
     EnableInt(INTNO_IO_BANK0, INTPRI_IO_BANK0);
     return E_OK;
 }
@@ -75,6 +82,7 @@ EXPORT ER app_gpio_init (void)
 EXPORT void app_hw_release (uint32_t resets_mask)
 {
     clr_w(RESETS_RESET, resets_mask);
+
     while ((in_w(RESETS_RESET_DONE) & resets_mask) != resets_mask)
     {
         ;
@@ -92,16 +100,20 @@ EXPORT ER app_gpio_input (uint32_t pin, BOOL b_pull_up)
     ER err;
 
     err = gpio_set_pin(pin, GPIO_MODE_IN);
+
     if (err < E_OK)
     {
         return err;
     }
+
     clr_w(GPIO(pin),
           GPIO_PUE | GPIO_PDE); /* the pad resets with pull-down on */
+
     if (b_pull_up)
     {
         set_w(GPIO(pin), GPIO_PUE);
     }
+
     return E_OK;
 }
 
@@ -116,13 +128,16 @@ EXPORT ER app_gpio_irq_add (uint32_t pin, uint32_t events,
     {
         return E_PAR;
     }
+
     bits = events << ((pin % 8) * 4);
     APP_LOCK(irq_state);
+
     if (g_gpio_cb[pin] != NULL)
     {
         APP_UNLOCK(irq_state);
         return E_OBJ; /* pin already has an owner */
     }
+
     g_gpio_cb[pin] = p_callback;
     out_w(io_intr_reg(pin / 8), bits); /* drop stale edges */
     set_w(io_proc0_inte_reg(pin / 8), bits);

@@ -57,13 +57,16 @@ LOCAL int32_t wait_done (ID h_cmd, motion_status_t * p_status)
     for (tick = 0; tick < 1500; tick++)
     {
         motion_get_status(p_status);
+
         if ((p_status->cmd_id == (uint32_t)h_cmd) &&
             (p_status->result != MOT_RES_BUSY))
         {
             return p_status->result;
         }
+
         tk_dly_tsk(10);
     }
+
     motion_halt();
     return MOT_RES_TIMEOUT;
 }
@@ -81,6 +84,7 @@ LOCAL BOOL test_turns (void)
     test_wait_start(
         "S2-M02 turns: robot on the floor, mark its heading "
         "(tape along one side). 3 rounds of: left 90, right 90, 180.");
+
     for (round = 1; round <= 3; round++)
     {
         for (kdx = 0; kdx < 3; kdx++)
@@ -96,11 +100,13 @@ LOCAL BOOL test_turns (void)
             left_start  = status.count_l;
             right_start = status.count_r;
             h_cmd       = motion_turn(turns[kdx]);
+
             if (h_cmd < E_OK)
             {
                 tm_printf((uint8_t *)"[DRIVE] STOP is set, turn not started\n");
                 return FALSE;
             }
+
             res = wait_done(h_cmd, &status);
             tk_dly_tsk(300); /* let it settle, then count */
             motion_get_status(&status);
@@ -113,25 +119,31 @@ LOCAL BOOL test_turns (void)
                       names[kdx], res_name(res),
                       (int32_t)((app_time_us() - t_start) / 1000u) - 300);
             test_print_x10("encoder angle ", deg10, " deg\n");
+
             if (res != MOT_RES_DONE)
             {
                 b_all_done = FALSE;
+
                 if (MOT_RES_STOPPED == res)
                 {
                     return FALSE;
                 }
             }
+
             tk_dly_tsk(700);
         }
+
         tm_printf((uint8_t *)"[S2-M02] round %d done: write down the real "
                              "angles (left 90, right 90, 180) from the tape\n",
                   round);
+
         if (round < 3)
         {
             test_wait_start(
                 "S2-M02 next round: put the robot back on its mark");
         }
     }
+
     return b_all_done;
 }
 
@@ -161,10 +173,12 @@ LOCAL BOOL test_slow_speed (void)
     right_start = status.count_r;
     t_start     = app_time_us();
     h_cmd       = motion_drive(S2_SPEED_BARCODE, 500);
+
     if (h_cmd < E_OK)
     {
         return FALSE;
     }
+
     do
     {
         int32_t dist_mm;
@@ -175,15 +189,18 @@ LOCAL BOOL test_slow_speed (void)
         dist_mm = (int32_t)(((status.count_l - left_start) +
                              (status.count_r - right_start)) /
                             2 * S2_UM_PER_COUNT / 1000);
+
         if ((dist_mm >= 100) && (dist_mm <= 400))
         {
             value = (status.speed_l + status.speed_r) / 2;
             vsum += value;
             count++;
+
             if (value < vmin)
             {
                 vmin = value;
             }
+
             if (value > vmax)
             {
                 vmax = value;
@@ -191,11 +208,14 @@ LOCAL BOOL test_slow_speed (void)
         }
     } while (!((status.cmd_id == (uint32_t)h_cmd) &&
                (status.result != MOT_RES_BUSY)));
+
     res = status.result;
+
     if (count > 0)
     {
         mean = (int32_t)(vsum / count);
     }
+
     diff_mm = (int32_t)(((status.count_l - left_start) -
                          (status.count_r - right_start)) *
                         S2_UM_PER_COUNT / 1000);
@@ -242,19 +262,24 @@ LOCAL BOOL test_stop_once (int32_t run, BOOL b_lifted)
                        "%d mm/s. PRESS STOP (GP21) while it drives.\n",
             run, S2_SPEED_LINE);
     }
+
     test_wait_start(b_lifted ? "S2-M06 STOP (wheels lifted)" : "S2-M04 STOP");
     h_cmd = motion_drive(S2_SPEED_LINE, 1500);
+
     if (h_cmd < E_OK)
     {
         return FALSE;
     }
+
     motion_get_status(&status);
     last_l = status.count_l;
     last_r = status.count_r;
+
     for (;;)
     {
         tk_dly_tsk(10);
         motion_get_status(&status);
+
         if ((!b_pressed) && (app_stop_reasons() != 0u))
         {
             b_pressed   = TRUE;
@@ -263,29 +288,35 @@ LOCAL BOOL test_stop_once (int32_t run, BOOL b_lifted)
             c0_r        = status.count_r;
             t_last_move = app_time_us();
         }
+
         if ((status.count_l != last_l) || (status.count_r != last_r))
         {
             last_l      = status.count_l;
             last_r      = status.count_r;
             t_last_move = app_time_us();
         }
+
         if (b_pressed && ((app_time_us() - t_last_move) > 100000u))
         {
             break; /* no count for 100 ms: stopped */
         }
+
         if ((!b_pressed) && (status.cmd_id == (uint32_t)h_cmd) &&
             (status.result != MOT_RES_BUSY))
         {
             break; /* finished without a STOP */
         }
     }
+
     res = status.result;
+
     if (!b_pressed)
     {
         tm_printf((uint8_t *)"[%s] try %d: no STOP pressed (%s), not counted\n",
                   b_lifted ? "S2-M06" : "S2-M04", run, res_name(res));
         return FALSE;
     }
+
     tm_printf((uint8_t *)"[%s] try %d: %s; wheels stopped %d ms after the "
                          "press; rolled %d mm after the press\n",
               b_lifted ? "S2-M06" : "S2-M04", run, res_name(res),
@@ -306,6 +337,7 @@ LOCAL BOOL test_directions (void)
     test_wait_start("S2-M05 directions: LIFT THE WHEELS off the table. Both "
                     "wheels turn forward 300 mm, then backward 300 mm. Watch "
                     "that both turn the robot's forward way first.");
+
     for (kdx = 0; kdx < 2; kdx++)
     {
         int32_t left_start;
@@ -328,6 +360,7 @@ LOCAL BOOL test_directions (void)
                   (0 == kdx) ? "forward" : "backward", res_name(res),
                   (int32_t)delta_left, (int32_t)delta_right,
                   (0 == kdx) ? "+" : "-");
+
         /* both the commanded sign, and within 25 % of each other */
         if (((delta_left * dir[kdx]) <= 0) || ((delta_right * dir[kdx]) <= 0) ||
             ((delta_left * 4 * dir[kdx]) < (delta_right * 3 * dir[kdx])) ||
@@ -335,12 +368,15 @@ LOCAL BOOL test_directions (void)
         {
             b_ok = FALSE;
         }
+
         if (MOT_RES_STOPPED == res)
         {
             return FALSE;
         }
+
         tk_dly_tsk(700);
     }
+
     return b_ok;
 }
 
@@ -376,6 +412,7 @@ EXPORT void subsystem2_drive_test (void)
     TEST_CHECK("S2-M02", test_turns(),
                "all 9 turn COMMANDS finished. This is not the angle check: "
                "pass/fail is your measured angles (90 +/- 10, 180 +/- 15)");
+
     for (kdx = 1; kdx <= 5; kdx++)
     {
         if (test_stop_once(kdx, FALSE))
@@ -383,6 +420,7 @@ EXPORT void subsystem2_drive_test (void)
             stops++;
         }
     }
+
     tm_printf((uint8_t *)"[S2-M04] %d of 5 stopped within 500 ms\n", stops);
     TEST_CHECK("S2-M04", 5 == stops, "STOP stops the wheels, 5 of 5");
 

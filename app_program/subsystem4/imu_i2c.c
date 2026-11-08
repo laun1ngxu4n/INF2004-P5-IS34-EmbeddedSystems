@@ -41,6 +41,7 @@ LOCAL BOOL aborted (void)
         (void)in_w(IC_CLR_TX_ABRT);
         return TRUE;
     }
+
     return FALSE;
 }
 
@@ -56,12 +57,14 @@ EXPORT void imu_i2c_init (void)
     uint32_t pin;
 
     app_hw_release(RESETS_RESET_I2C1);
+
     for (pin = PIN_SDA; pin <= PIN_SCL; pin++)
     {
         clr_w(GPIO(pin), GPIO_OD | GPIO_PDE);
         set_w(GPIO(pin), GPIO_IE | GPIO_PUE);
         out_w(GPIO_CTRL(pin), GPIO_CTRL_FUNCSEL_I2C);
     }
+
     out_w(IC_ENABLE, 0);
     /* master, fast mode, restart on, slave off, TX_EMPTY_CTRL */
     out_w(IC_CON, 0x165);
@@ -82,12 +85,15 @@ EXPORT ER imu_i2c_read (uint8_t addr, uint8_t reg, uint8_t * p_buf,
     set_target(addr);
     (void)aborted();
     out_w(IC_DATA_CMD, (uint32_t)(reg | ((count > 1) ? 0x80u : 0u)));
+
     for (idx = 0; idx < count; idx++)
     {
         out_w(IC_DATA_CMD, CMD_READ | ((0 == idx) ? CMD_RESTART : 0u) |
                                ((idx == (count - 1)) ? CMD_STOP : 0u));
     }
+
     t_start = app_time_us();
+
     for (idx = 0; idx < count; idx++)
     {
         while (0u == in_w(IC_RXFLR))
@@ -96,13 +102,16 @@ EXPORT ER imu_i2c_read (uint8_t addr, uint8_t reg, uint8_t * p_buf,
             {
                 return E_IO;
             }
+
             if ((app_time_us() - t_start) > TIMEOUT_US)
             {
                 return E_TMOUT;
             }
         }
+
         p_buf[idx] = (uint8_t)(in_w(IC_DATA_CMD) & 0xFFu);
     }
+
     return E_OK;
 }
 
@@ -115,6 +124,7 @@ EXPORT ER imu_i2c_write (uint8_t addr, uint8_t reg, uint8_t val)
     out_w(IC_DATA_CMD, reg);
     out_w(IC_DATA_CMD, (uint32_t)val | CMD_STOP);
     t_start = app_time_us();
+
     while ((0u == (in_w(IC_STATUS) & STATUS_TFE)) ||
            ((in_w(IC_STATUS) & STATUS_ACTIVITY) != 0u))
     {
@@ -122,11 +132,13 @@ EXPORT ER imu_i2c_write (uint8_t addr, uint8_t reg, uint8_t val)
         {
             return E_IO;
         }
+
         if ((app_time_us() - t_start) > TIMEOUT_US)
         {
             return E_TMOUT;
         }
     }
+
     return aborted() ? E_IO : E_OK;
 }
 

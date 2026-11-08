@@ -77,6 +77,11 @@ LOCAL void sonar_echo_isr (uint32_t pin, uint32_t events)
         g_echo_width_us = now - g_echo_rise_us;
         gb_echo_done    = TRUE;
     }
+    else
+    {
+        /* nothing to do for any other case */
+    }
+
     (void)events;
 }
 
@@ -88,10 +93,12 @@ LOCAL void trigger (void)
     gb_echo_done = FALSE;
     gpio_set_val(PIN_TRIG, 1);
     t_start = app_time_us();
+
     while ((app_time_us() - t_start) < 12u)
     {
         ;
     }
+
     gpio_set_val(PIN_TRIG, 0);
 }
 
@@ -102,11 +109,13 @@ LOCAL int32_t echo_mm (void)
     {
         return SONAR_FAULT; /* ECHO never rose */
     }
+
     if ((!gb_echo_done) || (g_echo_width_us < 100u) ||
         (g_echo_width_us > 25000u))
     {
         return FAR;
     }
+
     return (int32_t)(g_echo_width_us * 174u /
                      1000u); /* 0.348 mm/us at 28 C, / 2 */
 }
@@ -130,10 +139,12 @@ EXPORT int32_t sonar_ping_mm (void)
     /* straight ahead: also what the panel shows.  Test images do not
        idle-ping (their tests ping themselves), so the panel's distance
        stayed frozen through Stage 3 (7 Nov) */
+
     if (90 == g_servo_now)
     {
         g_front_mm = dist_mm;
     }
+
     return dist_mm;
 }
 
@@ -159,10 +170,12 @@ EXPORT void servo_set_angle (int32_t deg)
     {
         deg = 90 - SERVO_LIMIT;
     }
+
     if (deg > (90 + SERVO_LIMIT))
     {
         deg = 90 + SERVO_LIMIT;
     }
+
     while (g_servo_now != deg)
     {
         int32_t next = g_servo_now + ((deg > g_servo_now) ? S5_SERVO_DEG_STEP
@@ -172,6 +185,7 @@ EXPORT void servo_set_angle (int32_t deg)
         {
             next = deg;
         }
+
         servo_write(next);
         tk_dly_tsk(20);
     }
@@ -214,15 +228,19 @@ EXPORT ER obstacle_hw_init (void)
     pwm_set_enabled(PIN_SERVO, TRUE);
 
     err = app_gpio_output(PIN_TRIG);
+
     if (err < E_OK)
     {
         return err;
     }
+
     err = app_gpio_input(PIN_ECHO, FALSE);
+
     if (err < E_OK)
     {
         return err;
     }
+
     clr_w(GPIO(PIN_ECHO), GPIO_PUE);
     set_w(GPIO(PIN_ECHO), GPIO_PDE); /* as in bring-up */
     return app_gpio_irq_add(PIN_ECHO, APP_GPIO_BOTH, sonar_echo_isr);
@@ -245,6 +263,7 @@ LOCAL int32_t median5 (int32_t * p_values, int32_t count)
             p_values[jdx - 1] = tmp;
         }
     }
+
     return p_values[count / 2];
 }
 
@@ -293,7 +312,9 @@ LOCAL void side_edge (const int32_t * p_dist, const int32_t * p_phi,
             {
                 first_out = idx;
             }
+
             out_run++;
+
             /* past the edge: open space, or something else nearer? */
             if ((out_run >= 2) &&
                 ((SONAR_FAULT == p_dist[idx]) ||
@@ -303,7 +324,12 @@ LOCAL void side_edge (const int32_t * p_dist, const int32_t * p_phi,
                 b_other = TRUE; /* something nearer, or unknown */
             }
         }
+        else
+        {
+            /* nothing to do for any other case */
+        }
     }
+
     if ((out_run < 2) || (first_out < 0))
     {
         /* obstacle wider than the scan on this side */
@@ -314,6 +340,7 @@ LOCAL void side_edge (const int32_t * p_dist, const int32_t * p_phi,
         *pb_seen   = FALSE;
         return;
     }
+
     *pb_seen = TRUE;
     {
         float32_t a_in  = (float32_t)p_phi[last_in];
@@ -327,13 +354,16 @@ LOCAL void side_edge (const int32_t * p_dist, const int32_t * p_phi,
         {
             a_edge = 0.0f; /* never past the centre */
         }
+
         *p_edge_mm = (int32_t)(range * app_sin_deg(a_edge));
         *p_unc_mm =
             (int32_t)(range * (app_sin_deg(a_out) - app_sin_deg(a_in)) / 2.0f);
+
         if (*p_unc_mm < 0)
         {
             *p_unc_mm = -*p_unc_mm;
         }
+
         *pb_clear = !b_other;
     }
 }
@@ -348,6 +378,7 @@ EXPORT void obstacle_scan (obstacle_profile_t * p_profile)
     int32_t unc_right;
 
     gb_scanning = TRUE;
+
     for (kdx = 0; kdx < NRAYS; kdx++)
     {
         int32_t ang = SCAN_FROM + (kdx * SCAN_STEP);
@@ -361,9 +392,12 @@ EXPORT void obstacle_scan (obstacle_profile_t * p_profile)
 
         servo_set_angle(ang);
         tk_dly_tsk((settle > SETTLE_MIN_MS) ? settle : SETTLE_MIN_MS); /* O1 */
+
         for (jdx = 0; jdx < PINGS; jdx++)
-        { /* O2 */
+        {
+            /* O2 */
             int32_t dist_mm = sonar_ping_mm();
+
             if (dist_mm >= 0)
             {
                 value[valid++] = dist_mm;
@@ -372,7 +406,12 @@ EXPORT void obstacle_scan (obstacle_profile_t * p_profile)
             {
                 nfault++;
             }
+            else
+            {
+                /* nothing to do for any other case */
+            }
         }
+
         /* >= 3 good = median; >= 3 no ECHO = fault (unknown, never open) */
         dist[kdx] = (valid >= 3)    ? median5(value, valid)
                     : (nfault >= 3) ? SONAR_FAULT
@@ -380,19 +419,23 @@ EXPORT void obstacle_scan (obstacle_profile_t * p_profile)
         /* + = left of the robot */
         phi[kdx] = (ang - 90) * (S5_SERVO_LEFT_HIGH ? 1 : -1);
     }
+
     servo_set_angle(90);
     tk_dly_tsk(60 * SETTLE_MS_DEG);
     gb_scanning = FALSE;
 
     tm_printf((uint8_t *)"[SCAN] rays (deg:mm, -1 = open, -2 = no ECHO):");
+
     for (kdx = 0; kdx < NRAYS; kdx++)
     {
         tm_printf((uint8_t *)" %d:%d", phi[kdx], dist[kdx]);
     }
+
     tm_printf((uint8_t *)"\n");
 
     p_profile->rays       = NRAYS;
     p_profile->fault_rays = 0;
+
     for (kdx = 0; kdx < NRAYS; kdx++)
     {
         if (SONAR_FAULT == dist[kdx])
@@ -400,9 +443,11 @@ EXPORT void obstacle_scan (obstacle_profile_t * p_profile)
             p_profile->fault_rays++;
         }
     }
+
     p_profile->front_mm = dist[centre];
     p_profile->b_found =
         ((dist[centre] >= 0) && (dist[centre] <= MAX_FRONT_MM));
+
     if (!p_profile->b_found)
     {
         p_profile->width_mm = p_profile->unc_mm = p_profile->left_mm =
@@ -412,6 +457,7 @@ EXPORT void obstacle_scan (obstacle_profile_t * p_profile)
         p_profile->b_left_seen = p_profile->b_right_seen = FALSE;
         return;
     }
+
     /* phi rises with k only if LEFT_HIGH: walk "left" in the right order */
     side_edge(dist, phi, centre, S5_SERVO_LEFT_HIGH ? +1 : -1, dist[centre],
               &p_profile->left_mm, &unc_left, &p_profile->b_left_clear,
@@ -519,6 +565,7 @@ EXPORT void obstacle_task (int32_t stacd, void * p_exinf)
             close_count = 0;
             fault_count = 0;
             b_told      = FALSE;
+
             if (!gb_scanning)
             {
                 gb_sensor_fault = FALSE; /* fresh start next watch */
@@ -530,16 +577,19 @@ EXPORT void obstacle_task (int32_t stacd, void * p_exinf)
                itself (ahead_clear) and two pings at once corrupt each
                other's echo.  Not in test images: their tests turn the
                servo and ping themselves. */
+
             if ((!gb_scanning) && gb_idle_ping)
             {
                 if (b_pinged)
                 {
                     g_front_mm = echo_mm();
                 }
+
                 if (g_servo_now != 90)
                 {
                     servo_set_angle(90);
                 }
+
                 trigger();
                 b_pinged = TRUE;
             }
@@ -561,12 +611,14 @@ EXPORT void obstacle_task (int32_t stacd, void * p_exinf)
                 /* No ECHO 5 times in a row (300 ms): the sensor is
                    not working, so Mission must stop, not drive blind */
                 fault_count = (SONAR_FAULT == dist_mm) ? fault_count + 1 : 0;
+
                 if ((fault_count >= 5) && (!b_told))
                 {
                     gb_sensor_fault = TRUE;
                     b_told          = TRUE;
                     tk_set_flg(gh_flg_mission, MSN_FLG_OBSTACLE);
                 }
+
                 if ((dist_mm >= 0) && (dist_mm < S5_TRIP_MM))
                 {
                     if ((++close_count >= 2) && (!b_told))
@@ -580,10 +632,12 @@ EXPORT void obstacle_task (int32_t stacd, void * p_exinf)
                     close_count = 0;
                 }
             }
+
             if (g_servo_now != 90)
             {
                 servo_set_angle(90);
             }
+
             trigger();
             b_pinged = TRUE;
         }

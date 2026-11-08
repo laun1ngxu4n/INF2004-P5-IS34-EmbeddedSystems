@@ -23,20 +23,24 @@ Inline float32_t app_sqrtf (float32_t value)
     {
         return 0.0f;
     }
+
     while (scaled >= 4.0f)
     {
         scaled *= 0.25f;
         root *= 2.0f;
     }
+
     while (scaled < 0.25f)
     {
         scaled *= 4.0f;
         root *= 0.5f;
     }
+
     for (iter = 0; iter < 6; iter++)
     {
         root = 0.5f * (root + (value / root));
     }
+
     return root;
 }
 

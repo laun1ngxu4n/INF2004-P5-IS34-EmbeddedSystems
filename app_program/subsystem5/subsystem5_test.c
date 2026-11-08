@@ -63,6 +63,7 @@ EXPORT void subsystem5_stage_test (void)
     servo_set_angle(90 - S5_SERVO_HALF_DEG);
     test_wait_start(
         "Servo check: now it should point RIGHT. Wires still slack?");
+
     if (S5_SERVO_SIDE_DEG > 0)
     {
         /* the side look on the leg past the box (8 Nov): does the side
@@ -80,16 +81,19 @@ EXPORT void subsystem5_stage_test (void)
                        "about 200. Then slide it backwards past the sonar: the "
                        "reading should go away once the box is behind it.\n",
             S5_SERVO_SIDE_DEG);
+
         for (tick = 0; tick < 40; tick++)
         {
             tm_printf((uint8_t *)"[S5] side %d mm\n", sonar_ping_mm());
             tk_dly_tsk(240);
         }
     }
+
     servo_set_angle(90);
 
     tm_printf(
         (uint8_t *)"[S5] forward distance for 10 s: move your hand in front\n");
+
     for (tick = 0; tick < 30; tick++)
     {
         tm_printf((uint8_t *)"[S5] front %d mm\n", sonar_ping_mm());
@@ -109,11 +113,13 @@ EXPORT void subsystem5_stage_test (void)
             "its real width (ruler).");
         obstacle_scan(&scan_near);
         motion_drive(-S2_SPEED_BARCODE, 100); /* as the bypass does */
+
         do
         {
             tk_dly_tsk(10);
             motion_get_status(&status);
         } while (MOT_RES_BUSY == status.result);
+
         tk_dly_tsk(300);
         obstacle_scan(&scan_far);
         obstacle_combine(&scan_near, &scan_far, &profile);
@@ -129,11 +135,13 @@ EXPORT void subsystem5_stage_test (void)
             profile.b_left_clear, profile.b_right_clear, scan_near.b_left_seen,
             scan_near.b_right_seen, scan_far.b_left_seen,
             scan_far.b_right_seen);
+
         if (test_stop_pressed())
         {
             break;
         }
     }
+
     TEST_SUMMARY("subsystem5 stage 3");
 
     tm_printf((uint8_t *)"\n[DRIVE] S5-O02 bypass: Mission takes over. Put an "

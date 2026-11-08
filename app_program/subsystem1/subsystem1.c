@@ -15,10 +15,12 @@ EXPORT ER subsystem1_init (void)
         app_timing_add("telemetry", PRI_TELEMETRY, PERIOD_TELEMETRY_MS);
     gh_cyc_telemetry =
         app_create_wake_cyclic(&gh_tid_telemetry, PERIOD_TELEMETRY_MS);
+
     if (g_tmg_telemetry < E_OK)
     {
         return g_tmg_telemetry;
     }
+
     return (gh_cyc_telemetry < E_OK) ? gh_cyc_telemetry : E_OK;
 }
 
@@ -26,10 +28,12 @@ EXPORT ER subsystem1_start (void)
 {
     gh_tid_telemetry =
         app_start_task(telemetry_task, PRI_TELEMETRY, 0, "telemetry_task");
+
     if (gh_tid_telemetry < E_OK)
     {
         return gh_tid_telemetry;
     }
+
     return tk_sta_cyc(gh_cyc_telemetry);
 }
 

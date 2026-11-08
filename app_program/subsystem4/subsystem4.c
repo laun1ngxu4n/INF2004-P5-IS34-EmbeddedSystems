@@ -18,33 +18,41 @@ EXPORT ER subsystem4_init (void)
     g_tmg_imu     = app_timing_add("imu", PRI_IMU, PERIOD_IMU_MS);
     gh_cyc_safety = app_create_wake_cyclic(&gh_tid_safety, PERIOD_SAFETY_MS);
     gh_cyc_imu    = app_create_wake_cyclic(&gh_tid_imu, PERIOD_IMU_MS);
+
     if (g_tmg_safety < E_OK)
     {
         return g_tmg_safety;
     }
+
     if (g_tmg_imu < E_OK)
     {
         return g_tmg_imu;
     }
+
     if (gh_cyc_safety < E_OK)
     {
         return gh_cyc_safety;
     }
+
     return (gh_cyc_imu < E_OK) ? gh_cyc_imu : E_OK;
 }
 
 EXPORT ER subsystem4_start (void)
 {
     gh_tid_safety = app_start_task(safety_task, PRI_SAFETY, 0, "safety_task");
+
     if (gh_tid_safety < E_OK)
     {
         return gh_tid_safety;
     }
+
     gh_tid_imu = app_start_task(imu_task, PRI_IMU, 0, "imu_task");
+
     if (gh_tid_imu < E_OK)
     {
         return gh_tid_imu;
     }
+
     app_check(tk_sta_cyc(gh_cyc_safety), "cyc_safety");
     return tk_sta_cyc(gh_cyc_imu);
 }

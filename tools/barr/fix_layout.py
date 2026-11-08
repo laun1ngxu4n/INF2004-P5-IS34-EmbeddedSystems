@@ -66,16 +66,110 @@ def move_define_comments(lines):
     return out
 
 
+STMT_RE = re.compile(r'^( *)(if|for|while|switch|do)\b')
+
+
+def block_end(lines, i, indent):
+    """index of the line closing the statement that starts at line i
+    (its last block, after any else / else if, or the do ... while line)"""
+    j = i + 1
+    while j < len(lines):
+        ln = lines[j]
+        if ln.startswith(' ' * indent + '}') and (len(ln) == indent + 1 or ln[indent + 1] in ' ;w'):
+            # an else after it continues the statement
+            k = j + 1
+            if k < len(lines) and re.match(r'^' + ' ' * indent + r'else\b', lines[k]):
+                j = k + 1
+                continue
+            return j
+        if ln.strip() and not ln.startswith(' ' * (indent + 1)) and not ln.startswith(' ' * indent + '{') \
+                and not ln.startswith(' ' * indent + '}') and not ln.startswith('#'):
+            return None                     # no braces: not a block statement
+        j += 1
+    return None
+
+
+def blank_lines(lines):
+    """Barr 3.3b: a blank line before and after each if / for / while /
+    switch / do statement (its comment lines above belong to it)"""
+    out = list(lines)
+    i = 0
+    while i < len(out):
+        ln = out[i]
+        m = STMT_RE.match(ln)
+        if not m or out[i].rstrip().endswith('\\') or (i > 0 and out[i - 1].rstrip().endswith('\\')):
+            i += 1
+            continue
+        indent = len(m.group(1))
+        if m.group(2) == 'while' and i > 0 and out[i - 1].strip().startswith('}'):
+            i += 1
+            continue                         # the while of a do ... while
+        if i + 1 >= len(out) or out[i + 1].strip() not in ('{',) and not out[i].rstrip().endswith('{'):
+            # a header on several lines: find its brace line
+            k = i + 1
+            while k < len(out) and out[k].strip() != '{' and not STMT_RE.match(out[k]):
+                if out[k].strip().endswith(';'):
+                    break
+                k += 1
+            if k >= len(out) or out[k].strip() != '{':
+                i += 1
+                continue
+        end = block_end(out, i, indent)
+        if end is None:
+            i += 1
+            continue
+        # a do ... while (...) closing line that goes on to its ';'
+        while end + 1 < len(out) and out[end].strip().startswith('}') and \
+                'while' in out[end] and not out[end].rstrip().endswith(';'):
+            end += 1
+        # before: skip back over the comment lines that belong to it
+        top = i
+        while top > 0 and out[top - 1].strip().startswith(('/*', '*')) and \
+                out[top - 1].startswith(' ' * indent) and not out[top - 1].startswith(' ' * (indent + 1) + '*/'):
+            top -= 1
+            if out[top].strip().startswith('/*'):
+                break
+        prev = out[top - 1].strip() if top > 0 else ''
+        if prev not in ('', '{') and not prev.endswith(':') and not prev.startswith('#') and \
+                not prev.endswith('\\'):
+            out.insert(top, '')
+            i += 1
+            end += 1
+        # after
+        nxt = out[end + 1].strip() if end + 1 < len(out) else ''
+        if nxt not in ('', '}') and not nxt.startswith(('}', 'break;', 'case ', 'default', '#', 'else')) and \
+                not out[end].rstrip().endswith('\\'):
+            out.insert(end + 1, '')
+        i += 1
+    return out
+
+
 def pre(text):
     """before clang-format"""
     lines = text.replace('\r\n', '\n').split('\n')
     return '\n'.join(move_define_comments(lines))
 
 
+def brace_comments(lines):
+    """'{ /* text */' -> '{' and the comment on the next line (Barr 1.3b:
+    the brace on a line of its own)"""
+    out = []
+    for ln in lines:
+        m = re.match(r'^( *)\{ +(/\*.*\*/)\s*$', ln)
+        if m:
+            out.append(m.group(1) + '{')
+            out.append(m.group(1) + '    ' + m.group(2))
+        else:
+            out.append(ln)
+    return out
+
+
 def fix(text):
     lines = text.replace('\r\n', '\n').split('\n')
     # tabs left inside comments (code has none after clang-format)
     lines = [ln.expandtabs(4) for ln in lines]
+    lines = brace_comments(lines)
+    lines = blank_lines(lines)
     out = []
     case_indent = None
     for line in lines:

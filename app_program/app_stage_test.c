@@ -24,11 +24,13 @@ EXPORT void test_wait_start (const char * p_what)
         (uint8_t *)"\n[DRIVE] %s\n[DRIVE] press START (GP20, or START on the "
                    "panel) to go\n",
         p_what);
+
     while (tele_start_count() == remote)
     {
         if (button_is_down(PIN_START))
         {
             tk_dly_tsk(30); /* debounce */
+
             if ((button_is_down(PIN_START)) && (!button_is_down(PIN_STOP)))
             {
                 while (button_is_down(PIN_START))
@@ -38,8 +40,10 @@ EXPORT void test_wait_start (const char * p_what)
                 break;
             }
         }
+
         tk_dly_tsk(10);
     }
+
     app_stop_clear(STOP_BUTTON | STOP_MQTT);
     tm_printf((uint8_t *)"[DRIVE] starting in 1 s, hands off\n");
     tk_dly_tsk(1000);
@@ -93,6 +97,7 @@ EXPORT void app_course_test (BOOL b_obstacles, BOOL b_imu)
             (uint8_t *)"[DRIVE] send the mapping from the PC (panel: Barcode "
                        "mapping box), or press START to use the TEST mapping "
                        "A=L,B=R,C=F,D=U\n");
+
         while (0 == barcode_mapping_text(map, sizeof(map)))
         {
             if ((tele_start_count() != remote) || (button_is_down(PIN_START)))
@@ -101,9 +106,11 @@ EXPORT void app_course_test (BOOL b_obstacles, BOOL b_imu)
                 {
                     tk_dly_tsk(10);
                 }
+
                 test_use_test_mapping();
                 break;
             }
+
             if (0 == (++tick % 100))
             {
                 tm_printf(
@@ -111,8 +118,10 @@ EXPORT void app_course_test (BOOL b_obstacles, BOOL b_imu)
                                "Barcode "
                                "mapping box) or START for the TEST mapping\n");
             }
+
             tk_dly_tsk(100);
         }
+
         (void)barcode_mapping_text(map, sizeof(map));
         tm_printf((uint8_t *)"[DRIVE] mapping %s in use\n", map);
     }

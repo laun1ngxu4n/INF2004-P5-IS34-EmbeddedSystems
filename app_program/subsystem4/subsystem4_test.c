@@ -66,6 +66,7 @@ LOCAL void ramp_run (uint32_t reports_start)
     uint32_t seen      = reports_start;
 
     (void)motion_drive(S2_SPEED_BARCODE, RUN_MAX_MM);
+
     for (tick = 0; tick < 2000; tick++)
     {
         motion_status_t status;
@@ -77,10 +78,12 @@ LOCAL void ramp_run (uint32_t reports_start)
         int32_t         roll_abs  = (roll < 0) ? -roll : roll;
 
         motion_get_status(&status);
+
         if ((tick > 10) && (status.result != MOT_RES_BUSY))
         {
             break;
         }
+
         if (test_stop_pressed())
         {
             break;
@@ -99,33 +102,40 @@ LOCAL void ramp_run (uint32_t reports_start)
             tm_printf((uint8_t *)"[S4] bump %d starts at %d mm\n", bumps + 1,
                       dist_mm);
         }
+
         if (b_in_bump)
         {
             if (sin_pitch > b_up)
             {
                 b_up = sin_pitch;
             }
+
             if (sin_pitch < b_down)
             {
                 b_down = sin_pitch;
             }
+
             if (height > b_hmax)
             {
                 b_hmax = height;
             }
+
             if (roll_abs > b_roll)
             {
                 b_roll = roll_abs;
             }
+
             if (one > b_one)
             {
                 b_one = one;
             }
+
             if ((sin_pitch > BUMP_SIN) || (sin_pitch < -BUMP_SIN) ||
                 (roll_abs > BUMP_SIN))
             {
                 b_flat = dist_mm;
             }
+
             if (traced < TRACE_MAX)
             {
                 tm_printf(
@@ -137,6 +147,7 @@ LOCAL void ramp_run (uint32_t reports_start)
                     ((height < 0) ? -height : height) % 10);
                 traced++;
             }
+
             if ((dist_mm - b_flat) >= BUMP_FLAT_MM)
             {
                 int32_t l10 = b_up * S4_L_MM / 100; /* 0.1 mm */
@@ -157,19 +168,23 @@ LOCAL void ramp_run (uint32_t reports_start)
                           bumps, b_roll, b_one / 10, b_one % 10);
             }
         }
+
         if (imu_ramp_reports() != seen)
         {
             seen = imu_ramp_reports();
             test_print_x10("[S4] IMU task reported a ramp: ",
                            imu_ramp_peak_mm10(), " mm\n");
         }
+
         if ((!b_in_bump) && (last_end >= 0) &&
             ((dist_mm - last_end) >= BUMP_END_MM))
         {
             break; /* well past the last ramp */
         }
+
         tk_dly_tsk(10);
     }
+
     motion_halt();
     tm_printf(
         (uint8_t *)"[S4-R01] %d bump(s) in %d mm, %d readings skipped as jolts "
@@ -185,27 +200,34 @@ EXPORT void subsystem4_stage_test (void)
     TEST_INIT();
 
     tm_printf((uint8_t *)"\n[DRIVE] === Stage 4: IMU ramp height ===\n");
+
     for (tick = 0; (tick < 30) && (!imu_ok()); tick++)
     {
         tk_dly_tsk(100);
     }
+
     TEST_CHECK("S4-I01", imu_ok(), "LSM303D found at 0x1D");
+
     if (!imu_ok())
     {
         TEST_SUMMARY("subsystem4 stage 4");
         return;
     }
+
     test_wait_start("Robot level and still: calibrating for 1 s.");
     imu_calibrate();
+
     while (!imu_calibrated())
     {
         tk_dly_tsk(10);
     }
+
     tm_printf(
         (uint8_t *)"[S4] tilt view for 15 s: lift the front a little, then put "
                    "the RIGHT wheel on a 2-3 cm block (x1000; one-wheel height "
                    "in "
                    "mm)\n");
+
     for (tick = 0; tick < 30; tick++)
     {
         int32_t one = imu_one_wheel_mm10();
@@ -228,12 +250,15 @@ EXPORT void subsystem4_stage_test (void)
             "then drives until 30 cm after the last bump (at most "
             "1.5 m). Write down the hump's real height.");
         imu_calibrate();
+
         while (!imu_calibrated())
         {
             tk_dly_tsk(10);
         }
+
         ramp_run(reports_start);
         tk_dly_tsk(500);
+
         if (imu_ramp_reports() != reports_start)
         {
             tm_printf(
@@ -248,12 +273,14 @@ EXPORT void subsystem4_stage_test (void)
             tm_printf((uint8_t *)"[S4-R01] no ramp reported by the IMU task "
                                  "this run\n");
         }
+
         if (test_stop_pressed())
         {
             tm_printf((uint8_t *)"[S4-R01] STOP pressed: runs ended\n");
             break;
         }
     }
+
     TEST_SUMMARY("subsystem4 stage 4");
 }
 

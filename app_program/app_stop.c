@@ -16,10 +16,12 @@ EXPORT void app_stop_request (uint32_t reason)
 
     motor_safe_off(); /* first, before anything else */
     APP_LOCK(irq_state);
+
     if (0u == g_stop_reasons)
     {
         g_stop_time_us = app_time_us();
     }
+
     g_stop_reasons |= reason;
     APP_UNLOCK(irq_state);
 }

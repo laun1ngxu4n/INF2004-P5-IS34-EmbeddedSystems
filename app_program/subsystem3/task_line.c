@@ -197,11 +197,13 @@ LOCAL void junction_at (int32_t centre, int32_t side)
     {
         delta = -delta;
     }
+
     if (gb_have_last && (delta < mm_to_counts(S3_JUNC_MERGE_MM)))
     {
         g_junc_sides |= side; /* same one: no second event */
         return;
     }
+
     g_last_c     = centre;
     gb_have_last = TRUE;
     g_junc_odo   = centre;
@@ -239,6 +241,10 @@ LOCAL void hist_step (int32_t odo, BOOL b_busy)
         g_off_b[(g_off_n - 1) % OFFS] = odo;
         gb_off_open                   = FALSE;
     }
+    else
+    {
+        /* nothing to do for any other case */
+    }
 }
 
 /* TRUE if the robot drove straight (no correction) all of [a, b] */
@@ -251,14 +257,17 @@ LOCAL BOOL quiet_over (int32_t from_odo, int32_t to_odo, int32_t now)
         return TRUE; /* before the start: the robot
     was put down straight */
     }
+
     if (from_odo < g_hist_from)
     {
         from_odo = g_hist_from;
     }
+
     if ((g_off_n > OFFS) && (from_odo < g_off_a[(g_off_n - OFFS) % OFFS]))
     {
         return FALSE; /* not on record */
     }
+
     for (idx = (g_off_n > OFFS) ? g_off_n - OFFS : 0; idx < g_off_n; idx++)
     {
         int32_t corr_from = g_off_a[idx % OFFS];
@@ -270,6 +279,7 @@ LOCAL BOOL quiet_over (int32_t from_odo, int32_t to_odo, int32_t now)
             return FALSE;
         }
     }
+
     return TRUE;
 }
 
@@ -334,6 +344,7 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
         b_raw_right = (IR_BLACK == app_gpio_get(PIN_IR_LINE_R));
         odo         = motion_odometer();
         pat         = (b_raw_left ? PAT_L : 0u) | (b_raw_right ? PAT_R : 0u);
+
         if (gb_enabled && (!b_was_enabled))
         {
             /* a start, or after a manoeuvre: begin clean */
@@ -355,10 +366,12 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
             g_state     = LINE_ON;
             g_fault_why = 0;
         }
+
         b_was_enabled = gb_enabled;
 
         /* Filter: ignore a pattern that does not last S3_FILTER_N readings */
         prev = stable;
+
         if (pat == cand)
         {
             if (cand_n < S3_FILTER_N)
@@ -371,10 +384,12 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
             cand   = pat;
             cand_n = 1;
         }
+
         if (cand_n >= S3_FILTER_N)
         {
             stable = cand;
         }
+
         b_left   = (stable & PAT_L) != 0u;
         b_right  = (stable & PAT_R) != 0u;
         b_single = (b_left != b_right);
@@ -391,13 +406,20 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
             {
                 b_long_corr = FALSE;
             }
+            else
+            {
+                /* nothing to do for any other case */
+            }
+
             if (b_single)
             {
                 single_from = odo;
+
                 if (0u == prev)
                 {
                     g_n_corr++;
                 }
+
                 /* L, both, R (or R, both, L): swept right across */
                 if ((prev == (PAT_L | PAT_R)) && (before_both != 0u) &&
                     (before_both != stable))
@@ -405,21 +427,25 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
                     g_n_sweep++;
                 }
             }
+
             if (0u == stable)
             {
                 white_from = odo;
             }
+
             if (stable == (PAT_L | PAT_R))
             {
                 both_from   = odo;
                 before_both = ((PAT_L == prev) || (PAT_R == prev)) ? prev : 0u;
             }
         }
+
         if ((stable != 0u) && b_searching)
         {
             b_searching = FALSE; /* found it again */
             b_long_corr = FALSE;
         }
+
         if (b_single)
         {
             last_side = b_left ? +1 : -1;
@@ -462,6 +488,10 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
                 b_probe_none      = TRUE; /* no tape either way */
             }
         }
+        else
+        {
+            /* nothing to do for any other case */
+        }
 
         /* Steering (+ = turn left) */
         if (b_single)
@@ -486,20 +516,25 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
             {
                 mem_part = (float32_t)S3_MEM_MAX;
             }
+
             if (mem_part < -(float32_t)S3_MEM_MAX)
             {
                 mem_part = -(float32_t)S3_MEM_MAX;
             }
+
             demand = (int32_t)mem_part;
         }
+
         /* Build a turn up gently (STEER_STEP per period), but ease off
            at once: ramping down too kept the robot turning after it
            had found the line again, and it swung across (2 Nov). */
         target = demand;
+
         if (((out > 0) && (target < 0)) || ((out < 0) && (target > 0)))
         {
             out = 0; /* other way: drop the old turn */
         }
+
         if (((out >= 0) && (target >= 0) && (target <= out)) ||
             ((out <= 0) && (target <= 0) && (target >= out)))
         {
@@ -517,6 +552,7 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
         {
             out = target;
         }
+
         g_steer = out;
         /* steering memory: average of the steering by distance */
         {
@@ -531,12 +567,15 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
                 {
                     share = 1.0f;
                 }
+
                 mem += ((float32_t)out - mem) * share;
             }
+
             mem_odo = odo;
         }
         /* Motion slows down while correcting or searching, so the same
            steering turns much tighter; a little in curves too */
+
         if (b_searching)
         {
             g_speed_pct = S3_SEARCH_PCT;
@@ -558,22 +597,27 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
             {
                 g_speed_pct = 100;
             }
+
             cap = 100 - (int32_t)(S3_MEM_SLOW * ((mem < 0.0f) ? -mem : mem));
+
             if (cap < 35)
             {
                 cap = 35;
             }
+
             if (cap < g_speed_pct)
             {
                 g_speed_pct = cap;
             }
         }
+
         /* the probe turns too: a crossing met while probing came at an
            angle (7 Nov: taken as a crossing) */
         hist_step(odo, b_single || b_searching || (probe != 0));
 
         if (!gb_enabled)
-        { /* turning, bypassing: no events */
+        {
+            /* turning, bypassing: no events */
             b_bpend = FALSE;
             app_timing_done(g_tmg_line);
             continue;
@@ -587,6 +631,7 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
             if (b_searching)
             {
                 g_state = LINE_SEARCH;
+
                 if (((odo - search_from) > mm_to_counts(S3_LOST_MM)) ||
                     (++search_n > (S3_LOST_MS / PERIOD_LINE_MS)))
                 {
@@ -601,6 +646,7 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
             {
                 g_state = LINE_ON;
             }
+
             if (b_single &&
                 ((odo - single_from) > mm_to_counts(S3_STUCK_ONE_MM)))
             {
@@ -611,11 +657,17 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
             {
                 why = LINE_FAULT_BOTH;
             }
+            else
+            {
+                /* nothing to do for any other case */
+            }
+
             if (why != 0)
             {
                 g_fault_why = why;
                 g_state     = LINE_FAULT;
             }
+
             if ((LINE_LOST == g_state) || (LINE_FAULT == g_state))
             {
                 tk_set_flg(gh_flg_mission, MSN_FLG_LINE_LOST);
@@ -641,8 +693,14 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
                 pair_c    = both_from + (len / 2);
                 b_pair_ok = TRUE;
             }
+            else
+            {
+                /* nothing to do for any other case */
+            }
+
             /* else swept across the line on a curve: not a crossing */
         }
+
         if (b_pair_ok &&
             ((odo - pair_c) > mm_to_counts(S3_PAIR_MM - S3_BAR_AHEAD_MM + 20)))
         {
@@ -661,10 +719,12 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
                 int32_t gap    = centre - pair_c;
 
                 mark_seen = seq;
+
                 if (gap < 0)
                 {
                     gap = -gap;
                 }
+
                 if (b_pair_ok && (gap <= mm_to_counts(S3_PAIR_MM)) &&
                     (mark_width >= S3_PAIR_B_MIN_MM10) &&
                     (mark_width <= (S3_JUNC_MAX_MM * 10)))
@@ -672,6 +732,7 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
                     junction_at(pair_c, JUNC_SIDE_S | JUNC_SIDE_B);
                     b_pair_ok = FALSE;
                 }
+
                 if ((mark_width >= (S3_JUNC_MIN_MM * 10)) &&
                     (mark_width <= (S3_JUNC_MAX_MM * 10)))
                 {
@@ -680,16 +741,19 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
                 }
             }
         }
+
         if (b_bpend && ((odo - bpend_c) >= mm_to_counts(S3_ARM_AFTER_MM)))
         {
             int32_t centre = bpend_c;
 
             b_bpend = FALSE;
+
             if (quiet_over(centre - mm_to_counts(S3_ARM_BEFORE_MM),
                            centre - mm_to_counts(S3_ARM_SELF_MM), odo))
             {
                 junction_at(centre, JUNC_SIDE_B);
             }
+
             /* else on a curve or correcting there: not trusted */
         }
 

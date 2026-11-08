@@ -154,11 +154,13 @@ LOCAL void adc_sample (int32_t sample)
     uint8_t lvl   = g_adc_lvl;
 
     g_adc_raw = sample;
+
     if (g_env_w < 0)
     {
         g_env_w = g_env_b = black;
         g_rel_lo = g_rel_hi = adc_blackness(sample);
     }
+
     /* black level: rises fast to a new darkest, sinks very slowly */
     if (black > g_env_b)
     {
@@ -168,6 +170,7 @@ LOCAL void adc_sample (int32_t sample)
     {
         g_env_b -= (g_env_b - black) >> ENV_DECAY_SH;
     }
+
     /* white level: the same the other way */
     if (black < g_env_w)
     {
@@ -188,6 +191,7 @@ LOCAL void adc_sample (int32_t sample)
             {
                 g_rel_lo = blackness;
             }
+
             if ((blackness > (g_rel_lo + S3_BAR_DELTA)) &&
                 (blackness >= adc_blackness(S3_BAR_BLACK_MIN)))
             {
@@ -201,6 +205,7 @@ LOCAL void adc_sample (int32_t sample)
             {
                 g_rel_hi = blackness;
             }
+
             if (blackness < (g_rel_hi - S3_BAR_DELTA))
             {
                 lvl      = !IR_BLACK;
@@ -211,6 +216,7 @@ LOCAL void adc_sample (int32_t sample)
     else if (S3_BAR_ADC_ON > 0)
     {
         int32_t blackness = adc_blackness(sample);
+
         if ((lvl != IR_BLACK) && (blackness >= adc_blackness(S3_BAR_ADC_ON)))
         {
             lvl = IR_BLACK;
@@ -219,6 +225,10 @@ LOCAL void adc_sample (int32_t sample)
                  (blackness <= adc_blackness(S3_BAR_ADC_OFF)))
         {
             lvl = !IR_BLACK;
+        }
+        else
+        {
+            /* nothing to do for any other case */
         }
     }
     else
@@ -240,12 +250,18 @@ LOCAL void adc_sample (int32_t sample)
         {
             lvl = !IR_BLACK;
         }
+        else
+        {
+            /* nothing to do for any other case */
+        }
     }
+
     if (lvl != g_adc_lvl)
     {
         uint32_t ring_pos = g_ring_w;
 
         g_adc_lvl = lvl;
+
         if (!gb_paused)
         {
             g_ring[ring_pos & (RING - 1)].odo   = motion_odometer();
@@ -261,6 +277,7 @@ LOCAL void adc_fifo_isr (uint32_t intno)
     {
         adc_sample((int32_t)(in_w(ADC_FIFO) & 0x0FFFu));
     }
+
     ClearInt(intno);
 }
 
@@ -276,13 +293,16 @@ EXPORT ER barcode_hw_init (void)
     set_w(GPIO(PIN_IR_BARCODE_AO), GPIO_OD);
 
     out_w(ADC_CS, ((uint32_t)S3_BAR_ADC_CH << 12) | CS_EN);
+
     while (0u == (in_w(ADC_CS) & CS_READY))
     {
         ;
     }
+
     out_w(ADC_DIV, (uint32_t)((48000000 / ADC_RATE_HZ) - 1)
                        << 8); /* clk_adc 48 MHz */
     out_w(ADC_FCS, FCS_EN | FCS_THRESH_1);
+
     while (0u == (in_w(ADC_FCS) & FCS_EMPTY))
     {
         (void)in_w(ADC_FIFO);
@@ -291,10 +311,12 @@ EXPORT ER barcode_hw_init (void)
     dint.intatr = TA_HLNG;
     dint.inthdr = (FP)adc_fifo_isr;
     err         = tk_def_int(INTNO_ADC_FIFO, &dint);
+
     if (err < E_OK)
     {
         return err;
     }
+
     ClearInt(INTNO_ADC_FIFO);
     out_w(ADC_INTE, 1u);
     EnableInt(INTNO_ADC_FIFO, INTPRI_ADC);
@@ -318,6 +340,7 @@ EXPORT BOOL barcode_adc (int32_t * p_raw, int32_t * p_white, int32_t * p_black)
         *p_white = 4095 - *p_white;
         *p_black = 4095 - *p_black;
     }
+
     return TRUE;
 }
 
@@ -344,11 +367,14 @@ EXPORT BOOL barcode_in_bars (void)
     {
         return FALSE;
     }
+
     since = motion_odometer() - g_edge_pub;
+
     if (since < 0)
     {
         since = -since;
     }
+
     return since < (int32_t)(S3_IN_BARS_MM * 1000 / S2_UM_PER_COUNT);
 }
 
@@ -366,11 +392,13 @@ EXPORT uint32_t barcode_debug (int32_t * p_count, int32_t * p_w_mm10,
     uint32_t irq_state;
 
     APP_LOCK(irq_state);
+
     *p_count = g_dbg_n;
     for (idx = 0; (idx < g_dbg_n) && (idx < DBG_MAX) && (idx < max); idx++)
     {
         p_w_mm10[idx] = g_dbg_w[idx];
     }
+
     APP_UNLOCK(irq_state);
     return g_dbg_seq;
 }
@@ -447,21 +475,26 @@ LOCAL uint8_t decode_char (const int32_t * p_elem, int32_t * p_narrow_sum,
     for (jdx = 0; jdx < 3; jdx++)
     {
         int32_t best = -1;
+
         for (idx = 0; idx < 9; idx++)
         {
             if ((idx == wide[0]) || (idx == wide[1]))
             {
                 continue;
             }
+
             if ((best < 0) || (p_elem[idx] > p_elem[best]))
             {
                 best = idx;
             }
         }
+
         wide[jdx] = best;
         pat |= (uint16_t)(1u << (8 - best));
     }
+
     min_wide = p_elem[wide[2]];
+
     for (idx = 0; idx < 9; idx++)
     {
         if ((pat & (1u << (8 - idx))) != 0u)
@@ -477,10 +510,12 @@ LOCAL uint8_t decode_char (const int32_t * p_elem, int32_t * p_narrow_sum,
             }
         }
     }
+
     if ((min_wide * 10) < (max_narrow * S3_WIDE_RATIO_X10))
     {
         return 0; /* wide and narrow not separable */
     }
+
     for (idx = 0; idx < (int32_t)(sizeof(g_c39) / sizeof(g_c39[0])); idx++)
     {
         if (g_c39[idx].pat == pat)
@@ -488,6 +523,7 @@ LOCAL uint8_t decode_char (const int32_t * p_elem, int32_t * p_narrow_sum,
             return g_c39[idx].letter;
         }
     }
+
     return 0;
 }
 
@@ -505,31 +541,38 @@ LOCAL BOOL decode (int32_t * p_elem, int32_t count, barcode_result_t * p_result)
 
     p_result->b_ok     = FALSE;
     p_result->elements = count;
+
     if (count < 29)
     {
         return FALSE;
     }
+
     for (pass = 0; pass < 2; pass++)
     {
         for (off = 0; (off + 29) <= count; off += 2)
         {
             narrow_sum = wide_sum = 0;
+
             if (decode_char(&p_elem[off], &narrow_sum, &wide_sum) != '*')
             {
                 continue;
             }
+
             for (kdx = (count - off + 1) / 10; kdx >= 3; kdx--)
             {
                 uint8_t letter;
 
                 narrow_sum = wide_sum = 0;
                 (void)decode_char(&p_elem[off], &narrow_sum, &wide_sum);
+
                 if (decode_char(&p_elem[off + ((kdx - 1) * 10)], &narrow_sum,
                                 &wide_sum) != '*')
                 {
                     continue;
                 }
+
                 letter = decode_char(&p_elem[off + 10], &narrow_sum, &wide_sum);
+
                 if ((letter != 0) && (letter != '*'))
                 {
                     p_result->b_ok       = TRUE;
@@ -544,6 +587,7 @@ LOCAL BOOL decode (int32_t * p_elem, int32_t count, barcode_result_t * p_result)
                 }
             }
         }
+
         /* try backwards */
         for (idx = 0; idx < (count / 2); idx++)
         {
@@ -552,6 +596,7 @@ LOCAL BOOL decode (int32_t * p_elem, int32_t count, barcode_result_t * p_result)
             p_elem[count - 1 - idx] = tmp;
         }
     }
+
     return FALSE;
 }
 
@@ -579,12 +624,15 @@ LOCAL void sort_w (int32_t * p_values, int32_t count)
     int32_t tmp;
 
     for (idx = 1; idx < count; idx++)
-    { /* insertion sort, n <= 32 */
+    {
+        /* insertion sort, n <= 32 */
         tmp = p_values[idx];
+
         for (jdx = idx; (jdx > 0) && (p_values[jdx - 1] > tmp); jdx--)
         {
             p_values[jdx] = p_values[jdx - 1];
         }
+
         p_values[jdx] = tmp;
     }
 }
@@ -599,6 +647,7 @@ LOCAL BOOL clear_split (const int32_t * p_elem)
     {
         sorted[idx] = p_elem[idx];
     }
+
     sort_w(sorted, 9);
     return sorted[6] >= (2 * sorted[5]);
 }
@@ -612,6 +661,7 @@ LOCAL int32_t sum9 (const int32_t * p_elem)
     {
         sum += p_elem[idx];
     }
+
     return sum;
 }
 
@@ -627,10 +677,12 @@ LOCAL void nar_wid (const int32_t * p_elem, int32_t count, int32_t * p_nar,
     {
         count = 32;
     }
+
     for (idx = 0; idx < count; idx++)
     {
         sorted[idx] = p_elem[idx];
     }
+
     sort_w(sorted, count);
     *p_nar = sorted[(count * 2 / 3) / 2];
     *p_wid = sorted[count - 1 - ((count / 4) / 2)];
@@ -651,6 +703,7 @@ LOCAL BOOL decode_one_star (int32_t * p_elem, int32_t count,
     {
         return FALSE;
     }
+
     for (pass = 0; pass < 2; pass++)
     {
         for (off = 0; (off + 29) <= count; off += 2)
@@ -671,35 +724,44 @@ LOCAL BOOL decode_one_star (int32_t * p_elem, int32_t count,
             first_ch = decode_char(&p_elem[off], &narrow_sum, &wide_sum);
             letter   = decode_char(&p_elem[off + 10], &narrow_sum, &wide_sum);
             last_ch  = decode_char(&p_elem[off + 20], &narrow_sum, &wide_sum);
+
             if ((0 == letter) || ('*' == letter) ||
                 (('*' == first_ch) == ('*' == last_ch)))
             {
                 continue;
             }
+
             b_a_ok = ('*' == first_ch);
+
             for (kdx = 0; kdx < 29; kdx++)
             {
                 sorted[kdx] = p_elem[off + kdx];
             }
+
             sort_w(sorted, 29); /* m[14]: the median, a narrow one */
+
             if (((p_elem[off + 9] * 10) >= (sorted[14] * 16)) ||
                 ((p_elem[off + 19] * 10) >= (sorted[14] * 16)))
             {
                 continue; /* a gap between characters is not narrow */
             }
+
             if ((!clear_split(&p_elem[off + 10])) ||
                 (!clear_split(&p_elem[b_a_ok ? off : off + 20])))
             {
                 continue;
             }
+
             sum_mid   = sum9(&p_elem[off + 10]);
             sum_other = sum9(&p_elem[b_a_ok ? off + 20 : off]);
+
             if ((((sum_other > sum_mid) ? sum_other - sum_mid
                                         : sum_mid - sum_other) *
                  100) > (sum_mid * 15))
             {
                 continue;
             }
+
             if ((found != 0) && (found != letter))
             {
                 found = 0xFF; /* two answers */
@@ -708,23 +770,28 @@ LOCAL BOOL decode_one_star (int32_t * p_elem, int32_t count,
             {
                 found = letter;
             }
+
             b_rev_found = (1 == pass);
             nar_wid(&p_elem[off], 29, &nar, &wid);
             f_nar = nar;
             f_wid = wid;
         }
+
         for (idx = 0; idx < (count / 2); idx++)
-        { /* backwards */
+        {
+            /* backwards */
             int32_t tmp = p_elem[idx];
 
             p_elem[idx]             = p_elem[count - 1 - idx];
             p_elem[count - 1 - idx] = tmp;
         }
     }
+
     if ((0 == found) || (0xFF == found))
     {
         return FALSE;
     }
+
     p_result->b_ok        = TRUE;
     p_result->letter      = found;
     p_result->b_reversed  = b_rev_found;
@@ -754,10 +821,12 @@ LOCAL BOOL decode_merged (const int32_t * p_elem, int32_t count,
     {
         return FALSE;
     }
+
     keep = *p_result;
     nar_wid(p_elem, count, &nar, &wid);
     opt[0] = nar;
     opt[1] = wid;
+
     for (idx = 0; idx < count; idx++)
     {
         for (first_opt = 0; first_opt < 2; first_opt++)
@@ -765,40 +834,49 @@ LOCAL BOOL decode_merged (const int32_t * p_elem, int32_t count,
             for (last_opt = 0; last_opt < 2; last_opt++)
             {
                 tot = opt[first_opt] + nar + opt[last_opt];
+
                 if ((((p_elem[idx] > tot) ? p_elem[idx] - tot
                                           : tot - p_elem[idx]) *
                      5) > tot)
                 {
                     continue;
                 }
+
                 for (jdx = 0; jdx < idx; jdx++)
                 {
                     trial_elems[jdx] = p_elem[jdx];
                 }
+
                 trial_elems[idx]     = opt[first_opt];
                 trial_elems[idx + 1] = nar;
                 trial_elems[idx + 2] = opt[last_opt];
+
                 for (jdx = idx + 1; jdx < count; jdx++)
                 {
                     trial_elems[jdx + 2] = p_elem[jdx];
                 }
+
                 trial = *p_result;
+
                 if (decode(trial_elems, count + 2, &trial))
                 {
                     if ((found != 0) && (found != trial.letter))
                     {
                         return FALSE; /* two answers */
                     }
+
                     found = trial.letter;
                     keep  = trial;
                 }
             }
         }
     }
+
     if (0 == found)
     {
         return FALSE;
     }
+
     keep.elements = count;
     keep.fixed    = BAR_FIX_MERGED;
     *p_result     = keep;
@@ -828,40 +906,49 @@ LOCAL BOOL decode_truncated (const int32_t * p_elem, int32_t count,
     {
         return FALSE;
     }
+
     keep = *p_result;
     nar_wid(p_elem, count, &nar, &wid);
+
     for (kdx = 1; kdx <= 2; kdx++)
     {
         if ((count + kdx) < 29)
         {
             continue;
         }
+
         for (side = 0; side < 2; side++)
         {
             for (jdx = 0; jdx < (count + kdx); jdx++)
             {
                 trial_elems[jdx] = nar;
             }
+
             for (jdx = 0; jdx < count; jdx++)
             {
                 trial_elems[(0 == side) ? jdx : jdx + kdx] = p_elem[jdx];
             }
+
             trial = *p_result;
+
             if (decode(trial_elems, count + kdx, &trial))
             {
                 if ((found != 0) && (found != trial.letter))
                 {
                     return FALSE; /* two answers */
                 }
+
                 found = trial.letter;
                 keep  = trial;
             }
         }
     }
+
     if (0 == found)
     {
         return FALSE;
     }
+
     keep.elements = count;
     keep.fixed    = BAR_FIX_CUT;
     *p_result     = keep;
@@ -932,6 +1019,7 @@ EXPORT void barcode_task (int32_t stacd, void * p_exinf)
 
         /* barcode_reset(): drop this read and every edge until it
            ends, then start fresh */
+
         if (gb_paused)
         {
             g_ring_r  = g_ring_w;
@@ -961,6 +1049,7 @@ EXPORT void barcode_task (int32_t stacd, void * p_exinf)
                 b_raw_ok  = FALSE;
                 avail     = RING;
             }
+
             end = g_ring_r + avail;
         }
         while (g_ring_r != end)
@@ -969,22 +1058,27 @@ EXPORT void barcode_task (int32_t stacd, void * p_exinf)
             int32_t    delta;
 
             g_ring_r++;
+
             if (b_raw_ok)
             {
                 delta = edge.odo - raw_odo;
+
                 if (delta < 0)
                 {
                     delta = -delta;
                 }
+
                 if (delta >= MERGE_COUNTS)
                 {
                     COMMIT(raw_lvl, raw_odo); /* that level held */
                 }
             }
+
             raw_lvl  = edge.level;
             raw_odo  = edge.odo;
             b_raw_ok = TRUE;
         }
+
         /* The latest level may have held long enough by now */
         if (b_raw_ok)
         {
@@ -994,6 +1088,7 @@ EXPORT void barcode_task (int32_t stacd, void * p_exinf)
             {
                 delta = -delta;
             }
+
             if (delta >= MERGE_COUNTS)
             {
                 COMMIT(raw_lvl, raw_odo);
@@ -1009,6 +1104,7 @@ EXPORT void barcode_task (int32_t stacd, void * p_exinf)
             {
                 gap = -gap;
             }
+
             if (motion_counts_to_mm(gap) > S3_QUIET_MM)
             {
                 b_in_code = FALSE;
@@ -1018,14 +1114,17 @@ EXPORT void barcode_task (int32_t stacd, void * p_exinf)
 
                     APP_LOCK(irq_state);
                     g_dbg_n = count;
+
                     for (idx = 0; (idx < count) && (idx < DBG_MAX); idx++)
                     {
                         g_dbg_w[idx] =
                             (int32_t)(elem[idx] * S2_UM_PER_COUNT / 100);
                     }
+
                     g_dbg_seq++;
                     APP_UNLOCK(irq_state);
                 }
+
                 if (count >= MIN_ELEM_REPORT)
                 {
                     barcode_result_t result = {0};
@@ -1037,6 +1136,7 @@ EXPORT void barcode_task (int32_t stacd, void * p_exinf)
                     {
                         (void)decode_truncated(elem, count, &result);
                     }
+
                     result.seq      = ++seq;
                     result.elements = count;
                     APP_LOCK(irq_state);
@@ -1045,9 +1145,11 @@ EXPORT void barcode_task (int32_t stacd, void * p_exinf)
                     g_seq_now = seq;
                     tk_set_flg(gh_flg_mission, MSN_FLG_BARCODE);
                 }
+
                 count = 0;
             }
         }
+
         gb_busy = b_in_code;
 
         app_timing_done(g_tmg_barcode);
@@ -1074,6 +1176,7 @@ EXPORT BOOL barcode_set_mapping (const uint8_t * p_text, int32_t len,
     uint32_t irq_state;
 
     p_why[0] = '\0';
+
     while (idx < len)
     {
         uint8_t letter;
@@ -1083,10 +1186,12 @@ EXPORT BOOL barcode_set_mapping (const uint8_t * p_text, int32_t len,
         {
             idx++;
         }
+
         if (idx >= len)
         {
             break;
         }
+
         if ((4 == pairs) || ((idx + 2) >= len) || (p_text[idx + 1] != '='))
         {
             tm_sprintf(
@@ -1094,16 +1199,20 @@ EXPORT BOOL barcode_set_mapping (const uint8_t * p_text, int32_t len,
                 (const uint8_t *)"expected 4 pairs like K=L,Q=R,X=F,M=U");
             return FALSE;
         }
+
         letter  = p_text[idx];
         move_ch = p_text[idx + 2];
+
         if ((letter >= 'a') && (letter <= 'z'))
         {
             letter = (uint8_t)(letter - 'a' + 'A');
         }
+
         if ((move_ch >= 'a') && (move_ch <= 'z'))
         {
             move_ch = (uint8_t)(move_ch - 'a' + 'A');
         }
+
         if ((!is_code_char(letter)) ||
             ((move_ch != MOVE_LEFT) && (move_ch != MOVE_RIGHT) &&
              (move_ch != MOVE_FORWARD) && (move_ch != MOVE_UTURN)))
@@ -1114,16 +1223,19 @@ EXPORT BOOL barcode_set_mapping (const uint8_t * p_text, int32_t len,
                 pairs + 1, letter, move_ch);
             return FALSE;
         }
+
         letters[pairs] = letter;
         moves[pairs]   = move_ch;
         pairs++;
         idx += 3;
     }
+
     if (pairs != 4)
     {
         tm_sprintf(p_why, (const uint8_t *)"%d pairs, need exactly 4", pairs);
         return FALSE;
     }
+
     for (first = 0; first < 4; first++)
     {
         for (second = first + 1; second < 4; second++)
@@ -1138,13 +1250,16 @@ EXPORT BOOL barcode_set_mapping (const uint8_t * p_text, int32_t len,
             }
         }
     }
+
     (void)why_max;
     APP_LOCK(irq_state);
+
     for (first = 0; first < 4; first++)
     {
         g_map_ch[first] = letters[first];
         g_map_mv[first] = moves[first];
     }
+
     gb_map_set = TRUE;
     APP_UNLOCK(irq_state);
     return TRUE;
@@ -1157,6 +1272,7 @@ EXPORT int32_t barcode_move_for (uint8_t letter)
     uint32_t irq_state;
 
     APP_LOCK(irq_state);
+
     if (gb_map_set)
     {
         for (idx = 0; idx < 4; idx++)
@@ -1167,6 +1283,7 @@ EXPORT int32_t barcode_move_for (uint8_t letter)
             }
         }
     }
+
     APP_UNLOCK(irq_state);
     return move;
 }
@@ -1181,17 +1298,21 @@ EXPORT int32_t barcode_mapping_text (uint8_t * p_out, int32_t max)
 
     APP_LOCK(irq_state);
     b_set = gb_map_set;
+
     for (idx = 0; idx < 4; idx++)
     {
         letters[idx] = g_map_ch[idx];
         moves[idx]   = g_map_mv[idx];
     }
+
     APP_UNLOCK(irq_state);
+
     if ((!b_set) || (max < 16))
     {
         p_out[0] = '\0';
         return 0;
     }
+
     return tm_sprintf(p_out, (const uint8_t *)"%c=%c,%c=%c,%c=%c,%c=%c",
                       letters[0], moves[0], letters[1], moves[1], letters[2],
                       moves[2], letters[3], moves[3]);

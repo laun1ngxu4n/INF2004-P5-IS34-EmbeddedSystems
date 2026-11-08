@@ -17,42 +17,53 @@ EXPORT ER subsystem3_init (void)
     ER err;
 
     err = line_hw_init();
+
     if (err < E_OK)
     {
         return err;
     }
+
     err = barcode_hw_init();
+
     if (err < E_OK)
     {
         return err;
     }
+
     g_tmg_line    = app_timing_add("line", PRI_LINE, PERIOD_LINE_MS);
     g_tmg_barcode = app_timing_add("barcode", PRI_BARCODE, TIMEOUT_BARCODE_MS);
     gh_cyc_line   = app_create_wake_cyclic(&gh_tid_line, PERIOD_LINE_MS);
+
     if (g_tmg_line < E_OK)
     {
         return g_tmg_line;
     }
+
     if (g_tmg_barcode < E_OK)
     {
         return g_tmg_barcode;
     }
+
     return (gh_cyc_line < E_OK) ? gh_cyc_line : E_OK;
 }
 
 EXPORT ER subsystem3_start (void)
 {
     gh_tid_line = app_start_task(line_task, PRI_LINE, 0, "line_task");
+
     if (gh_tid_line < E_OK)
     {
         return gh_tid_line;
     }
+
     gh_tid_barcode =
         app_start_task(barcode_task, PRI_BARCODE, 0, "barcode_task");
+
     if (gh_tid_barcode < E_OK)
     {
         return gh_tid_barcode;
     }
+
     return tk_sta_cyc(gh_cyc_line);
 }
 

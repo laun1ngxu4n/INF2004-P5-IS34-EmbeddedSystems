@@ -80,6 +80,7 @@ EXPORT ID app_start_task (FP p_entry, PRI pri, uint32_t prc,
 
     /* tk_cre_tsk: create the task.  It starts in the DORMANT state. */
     h_tid = tk_cre_tsk(&ctsk);
+
     if (h_tid < E_OK)
     {
         app_check(h_tid, p_name);

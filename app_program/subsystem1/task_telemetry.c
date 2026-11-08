@@ -62,12 +62,14 @@ EXPORT void tm_console_mirror (const uint8_t * p_buf, int32_t size)
     int32_t  idx;
 
     APP_LOCK(irq_state);
+
     for (idx = 0; idx < size; idx++)
     {
         if ('\r' == p_buf[idx])
         {
             continue; /* the panel wants LF line ends only */
         }
+
         if ((g_log_w - g_log_r) >= LOG_RING)
         {
             g_log_dropped++;
@@ -78,6 +80,7 @@ EXPORT void tm_console_mirror (const uint8_t * p_buf, int32_t size)
             g_log_w++;
         }
     }
+
     APP_UNLOCK(irq_state);
 }
 
@@ -95,6 +98,7 @@ LOCAL int32_t log_take (char * p_topic, uint32_t tmax, uint8_t * p_buf,
     APP_LOCK(irq_state);
     avail = g_log_w - g_log_r;
     APP_UNLOCK(irq_state);
+
     if ((0u == avail) || (bmax < 64u))
     {
         return 0;
@@ -103,20 +107,26 @@ LOCAL int32_t log_take (char * p_topic, uint32_t tmax, uint8_t * p_buf,
     head_len =
         (uint32_t)tm_sprintf(head, (const uint8_t *)"L%d %d|",
                              (int32_t)(g_log_seq + 1u), (int32_t)g_log_dropped);
+
     for (idx = 0; idx < head_len; idx++)
     {
         p_buf[idx] = head[idx];
     }
+
     count = bmax - 1u - head_len;
+
     if (count > avail)
     {
         count = (uint32_t)avail;
     }
+
     APP_LOCK(irq_state);
+
     for (idx = 0; idx < count; idx++)
     {
         p_buf[head_len + idx] = g_log_ring[(g_log_r + idx) & (LOG_RING - 1)];
     }
+
     g_log_r += count;
     APP_UNLOCK(irq_state);
     g_log_seq++;
@@ -125,6 +135,7 @@ LOCAL int32_t log_take (char * p_topic, uint32_t tmax, uint8_t * p_buf,
     {
         p_topic[idx] = TOPIC_LOG[idx];
     }
+
     p_topic[idx] = '\0';
     return (int32_t)(head_len + count);
 }
@@ -136,16 +147,20 @@ LOCAL void outbox_put (uint8_t topic, const uint8_t * p_text)
     int32_t  idx;
 
     APP_LOCK(irq_state);
+
     if ((g_ob_w - g_ob_r) >= OUTBOX_N)
     {
         g_ob_r++; /* full: drop the oldest */
         g_out_dropped++;
     }
+
     g_outbox[g_ob_w % OUTBOX_N].topic = topic;
+
     for (idx = 0; (idx < (TELE_TEXT_MAX - 1)) && (p_text[idx] != '\0'); idx++)
     {
         g_outbox[g_ob_w % OUTBOX_N].text[idx] = p_text[idx];
     }
+
     g_outbox[g_ob_w % OUTBOX_N].text[idx] = '\0';
     g_ob_w++;
     APP_UNLOCK(irq_state);
@@ -175,6 +190,7 @@ LOCAL BOOL starts_with (const char * p_text, const char * p_prefix,
             return FALSE;
         }
     }
+
     *pp_rest = p_text;
     return TRUE;
 }
@@ -186,6 +202,7 @@ LOCAL BOOL same (const char * p_first, const char * p_second)
         p_first++;
         p_second++;
     }
+
     return *p_first == *p_second;
 }
 
@@ -207,20 +224,24 @@ EXPORT int app_mqtt_tx (char * p_topic, unsigned tmax, unsigned char * p_buf,
     if ((!b_have) || (!gb_log_turn))
     {
         int32_t len = log_take(p_topic, tmax, p_buf, bmax);
+
         if (len > 0)
         {
             gb_log_turn = TRUE;
             return len;
         }
     }
+
     gb_log_turn = FALSE;
 #endif
     APP_LOCK(irq_state);
+
     if (g_ob_r == g_ob_w)
     {
         APP_UNLOCK(irq_state);
         return 0;
     }
+
     msg = g_outbox[g_ob_r % OUTBOX_N];
     g_ob_r++;
     APP_UNLOCK(irq_state);
@@ -229,11 +250,14 @@ EXPORT int app_mqtt_tx (char * p_topic, unsigned tmax, unsigned char * p_buf,
     {
         p_topic[idx] = names[msg.topic][idx];
     }
+
     p_topic[idx] = '\0';
+
     for (idx = 0; ((idx + 1) < bmax) && (msg.text[idx] != '\0'); idx++)
     {
         p_buf[idx] = msg.text[idx];
     }
+
     return (int)idx;
 }
 
@@ -248,6 +272,7 @@ EXPORT void app_mqtt_rx (const char * p_topic, const unsigned char * p_data,
     {
         return;
     }
+
     if (same(p_cmd, "map"))
     {
         if (barcode_set_mapping(p_data, (int32_t)len, why, sizeof(why)))
@@ -261,6 +286,7 @@ EXPORT void app_mqtt_rx (const char * p_topic, const unsigned char * p_data,
             tm_sprintf(msg, (const uint8_t *)"REJECTED %s (old mapping kept)",
                        why);
         }
+
         tm_printf((uint8_t *)"[MQTT] map: %s\n", msg);
         outbox_put(2, msg);
     }
@@ -275,6 +301,10 @@ EXPORT void app_mqtt_rx (const char * p_topic, const unsigned char * p_data,
         app_stop_request(STOP_MQTT);
         tk_set_flg(gh_flg_mission, MSN_FLG_STOP);
         tm_printf((uint8_t *)"[MQTT] stop\n");
+    }
+    else
+    {
+        /* nothing to do for any other case */
     }
 }
 
@@ -343,16 +373,19 @@ EXPORT void telemetry_task (int32_t stacd, void * p_exinf)
             ping_tick = 0;
             app_check(tk_set_flg(gh_flg_mission, MSN_FLG_PING), "IF-01 ping");
         }
+
         if (++status_tick >= S1_STATUS_TICKS)
         {
             status_tick = 0;
             status_line();
         }
+
         if (++sensor_tick >= S1_SENSOR_TICKS)
         {
             sensor_tick = 0;
             sensor_line();
         }
+
         if (++report_tick >= S1_REPORT_TICKS)
         {
             report_tick = 0;

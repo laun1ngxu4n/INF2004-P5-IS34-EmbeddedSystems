@@ -194,7 +194,15 @@ def word_sub(text, mapping, comments):
         if w in mapping and (not comments or '_' in w):
             return mapping[w]
         return w
-    return re.sub(r'(?<![\w.])(?<!->)([A-Za-z_]\w*)', rep, text)
+    if comments:
+        return re.sub(r'(?<![\w.])(?<!->)([A-Za-z_]\w*)', rep, text)
+    # a preprocessor line: rename in its code only, never in its comments
+    # or strings ("barcode sensor B" must not become "int8_t")
+    parts = re.split(r'(/\*.*?\*/|//[^\n]*|"(?:\\.|[^"\\\n])*"|\'(?:\\.|[^\'\\\n])*\')',
+                     text, flags=re.S)
+    for i in range(0, len(parts), 2):
+        parts[i] = re.sub(r'(?<![\w.])(?<!->)([A-Za-z_]\w*)', rep, parts[i])
+    return ''.join(parts)
 
 
 def apply(path):

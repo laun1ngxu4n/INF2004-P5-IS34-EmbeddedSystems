@@ -11,6 +11,9 @@
 # test_report.h), which move when code is reformatted.  Everything else is
 # the normal build.  BUILD is the command that runs make in build_make with
 # the toolchain on the PATH (default: the local .vscode/build.sh).
+# COMPARE_EXTRA adds compiler options to both builds, e.g.
+# -fno-strict-aliasing to show that a change of integer type (int -> long,
+# same width) only lets the compiler reorder accesses to separate variables.
 set -e
 mode="$1"
 dir="$2"
@@ -41,7 +44,7 @@ bad=0
 for v in "${variants[@]}"; do
     args="${v%%|*}"
     name="${v##*|}"
-    out=$($BUILD -j8 $args EXTRA_CFLAGS=-DAPP_COMPARE_BUILD=1 2>&1) || {
+    out=$($BUILD -j8 $args "EXTRA_CFLAGS=-DAPP_COMPARE_BUILD=1 $COMPARE_EXTRA" 2>&1) || {
         echo "$out" | tail -20
         echo "BUILD FAILED: $args"
         exit 1

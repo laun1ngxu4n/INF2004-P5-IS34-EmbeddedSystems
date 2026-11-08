@@ -84,7 +84,7 @@ EXPORT void app_timing_wake (int32_t slot, int32_t overruns)
 
     if (overruns > 0)
     {
-        p_slot->overruns += (uint32_t)overruns;
+        p_slot->overruns += (uint32_t)overruns; /* > 0 here */
     }
 
     p_slot->last_us      = now;
@@ -154,7 +154,8 @@ EXPORT ER app_timing_get (int32_t slot, app_timing_t * p_p_copy)
 /** Print microseconds as milliseconds with two decimals, e.g. "10.02" */
 LOCAL void print_ms (uint32_t micros)
 {
-    tm_printf((uint8_t *)"%d.%02d", (int32_t)(micros / 1000),
+    /* micros / 1000 <= 4 294 967 and the rest < 100: both fit %d */
+    tm_printf(app_str("%d.%02d"), (int32_t)(micros / 1000),
               (int32_t)((micros % 1000) / 10));
 }
 
@@ -164,9 +165,10 @@ EXPORT void app_timing_report (void)
     int32_t      idx;
     uint32_t     irq_state;
 
-    tm_printf((uint8_t *)"[tmg] t=%d ms | task pri period | wakes overruns | "
-                         "interval min-max ms (boot max @ s) | run max us "
-                         "(boot max)\n",
+    /* ms since boot <= 4 294 967: fits %d */
+    tm_printf(app_str("[tmg] t=%d ms | task pri period | wakes overruns | "
+                      "interval min-max ms (boot max @ s) | run max us "
+                      "(boot max)\n"),
               (int32_t)(app_time_us() / 1000));
 
     for (idx = 0; idx < g_tmg_used; idx++)
@@ -179,28 +181,32 @@ EXPORT void app_timing_report (void)
         g_tmg[idx].win_max_run_us = 0;
         APP_UNLOCK(irq_state);
 
-        tm_printf((uint8_t *)"[tmg] %-9s %2d %3d | %6d %3d | ", snap.p_name,
+        /* priority 1..140, period <= 1000 ms; wakes and overruns since boot
+           stay below 2^31 for 248 days at 100 Hz: all fit %d */
+        tm_printf(app_str("[tmg] %-9s %2d %3d | %6d %3d | "), snap.p_name,
                   (int32_t)snap.pri, (int32_t)snap.period_ms,
                   (int32_t)snap.count, (int32_t)snap.overruns);
 
         if (0 == snap.win_max_iv_us)
         {
-            tm_printf((uint8_t *)"no wake this window");
+            tm_printf(app_str("no wake this window"));
         }
         else
         {
             print_ms(snap.win_min_iv_us);
-            tm_printf((uint8_t *)"-");
+            tm_printf(app_str("-"));
             print_ms(snap.win_max_iv_us);
-            tm_printf((uint8_t *)" (");
+            tm_printf(app_str(" ("));
             print_ms(snap.max_iv_us);
-            tm_printf((uint8_t *)" @ %d.%d",
+            /* seconds <= 4294 and tenths 0..9: fit %d */
+            tm_printf(app_str(" @ %d.%d"),
                       (int32_t)(snap.max_iv_at_us / 1000000),
                       (int32_t)((snap.max_iv_at_us % 1000000) / 100000));
-            tm_printf((uint8_t *)")");
+            tm_printf(app_str(")"));
         }
 
-        tm_printf((uint8_t *)" | %d (%d)\n", (int32_t)snap.win_max_run_us,
+        /* run times in us, far below 2^31 (35 minutes): fit %d */
+        tm_printf(app_str(" | %d (%d)\n"), (int32_t)snap.win_max_run_us,
                   (int32_t)snap.max_run_us);
     }
 }

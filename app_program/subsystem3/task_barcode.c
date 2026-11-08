@@ -92,9 +92,10 @@ LOCAL void barcode_edge_isr (uint32_t pin, uint32_t events)
     uint32_t ring_pos = g_ring_w;
 
     (void)events;
-    g_ring[ring_pos & (RING - 1)].odo   = motion_odometer();
-    g_ring[ring_pos & (RING - 1)].level = (uint8_t)app_gpio_get(pin);
-    g_ring_w                            = ring_pos + 1;
+    g_ring[ring_pos & (RING - 1)].odo = motion_odometer();
+    g_ring[ring_pos & (RING - 1)].level =
+        (uint8_t)app_gpio_get(pin); /* 0 or 1 */
+    g_ring_w = ring_pos + 1;
 }
 
 #if !S3_BARCODE_ANALOG
@@ -293,7 +294,7 @@ LOCAL void adc_fifo_isr (uint32_t intno)
 {
     while (0u == (in_w(ADC_FCS) & FCS_EMPTY))
     {
-        adc_sample((int32_t)(in_w(ADC_FIFO) & 0x0FFFu));
+        adc_sample((int32_t)(in_w(ADC_FIFO) & 0x0FFFu)); /* 12 bits */
     }
 
     ClearInt(intno);
@@ -311,6 +312,7 @@ EXPORT ER barcode_hw_init (void)
     clr_w(GPIO(PIN_IR_BARCODE_AO), GPIO_IE | GPIO_PUE | GPIO_PDE);
     set_w(GPIO(PIN_IR_BARCODE_AO), GPIO_OD);
 
+    /* channel 0..4 */
     out_w(ADC_CS, ((uint32_t)S3_BAR_ADC_CH << 12) | CS_EN);
 
     while (0u == (in_w(ADC_CS) & CS_READY))
@@ -318,6 +320,7 @@ EXPORT ER barcode_hw_init (void)
         /* nothing: wait for the ADC to be ready */
     }
 
+    /* a positive constant, 23999 */
     out_w(ADC_DIV, (uint32_t)((48000000 / ADC_RATE_HZ) - 1)
                        << 8); /* clk_adc 48 MHz */
     out_w(ADC_FCS, FCS_EN | FCS_THRESH_1);
@@ -328,6 +331,8 @@ EXPORT ER barcode_hw_init (void)
     }
 
     dint.intatr = TA_HLNG;
+    /* T-Kernel keeps every handler as FP; with TA_HLNG it calls it with the
+       interrupt number, adc_fifo_isr's one parameter */
     dint.inthdr = (FP)adc_fifo_isr;
     err         = tk_def_int(INTNO_ADC_FIFO, &dint);
 
@@ -397,7 +402,7 @@ EXPORT BOOL barcode_in_bars (void)
         since = -since;
     }
 
-    return since < (int32_t)(S3_IN_BARS_MM * 1000 / S2_UM_PER_COUNT);
+    return since < (S3_IN_BARS_MM * 1000 / S2_UM_PER_COUNT);
 }
 
 /* Debug (Stage 2 tests): the element widths of the last code that ended,
@@ -454,7 +459,7 @@ LOCAL void mark_pub (int32_t end_odo, int32_t width)
 
     APP_LOCK(irq_state);
     g_mark_odo = end_odo - (width / 2); /* driving forward: centre is behind */
-    g_mark_w   = (int32_t)(width * S2_UM_PER_COUNT / 100);
+    g_mark_w   = width * S2_UM_PER_COUNT / 100;
     g_mark_seq++;
     APP_UNLOCK(irq_state);
 }
@@ -513,7 +518,7 @@ LOCAL uint8_t decode_char (const int32_t * p_elem, int32_t * p_narrow_sum,
         }
 
         wide[jdx] = best;
-        pat |= (uint16_t)(1u << (8 - best));
+        pat |= (uint16_t)(1u << (8 - best)); /* best 0..8: bits 0..8 */
     }
 
     min_wide = p_elem[wide[2]];
@@ -539,6 +544,7 @@ LOCAL uint8_t decode_char (const int32_t * p_elem, int32_t * p_narrow_sum,
         return 0; /* wide and narrow not separable */
     }
 
+    /* 44 characters: the count fits int32_t */
     for (idx = 0; idx < (int32_t)(sizeof(g_c39) / sizeof(g_c39[0])); idx++)
     {
         if (g_c39[idx].pat == pat)
@@ -604,9 +610,9 @@ LOCAL BOOL decode (int32_t * p_elem, int32_t count, barcode_result_t * p_result)
                     p_result->b_reversed = (1 == pass);
                     /* 3 chars of 6 narrow + 3 wide counted above */
                     p_result->narrow_mm10 =
-                        (int32_t)(narrow_sum * S2_UM_PER_COUNT / 100 / 18);
+                        (narrow_sum * S2_UM_PER_COUNT / 100 / 18);
                     p_result->wide_mm10 =
-                        (int32_t)(wide_sum * S2_UM_PER_COUNT / 100 / 9);
+                        (wide_sum * S2_UM_PER_COUNT / 100 / 9);
                     return TRUE;
                 }
             }
@@ -822,8 +828,8 @@ LOCAL BOOL decode_one_star (int32_t * p_elem, int32_t count,
     p_result->letter      = found;
     p_result->b_reversed  = b_rev_found;
     p_result->fixed       = BAR_FIX_STAR;
-    p_result->narrow_mm10 = (int32_t)(f_nar * S2_UM_PER_COUNT / 100);
-    p_result->wide_mm10   = (int32_t)(f_wid * S2_UM_PER_COUNT / 100);
+    p_result->narrow_mm10 = f_nar * S2_UM_PER_COUNT / 100;
+    p_result->wide_mm10   = f_wid * S2_UM_PER_COUNT / 100;
     return TRUE;
 }
 
@@ -1147,8 +1153,7 @@ EXPORT void barcode_task (int32_t stacd, void * p_exinf)
                     for (idx = 0; (idx < count) && (idx < BARCODE_DBG_MAX);
                          idx++)
                     {
-                        g_dbg_w[idx] =
-                            (int32_t)(elem[idx] * S2_UM_PER_COUNT / 100);
+                        g_dbg_w[idx] = (elem[idx] * S2_UM_PER_COUNT / 100);
                     }
 
                     g_dbg_seq++;
@@ -1226,9 +1231,7 @@ EXPORT BOOL barcode_set_mapping (const uint8_t * p_text, int32_t len,
 
         if ((4 == pairs) || ((idx + 2) >= len) || (p_text[idx + 1] != '='))
         {
-            tm_sprintf(
-                p_why,
-                (const uint8_t *)"expected 4 pairs like K=L,Q=R,X=F,M=U");
+            tm_sprintf(p_why, app_str("expected 4 pairs like K=L,Q=R,X=F,M=U"));
             return FALSE;
         }
 
@@ -1237,22 +1240,20 @@ EXPORT BOOL barcode_set_mapping (const uint8_t * p_text, int32_t len,
 
         if ((letter >= 'a') && (letter <= 'z'))
         {
-            letter = (uint8_t)(letter - 'a' + 'A');
+            letter = (uint8_t)(letter - 'a' + 'A'); /* a..z -> A..Z */
         }
 
         if ((move_ch >= 'a') && (move_ch <= 'z'))
         {
-            move_ch = (uint8_t)(move_ch - 'a' + 'A');
+            move_ch = (uint8_t)(move_ch - 'a' + 'A'); /* a..z -> A..Z */
         }
 
         if ((!is_code_char(letter)) ||
             ((move_ch != MOVE_LEFT) && (move_ch != MOVE_RIGHT) &&
              (move_ch != MOVE_FORWARD) && (move_ch != MOVE_UTURN)))
         {
-            tm_sprintf(
-                p_why,
-                (const uint8_t *)"pair %d: '%c=%c' not A-Z/0-9 = L/R/F/U",
-                pairs + 1, letter, move_ch);
+            tm_sprintf(p_why, app_str("pair %d: '%c=%c' not A-Z/0-9 = L/R/F/U"),
+                       pairs + 1, letter, move_ch);
             return FALSE;
         }
 
@@ -1264,7 +1265,7 @@ EXPORT BOOL barcode_set_mapping (const uint8_t * p_text, int32_t len,
 
     if (pairs != 4)
     {
-        tm_sprintf(p_why, (const uint8_t *)"%d pairs, need exactly 4", pairs);
+        tm_sprintf(p_why, app_str("%d pairs, need exactly 4"), pairs);
         return FALSE;
     }
 
@@ -1275,9 +1276,8 @@ EXPORT BOOL barcode_set_mapping (const uint8_t * p_text, int32_t len,
             if ((letters[first] == letters[second]) ||
                 (moves[first] == moves[second]))
             {
-                tm_sprintf(
-                    p_why,
-                    (const uint8_t *)"each character and each move only once");
+                tm_sprintf(p_why,
+                           app_str("each character and each move only once"));
                 return FALSE;
             }
         }
@@ -1347,9 +1347,9 @@ EXPORT int32_t barcode_mapping_text (uint8_t * p_out, int32_t max)
         return 0;
     }
 
-    return tm_sprintf(p_out, (const uint8_t *)"%c=%c,%c=%c,%c=%c,%c=%c",
-                      letters[0], moves[0], letters[1], moves[1], letters[2],
-                      moves[2], letters[3], moves[3]);
+    return tm_sprintf(p_out, app_str("%c=%c,%c=%c,%c=%c,%c=%c"), letters[0],
+                      moves[0], letters[1], moves[1], letters[2], moves[2],
+                      letters[3], moves[3]);
 }
 
 /*** end of file ***/

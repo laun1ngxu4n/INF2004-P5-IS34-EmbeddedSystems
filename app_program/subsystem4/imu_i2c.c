@@ -87,6 +87,7 @@ EXPORT ER imu_i2c_read (uint8_t addr, uint8_t reg, uint8_t * p_buf,
 
     set_target(addr);
     (void)aborted();
+    /* a 7-bit register number and bit 7 */
     out_w(IC_DATA_CMD, (uint32_t)(reg | ((count > 1) ? 0x80u : 0u)));
 
     for (idx = 0; idx < count; idx++)
@@ -112,7 +113,7 @@ EXPORT ER imu_i2c_read (uint8_t addr, uint8_t reg, uint8_t * p_buf,
             }
         }
 
-        p_buf[idx] = (uint8_t)(in_w(IC_DATA_CMD) & 0xFFu);
+        p_buf[idx] = (uint8_t)(in_w(IC_DATA_CMD) & 0xFFu); /* 8 bits */
     }
 
     return E_OK;
@@ -126,7 +127,7 @@ EXPORT ER imu_i2c_write (uint8_t addr, uint8_t reg, uint8_t val)
     set_target(addr);
     (void)aborted();
     out_w(IC_DATA_CMD, reg);
-    out_w(IC_DATA_CMD, (uint32_t)val | CMD_STOP);
+    out_w(IC_DATA_CMD, (uint32_t)val | CMD_STOP); /* widened */
     t_start = app_time_us();
 
     while ((0u == (in_w(IC_STATUS) & STATUS_TFE)) ||

@@ -120,8 +120,7 @@ LOCAL BOOL mv (ID h_cmd)
     {
         motion_get_status(&status);
 
-        if ((status.cmd_id == (uint32_t)h_cmd) &&
-            (status.result != MOT_RES_BUSY))
+        if ((status.h_cmd_id == h_cmd) && (status.result != MOT_RES_BUSY))
         {
             return MOT_RES_DONE == status.result;
         }
@@ -164,8 +163,7 @@ LOCAL void halt (const char * p_why)
     obstacle_watch(FALSE);
     line_set_enabled(FALSE);
     set_state(M_IDLE);
-    tm_sprintf(msg, (const uint8_t *)"stopped: %s (press START to go again)",
-               p_why);
+    tm_sprintf(msg, app_str("stopped: %s (press START to go again)"), p_why);
     say(msg);
 }
 
@@ -203,7 +201,7 @@ LOCAL void start_run (void)
 {
     int32_t tick;
 
-    say((const uint8_t *)"start");
+    say(app_str("start"));
     set_state(M_CAL);
     motion_halt();
 
@@ -256,21 +254,21 @@ LOCAL void on_barcode (void)
         int32_t dbg_widths[BARCODE_DBG_MAX];
         int32_t kdx;
 
-        tm_sprintf(msg, (const uint8_t *)"barcode READ_FAIL (%d elements)",
+        tm_sprintf(msg, app_str("barcode READ_FAIL (%d elements)"),
                    result.elements);
         say(msg);
         /* the widths to the log, so a failed read can be looked at
            (8 Nov: a 27-element failure had nothing to go on) */
         (void)barcode_debug(&dbg_count, dbg_widths, BARCODE_DBG_MAX);
-        tm_printf((uint8_t *)"[S3] READ_FAIL widths (mm):");
+        tm_printf(app_str("[S3] READ_FAIL widths (mm):"));
 
         for (kdx = 0; (kdx < dbg_count) && (kdx < BARCODE_DBG_MAX); kdx++)
         {
-            tm_printf((uint8_t *)" %d.%d", dbg_widths[kdx] / 10,
+            tm_printf(app_str(" %d.%d"), dbg_widths[kdx] / 10,
                       dbg_widths[kdx] % 10);
         }
 
-        tm_printf((uint8_t *)"\n");
+        tm_printf(app_str("\n"));
         return;
     }
 
@@ -282,8 +280,8 @@ LOCAL void on_barcode (void)
             ? S5_APPROACH_SPEED
             : 0);
     tm_sprintf(msg,
-               (const uint8_t *)"barcode %c%s%s (narrow %d.%d mm, wide %d.%d "
-                                "mm) -> %s",
+               app_str("barcode %c%s%s (narrow %d.%d mm, wide %d.%d "
+                       "mm) -> %s"),
                result.letter, result.b_reversed ? " read backwards" : "",
                (BAR_FIX_STAR == result.fixed)     ? " (one * damaged)"
                : (BAR_FIX_MERGED == result.fixed) ? " (a lost bar put back)"
@@ -338,8 +336,8 @@ LOCAL BOOL turn_onto_line (int32_t deg)
         return mv(motion_turn(sgn * TURN_CENTRE_DEG));
     }
 
-    say((const uint8_t *)"junction turn: no tape found, back to the planned "
-                         "angle");
+    say(app_str("junction turn: no tape found, back to the planned "
+                "angle"));
     return mv(motion_turn(-sgn * TURN_SEARCH_DEG));
 }
 
@@ -383,13 +381,15 @@ LOCAL void on_junction (void)
 
     if ((letter != 0) && (MOVE_NONE == move))
     {
-        tm_sprintf(msg, (const uint8_t *)"no mapping for barcode %c", letter);
+        tm_sprintf(msg, app_str("no mapping for barcode %c"), letter);
+        /* msg holds text: the same bytes as char */
         halt((const char *)msg);
         return;
     }
 
     g_pending = 0;
-    tm_sprintf(msg, (const uint8_t *)"junction %d (%s): %s (barcode %c)",
+    /* junctions since boot, a handful: fit %d */
+    tm_sprintf(msg, app_str("junction %d (%s): %s (barcode %c)"),
                (int32_t)line_junctions(),
                ((sides & JUNC_SIDE_S) != 0) ? "crossing" : "branch left",
                (MOVE_LEFT == move)    ? "LEFT"
@@ -601,13 +601,13 @@ LOCAL int32_t pass_box (int32_t sgn, int32_t front, int32_t lat_exp,
 
                 if (!b_seen)
                 {
-                    say((const uint8_t *)"side look heard nothing: assuming "
-                                         "the box is at most 150 mm deep");
+                    say(app_str("side look heard nothing: assuming "
+                                "the box is at most 150 mm deep"));
                 }
                 else if (stop_at > x_pass)
                 {
-                    say((const uint8_t *)"side look: box still beside, going "
-                                         "on");
+                    say(app_str("side look: box still beside, going "
+                                "on"));
                 }
                 else
                 {
@@ -665,8 +665,8 @@ LOCAL int32_t pass_box (int32_t sgn, int32_t front, int32_t lat_exp,
         if (b_seen)
         {
             tm_sprintf(msg,
-                       (const uint8_t *)"side look: box heard from %d to %d "
-                                        "mm along, leg %d mm (fixed %d)",
+                       app_str("side look: box heard from %d to %d "
+                               "mm along, leg %d mm (fixed %d)"),
                        first, last, done, x_pass);
             say(msg);
         }
@@ -775,8 +775,8 @@ LOCAL void on_obstacle (void)
     if (barcode_busy())
     {
         barcode_reset();
-        say((const uint8_t *)"obstacle while reading a barcode: that read is "
-                             "dropped");
+        say(app_str("obstacle while reading a barcode: that read is "
+                    "dropped"));
     }
 
     wait_still();
@@ -787,7 +787,7 @@ LOCAL void on_obstacle (void)
         return;
     }
 
-    tm_sprintf(msg, (const uint8_t *)"obstacle ahead at %d mm: scanning",
+    tm_sprintf(msg, app_str("obstacle ahead at %d mm: scanning"),
                obstacle_front_mm());
     say(msg);
 
@@ -817,7 +817,7 @@ LOCAL void on_obstacle (void)
 
     if (!scan_near.b_found)
     {
-        say((const uint8_t *)"scan found nothing ahead, going on");
+        say(app_str("scan found nothing ahead, going on"));
 
         if (!resume_follow())
         {
@@ -841,13 +841,12 @@ LOCAL void on_obstacle (void)
     wait_still();
     obstacle_scan(&scan_far);
     obstacle_combine(&scan_near, &scan_far, &profile);
-    tm_sprintf(
-        msg,
-        (const uint8_t *)"obstacle width %d +/- %d mm (scan 1: %d +/- %d, "
-                         "scan 2: %d +/- %d); edges L %d R %d mm; front %d mm",
-        profile.width_mm, profile.unc_mm, scan_near.width_mm, scan_near.unc_mm,
-        scan_far.width_mm, scan_far.unc_mm, profile.left_mm, profile.right_mm,
-        profile.front_mm);
+    tm_sprintf(msg,
+               app_str("obstacle width %d +/- %d mm (scan 1: %d +/- %d, "
+                       "scan 2: %d +/- %d); edges L %d R %d mm; front %d mm"),
+               profile.width_mm, profile.unc_mm, scan_near.width_mm,
+               scan_near.unc_mm, scan_far.width_mm, scan_far.unc_mm,
+               profile.left_mm, profile.right_mm, profile.front_mm);
     say(msg);
 
     if (!profile.b_found)
@@ -906,8 +905,8 @@ LOCAL void on_obstacle (void)
     y_off  = (sgn * edge_plan) + (S2_ROBOT_WIDTH_MM / 2) + MARGIN_MM;
     x_pass = profile.front_mm + D_MAX_MM + S2_ROBOT_LENGTH_MM + MARGIN_MM;
     tm_sprintf(msg,
-               (const uint8_t *)"bypass %s: planned width %d mm, out %d mm, "
-                                "past %d mm",
+               app_str("bypass %s: planned width %d mm, out %d mm, "
+                       "past %d mm"),
                (sgn > 0) ? "LEFT" : "RIGHT", w_plan, y_off, x_pass);
     say(msg);
 
@@ -954,7 +953,7 @@ LOCAL void on_obstacle (void)
 
     if (found)
     {
-        tm_sprintf(msg, (const uint8_t *)"line met behind the box, %d mm along",
+        tm_sprintf(msg, app_str("line met behind the box, %d mm along"),
                    motion_counts_to_mm(motion_odometer() - odo0));
         say(msg);
     }
@@ -982,7 +981,7 @@ LOCAL void on_obstacle (void)
             return;
         }
 
-        tm_sprintf(msg, (const uint8_t *)"line found %d mm after the last turn",
+        tm_sprintf(msg, app_str("line found %d mm after the last turn"),
                    motion_counts_to_mm(motion_odometer() - odo0));
         say(msg);
     }
@@ -1021,7 +1020,7 @@ LOCAL void on_obstacle (void)
         goto fail;
     }
 
-    say((const uint8_t *)"bypass done, following the line");
+    say(app_str("bypass done, following the line"));
     set_state(M_RUN);
     return;
 fail:
@@ -1063,7 +1062,7 @@ EXPORT void mission_task (int32_t stacd, void * p_exinf)
             obstacle_watch(FALSE);
             line_set_enabled(FALSE);
             set_state(M_IDLE);
-            say((const uint8_t *)"STOP");
+            say(app_str("STOP"));
         }
 
         if ((M_IDLE == g_mstate) && gb_armed)

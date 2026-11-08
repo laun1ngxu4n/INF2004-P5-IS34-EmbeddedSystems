@@ -41,7 +41,7 @@ RULES = {
     '8.4c': 'while (1) instead of for (;;)',
     '8.6a': '== with the constant on the right',
     # added 8 Nov, second round
-    '1.6a': 'cast without a comment on its line or the line before',
+    '1.6a': 'cast without a comment in its statement or above it',
     '2.2h': 'function without a Doxygen comment (/** ... */) before it',
     '3.3b': 'no blank line before / after a block (if, for, while, switch)',
     '4.1b': 'module name not unique in its first 8 characters',
@@ -73,6 +73,11 @@ def check_file(f, hits):
 
     if '\r\n' in raw:
         hit('3.6a', 1)
+    blank = lambda m: re.sub(r'[^\n]', ' ', m.group(0))   # noqa: E731
+    code_only = re.sub(r'"(?:\\.|[^"\\\n])*"|\'(?:\\.|[^\'\\\n])*\'', blank, src)
+    code_only = re.sub(r'/\*.*?\*/', blank, code_only, flags=re.S)
+    code_only = re.sub(r'//[^\n]*', blank, code_only)
+    code_lines = code_only.split('\n')
     for n, line in enumerate(lines, 1):
         if '\t' in line:
             hit('3.5a', n, line)
@@ -96,10 +101,9 @@ def check_file(f, hits):
         m = re.match(r'#\s*define\s+(\w+)', s)
         if m and re.search(r'[a-z]', m.group(1)):
             hit('6.1f', n, line)
-        # code only: no strings, character literals or comments
-        bare = re.sub(r'"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'|/\*.*?(\*/|$)|//.*$', ' ', line)
-        if s.startswith(('/*', '*', '//')):
-            bare = ''
+        # code only: no strings, character literals or comments (a block
+        # comment's later lines too)
+        bare = code_lines[n - 1]
         prev_line = lines[n - 2] if n >= 2 else ''
         deviation = 'deviation' in line or 'deviation' in prev_line
         if re.search(r'\b(INT|UINT|W|UW|UB|H|UH)\b', bare) and not deviation:
@@ -200,9 +204,11 @@ def check_file(f, hits):
                     hit('7.1e', line_of[idx[k]], name)
 
 
+# (void) alone is left out: it converts no value, it only discards one (an
+# unused parameter, a result not needed), so there is no range to explain
 CAST_RE = re.compile(
     r'\(\s*(?:const\s+|volatile\s+)*'
-    r'(?:u?int(?:8|16|32|64)_t|float32_t|bool|BOOL|ER|ID|UINT|INT|void|char|'
+    r'(?:u?int(?:8|16|32|64)_t|float32_t|bool|BOOL|ER|ID|UINT|INT|void(?=\s*\*)|char|'
     r'unsigned\s+char|unsigned|int|FP|TMO|RELTIM|ATR|PRI|SZ|[a-z_]+_t)'
     r'(?:\s*\*)*\s*\)\s*(?=[\w(\-!~"\'*&])')
 
@@ -224,13 +230,30 @@ def statement_blocks(code):
 def check_structure(f, src, lines, toks, idx, code, line_of, hit):
     import names
     ln = lambda ci: line_of[idx[ci]]                       # noqa: E731
-    # 1.6a casts: a comment on the line or on the line before
+    # 1.6a casts: a comment that goes with the cast: on its line, earlier in
+    # the same statement, or directly above the statement
+    def cast_commented(n):
+        k = n                       # 1-based line of the cast
+        if '/*' in lines[n - 1]:
+            return True
+        while k >= 2:
+            prev = lines[k - 2].rstrip().rstrip('\\').rstrip()
+            prev_code = re.sub(r'/\*.*?(\*/|$)', '', prev).strip()
+            if prev_code == '' and prev != '':
+                return True         # a comment line: above the statement or in it
+            if prev_code == '' or prev_code.endswith((';', '{', '}')) or \
+                    prev_code.startswith('#'):
+                return False        # the statement starts at line k
+            if '/*' in prev:
+                return True         # a comment earlier in the same statement
+            k -= 1
+        return False
+
     for n, line in enumerate(lines, 1):
         bare = re.sub(r'"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'', '""', line)
         code_part = re.sub(r'/\*.*?(\*/|$)|//.*$', '', bare)
         if CAST_RE.search(code_part) and not code_part.lstrip().startswith('#'):
-            prev = lines[n - 2].strip() if n >= 2 else ''
-            if '/*' not in line and not prev.endswith('*/') and not prev.startswith(('/*', '*')):
+            if not cast_commented(n):
                 hit('1.6a', n, line)
     # 2.2h a Doxygen comment before every function
     for (name, plo, phi, blo, bhi) in names.functions(code):

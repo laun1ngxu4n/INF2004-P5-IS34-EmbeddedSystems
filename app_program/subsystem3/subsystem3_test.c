@@ -51,10 +51,10 @@ LOCAL void ir_live (void)
     BOOL     b_ana      = barcode_adc(&raw, &white_lvl, &black_lvl);
 
     tm_printf(
-        (uint8_t *)"\n[S3] IR live view for 30 s: slide black tape under each "
-                   "sensor. L R B = line sensor left of the tape, right of the "
-                   "tape, "
-                   "barcode (1 = black). Centred on the tape: L 0 and R 0\n");
+        app_str("\n[S3] IR live view for 30 s: slide black tape under each "
+                "sensor. L R B = line sensor left of the tape, right of the "
+                "tape, "
+                "barcode (1 = black). Centred on the tape: L 0 and R 0\n"));
 
     if (!b_ana)
     {
@@ -85,20 +85,20 @@ LOCAL void ir_live (void)
         if (S3_BAR_RELATIVE)
         {
             tm_printf(
-                (uint8_t *)"[S3] B uses RELATIVE edges: black once the reading "
-                           "rises %d above the lowest since the last bar (and "
-                           "is at "
-                           "least %d), white once it falls %d below the "
-                           "highest. "
-                           "White "
-                           "must stay under %d everywhere\n",
+                app_str("[S3] B uses RELATIVE edges: black once the reading "
+                        "rises %d above the lowest since the last bar (and "
+                        "is at "
+                        "least %d), white once it falls %d below the "
+                        "highest. "
+                        "White "
+                        "must stay under %d everywhere\n"),
                 S3_BAR_DELTA, S3_BAR_BLACK_MIN, S3_BAR_DELTA, S3_BAR_BLACK_MIN);
         }
         else if (S3_BAR_ADC_ON > 0)
         {
             tm_printf(
-                (uint8_t *)"[S3] B uses FIXED thresholds: black from %d, white "
-                           "again below %d (S3_BAR_ADC_ON/OFF; 0 = learn)\n",
+                app_str("[S3] B uses FIXED thresholds: black from %d, white "
+                        "again below %d (S3_BAR_ADC_ON/OFF; 0 = learn)\n"),
                 S3_BAR_ADC_ON, S3_BAR_ADC_OFF);
         }
         else
@@ -109,6 +109,7 @@ LOCAL void ir_live (void)
 
     for (tick = 0; tick < IR_VIEW_TICKS; tick++)
     {
+        /* comparisons are 0 or 1 */
         uint32_t now =
             ((uint32_t)(IR_BLACK == app_gpio_get(PIN_IR_LINE_L)) << 2) |
             ((uint32_t)(IR_BLACK == app_gpio_get(PIN_IR_LINE_R)) << 1) |
@@ -116,7 +117,8 @@ LOCAL void ir_live (void)
 
         if (now != prev)
         {
-            tm_printf((uint8_t *)"[S3] L %d  R %d  B %d\n",
+            /* single bits: fit %d */
+            tm_printf(app_str("[S3] L %d  R %d  B %d\n"),
                       (int32_t)((now >> 2) & 1u), (int32_t)((now >> 1) & 1u),
                       (int32_t)(now & 1u));
             prev = now;
@@ -143,16 +145,17 @@ LOCAL void ir_live (void)
              */
             uint32_t edges_now = barcode_edges();
 
-            tm_printf((uint8_t *)"[S3] B edges/s %d (B now %d)\n",
+            /* edges in one second (a few hundred) and one bit: fit %d */
+            tm_printf(app_str("[S3] B edges/s %d (B now %d)\n"),
                       (int32_t)(edges_now - edges_prev), (int32_t)(now & 1u));
 
             if (b_ana)
             {
                 tm_printf(
-                    (uint8_t *)"[S3] B analogue now %d, this second %d..%d "
-                               "(learned white %d, black %d; they must differ "
-                               "by "
-                               "%d or more)\n",
+                    app_str("[S3] B analogue now %d, this second %d..%d "
+                            "(learned white %d, black %d; they must differ "
+                            "by "
+                            "%d or more)\n"),
                     raw, low, high, white_lvl, black_lvl, S3_BAR_MIN_SPAN);
                 low  = 4095;
                 high = 0;
@@ -170,7 +173,7 @@ LOCAL void ir_live (void)
 
         if (S3_BAR_RELATIVE)
         {
-            tm_printf((uint8_t *)"[S3] B: whitest %d, darkest %d seen%s\n",
+            tm_printf(app_str("[S3] B: whitest %d, darkest %d seen%s\n"),
                       white_lvl, black_lvl,
                       (((black_lvl - white_lvl) < S3_BAR_MIN_SPAN) &&
                        ((white_lvl - black_lvl) < S3_BAR_MIN_SPAN))
@@ -183,22 +186,22 @@ LOCAL void ir_live (void)
             /* black from 60 % of the way from white to black, white
                again below 40 %: grout should stay under 40 % */
             tm_printf(
-                (uint8_t *)"[S3] B thresholds from what it saw: "
-                           "S3_BAR_ADC_ON %d, S3_BAR_ADC_OFF %d. Grout or a "
-                           "tile "
-                           "join must stay on the white side of OFF (see the "
-                           "readings above); if not, tell B3 before using "
-                           "them\n",
+                app_str("[S3] B thresholds from what it saw: "
+                        "S3_BAR_ADC_ON %d, S3_BAR_ADC_OFF %d. Grout or a "
+                        "tile "
+                        "join must stay on the white side of OFF (see the "
+                        "readings above); if not, tell B3 before using "
+                        "them\n"),
                 white_lvl + ((black_lvl - white_lvl) * 6 / 10),
                 white_lvl + ((black_lvl - white_lvl) * 4 / 10));
         }
         else
         {
             tm_printf(
-                (uint8_t *)"[S3] B has not seen enough contrast (white %d, "
-                           "black %d): check AO is on GP28, the module is on "
-                           "3V3, "
-                           "and pass it over black tape\n",
+                app_str("[S3] B has not seen enough contrast (white %d, "
+                        "black %d): check AO is on GP28, the module is on "
+                        "3V3, "
+                        "and pass it over black tape\n"),
                 white_lvl, black_lvl);
         }
     }
@@ -238,8 +241,8 @@ LOCAL int32_t follow_and_watch (int32_t secs, int32_t max_mm, int32_t * p_junc,
     barcode_reset(); /* nothing left over from the live view */
     line_set_enabled(TRUE);
     tm_printf(
-        (uint8_t *)"[S3] at start: L %d  R %d (want L 0, R 0: the tape centred "
-                   "between them)\n",
+        app_str("[S3] at start: L %d  R %d (want L 0, R 0: the tape centred "
+                "between them)\n"),
         IR_BLACK == app_gpio_get(PIN_IR_LINE_L),
         IR_BLACK == app_gpio_get(PIN_IR_LINE_R));
 
@@ -262,12 +265,14 @@ LOCAL int32_t follow_and_watch (int32_t secs, int32_t max_mm, int32_t * p_junc,
         }
 
         /* Trace what the line sensors see: every change, first 150 */
+        /* comparisons are 0 or 1 */
         pattern = ((uint32_t)(IR_BLACK == app_gpio_get(PIN_IR_LINE_L)) << 1) |
                   (uint32_t)(IR_BLACK == app_gpio_get(PIN_IR_LINE_R));
 
         if ((pattern != lc_prev) && (traced < 150))
         {
-            tm_printf((uint8_t *)"[S3T] %d mm  L %d  R %d  steer %d\n",
+            /* single bits: fit %d */
+            tm_printf(app_str("[S3T] %d mm  L %d  R %d  steer %d\n"),
                       motion_counts_to_mm(motion_odometer() - odo0),
                       (int32_t)(pattern >> 1), (int32_t)(pattern & 1u),
                       line_steer_mm_s());
@@ -277,6 +282,7 @@ LOCAL int32_t follow_and_watch (int32_t secs, int32_t max_mm, int32_t * p_junc,
 
         junc_now = line_junctions();
 
+        /* *p_junc counts up from 0: never negative */
         if (junc_now != (junc_start + (uint32_t)*p_junc))
         {
             int32_t sides = line_junction_sides();
@@ -293,7 +299,7 @@ LOCAL int32_t follow_and_watch (int32_t secs, int32_t max_mm, int32_t * p_junc,
             }
 
             tm_printf(
-                (uint8_t *)"[S3] junction %d at %d mm: %s\n", *p_junc,
+                app_str("[S3] junction %d at %d mm: %s\n"), *p_junc,
                 motion_counts_to_mm(motion_odometer() - odo0),
                 (sides == (JUNC_SIDE_S | JUNC_SIDE_B))
                     ? "crossing (both line sensors black, B saw the left arm)"
@@ -309,7 +315,7 @@ LOCAL int32_t follow_and_watch (int32_t secs, int32_t max_mm, int32_t * p_junc,
             if (LINE_LOST == last_state)
             {
                 (*p_lost)++;
-                tm_printf((uint8_t *)"[S3] LINE LOST, stopping\n");
+                tm_printf(app_str("[S3] LINE LOST, stopping\n"));
                 break;
             }
 
@@ -317,7 +323,7 @@ LOCAL int32_t follow_and_watch (int32_t secs, int32_t max_mm, int32_t * p_junc,
             {
                 (*p_lost)++;
                 tm_printf(
-                    (uint8_t *)"[S3] LINE SENSOR FAULT: %s, stopping\n",
+                    app_str("[S3] LINE SENSOR FAULT: %s, stopping\n"),
                     (LINE_FAULT_ONE == line_fault())
                         ? "one sensor black for 30 cm (stuck black?)"
                         : "both black for 15 cm (stuck, or a wide black area)");
@@ -332,18 +338,18 @@ LOCAL int32_t follow_and_watch (int32_t secs, int32_t max_mm, int32_t * p_junc,
             if (dbg_count >= 2)
             {
                 /* 1 = a grout line or junction */
-                tm_printf((uint8_t *)"[S3] code ended, %d elements (mm):",
+                tm_printf(app_str("[S3] code ended, %d elements (mm):"),
                           dbg_count);
 
                 for (kdx = 0; (kdx < dbg_count) && (kdx < BARCODE_DBG_MAX);
                      kdx++)
                 {
-                    tm_printf((uint8_t *)"%s%d.%d",
+                    tm_printf(app_str("%s%d.%d"),
                               ((0 == (kdx % 10)) && (kdx > 0)) ? " | " : " ",
                               dbg_widths[kdx] / 10, dbg_widths[kdx] % 10);
                 }
 
-                tm_printf((uint8_t *)"\n");
+                tm_printf(app_str("\n"));
             }
         }
 
@@ -352,7 +358,7 @@ LOCAL int32_t follow_and_watch (int32_t secs, int32_t max_mm, int32_t * p_junc,
         {
             mseq = barcode_mark(&mark_odo, &mark_width);
             tm_printf(
-                (uint8_t *)"[S3] %d mm: B patch %d.%d mm (%s)\n",
+                app_str("[S3] %d mm: B patch %d.%d mm (%s)\n"),
                 motion_counts_to_mm(mark_odo - odo0), mark_width / 10,
                 mark_width % 10,
                 ((mark_width >= (S3_JUNC_MIN_MM * 10)) &&
@@ -371,9 +377,9 @@ LOCAL int32_t follow_and_watch (int32_t secs, int32_t max_mm, int32_t * p_junc,
             if (result.b_ok)
             {
                 (*p_codes_ok)++;
-                tm_printf((uint8_t *)"[S3] barcode %c%s%s, narrow %d.%d mm, "
-                                     "wide %d.%d "
-                                     "mm\n",
+                tm_printf(app_str("[S3] barcode %c%s%s, narrow %d.%d mm, "
+                                  "wide %d.%d "
+                                  "mm\n"),
                           result.letter,
                           result.b_reversed ? " (backwards)" : "",
                           (BAR_FIX_STAR == result.fixed) ? " (one * damaged)"
@@ -388,7 +394,7 @@ LOCAL int32_t follow_and_watch (int32_t secs, int32_t max_mm, int32_t * p_junc,
             else
             {
                 (*p_codes_fail)++;
-                tm_printf((uint8_t *)"[S3] barcode READ_FAIL, %d elements\n",
+                tm_printf(app_str("[S3] barcode READ_FAIL, %d elements\n"),
                           result.elements);
             }
         }
@@ -396,11 +402,12 @@ LOCAL int32_t follow_and_watch (int32_t secs, int32_t max_mm, int32_t * p_junc,
 
     motion_halt();
     line_set_enabled(FALSE); /* the next run starts clean */
-    tm_printf((uint8_t *)"[S3] barcode sensor B: %d edges this run "
-                         "(0 = it never saw black)\n",
+    /* edges in one run, thousands at most: fit %d */
+    tm_printf(app_str("[S3] barcode sensor B: %d edges this run "
+                      "(0 = it never saw black)\n"),
               (int32_t)(barcode_edges() - edges_start));
     tm_printf(
-        (uint8_t *)"[S3] junctions this run: crossings %d, left branches %d\n",
+        app_str("[S3] junctions this run: crossings %d, left branches %d\n"),
         g_j_cross, g_j_left);
     {
         uint32_t corrections;
@@ -408,9 +415,10 @@ LOCAL int32_t follow_and_watch (int32_t secs, int32_t max_mm, int32_t * p_junc,
         int32_t  dist_mm = motion_counts_to_mm(motion_odometer() - odo0);
 
         line_wobble(&corrections, &sweeps);
+        /* counts in one run, hundreds at most: fit %d */
         tm_printf(
-            (uint8_t *)"[S3] wobble this run: %d corrections (%d per metre), "
-                       "%d sweeps right across the tape (a zigzag; want 0)\n",
+            app_str("[S3] wobble this run: %d corrections (%d per metre), "
+                    "%d sweeps right across the tape (a zigzag; want 0)\n"),
             (int32_t)corrections,
             (dist_mm > 0) ? (int32_t)corrections * 1000 / dist_mm : 0,
             (int32_t)sweeps);
@@ -425,8 +433,8 @@ LOCAL BOOL ask_run (const char * p_what)
 
     app_stop_clear(STOP_BUTTON | STOP_MQTT); /* a STOP from the last run */
     tm_printf(
-        (uint8_t *)"\n[DRIVE] %s\n[DRIVE] START (GP20) = run it, STOP (GP21) = "
-                   "skip it (or START / STOP on the panel)\n",
+        app_str("\n[DRIVE] %s\n[DRIVE] START (GP20) = run it, STOP (GP21) = "
+                "skip it (or START / STOP on the panel)\n"),
         p_what);
 
     for (;;)
@@ -441,7 +449,7 @@ LOCAL BOOL ask_run (const char * p_what)
 
             tk_dly_tsk(50);
             app_stop_clear(STOP_BUTTON | STOP_MQTT);
-            tm_printf((uint8_t *)"[DRIVE] skipped\n");
+            tm_printf(app_str("[DRIVE] skipped\n"));
             return FALSE;
         }
 
@@ -481,16 +489,16 @@ LOCAL BOOL print_new_code (uint32_t * p_seq, uint32_t * p_dseq)
     if (barcode_debug(&dbg_count, dbg_widths, BARCODE_DBG_MAX) != *p_dseq)
     {
         *p_dseq = barcode_debug(&dbg_count, dbg_widths, BARCODE_DBG_MAX);
-        tm_printf((uint8_t *)"[S3] code ended, %d elements (mm):", dbg_count);
+        tm_printf(app_str("[S3] code ended, %d elements (mm):"), dbg_count);
 
         for (kdx = 0; (kdx < dbg_count) && (kdx < BARCODE_DBG_MAX); kdx++)
         {
-            tm_printf((uint8_t *)"%s%d.%d",
+            tm_printf(app_str("%s%d.%d"),
                       ((0 == (kdx % 10)) && (kdx > 0)) ? " | " : " ",
                       dbg_widths[kdx] / 10, dbg_widths[kdx] % 10);
         }
 
-        tm_printf((uint8_t *)"\n");
+        tm_printf(app_str("\n"));
     }
 
     barcode_last(&result);
@@ -501,8 +509,8 @@ LOCAL BOOL print_new_code (uint32_t * p_seq, uint32_t * p_dseq)
         if (result.b_ok)
         {
             b_ok = TRUE;
-            tm_printf((uint8_t *)"[S3] barcode %c%s%s, narrow %d.%d mm, wide "
-                                 "%d.%d mm\n",
+            tm_printf(app_str("[S3] barcode %c%s%s, narrow %d.%d mm, wide "
+                              "%d.%d mm\n"),
                       result.letter, result.b_reversed ? " (backwards)" : "",
                       (BAR_FIX_STAR == result.fixed) ? " (one * damaged)"
                       : (BAR_FIX_MERGED == result.fixed)
@@ -515,8 +523,8 @@ LOCAL BOOL print_new_code (uint32_t * p_seq, uint32_t * p_dseq)
         }
         else
         {
-            tm_printf((uint8_t *)"[S3] barcode READ_FAIL, %d elements (a code "
-                                 "is 29)\n",
+            tm_printf(app_str("[S3] barcode READ_FAIL, %d elements (a code "
+                              "is 29)\n"),
                       result.elements);
         }
     }
@@ -585,7 +593,7 @@ LOCAL BOOL bar_bench_run (int32_t speed)
         if (b_ana && (count < BENCH_N))
         {
             g_bn_odo[count] = motion_odometer();
-            g_bn_v[count]   = (uint16_t)raw;
+            g_bn_v[count]   = (uint16_t)raw; /* 12-bit ADC: 0..4095 */
             count++;
         }
 
@@ -661,18 +669,18 @@ LOCAL BOOL bar_bench_run (int32_t speed)
             {
                 b_started = TRUE; /* the white before the code */
                 tm_printf(
-                    (uint8_t *)"[S3] B profile, bar (B) and space (s): width "
-                               "mm / darkest or lightest reading; '!' = under "
-                               "%d "
-                               "from the one before, nearly missed:\n[S3]  ",
+                    app_str("[S3] B profile, bar (B) and space (s): width "
+                            "mm / darkest or lightest reading; '!' = under "
+                            "%d "
+                            "from the one before, nearly missed:\n[S3]  "),
                     2 * S3_BAR_DELTA);
             }
             else
             {
                 int32_t width = g_bn_odo[idx] - st_odo;
-                int32_t mm10  = (int32_t)(((width < 0) ? -width : width) *
-                                          S2_UM_PER_COUNT / 100);
-                int32_t ext   = b_blk ? high : low;
+                int32_t mm10 =
+                    ((width < 0) ? -width : width) * S2_UM_PER_COUNT / 100;
+                int32_t ext = b_blk ? high : low;
                 BOOL    b_bad =
                     (b_blk ? ext - ref : ref - ext) < (2 * S3_BAR_DELTA);
 
@@ -681,13 +689,13 @@ LOCAL BOOL bar_bench_run (int32_t speed)
                     weak++;
                 }
 
-                tm_printf((uint8_t *)"%c%d.%d/%d%s ", b_blk ? 'B' : 's',
+                tm_printf(app_str("%c%d.%d/%d%s "), b_blk ? 'B' : 's',
                           mm10 / 10, mm10 % 10, bench_raw(ext),
                           b_bad ? "!" : "");
 
                 if (0 == (++cnt % 10))
                 {
-                    tm_printf((uint8_t *)"\n[S3]  ");
+                    tm_printf(app_str("\n[S3]  "));
                 }
             }
 
@@ -711,10 +719,10 @@ LOCAL BOOL bar_bench_run (int32_t speed)
         {
             /* the last bar */
             int32_t width = g_bn_odo[count - 1] - st_odo;
-            int32_t mm10  = (int32_t)(((width < 0) ? -width : width) *
-                                      S2_UM_PER_COUNT / 100);
+            int32_t mm10 =
+                ((width < 0) ? -width : width) * S2_UM_PER_COUNT / 100;
 
-            tm_printf((uint8_t *)"B%d.%d/%d (end of samples) ", mm10 / 10,
+            tm_printf(app_str("B%d.%d/%d (end of samples) "), mm10 / 10,
                       mm10 % 10, bench_raw(high));
             cnt++;
         }
@@ -722,18 +730,18 @@ LOCAL BOOL bar_bench_run (int32_t speed)
         if (!b_started)
         {
             tm_printf(
-                (uint8_t *)"[S3] B profile: no bar in %d samples (lightest %d, "
-                           "darkest %d): B did not pass over the bars\n",
+                app_str("[S3] B profile: no bar in %d samples (lightest %d, "
+                        "darkest %d): B did not pass over the bars\n"),
                 count, bench_raw(low), bench_raw(high));
         }
         else
         {
             tm_printf(
-                (uint8_t *)"\n[S3] %d bars and spaces (a code is 29), %d "
-                           "nearly "
-                           "missed. At 120 mm/s the samples are 1.2 mm apart: "
-                           "narrow "
-                           "ones blur together here, not in the reader\n",
+                app_str("\n[S3] %d bars and spaces (a code is 29), %d "
+                        "nearly "
+                        "missed. At 120 mm/s the samples are 1.2 mm apart: "
+                        "narrow "
+                        "ones blur together here, not in the reader\n"),
                 cnt, weak);
         }
 #undef BK
@@ -763,14 +771,16 @@ LOCAL void bar_bench (void)
     int32_t idx;
     TEST_INIT();
 
+    /* a handful of entries: the count fits int32_t (here and below) */
     for (idx = 0; idx < (int32_t)(sizeof(run) / sizeof(run[0])); idx++)
     {
         BOOL b_ok;
 
+        /* a handful of entries: the count fits %d */
         tm_printf(
-            (uint8_t *)"\n[DRIVE] S3-B00 run %d of %d: %s. Square to the bars, "
-                       "B over them, the line does not matter. It drives "
-                       "straight %d mm at %d mm/s. Write down the code.\n",
+            app_str("\n[DRIVE] S3-B00 run %d of %d: %s. Square to the bars, "
+                    "B over them, the line does not matter. It drives "
+                    "straight %d mm at %d mm/s. Write down the code.\n"),
             idx + 1, (int32_t)(sizeof(run) / sizeof(run[0])), run[idx].p_what,
             BENCH_MM, run[idx].speed);
         test_wait_start(
@@ -795,8 +805,8 @@ EXPORT void subsystem3_stage_test (void)
     TEST_INIT();
 
     tm_printf(
-        (uint8_t *)"\n[DRIVE] === Stage 2: line, junctions, barcodes ===\n"
-                   "[DRIVE] Speed %d mm/s. STOP (GP21) stops at any time.\n",
+        app_str("\n[DRIVE] === Stage 2: line, junctions, barcodes ===\n"
+                "[DRIVE] Speed %d mm/s. STOP (GP21) stops at any time.\n"),
         S2_SPEED_BARCODE);
     ir_live();
 
@@ -808,8 +818,8 @@ EXPORT void subsystem3_stage_test (void)
             "junctions you see.");
         dist = follow_and_watch(60, 0, &junc, &lost, &codes_ok, &fail);
         tm_printf(
-            (uint8_t *)"[S3-L01] followed %d mm, line lost %d times; [S3-L02] "
-                       "junctions counted %d (write down the real number)\n",
+            app_str("[S3-L01] followed %d mm, line lost %d times; [S3-L02] "
+                    "junctions counted %d (write down the real number)\n"),
             dist, lost, junc);
         TEST_CHECK("S3-L01", (0 == lost) && (dist >= 3000),
                    "followed at least 3 m without LINE_LOST");
@@ -867,8 +877,9 @@ EXPORT void subsystem3_stage_test (void)
             int32_t idx;
 
             tm_printf(
-                (uint8_t *)"\n[DRIVE] --- Stage 2A: one place at a time ---\n");
+                app_str("\n[DRIVE] --- Stage 2A: one place at a time ---\n"));
 
+            /* a handful of entries: the count fits int32_t */
             for (idx = 0; idx < (int32_t)(sizeof(pl) / sizeof(pl[0])); idx++)
             {
                 int32_t part_junc = 0;
@@ -876,9 +887,9 @@ EXPORT void subsystem3_stage_test (void)
                 int32_t part_ok   = 0;
                 int32_t part_fail = 0;
 
-                tm_printf((uint8_t *)"\n[DRIVE] %s: robot on the line %s. It "
-                                     "drives at "
-                                     "most %d mm. Pass: %s.\n",
+                tm_printf(app_str("\n[DRIVE] %s: robot on the line %s. It "
+                                  "drives at "
+                                  "most %d mm. Pass: %s.\n"),
                           pl[idx].p_test_id, pl[idx].p_where, pl[idx].max_mm,
                           pl[idx].p_pass);
                 test_wait_start("Robot placed as above (no such place: START, "
@@ -920,18 +931,17 @@ EXPORT void subsystem3_stage_test (void)
         {
             int32_t part_junc = 0;
             int32_t part_lost = 0;
-            tm_printf(
-                (uint8_t *)"\n[DRIVE] S3-B01..B03 barcodes, run %d of 3\n",
-                kdx);
+            tm_printf(app_str("\n[DRIVE] S3-B01..B03 barcodes, run %d of 3\n"),
+                      kdx);
             test_wait_start(
                 "Put the robot on the line before a stretch with barcodes "
                 "(both directions over the runs). Up to 40 s.");
             follow_and_watch(40, 0, &part_junc, &part_lost, &codes_ok, &fail);
         }
 
-        tm_printf((uint8_t *)"[S3-B01..B03] decoded %d, READ_FAIL %d (write "
-                             "down which "
-                             "codes were on the track)\n",
+        tm_printf(app_str("[S3-B01..B03] decoded %d, READ_FAIL %d (write "
+                          "down which "
+                          "codes were on the track)\n"),
                   codes_ok, fail);
     } /* 2B */
 

@@ -76,6 +76,8 @@ EXPORT ER app_gpio_init (void)
     ER     err;
 
     dint.intatr = TA_HLNG;
+    /* T-Kernel keeps every handler as FP; with TA_HLNG it calls it with the
+       interrupt number, gpio_bank0_isr's one parameter */
     dint.inthdr = (FP)gpio_bank0_isr;
     err         = tk_def_int(INTNO_IO_BANK0, &dint);
 

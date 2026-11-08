@@ -22,8 +22,8 @@ EXPORT void test_wait_start (const char * p_what)
     uint32_t remote = tele_start_count();
 
     tm_printf(
-        (uint8_t *)"\n[DRIVE] %s\n[DRIVE] press START (GP20, or START on the "
-                   "panel) to go\n",
+        app_str("\n[DRIVE] %s\n[DRIVE] press START (GP20, or START on the "
+                "panel) to go\n"),
         p_what);
 
     while (tele_start_count() == remote)
@@ -46,7 +46,7 @@ EXPORT void test_wait_start (const char * p_what)
     }
 
     app_stop_clear(STOP_BUTTON | STOP_MQTT);
-    tm_printf((uint8_t *)"[DRIVE] starting in 1 s, hands off\n");
+    tm_printf(app_str("[DRIVE] starting in 1 s, hands off\n"));
     tk_dly_tsk(1000);
 }
 
@@ -62,7 +62,7 @@ EXPORT void test_print_x10 (const char * p_before, int32_t x10,
 {
     int32_t magnitude = (x10 < 0) ? -x10 : x10;
 
-    tm_printf((uint8_t *)"%s%s%d.%d%s", p_before, (x10 < 0) ? "-" : "",
+    tm_printf(app_str("%s%s%d.%d%s"), p_before, (x10 < 0) ? "-" : "",
               magnitude / 10, magnitude % 10, p_after);
 }
 
@@ -74,8 +74,8 @@ EXPORT void test_use_test_mapping (void)
 
     (void)barcode_set_mapping(map, sizeof(map) - 1, why, sizeof(why));
     tm_printf(
-        (uint8_t *)"[DRIVE] TEST mapping A=L, B=R, C=F, D=U (test image only; "
-                   "the demo mapping comes over MQTT)\n");
+        app_str("[DRIVE] TEST mapping A=L, B=R, C=F, D=U (test image only; "
+                "the demo mapping comes over MQTT)\n"));
 }
 
 /** Mission in charge.  Stage 2 runs it without obstacle watch and IMU
@@ -86,7 +86,7 @@ EXPORT void app_course_test (BOOL b_obstacles, BOOL b_imu)
 
     mission_features(b_obstacles, b_imu);
     tm_printf(
-        (uint8_t *)"\n[DRIVE] === Mission run: obstacle watch %s, IMU %s ===\n",
+        app_str("\n[DRIVE] === Mission run: obstacle watch %s, IMU %s ===\n"),
         b_obstacles ? "ON" : "OFF", b_imu ? "ON" : "OFF");
 #if defined(TM_MQTT) && TM_MQTT
     {
@@ -97,9 +97,9 @@ EXPORT void app_course_test (BOOL b_obstacles, BOOL b_imu)
         int32_t  tick   = 0;
 
         tm_printf(
-            (uint8_t *)"[DRIVE] send the mapping from the PC (panel: Barcode "
-                       "mapping box), or press START to use the TEST mapping "
-                       "A=L,B=R,C=F,D=U\n");
+            app_str("[DRIVE] send the mapping from the PC (panel: Barcode "
+                    "mapping box), or press START to use the TEST mapping "
+                    "A=L,B=R,C=F,D=U\n"));
 
         while (0 == barcode_mapping_text(map, sizeof(map)))
         {
@@ -117,24 +117,24 @@ EXPORT void app_course_test (BOOL b_obstacles, BOOL b_imu)
             if (0 == (++tick % 100))
             {
                 tm_printf(
-                    (uint8_t *)"[DRIVE] still waiting for a mapping (panel: "
-                               "Barcode "
-                               "mapping box) or START for the TEST mapping\n");
+                    app_str("[DRIVE] still waiting for a mapping (panel: "
+                            "Barcode "
+                            "mapping box) or START for the TEST mapping\n"));
             }
 
             tk_dly_tsk(100);
         }
 
         (void)barcode_mapping_text(map, sizeof(map));
-        tm_printf((uint8_t *)"[DRIVE] mapping %s in use\n", map);
+        tm_printf(app_str("[DRIVE] mapping %s in use\n"), map);
     }
 #else
     test_use_test_mapping();
     (void)map;
 #endif
     tm_printf(
-        (uint8_t *)"[DRIVE] Mission armed: press START to run, STOP to stop.\n"
-                   "[DRIVE] Every result is printed as an [EVT] line.\n");
+        app_str("[DRIVE] Mission armed: press START to run, STOP to stop.\n"
+                "[DRIVE] Every result is printed as an [EVT] line.\n"));
     mission_arm(TRUE);
 }
 
@@ -159,7 +159,7 @@ EXPORT void app_stage_test (void)
             app_course_test(TRUE, TRUE);
         break;
         default:
-            tm_printf((uint8_t *)"[DRIVE] no hands-on test for TEST_STAGE=%d\n",
+            tm_printf(app_str("[DRIVE] no hands-on test for TEST_STAGE=%d\n"),
                       APP_TEST_STAGE);
         break;
     }

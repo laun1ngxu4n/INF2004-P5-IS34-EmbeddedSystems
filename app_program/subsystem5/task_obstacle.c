@@ -49,8 +49,8 @@
 #define CENTRE_DEG   10  /* within this, any echo near front is the box */
 #define BG_MM        250 /* open space beyond front + this */
 #define FAR          SONAR_OPEN
-#define MAX_FRONT_MM 600 /* nothing nearer = no obstacle */
-#define BEAM_UNC_DEG 3   /* +/- on the beam correction */
+#define MAX_FRONT_MM 600  /* nothing nearer = no obstacle */
+#define BEAM_UNC_DEG 3.0f /* +/- on the beam correction */
 
 LOCAL volatile uint32_t g_echo_rise_us;
 LOCAL volatile uint32_t g_echo_width_us;
@@ -118,6 +118,7 @@ LOCAL int32_t echo_mm (void)
         return FAR;
     }
 
+    /* an echo is under 38 ms (the HC-SR04's limit): at most 6612 mm */
     return (int32_t)(g_echo_width_us * 174u /
                      1000u); /* 0.348 mm/us at 28 C, / 2 */
 }
@@ -299,6 +300,8 @@ LOCAL void side_edge (const int32_t * p_dist, const int32_t * p_phi,
     for (idx = centre + dir; (idx >= 0) && (idx < NRAYS); idx += dir)
     {
         int32_t angle = (p_phi[idx] < 0) ? -p_phi[idx] : p_phi[idx];
+        /* |angle| <= S5_SERVO_HALF_DEG (40): sin(90 - angle) >= 0.76, so the
+           distance stays below 2 x front */
         int32_t expd =
             (int32_t)((float32_t)front / app_sin_deg((float32_t)(90 - angle)));
         int32_t tol          = GEO_TOL_MM + (expd * GEO_TOL_PCT / 100);
@@ -356,11 +359,14 @@ LOCAL void side_edge (const int32_t * p_dist, const int32_t * p_phi,
 
     *pb_seen = TRUE;
     {
+        /* ray angles, |deg| <= 40: exact as floats */
         float32_t a_in  = (float32_t)p_phi[last_in];
-        float32_t a_out = (float32_t)p_phi[first_out];
+        float32_t a_out = (float32_t)p_phi[first_out];   /* exact */
         float32_t side  = (a_out > 0.0f) ? 1.0f : -1.0f; /* + = left */
+        /* S5_BEAM_HALF_DEG, 6: exact as a float */
         float32_t a_edge =
             (0.5f * (a_in + a_out)) - (side * (float32_t)S5_BEAM_HALF_DEG);
+        /* mm, under 4 m: exact as a float */
         float32_t range = (float32_t)p_dist[last_in];
 
         if ((a_edge * side) < 0.0f)
@@ -368,7 +374,9 @@ LOCAL void side_edge (const int32_t * p_dist, const int32_t * p_phi,
             a_edge = 0.0f; /* never past the centre */
         }
 
+        /* below range: fits int32_t */
         *p_edge_mm = (int32_t)(range * app_sin_deg(a_edge));
+        /* below range: fits int32_t */
         *p_unc_mm =
             (int32_t)(range * (app_sin_deg(a_out) - app_sin_deg(a_in)) / 2.0f);
 
@@ -437,14 +445,14 @@ EXPORT void obstacle_scan (obstacle_profile_t * p_profile)
     tk_dly_tsk(60 * SETTLE_MS_DEG);
     gb_scanning = FALSE;
 
-    tm_printf((uint8_t *)"[SCAN] rays (deg:mm, -1 = open, -2 = no ECHO):");
+    tm_printf(app_str("[SCAN] rays (deg:mm, -1 = open, -2 = no ECHO):"));
 
     for (kdx = 0; kdx < NRAYS; kdx++)
     {
-        tm_printf((uint8_t *)" %d:%d", phi[kdx], dist[kdx]);
+        tm_printf(app_str(" %d:%d"), phi[kdx], dist[kdx]);
     }
 
-    tm_printf((uint8_t *)"\n");
+    tm_printf(app_str("\n"));
 
     p_profile->rays       = NRAYS;
     p_profile->fault_rays = 0;
@@ -482,8 +490,11 @@ EXPORT void obstacle_scan (obstacle_profile_t * p_profile)
     p_profile->right_unc = unc_right;
     p_profile->width_mm  = p_profile->left_mm - p_profile->right_mm;
     {
-        float32_t beam    = 2.0f * (float32_t)dist[centre] *
-                            app_sin_deg((float32_t)BEAM_UNC_DEG);
+        /* distances in mm, small: exact as floats; the square root is below
+           the distances, fits int32_t */
+        float32_t beam =
+            2.0f * (float32_t)dist[centre] * app_sin_deg(BEAM_UNC_DEG);
+        /* uncertainties in mm, small: exact as floats; the root fits int32_t */
         p_profile->unc_mm = (int32_t)app_sqrtf(
             (float32_t)((unc_left * unc_left) + (unc_right * unc_right)) +
             (beam * beam));
@@ -548,8 +559,10 @@ EXPORT void obstacle_combine (const obstacle_profile_t * p_near,
               p_far->b_right_seen, p_far->b_right_clear, &p_out->right_mm,
               &p_out->right_unc, &p_out->b_right_seen, &p_out->b_right_clear);
     p_out->width_mm = p_out->left_mm - p_out->right_mm;
-    beam            = 2.0f * (float32_t)p_out->front_mm *
-                      app_sin_deg((float32_t)BEAM_UNC_DEG);
+    /* distances in mm, small: exact as floats; the square root is below the
+       distances, fits int32_t */
+    beam = 2.0f * (float32_t)p_out->front_mm * app_sin_deg(BEAM_UNC_DEG);
+    /* uncertainties in mm, small: exact as floats; the root fits int32_t */
     p_out->unc_mm =
         (int32_t)app_sqrtf((float32_t)((p_out->left_unc * p_out->left_unc) +
                                        (p_out->right_unc * p_out->right_unc)) +

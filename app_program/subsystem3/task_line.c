@@ -79,9 +79,9 @@
 #define S3_LOW_AFTER_MM 50
 #define S3_SEARCH_PCT   20 /* searching (0 rocked in place, 2 Nov) */
 /* Steering memory */
-#define S3_MEM_MM   60   /* averaged over about this distance */
-#define S3_MEM_K    0.4f /* share kept while both sensors are white */
-#define S3_MEM_MAX  40
+#define S3_MEM_MM   60.0f /* averaged over about this distance */
+#define S3_MEM_K    0.4f  /* share kept while both sensors are white */
+#define S3_MEM_MAX  40.0f
 #define S3_MEM_SLOW 0.5f /* speed % less per mm/s of memory (curves) */
 /* a sensor pattern counts only after this many readings in a row (2 made
  * every correction 20-40 ms late) */
@@ -531,17 +531,17 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
                steering (a curve keeps turning) */
             float32_t mem_part = S3_MEM_K * mem;
 
-            if (mem_part > (float32_t)S3_MEM_MAX)
+            if (mem_part > S3_MEM_MAX)
             {
-                mem_part = (float32_t)S3_MEM_MAX;
+                mem_part = S3_MEM_MAX;
             }
 
-            if (mem_part < -(float32_t)S3_MEM_MAX)
+            if (mem_part < -S3_MEM_MAX)
             {
-                mem_part = -(float32_t)S3_MEM_MAX;
+                mem_part = -S3_MEM_MAX;
             }
 
-            demand = (int32_t)mem_part;
+            demand = (int32_t)mem_part; /* -40..40 */
         }
 
         /* Build a turn up gently (STEER_STEP per period), but ease off
@@ -579,15 +579,16 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
 
             if (step > 0)
             {
+                /* one period's mm, small: exact as a float */
                 float32_t share =
-                    (float32_t)motion_counts_to_mm(step) / (float32_t)S3_MEM_MM;
+                    (float32_t)motion_counts_to_mm(step) / S3_MEM_MM;
 
                 if (share > 1.0f)
                 {
                     share = 1.0f;
                 }
 
-                mem += ((float32_t)out - mem) * share;
+                mem += ((float32_t)out - mem) * share; /* mm/s: exact */
             }
 
             mem_odo = odo;
@@ -617,6 +618,7 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
                 g_speed_pct = 100;
             }
 
+            /* |mem| <= the steering limit (mm/s): the product is small */
             cap = 100 - (int32_t)(S3_MEM_SLOW * ((mem < 0.0f) ? -mem : mem));
 
             if (cap < 35)

@@ -49,10 +49,12 @@ LOCAL uint8_t enc_ab (int32_t wheel)
 
     if (WHEEL_L == wheel)
     {
+        /* two bits, 0..3: fit uint8_t */
         return (uint8_t)((((pins >> PIN_ENC_L_A) & 1u) << 1) |
                          ((pins >> PIN_ENC_L_B) & 1u));
     }
 
+    /* two bits, 0..3: fit uint8_t */
     return (uint8_t)((((pins >> PIN_ENC_R_A) & 1u) << 1) |
                      ((pins >> PIN_ENC_R_B) & 1u));
 }
@@ -101,6 +103,7 @@ LOCAL uint32_t cc_pair (int32_t duty)
         duty = -DUTY_FULL;
     }
 
+    /* |duty| <= DUTY_FULL (clamped above): 0..1000, never negative */
     level =
         (uint32_t)((duty >= 0) ? duty : -duty) * (PWM_WRAP + 1u) / DUTY_FULL;
     return (duty >= 0) ? level : (level << 16);

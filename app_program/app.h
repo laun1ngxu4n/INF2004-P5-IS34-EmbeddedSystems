@@ -19,6 +19,15 @@
 
 #include "app_types.h" /* int32_t, bool, float32_t ... (Barr C 5.2) */
 
+/** A string literal as the const uint8_t * (T-Kernel's UB) that
+   tm_printf(), tm_sprintf() and Telemetry's text functions take. */
+Inline const uint8_t * app_str (const char * p_text)
+{
+    /* char and uint8_t are both 8 bits: the same bytes, only read as
+       unsigned; nothing is converted */
+    return (const uint8_t *)p_text;
+}
+
 #include "app_lock.h"   /* APP_LOCK / APP_UNLOCK for shared data */
 #include "app_timing.h" /* per-task period and run-time monitor */
 #include "app_gpio.h"   /* the shared GPIO interrupt dispatcher */
@@ -110,7 +119,7 @@ Inline void app_check (int32_t err, const char * p_what)
 {
     if (err < E_OK)
     {
-        tm_printf((uint8_t *)"ERROR %s: %d\n", p_what, err);
+        tm_printf(app_str("ERROR %s: %d\n"), p_what, err);
     }
 }
 

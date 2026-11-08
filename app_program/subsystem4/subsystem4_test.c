@@ -105,7 +105,7 @@ LOCAL void ramp_run (uint32_t reports_start)
             b_roll = b_one = 0;
             b_h0 = b_hmax = height;
             jolts_bump    = imu_jolts();
-            tm_printf((uint8_t *)"[S4] bump %d starts at %d mm\n", bumps + 1,
+            tm_printf(app_str("[S4] bump %d starts at %d mm\n"), bumps + 1,
                       dist_mm);
         }
 
@@ -145,8 +145,8 @@ LOCAL void ramp_run (uint32_t reports_start)
             if (traced < TRACE_MAX)
             {
                 tm_printf(
-                    (uint8_t *)"[S4T] %d mm  sin %d  side %d  one-wheel %d.%d "
-                               " h %s%d.%d\n",
+                    app_str("[S4T] %d mm  sin %d  side %d  one-wheel %d.%d "
+                            " h %s%d.%d\n"),
                     dist_mm, sin_pitch, roll, one / 10, one % 10,
                     (height < 0) ? "-" : "",
                     ((height < 0) ? -height : height) / 10,
@@ -162,15 +162,16 @@ LOCAL void ramp_run (uint32_t reports_start)
                 b_in_bump = FALSE;
                 bumps++;
                 last_end = dist_mm;
-                tm_printf((uint8_t *)"[S4] bump %d: %d-%d mm, nose-up peak %d, "
-                                     "nose-down peak %d, L x sin(up) %d.%d mm, "
-                                     "climbed "
-                                     "%d.%d mm, %d readings skipped as jolts\n",
+                /* samples skipped in one run, hundreds at most: fit %d */
+                tm_printf(app_str("[S4] bump %d: %d-%d mm, nose-up peak %d, "
+                                  "nose-down peak %d, L x sin(up) %d.%d mm, "
+                                  "climbed "
+                                  "%d.%d mm, %d readings skipped as jolts\n"),
                           bumps, b_from, b_flat, b_up, b_down, l10 / 10,
                           l10 % 10, c10 / 10, c10 % 10,
                           (int32_t)(imu_jolts() - jolts_bump));
-                tm_printf((uint8_t *)"[S4] bump %d one wheel: side tilt peak "
-                                     "sin %d/1000, height T x sin = %d.%d mm\n",
+                tm_printf(app_str("[S4] bump %d one wheel: side tilt peak "
+                                  "sin %d/1000, height T x sin = %d.%d mm\n"),
                           bumps, b_roll, b_one / 10, b_one % 10);
             }
         }
@@ -192,9 +193,10 @@ LOCAL void ramp_run (uint32_t reports_start)
     }
 
     motion_halt();
+    /* samples skipped in one run, hundreds at most: fit %d */
     tm_printf(
-        (uint8_t *)"[S4-R01] %d bump(s) in %d mm, %d readings skipped as jolts "
-                   "in all\n",
+        app_str("[S4-R01] %d bump(s) in %d mm, %d readings skipped as jolts "
+                "in all\n"),
         bumps, motion_counts_to_mm(motion_odometer() - odo0),
         (int32_t)(imu_jolts() - jolts_start));
 }
@@ -206,7 +208,7 @@ EXPORT void subsystem4_stage_test (void)
     int32_t tick;
     TEST_INIT();
 
-    tm_printf((uint8_t *)"\n[DRIVE] === Stage 4: IMU ramp height ===\n");
+    tm_printf(app_str("\n[DRIVE] === Stage 4: IMU ramp height ===\n"));
 
     for (tick = 0; (tick < IMU_WAIT) && (!imu_ok()); tick++)
     {
@@ -230,17 +232,17 @@ EXPORT void subsystem4_stage_test (void)
     }
 
     tm_printf(
-        (uint8_t *)"[S4] tilt view for 15 s: lift the front a little, then put "
-                   "the RIGHT wheel on a 2-3 cm block (x1000; one-wheel height "
-                   "in "
-                   "mm)\n");
+        app_str("[S4] tilt view for 15 s: lift the front a little, then put "
+                "the RIGHT wheel on a 2-3 cm block (x1000; one-wheel height "
+                "in "
+                "mm)\n"));
 
     for (tick = 0; tick < TILT_LINES; tick++)
     {
         int32_t one = imu_one_wheel_mm10();
 
         tm_printf(
-            (uint8_t *)"[S4] sin(pitch) %d  sin(side) %d  one-wheel %d.%d mm\n",
+            app_str("[S4] sin(pitch) %d  sin(side) %d  one-wheel %d.%d mm\n"),
             imu_pitch_mdeg_sin(), imu_roll_sin_x1000(), one / 10, one % 10);
         tk_dly_tsk(500);
     }
@@ -249,7 +251,7 @@ EXPORT void subsystem4_stage_test (void)
     {
         uint32_t reports_start = imu_ramp_reports();
 
-        tm_printf((uint8_t *)"\n[DRIVE] S4-R01 run %d of 5\n", kdx);
+        tm_printf(app_str("\n[DRIVE] S4-R01 run %d of 5\n"), kdx);
         test_wait_start(
             "Robot level about 20 cm before the hump, pointing "
             "straight ahead, the hump (triangle) in the path of the "
@@ -268,22 +270,23 @@ EXPORT void subsystem4_stage_test (void)
 
         if (imu_ramp_reports() != reports_start)
         {
+            /* reports in one run, a few: fit %d */
             tm_printf(
-                (uint8_t *)"[S4-R01] %d ramp(s) reported by the IMU task, the "
-                           "last ",
+                app_str("[S4-R01] %d ramp(s) reported by the IMU task, the "
+                        "last "),
                 (int32_t)(imu_ramp_reports() - reports_start));
             test_print_x10("", imu_ramp_peak_mm10(),
                            " mm (write down the measured ramp heights)\n");
         }
         else
         {
-            tm_printf((uint8_t *)"[S4-R01] no ramp reported by the IMU task "
-                                 "this run\n");
+            tm_printf(app_str("[S4-R01] no ramp reported by the IMU task "
+                              "this run\n"));
         }
 
         if (test_stop_pressed())
         {
-            tm_printf((uint8_t *)"[S4-R01] STOP pressed: runs ended\n");
+            tm_printf(app_str("[S4-R01] STOP pressed: runs ended\n"));
             break;
         }
     }

@@ -65,6 +65,14 @@ LOCAL ID cmd_post (int32_t type, int32_t speed, int32_t amount)
         return E_OBJ;
     }
 
+    /* a drive or turn at speed 0 would never end: its time limit (distance
+       / speed) could not be worked out */
+
+    if (((CMD_DRIVE == type) || (CMD_TURN == type)) && (0 == speed))
+    {
+        return E_PAR;
+    }
+
     APP_LOCK(irq_state);
     h_cmd               = ++gh_cmd_last_id;
     g_cmd_slot.type     = type;
@@ -72,7 +80,7 @@ LOCAL ID cmd_post (int32_t type, int32_t speed, int32_t amount)
     g_cmd_slot.speed    = speed;
     g_cmd_slot.amount   = amount;
     gb_cmd_new          = TRUE;
-    g_status.cmd_id     = (uint32_t)h_cmd;
+    g_status.h_cmd_id   = h_cmd;
     g_status.result     = MOT_RES_BUSY;
     APP_UNLOCK(irq_state);
     return h_cmd;
@@ -158,6 +166,7 @@ LOCAL int32_t wheel_duty (wheel_pi_t * p_wheel, float32_t target,
         (FF_PER_MM_S * target) + ((target > 0.0f) ? FF_OFFSET : -FF_OFFSET);
     p_wheel->integ =
         clampf(p_wheel->integ + (KI * err * DT_S), -I_LIMIT, I_LIMIT);
+    /* clamped to -1000..1000 first: fits int32_t */
     return (int32_t)clampf(feedfwd + (KP * err) + p_wheel->integ, -1000.0f,
                            1000.0f);
 }
@@ -219,9 +228,11 @@ EXPORT void motion_task (int32_t stacd, void * p_exinf)
             sum_r += hist_r[idx];
         }
 
-        /* counts per 40 ms -> mm/s */
+        /* counts per 40 ms -> mm/s (a few hundred counts: exact as
+           floats) */
         vel_left =
             (float32_t)sum_l * S2_UM_PER_COUNT / (1000.0f * SPEED_AVG_N * DT_S);
+        /* the same for the right wheel */
         vel_right =
             (float32_t)sum_r * S2_UM_PER_COUNT / (1000.0f * SPEED_AVG_N * DT_S);
 
@@ -266,15 +277,21 @@ EXPORT void motion_task (int32_t stacd, void * p_exinf)
 
             if (CMD_DRIVE == cur.type)
             {
+                /* mm and mm/s: small, exact as floats; 2 x the expected ms
+                   is positive and far below 2^32 (cmd_post refuses a speed
+                   of 0) */
                 limit_ms = (uint32_t)(2000 * absf((float32_t)cur.amount) /
                                       absf((float32_t)cur.speed)) +
                            1000;
             }
             else if (CMD_TURN == cur.type)
             {
+                /* degrees and mm/s: small, exact as floats; 2 x the expected
+                   ms is positive and far below 2^32 (cmd_post refuses a
+                   speed of 0) */
                 limit_ms = (uint32_t)(2000.0f * 3.14159f * S2_TRACK_MM *
                                       absf((float32_t)cur.amount) / 360.0f /
-                                      (float32_t)cur.speed) +
+                                      absf((float32_t)cur.speed)) +
                            1000;
             }
             else if (CMD_FOLLOW == cur.type)
@@ -295,13 +312,15 @@ EXPORT void motion_task (int32_t stacd, void * p_exinf)
             float32_t steer = (float32_t)line_steer_mm_s(); /* + = steer left */
             float32_t t_l;
             float32_t t_r;
+            /* speeds are mm/s, |v| <= 1000: exact as floats (here and below) */
             float32_t cap   = absf((float32_t)cur.speed);
             int32_t   pct   = line_speed_pct(); /* 100 = on track */
             BOOL      b_off = (pct < 100);
 
-            if ((g_follow_limit > 0) && (cap > (float32_t)g_follow_limit))
+            if ((g_follow_limit > 0) &&
+                (cap > (float32_t)g_follow_limit)) /* mm/s */
             {
-                cap = (float32_t)g_follow_limit;
+                cap = (float32_t)g_follow_limit; /* exact */
             }
 
             /* Straight while B is over the bars (an edge in the last
@@ -328,12 +347,13 @@ EXPORT void motion_task (int32_t stacd, void * p_exinf)
 
             if (b_off)
             {
-                cap = cap * (float32_t)pct / 100.0f;
+                cap = cap * (float32_t)pct / 100.0f; /* 0..100: exact */
             }
 
+            /* S2_SPEED_IN_BARCODE, 50 mm/s: exact as a float */
             if ((barcode_busy()) && (cap > (float32_t)S2_SPEED_IN_BARCODE))
             {
-                cap = (float32_t)S2_SPEED_IN_BARCODE;
+                cap = (float32_t)S2_SPEED_IN_BARCODE; /* exact */
             }
 
             v_prof += ACCEL_MM_S2 * DT_S;
@@ -375,14 +395,17 @@ EXPORT void motion_task (int32_t stacd, void * p_exinf)
             float32_t corr;
 
             elapsed_ms += 10;
+            /* counts since the command started: exact as a float up to 2^24
+               (1.3 km) */
             dl_mm =
                 (float32_t)(count_left - start_l) * S2_UM_PER_COUNT / 1000.0f;
+            /* the same for the right wheel */
             dr_mm =
                 (float32_t)(count_right - start_r) * S2_UM_PER_COUNT / 1000.0f;
 
             if (CMD_DRIVE == cur.type)
             {
-                target     = absf((float32_t)cur.amount);
+                target     = absf((float32_t)cur.amount); /* mm: exact */
                 done_left  = (cur.speed >= 0) ? dl_mm : -dl_mm;
                 done_right = (cur.speed >= 0) ? dr_mm : -dr_mm;
             }
@@ -418,9 +441,9 @@ EXPORT void motion_task (int32_t stacd, void * p_exinf)
 
             v_prof += ACCEL_MM_S2 * DT_S;
 
-            if (v_prof > absf((float32_t)cur.speed))
+            if (v_prof > absf((float32_t)cur.speed)) /* exact */
             {
-                v_prof = absf((float32_t)cur.speed);
+                v_prof = absf((float32_t)cur.speed); /* exact */
             }
 
             if (v_prof > v_cap)
@@ -498,8 +521,9 @@ EXPORT void motion_task (int32_t stacd, void * p_exinf)
 
         g_status.count_l = count_left;
         g_status.count_r = count_right;
+        /* measured speeds, |v| < 2000 mm/s: fit int32_t */
         g_status.speed_l = (int32_t)vel_left;
-        g_status.speed_r = (int32_t)vel_right;
+        g_status.speed_r = (int32_t)vel_right; /* the same */
         g_status.invalid = invalid;
         APP_UNLOCK(irq_state);
 

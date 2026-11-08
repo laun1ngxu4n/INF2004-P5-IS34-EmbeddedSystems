@@ -104,8 +104,10 @@ LOCAL int32_t log_take (char * p_topic, uint32_t tmax, uint8_t * p_buf,
         return 0;
     }
 
+    /* tm_sprintf returns the length written, 0..23 (head[24]); the counters
+       show as negative only after 2^31 messages */
     head_len =
-        (uint32_t)tm_sprintf(head, (const uint8_t *)"L%d %d|",
+        (uint32_t)tm_sprintf(head, app_str("L%d %d|"),
                              (int32_t)(g_log_seq + 1u), (int32_t)g_log_dropped);
 
     for (idx = 0; idx < head_len; idx++)
@@ -117,7 +119,7 @@ LOCAL int32_t log_take (char * p_topic, uint32_t tmax, uint8_t * p_buf,
 
     if (count > avail)
     {
-        count = (uint32_t)avail;
+        count = avail;
     }
 
     APP_LOCK(irq_state);
@@ -137,6 +139,7 @@ LOCAL int32_t log_take (char * p_topic, uint32_t tmax, uint8_t * p_buf,
     }
 
     p_topic[idx] = '\0';
+    /* at most bmax - 1, the caller's buffer size: fits int32_t */
     return (int32_t)(head_len + count);
 }
 #endif
@@ -169,7 +172,7 @@ LOCAL void outbox_put (uint8_t topic, const uint8_t * p_text)
 
 EXPORT void tele_event (const uint8_t * p_text)
 {
-    tm_printf((uint8_t *)"[EVT] %s\n", p_text);
+    tm_printf(app_str("[EVT] %s\n"), p_text);
     outbox_put(0, p_text);
 }
 
@@ -262,6 +265,7 @@ EXPORT int app_mqtt_tx (char * p_topic, unsigned tmax, unsigned char * p_buf,
         p_buf[idx] = msg.text[idx];
     }
 
+    /* idx < bmax, the glue's buffer size: fits int */
     return (int)idx;
 }
 
@@ -280,24 +284,24 @@ EXPORT void app_mqtt_rx (const char * p_topic, const unsigned char * p_data,
 
     if (same(p_cmd, "map"))
     {
+        /* len < MQTT_UTK_RX_DATA_MAX (128), the glue's buffer: fits int32_t */
         if (barcode_set_mapping(p_data, (int32_t)len, why, sizeof(why)))
         {
             uint8_t map[24];
             barcode_mapping_text(map, sizeof(map));
-            tm_sprintf(msg, (const uint8_t *)"OK %s", map);
+            tm_sprintf(msg, app_str("OK %s"), map);
         }
         else
         {
-            tm_sprintf(msg, (const uint8_t *)"REJECTED %s (old mapping kept)",
-                       why);
+            tm_sprintf(msg, app_str("REJECTED %s (old mapping kept)"), why);
         }
 
-        tm_printf((uint8_t *)"[MQTT] map: %s\n", msg);
+        tm_printf(app_str("[MQTT] map: %s\n"), msg);
         outbox_put(2, msg);
     }
     else if (same(p_cmd, "start"))
     {
-        tm_printf((uint8_t *)"[MQTT] start\n");
+        tm_printf(app_str("[MQTT] start\n"));
         g_start_count++;
         tk_set_flg(gh_flg_mission, MSN_FLG_START);
     }
@@ -305,7 +309,7 @@ EXPORT void app_mqtt_rx (const char * p_topic, const unsigned char * p_data,
     {
         app_stop_request(STOP_MQTT);
         tk_set_flg(gh_flg_mission, MSN_FLG_STOP);
-        tm_printf((uint8_t *)"[MQTT] stop\n");
+        tm_printf(app_str("[MQTT] stop\n"));
     }
     else
     {
@@ -326,10 +330,12 @@ LOCAL void status_line (void)
     motion_get_status(&status);
     barcode_last(&last_code);
     barcode_mapping_text(map, sizeof(map));
+    /* the junction count and the STOP reason bits are small: fit %d; map is
+       text, passed as char * like "none" */
     tm_sprintf(
         text,
-        (const uint8_t *)"state=%s speed=%d,%d dist=%d line=%d junctions=%d "
-                         "barcode=%c map=%s ramp_peak=%d.%d stop=%d",
+        app_str("state=%s speed=%d,%d dist=%d line=%d junctions=%d "
+                "barcode=%c map=%s ramp_peak=%d.%d stop=%d"),
         gp_state_text, status.speed_l, status.speed_r,
         motion_counts_to_mm(motion_odometer()), line_state(),
         (int32_t)line_junctions(), (last_code.b_ok ? last_code.letter : '-'),
@@ -347,9 +353,10 @@ LOCAL void sensor_line (void)
 {
     uint8_t text[TELE_TEXT_MAX];
 
+    /* comparisons and BOOLs are 0 or 1: fit %d */
     tm_sprintf(text,
-               (const uint8_t *)"ir=%d%d%d steer=%d hold=%d inbar=%d front=%d "
-                                "tilt=%d h10=%d imu=%d",
+               app_str("ir=%d%d%d steer=%d hold=%d inbar=%d front=%d "
+                       "tilt=%d h10=%d imu=%d"),
                (int32_t)(IR_BLACK == app_gpio_get(PIN_IR_LINE_L)),
                (int32_t)(IR_BLACK == app_gpio_get(PIN_IR_LINE_R)),
                (int32_t)barcode_black(), line_steer_mm_s(),

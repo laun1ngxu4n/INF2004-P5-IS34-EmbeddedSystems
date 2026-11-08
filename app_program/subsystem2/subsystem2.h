@@ -51,9 +51,9 @@
 
 typedef struct
 {
-    uint32_t cmd_id;  /* id of the last command accepted */
-    int32_t  result;  /* MOT_RES_... of that command */
-    int32_t  count_l; /* encoder counts since boot, + = forward */
+    ID       h_cmd_id; /* id of the last command accepted */
+    int32_t  result;   /* MOT_RES_... of that command */
+    int32_t  count_l;  /* encoder counts since boot, + = forward */
     int32_t  count_r;
     int32_t  speed_l; /* measured mm/s, + = forward (40 ms average) */
     int32_t  speed_r;

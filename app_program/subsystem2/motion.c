@@ -1,5 +1,5 @@
 /**
- * @file    task_motion.c
+ * @file    motion.c
  *  Subsystem 2 -- the Motion Control task.
  *
  *  Every 10 ms:
@@ -19,6 +19,7 @@
 #include "../app_stop.h"
 #include "../app_math.h"
 #include "../subsystem3/subsystem3.h" /* IF-03: line_steer_mm_s() */
+#include "motion.h"
 
 #define CMD_NONE   0
 #define CMD_DRIVE  1
@@ -196,7 +197,7 @@ EXPORT void motion_task (int32_t stacd, void * p_exinf)
 
     (void)stacd;
     (void)p_exinf;
-    encoder_read(&prev_l, &prev_r, NULL);
+    motor_encoders(&prev_l, &prev_r, NULL);
 
     for (;;)
     {
@@ -215,7 +216,7 @@ EXPORT void motion_task (int32_t stacd, void * p_exinf)
         app_timing_wake(g_tmg_motion, tk_can_wup(TSK_SELF));
 
         /* 1. Encoders and speed */
-        encoder_read(&count_left, &count_right, &invalid);
+        motor_encoders(&count_left, &count_right, &invalid);
         hist_l[hist_pos] = count_left - prev_l;
         hist_r[hist_pos] = count_right - prev_r;
         hist_pos         = (hist_pos + 1) % SPEED_AVG_N;

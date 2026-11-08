@@ -197,7 +197,7 @@ sends to it or waits on it. Agree on the data format before coding.
 | IF-02 | all → all | STOP helper `app_stop.[ch]` (Stage 1) + `APP_LOCK` | `app_stop_request(reason)` | motors off at once from any context; Motion cancels its command while any reason is set; owner of a reason clears it | *draft* |
 | IF-03 | S3 → S2 | latest value, read by Motion every 10 ms (Stage 2) | `line_steer_mm_s()` | steering mm/s, + = left; newest only (finding 07) | *draft* |
 | IF-04 | S2 → S5 | command id + result slot (Stage 1) | `motion_drive/turn/follow()` return an id; `motion_get_status()` | `{id, result DONE/STOPPED/TIMEOUT/BUSY, counts, speeds}` | *draft* |
-| IF-05 | S1 (MQTT) ↔ all | hooks `app_mqtt_rx()` / `app_mqtt_tx()` called by `mqtt_utk.c` (Stage 5) | `is34/cmd/map|start|stop`, `is34/event`, `is34/telemetry`, `is34/ack/map` | MQTT STOP calls `app_stop_request(STOP_MQTT)` first; events from every subsystem go through `tele_event()` | *draft, needs instructor OK for the `mqtt_utk.c` / `lwipopts.h` change* |
+| IF-05 | S1 (MQTT) ↔ all | hooks `app_mqtt_rx()` / `app_mqtt_tx()` called by `mqtt_utk.c` (Stage 5) | `is34/cmd/map|start|stop`, `is34/event`, `is34/telemetry`, `is34/ack/map` | MQTT STOP calls `app_stop_request(STOP_MQTT)` first; events from every subsystem go through `telemetry_event()` | *draft, needs instructor OK for the `mqtt_utk.c` / `lwipopts.h` change* |
 | IF-06 | | | | | |
 
 Each interface is tested by at least one integration test

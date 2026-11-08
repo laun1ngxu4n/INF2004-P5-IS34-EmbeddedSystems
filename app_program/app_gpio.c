@@ -90,7 +90,7 @@ EXPORT ER app_gpio_init (void)
     return E_OK;
 }
 
-EXPORT void app_hw_release (uint32_t resets_mask)
+EXPORT void app_gpio_hw_release (uint32_t resets_mask)
 {
     clr_w(RESETS_RESET, resets_mask);
 

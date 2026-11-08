@@ -13,7 +13,7 @@
  *  Stage 3: Obstacle Scanner (servo GP14, HC-SR04 TRIG GP6 / ECHO GP7):
  *  forward watch every 60 ms while enabled; on request a profiling scan
  *  (TEAM.md 7.2 O1-O6).
- *  Stage 6: Mission runs the whole course (task_mission.c).
+ *  Stage 6: Mission runs the whole course (mission.c).
  */
 
 #ifndef SUBSYSTEM5_H
@@ -72,7 +72,7 @@ Inline bool button_is_down (uint32_t pin)
    toward the box and listens for its side face, so the robot knows when
    it is really past (any depth) instead of assuming a 150 mm deep box.
    40 = the cables' limit (90, square to the face, has no clearance); the
-   side of the beam still hears the face (task_mission.c pass_box).
+   side of the beam still hears the face (mission.c pass_box).
    0 = no side look (the fixed 150 mm).
    OFF since 8 Nov: on the robot the side face was not heard at 40 deg
    (bench check mostly -1; in a bypass only the box's front corner while
@@ -85,68 +85,6 @@ Inline bool button_is_down (uint32_t pin)
    so edges are pulled in by it.  Tune with S5-O01 known widths. */
 #define S5_BEAM_HALF_DEG 6
 
-/* Sonar results: mm, or SONAR_OPEN (echo came back too late or not at
-   all after rising: nothing in range), or SONAR_FAULT (ECHO never rose:
-   sensor or wiring fault, never treated as open space). */
-#define SONAR_OPEN  (-1)
-#define SONAR_FAULT (-2)
-
-IMPORT void obstacle_watch (bool on); /* forward watch during line following */
-IMPORT void obstacle_idle_ping (bool on); /* mission image: ping for the panel
-                         while Mission is IDLE (never during manoeuvres) */
-IMPORT bool    obstacle_sensor_fault (void); /* 5 pings in a row without ECHO */
-IMPORT int32_t obstacle_front_mm (void); /* last forward reading, -1 = none */
-
-typedef struct
-{
-    bool    b_found;      /* an obstacle straight ahead */
-    int32_t front_mm;     /* distance straight ahead */
-    int32_t left_mm;      /* left edge, mm left of the robot's centre line */
-    int32_t right_mm;     /* right edge, mm (negative = right of centre) */
-    int32_t width_mm;     /* left - right */
-    int32_t unc_mm;       /* +/- uncertainty */
-    bool    b_left_clear; /* open space beyond the left edge */
-    bool    b_right_clear;
-    bool    b_left_seen; /* the scan saw past the left edge (false:
-                  the obstacle filled the scan that side,
-                  edge and clear unknown) */
-    bool    b_right_seen;
-    int32_t left_unc; /* +/- of each edge */
-    int32_t right_unc;
-    int32_t rays;       /* rays scanned */
-    int32_t fault_rays; /* rays where the sensor did not answer */
-} obstacle_profile_t;
-
-/** Blocking: called by Mission (or a test) while the robot stands still.
-   Turns the servo, settles, 5 pings per ray, median.  About 7 s. */
-IMPORT void obstacle_scan (obstacle_profile_t * p);
-/** Combine two scans (O5): mean width, uncertainty includes their spread */
-IMPORT void obstacle_combine (const obstacle_profile_t * a,
-                              const obstacle_profile_t * b,
-                              obstacle_profile_t *       out);
-IMPORT void servo_set_angle (int32_t deg);  /* 90 = ahead, clamped to 90 +/-
-                           the larger of S5_SERVO_HALF_DEG and
-                           S5_SERVO_SIDE_DEG; blocks while it
-                           turns (slowly) */
-IMPORT void servo_look_side (int32_t side); /* +1 left, -1 right, 0 ahead:
-                           S5_SERVO_SIDE_DEG that way */
-IMPORT int32_t
-sonar_ping_mm (void); /* blocking 60 ms; mm, SONAR_OPEN or SONAR_FAULT */
-/** The same in two halves, so the caller can do other things in the 60 ms:
-   start, then read at least 60 ms later */
-IMPORT void    sonar_ping_start (void);
-IMPORT int32_t sonar_ping_result (void);
-
-/** ---- Mission ------------------------------------------------------- */
-IMPORT const char * mission_state_name (void);
-/** Mission reacts to START only when armed: always in the normal image;
-   in a test image only after the test arms it (so tests can use START). */
-IMPORT void mission_arm (bool on);
-/** Which parts Mission uses (all true in the normal image).  Stage tests
-   switch off the parts not tested yet, so a Stage 2 run does not depend
-   on the untested obstacle (Stage 3) or IMU (Stage 4) code. */
-IMPORT void mission_features (bool obstacles, bool imu);
-
 /* Private to subsystem 5, shared between its own .c files */
 IMPORT ID       gh_tid_mission;
 IMPORT int32_t  g_tmg_mission;
@@ -154,9 +92,9 @@ IMPORT uint32_t g_mission_pings; /* written only by the Mission task */
 IMPORT ID       gh_tid_obstacle;
 IMPORT ID       gh_cyc_obstacle;
 IMPORT int32_t  g_tmg_obstacle;
-IMPORT void     mission_task (int32_t stacd, void * exinf);
-IMPORT void     obstacle_task (int32_t stacd, void * exinf);
-IMPORT ER       obstacle_hw_init (void);
+
+#include "mission.h"
+#include "obstacle.h"
 
 #endif /* SUBSYSTEM5_H */
 

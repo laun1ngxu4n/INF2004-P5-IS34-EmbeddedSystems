@@ -8,7 +8,7 @@ then 100 mm further back) the way obstacle_combine does.
 
 For each scan it prints the width with the old rule (until 8 Nov: within
 IN_MM of the straight-ahead distance) and with the "geometry" rule that
-task_obstacle.c side_edge uses since 8 Nov:
+obstacle.c side_edge uses since 8 Nov:
 
 A flat box face square to the robot is at front / cos(angle) along a ray
 at that angle.  The HC-SR04 also hears the face's echo from straight in

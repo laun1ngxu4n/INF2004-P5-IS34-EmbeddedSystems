@@ -41,7 +41,7 @@ typedef struct
 } app_timing_t;
 
 /** Microseconds since boot from the hardware timer (wraps after ~71 min) */
-IMPORT uint32_t app_time_us (void);
+IMPORT uint32_t app_timing_now_us (void);
 
 /** Register a task in a subsystem's _init(); returns its slot (or < 0) */
 IMPORT int32_t app_timing_add (const char * name, PRI pri, uint32_t period_ms);

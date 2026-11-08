@@ -9,10 +9,11 @@
 
 #include "subsystem3.h"
 #include "../test_report.h"
-#include "../app_stage_test.h"
+#include "../app_test.h"
 #include "../subsystem1/subsystem1.h"
 #include "../subsystem2/subsystem2.h"
 #include "../subsystem5/subsystem5.h"
+#include "subsystem3_test.h"
 
 #if APP_TEST
 
@@ -217,7 +218,7 @@ LOCAL int32_t follow_and_watch (int32_t secs, int32_t max_mm, int32_t * p_junc,
                                 int32_t * p_lost, int32_t * p_codes_ok,
                                 int32_t * p_codes_fail)
 {
-    int32_t          odo0        = motion_odometer();
+    int32_t          odo0        = motor_odometer();
     uint32_t         edges_start = barcode_edges();
     uint32_t         junc_start  = line_junctions();
     uint32_t         junc_now;
@@ -251,7 +252,7 @@ LOCAL int32_t follow_and_watch (int32_t secs, int32_t max_mm, int32_t * p_junc,
         return 0;
     }
 
-    for (tick = 0; (tick < (secs * TICKS_PER_S)) && (!test_stop_pressed());
+    for (tick = 0; (tick < (secs * TICKS_PER_S)) && (!app_test_stop_pressed());
          tick++)
     {
         uint32_t pattern;
@@ -259,7 +260,7 @@ LOCAL int32_t follow_and_watch (int32_t secs, int32_t max_mm, int32_t * p_junc,
         tk_dly_tsk(10);
 
         if ((max_mm > 0) &&
-            (motion_counts_to_mm(motion_odometer() - odo0) >= max_mm))
+            (motion_counts_to_mm(motor_odometer() - odo0) >= max_mm))
         {
             break;
         }
@@ -273,7 +274,7 @@ LOCAL int32_t follow_and_watch (int32_t secs, int32_t max_mm, int32_t * p_junc,
         {
             /* single bits: fit %d */
             tm_printf(app_str("[S3T] %d mm  L %d  R %d  steer %d\n"),
-                      motion_counts_to_mm(motion_odometer() - odo0),
+                      motion_counts_to_mm(motor_odometer() - odo0),
                       (int32_t)(pattern >> 1), (int32_t)(pattern & 1u),
                       line_steer_mm_s());
             lc_prev = pattern;
@@ -300,7 +301,7 @@ LOCAL int32_t follow_and_watch (int32_t secs, int32_t max_mm, int32_t * p_junc,
 
             tm_printf(
                 app_str("[S3] junction %d at %d mm: %s\n"), *p_junc,
-                motion_counts_to_mm(motion_odometer() - odo0),
+                motion_counts_to_mm(motor_odometer() - odo0),
                 (sides == (JUNC_SIDE_S | JUNC_SIDE_B))
                     ? "crossing (both line sensors black, B saw the left arm)"
                 : ((sides & JUNC_SIDE_S) != 0)
@@ -412,7 +413,7 @@ LOCAL int32_t follow_and_watch (int32_t secs, int32_t max_mm, int32_t * p_junc,
     {
         uint32_t corrections;
         uint32_t sweeps;
-        int32_t  dist_mm = motion_counts_to_mm(motion_odometer() - odo0);
+        int32_t  dist_mm = motion_counts_to_mm(motor_odometer() - odo0);
 
         line_wobble(&corrections, &sweeps);
         /* counts in one run, hundreds at most: fit %d */
@@ -423,13 +424,13 @@ LOCAL int32_t follow_and_watch (int32_t secs, int32_t max_mm, int32_t * p_junc,
             (dist_mm > 0) ? (int32_t)corrections * 1000 / dist_mm : 0,
             (int32_t)sweeps);
     }
-    return motion_counts_to_mm(motion_odometer() - odo0); /* mm followed */
+    return motion_counts_to_mm(motor_odometer() - odo0); /* mm followed */
 }
 
 /** START = run this part, STOP = skip it.  true = run it. */
 LOCAL bool ask_run (const char * p_what)
 {
-    uint32_t remote = tele_start_count();
+    uint32_t remote = telemetry_start_count();
 
     app_stop_clear(STOP_BUTTON | STOP_MQTT); /* a STOP from the last run */
     tm_printf(
@@ -453,7 +454,7 @@ LOCAL bool ask_run (const char * p_what)
             return false;
         }
 
-        if (tele_start_count() != remote)
+        if (telemetry_start_count() != remote)
         {
             return true;
         }
@@ -585,14 +586,14 @@ LOCAL bool bar_bench_run (int32_t speed)
         return false;
     }
 
-    for (tick = 0; (tick < BENCH_TICKS) && (!test_stop_pressed()); tick++)
+    for (tick = 0; (tick < BENCH_TICKS) && (!app_test_stop_pressed()); tick++)
     {
         tk_dly_tsk(10);
         b_ana = barcode_adc(&raw, &white_lvl, &black_lvl);
 
         if (b_ana && (count < BENCH_N))
         {
-            g_bn_odo[count] = motion_odometer();
+            g_bn_odo[count] = motor_odometer();
             g_bn_v[count]   = (uint16_t)raw; /* 12-bit ADC: 0..4095 */
             count++;
         }
@@ -783,7 +784,7 @@ LOCAL void bar_bench (void)
                     "straight %d mm at %d mm/s. Write down the code.\n"),
             idx + 1, (int32_t)(sizeof(run) / sizeof(run[0])), run[idx].p_what,
             BENCH_MM, run[idx].speed);
-        test_wait_start(
+        app_test_wait_start(
             "Robot placed (no such barcode: START, then STOP at once).");
         b_ok = bar_bench_run(run[idx].speed);
         TEST_CHECK("S3-B00", b_ok, "decoded driving straight");
@@ -794,7 +795,7 @@ LOCAL void bar_bench (void)
 
 /** Stage 2 hands-on tests: line following, junctions, barcodes, junction
  * moves. */
-EXPORT void subsystem3_stage_test (void)
+EXPORT void subsystem3_test_stage (void)
 {
     int32_t junc     = 0;
     int32_t lost     = 0;
@@ -812,7 +813,7 @@ EXPORT void subsystem3_stage_test (void)
 
     if (ask_run("--- Stage 2A: line + junctions (S3-L01..L10) ---"))
     {
-        test_wait_start(
+        app_test_wait_start(
             "S3-L01 / S3-L02: robot on the line. It follows for up to "
             "60 s (let it run; STOP only if it goes wrong); count the "
             "junctions you see.");
@@ -892,8 +893,9 @@ EXPORT void subsystem3_stage_test (void)
                                   "most %d mm. Pass: %s.\n"),
                           pl[idx].p_test_id, pl[idx].p_where, pl[idx].max_mm,
                           pl[idx].p_pass);
-                test_wait_start("Robot placed as above (no such place: START, "
-                                "then STOP at once).");
+                app_test_wait_start(
+                    "Robot placed as above (no such place: START, "
+                    "then STOP at once).");
                 follow_and_watch(30, pl[idx].max_mm, &part_junc, &part_lost,
                                  &part_ok, &part_fail);
 
@@ -933,7 +935,7 @@ EXPORT void subsystem3_stage_test (void)
             int32_t part_lost = 0;
             tm_printf(app_str("\n[DRIVE] S3-B01..B03 barcodes, run %d of 3\n"),
                       kdx);
-            test_wait_start(
+            app_test_wait_start(
                 "Put the robot on the line before a stretch with barcodes "
                 "(both directions over the runs). Up to 40 s.");
             follow_and_watch(40, 0, &part_junc, &part_lost, &codes_ok, &fail);
@@ -951,7 +953,7 @@ EXPORT void subsystem3_stage_test (void)
                 "over, obstacle watch and IMU OFF (untested until Stages 3 "
                 "and 4) ---"))
     {
-        app_course_test(false, false);
+        app_test_course(false, false);
     }
 }
 

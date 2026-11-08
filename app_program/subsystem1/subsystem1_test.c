@@ -9,6 +9,7 @@
 
 #include "subsystem1.h"
 #include "../test_report.h"
+#include "subsystem1_test.h"
 
 #if APP_TEST
 

@@ -3,9 +3,9 @@
 Robot: differential drive, track 123 mm, line sensors 115 mm ahead of the
 axle at +-15 mm.  Motion task every 10 ms (speed ramp 400 mm/s^2, wheel
 speed follows its target with a first-order lag).  Line task every 20 ms:
-a port of app_program/subsystem3/task_line.c, with its settings in a dict
+a port of app_program/subsystem3/line.c, with its settings in a dict
 so variants can be compared (BASE = the 9d10fa6 settings, NEW = the ones
-in task_line.c since 7 Nov).  Keep both in step with task_line.c.
+in line.c since 7 Nov).  Keep both in step with line.c.
 
 Calibrated on 7 Nov: with curves about 120 mm in radius, about 50 ms of
 extra delay (40 ms speed averaging, motor response, caster) and a 20 mm

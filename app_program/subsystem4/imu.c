@@ -1,5 +1,5 @@
 /**
- * @file    task_imu.c
+ * @file    imu.c
  *  Subsystem 4 -- the IMU / Terrain Monitor task (every 10 ms).
  *
  *  Reads the LSM303D accelerometer (+/-4 g, 100 Hz) and tracks the ramp
@@ -11,6 +11,8 @@
 #include "../subsystem1/subsystem1.h"
 #include "../subsystem2/subsystem2.h"
 #include "../app_math.h"
+#include "imu_i2c.h"
+#include "imu.h"
 
 #define IMU_ADDR      0x1D
 #define REG_WHO_AM_I  0x0F
@@ -54,10 +56,6 @@
    sharp top, so the side tilt peaks briefly: a lighter filter than the
    pitch's (ROLL_LPF_K ~ 30 ms; 100 ms took about 15 % off the peak). */
 #define ROLL_LPF_K 0.3f
-
-IMPORT void imu_i2c_init (void);
-IMPORT ER   imu_i2c_read (uint8_t addr, uint8_t reg, uint8_t * buf, int32_t n);
-IMPORT ER   imu_i2c_write (uint8_t addr, uint8_t reg, uint8_t val);
 
 LOCAL volatile bool     gb_chip_ok;
 LOCAL volatile bool     gb_cal_request = true; /* calibrate once at boot too */
@@ -177,7 +175,7 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
     (void)stacd;
     (void)p_exinf;
     imu_i2c_init();
-    odo_prev = motion_odometer();
+    odo_prev = motor_odometer();
 
     for (;;)
     {
@@ -206,7 +204,7 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
         if (imu_i2c_read(IMU_ADDR, REG_OUT_X_L_A, raw, 6) != E_OK)
         {
             gb_chip_ok = false;
-            tele_event(app_str("IMU read failed, retrying"));
+            telemetry_event(app_str("IMU read failed, retrying"));
             goto done;
         }
 
@@ -293,7 +291,7 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
         }
 
         /* Height: distance driven x sin(pitch) */
-        odo = motion_odometer();
+        odo = motor_odometer();
         {
             /* counts in one 10 ms period, a few: exact */
             float32_t step_mm =
@@ -387,7 +385,7 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
                                o10 / 10, o10 % 10,
                                (int32_t)(roll_peak * 1000.0f), c10 / 10,
                                c10 % 10);
-                    tele_event(msg);
+                    telemetry_event(msg);
                     quiet_mm10 = QUIET_AFTER_MM * 10;
                 }
                 else if ((p10 >= REPORT_MIN_MM10) && (quiet_mm10 <= 0))
@@ -406,7 +404,7 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
                                        "%d.%d mm, peak sin %d/1000)"),
                                p10 / 10, p10 % 10, l10 / 10, l10 % 10,
                                (int32_t)(peak_sin * 1000.0f));
-                    tele_event(msg);
+                    telemetry_event(msg);
                     quiet_mm10 = QUIET_AFTER_MM * 10;
                 }
                 else

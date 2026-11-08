@@ -51,13 +51,20 @@
  */
 
 #include "app.h"
+#include "app_main.h"
+#include "app_test.h"
+#include "subsystem1/subsystem1_test.h"
+#include "subsystem2/subsystem2_test.h"
+#include "subsystem3/subsystem3_test.h"
+#include "subsystem4/subsystem4_test.h"
+#include "subsystem5/subsystem5_test.h"
 
 /**
  * Create and start one task (declared in app.h for every subsystem).
  *   prc = TP_PRC1 (core 0), TP_PRC2 (core 1), or 0 for "any core".
  */
-EXPORT ID app_start_task (FP p_entry, PRI pri, uint32_t prc,
-                          const char * p_name)
+EXPORT ID app_main_start_task (FP p_entry, PRI pri, uint32_t prc,
+                               const char * p_name)
 {
     T_CTSK ctsk = {0};
     ID     h_tid;
@@ -100,7 +107,7 @@ LOCAL void wake_handler (void * p_exinf)
     tk_wup_tsk(*(ID *)p_exinf); /* queues if the task is still busy */
 }
 
-EXPORT ID app_create_wake_cyclic (ID * p_p_tid, RELTIM period_ms)
+EXPORT ID app_main_create_wake_cyclic (ID * p_p_tid, RELTIM period_ms)
 {
     T_CCYC ccyc = {0};
 
@@ -183,7 +190,7 @@ EXPORT int32_t usermain (void)
 
     /* Hands-on test of the stage picked with TEST_STAGE=n; each move
        waits for the START button */
-    app_stage_test();
+    app_test_stage();
 #endif
 
     /* Sleep forever.  Returning from usermain() would shut down. */

@@ -57,6 +57,14 @@ RULES = {
 # with their module name"); after the module renames this is the file root
 MODULE_PREFIX = {}
 
+# Deviations (docs/team/BARR_C_DEVIATIONS.md):
+# D1: the course template's module names subsystemN and subsystemN_test (all
+#     "subsyste" in their first 8 characters, 4.1b); kept as given
+TEMPLATE_MODULE = re.compile(r'^subsystem\d(_test)?$')
+# D2: hooks the RTOS-side glue calls by these names (weak symbols in
+#     lib/liblwip/.../mqtt_utk.c and lib/libtm/.../tm_com.c), 6.1i
+FIXED_NAMES = {'app_mqtt_rx', 'app_mqtt_tx', 'tm_console_mirror'}
+
 
 def files():
     return sorted(glob.glob('app_program/**/*.c', recursive=True) +
@@ -356,6 +364,8 @@ def module_checks(all_files, hits):
         roots.setdefault(root, set()).add(os.path.splitext(f)[1])
     by8 = {}
     for root in roots:
+        if TEMPLATE_MODULE.match(root):
+            continue                    # deviation D1 (docs/team/BARR_C_DEVIATIONS.md)
         by8.setdefault(root[:8], set()).add(root)
     for key, group in by8.items():
         if len(group) > 1:
@@ -374,7 +384,8 @@ def module_checks(all_files, hits):
             name = m.group(1)
             prefixes = MODULE_PREFIX.get(root, [root])
             if not any(name.startswith(p + '_') or name == p for p in prefixes) and \
-                    not name.endswith('_task') and name != 'usermain':
+                    not name.endswith('_task') and name != 'usermain' and \
+                    name not in FIXED_NAMES:
                 hits.setdefault('6.1i', []).append(f'{f}: {name}')
 
 

@@ -33,7 +33,7 @@ EXPORT ER subsystem3_init (void)
 
     g_tmg_line    = app_timing_add("line", PRI_LINE, PERIOD_LINE_MS);
     g_tmg_barcode = app_timing_add("barcode", PRI_BARCODE, TIMEOUT_BARCODE_MS);
-    gh_cyc_line   = app_create_wake_cyclic(&gh_tid_line, PERIOD_LINE_MS);
+    gh_cyc_line   = app_main_create_wake_cyclic(&gh_tid_line, PERIOD_LINE_MS);
 
     if (g_tmg_line < E_OK)
     {
@@ -51,7 +51,7 @@ EXPORT ER subsystem3_init (void)
 /** Starts subsystem 3's tasks (line following, barcode decoder). */
 EXPORT ER subsystem3_start (void)
 {
-    gh_tid_line = app_start_task(line_task, PRI_LINE, 0, "line_task");
+    gh_tid_line = app_main_start_task(line_task, PRI_LINE, 0, "line_task");
 
     if (gh_tid_line < E_OK)
     {
@@ -59,7 +59,7 @@ EXPORT ER subsystem3_start (void)
     }
 
     gh_tid_barcode =
-        app_start_task(barcode_task, PRI_BARCODE, 0, "barcode_task");
+        app_main_start_task(barcode_task, PRI_BARCODE, 0, "barcode_task");
 
     if (gh_tid_barcode < E_OK)
     {

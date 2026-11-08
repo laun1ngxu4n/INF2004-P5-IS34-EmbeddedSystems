@@ -6,7 +6,7 @@
  *  console output to testing/subsystem2/logs/ and record the result
  *  in testing/subsystem2/TEST_LOG.md.  Test IDs: S2-U01, S2-U02, ...
  *
- *  subsystem2_drive_test() (Stage 1) DRIVES THE ROBOT.  It runs after the
+ *  subsystem2_test_drive() (Stage 1) DRIVES THE ROBOT.  It runs after the
  *  automatic tests and waits for the START button (GP20) before every
  *  move.  STOP (GP21) stops the motors at any time.
  */
@@ -14,7 +14,8 @@
 #include "subsystem2.h"
 #include "../test_report.h"
 #include "../subsystem5/subsystem5.h" /* START / STOP buttons */
-#include "../app_stage_test.h"
+#include "../app_test.h"
+#include "subsystem2_test.h"
 
 #if APP_TEST
 
@@ -87,7 +88,7 @@ LOCAL bool test_turns (void)
     int32_t              round;
     int32_t              kdx;
 
-    test_wait_start(
+    app_test_wait_start(
         "S2-M02 turns: robot on the floor, mark its heading "
         "(tape along one side). 3 rounds of: left 90, right 90, 180.");
 
@@ -97,7 +98,7 @@ LOCAL bool test_turns (void)
         {
             int32_t  left_start;
             int32_t  right_start;
-            uint32_t t_start = app_time_us();
+            uint32_t t_start = app_timing_now_us();
             ID       h_cmd;
             int32_t  res;
             int32_t  deg10;
@@ -126,8 +127,8 @@ LOCAL bool test_turns (void)
             /* the turn took a few seconds: the ms fit %d */
             tm_printf(app_str("[S2-M02] round %d %s: %s in %d ms, "), round,
                       names[kdx], res_name(res),
-                      (int32_t)((app_time_us() - t_start) / 1000u) - 300);
-            test_print_x10("encoder angle ", deg10, " deg\n");
+                      (int32_t)((app_timing_now_us() - t_start) / 1000u) - 300);
+            app_test_print_x10("encoder angle ", deg10, " deg\n");
 
             if (res != MOT_RES_DONE)
             {
@@ -148,7 +149,7 @@ LOCAL bool test_turns (void)
 
         if (round < 3)
         {
-            test_wait_start(
+            app_test_wait_start(
                 "S2-M02 next round: put the robot back on its mark");
         }
     }
@@ -173,14 +174,14 @@ LOCAL bool test_slow_speed (void)
 
     uint32_t t_start;
 
-    test_wait_start(
+    app_test_wait_start(
         "S2-M03 slow speed: 0.5 m clear in front of the robot. "
         "Mark where the robot's front is now: it drives 500 mm at the "
         "barcode speed; then MEASURE how far it really went.");
     motion_get_status(&status);
     left_start  = status.count_l;
     right_start = status.count_r;
-    t_start     = app_time_us();
+    t_start     = app_timing_now_us();
     h_cmd       = motion_drive(S2_SPEED_BARCODE, 500);
 
     if (h_cmd < E_OK)
@@ -237,7 +238,7 @@ LOCAL bool test_slow_speed (void)
                 "distance: more than 25 mm off 500 = wrong mm/count scale\n"),
         (((status.count_l - left_start) + (status.count_r - right_start)) / 2 *
          S2_UM_PER_COUNT / 1000),
-        (int32_t)((app_time_us() - t_start) / 1000u));
+        (int32_t)((app_timing_now_us() - t_start) / 1000u));
     return (MOT_RES_DONE == res) && (count > 0) &&
            (mean >= (S2_SPEED_BARCODE * 9 / 10)) &&
            (mean <= (S2_SPEED_BARCODE * 11 / 10));
@@ -271,7 +272,8 @@ LOCAL bool test_stop_once (int32_t run, bool b_lifted)
             run, S2_SPEED_LINE);
     }
 
-    test_wait_start(b_lifted ? "S2-M06 STOP (wheels lifted)" : "S2-M04 STOP");
+    app_test_wait_start(b_lifted ? "S2-M06 STOP (wheels lifted)"
+                                 : "S2-M04 STOP");
     h_cmd = motion_drive(S2_SPEED_LINE, 1500);
 
     if (h_cmd < E_OK)
@@ -294,17 +296,17 @@ LOCAL bool test_stop_once (int32_t run, bool b_lifted)
             t_press     = app_stop_time_us();
             c0_l        = status.count_l;
             c0_r        = status.count_r;
-            t_last_move = app_time_us();
+            t_last_move = app_timing_now_us();
         }
 
         if ((status.count_l != last_l) || (status.count_r != last_r))
         {
             last_l      = status.count_l;
             last_r      = status.count_r;
-            t_last_move = app_time_us();
+            t_last_move = app_timing_now_us();
         }
 
-        if (b_pressed && ((app_time_us() - t_last_move) > 100000u))
+        if (b_pressed && ((app_timing_now_us() - t_last_move) > 100000u))
         {
             break; /* no count for 100 ms: stopped */
         }
@@ -343,9 +345,10 @@ LOCAL bool test_directions (void)
     bool                 b_ok = true;
     int32_t              kdx;
 
-    test_wait_start("S2-M05 directions: LIFT THE WHEELS off the table. Both "
-                    "wheels turn forward 300 mm, then backward 300 mm. Watch "
-                    "that both turn the robot's forward way first.");
+    app_test_wait_start(
+        "S2-M05 directions: LIFT THE WHEELS off the table. Both "
+        "wheels turn forward 300 mm, then backward 300 mm. Watch "
+        "that both turn the robot's forward way first.");
 
     for (kdx = 0; kdx < DIR_LEGS; kdx++)
     {
@@ -389,7 +392,7 @@ LOCAL bool test_directions (void)
 }
 
 /** Stage 1 hands-on test: wheel directions, drives, turns, STOP. */
-EXPORT void subsystem2_drive_test (void)
+EXPORT void subsystem2_test_drive (void)
 {
     motion_status_t status;
     int32_t         kdx;

@@ -2,7 +2,7 @@
 
     python tools/logcheck/barcodecheck.py robot_log.txt [more logs]
 
-A Python copy of task_barcode.c: decode() is the clean decoder (a "*X*"
+A Python copy of barcode.c: decode() is the clean decoder (a "*X*"
 anywhere in the elements, either direction); decode2() adds what the robot
 does since 8 Nov when that fails: one '*' damaged (the other '*' and the
 character decode with wide >= 2 x narrow, narrow gaps between characters,

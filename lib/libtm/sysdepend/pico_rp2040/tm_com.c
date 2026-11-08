@@ -84,7 +84,7 @@ IMPORT void tm_usb_console_put(const UB *buf, INT size);
 
 /*
  * P5-IS34: an application may take a copy of every console byte (the
- * robot log over MQTT, app_program/subsystem1/task_telemetry.c).  Weak
+ * robot log over MQTT, app_program/subsystem1/telemetry.c).  Weak
  * and undefined by default, so images without it link unchanged.  It is
  * called from any context and must only copy.
  */

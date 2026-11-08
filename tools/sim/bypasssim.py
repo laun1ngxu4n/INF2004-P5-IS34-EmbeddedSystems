@@ -7,10 +7,10 @@ curve either way.  Each run is checked for: touching the box (robot
 footprint vs box), finding the line, following it 600 mm on.
 
 Two rejoin methods:
-  OLD  (task_mission.c until 8 Nov): fixed rectangle; on the way back
+  OLD  (mission.c until 8 Nov): fixed rectangle; on the way back
        black only counts within LINE_NEAR_MM of where the line was;
        drive 115 mm, turn 90 deg, follow.
-  NEW  (task_mission.c since 8 Nov) watch the line sensors on the leg
+  NEW  (mission.c since 8 Nov) watch the line sensors on the leg
        past the box too; on the way back any black counts; drive 115 mm
        (wheels on the line); unless a sensor already sees the tape, spin
        toward the old direction until one does; follow.  Margin 100 mm.
@@ -19,7 +19,7 @@ Two rejoin methods:
        leg 4 watches only once the sensors are past the back of a 150 mm
        deep box (a junction's side line under the box is not the line),
        and the first scan is where the forward watch stopped.
-  S    (task_mission.c since 8 Nov): as J, but on leg 4 the sonar looks
+  S    (mission.c since 8 Nov): as J, but on leg 4 the sonar looks
        40 deg toward the box (the cables' limit) and listens for the box's
        side face at its expected sideways distance.  Each echo pushes the
        turning point to at least half the robot's width + MARGIN past
@@ -76,7 +76,7 @@ SIDE_EXTRA_MM = 300          # S: drive on at most this past x_pass while beside
 SCAN_NEAR_MM = 220           # J: first scan where it stopped, at least this far
 REVERSE_MM = 100
 D_MAX_MM = 150
-MARGIN_MM = 100              # task_mission.c (70 until 8 Nov)
+MARGIN_MM = 100              # mission.c (70 until 8 Nov)
 SKIP_IF_ON = True            # on the tape after the 115 mm: no spin
 SPIN_BACK = False            # spin back the other way if nothing found
                              # (True: 2 runs found the line pointing back

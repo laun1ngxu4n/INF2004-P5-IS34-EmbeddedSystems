@@ -1,5 +1,5 @@
 /**
- * @file    task_mission.c
+ * @file    mission.c
  *  Subsystem 5 -- the Mission Controller task.
  *
  *  Waits on gh_flg_mission (100 ms timeout) and runs the course:
@@ -24,6 +24,7 @@
 #include "../subsystem2/subsystem2.h"
 #include "../subsystem3/subsystem3.h"
 #include "../subsystem4/subsystem4.h"
+#include "mission.h"
 
 #define S5_FOLLOW_SPEED S2_SPEED_BARCODE /* B4: slow everywhere */
 /* barcode read, its junction not yet: slower, so weaving is less likely and
@@ -33,7 +34,7 @@
    cm from the obstacle; backs up only if nearer than SCAN_NEAR_MM), then
    back REVERSE_MM and scan again.  Until 8 Nov it first backed up to 350
    mm, because from 20-25 cm the old width rule saw the box across the
-   whole sweep.  With the geometry rule (task_obstacle.c) the near scans
+   whole sweep.  With the geometry rule (obstacle.c) the near scans
    are the better ones: on the 29 real scans of 7 Nov, 200-280 mm away
    read 138-240 mm for 14.5-23 cm boxes, 340-380 mm away 206-293, 450+
    away 225-346; every pair of scans read narrower from nearer.  And it
@@ -97,13 +98,13 @@ LOCAL void set_state (int32_t new_state)
 {
     g_mstate = new_state;
     obstacle_idle_ping(M_IDLE == new_state);
-    tele_set_state(mission_state_name());
+    telemetry_set_state(mission_state_name());
 }
 
 /** Sends a text event to the panel. */
 LOCAL void say (const uint8_t * p_text)
 {
-    tele_event(p_text);
+    telemetry_event(p_text);
 }
 
 /** Wait for a Motion command; false if it did not finish (STOP, timeout) */
@@ -170,7 +171,7 @@ LOCAL void halt (const char * p_why)
 /** Follow again; line events back on after a short distance */
 LOCAL bool resume_follow (void)
 {
-    int32_t odo0 = motion_odometer();
+    int32_t odo0 = motor_odometer();
 
     barcode_reset(); /* a spin can leave a half-read code */
 
@@ -179,7 +180,7 @@ LOCAL bool resume_follow (void)
         return false;
     }
 
-    while (motion_counts_to_mm(motion_odometer() - odo0) < REJOIN_ENABLE_MM)
+    while (motion_counts_to_mm(motor_odometer() - odo0) < REJOIN_ENABLE_MM)
     {
         if (app_stop_reasons() != 0u)
         {
@@ -363,7 +364,7 @@ LOCAL void on_junction (void)
        centre, so it backs up if it went past. */
 
     while ((barcode_busy()) &&
-           (motion_counts_to_mm(motion_odometer() - junc_odo) < JUNC_WAIT_MM))
+           (motion_counts_to_mm(motor_odometer() - junc_odo) < JUNC_WAIT_MM))
     {
         if (app_stop_reasons() != 0u)
         {
@@ -413,7 +414,7 @@ LOCAL void on_junction (void)
        reported later than a crossing (B is behind them), so measure
        from there. */
     to_go = S3_SENSOR_TO_AXLE_MM -
-            motion_counts_to_mm(motion_odometer() - line_junction_odo());
+            motion_counts_to_mm(motor_odometer() - line_junction_odo());
 
     if (((to_go > 0) && (!mv(motion_drive(S5_FOLLOW_SPEED, to_go)))) ||
         ((to_go < 0) && (!mv(motion_drive(-S5_FOLLOW_SPEED, -to_go)))) ||
@@ -429,7 +430,7 @@ LOCAL void on_junction (void)
 /** Check the way ahead is clear for dist_mm before driving it */
 LOCAL bool ahead_clear (int32_t dist_mm)
 {
-    int32_t dist = sonar_ping_mm();
+    int32_t dist = obstacle_ping_mm();
 
     return (SONAR_OPEN == dist) ||
            ((dist >= 0) &&
@@ -440,7 +441,7 @@ LOCAL bool ahead_clear (int32_t dist_mm)
    only after from_mm.  1 = line found, 0 = drove it all, -1 = failed */
 LOCAL int32_t drive_until_line (int32_t dist_mm, int32_t from_mm)
 {
-    int32_t odo0 = motion_odometer();
+    int32_t odo0 = motor_odometer();
 
     if (motion_drive(S5_FOLLOW_SPEED, dist_mm) < E_OK)
     {
@@ -457,7 +458,7 @@ LOCAL int32_t drive_until_line (int32_t dist_mm, int32_t from_mm)
         }
 
         if ((line_any_black()) &&
-            (motion_counts_to_mm(motion_odometer() - odo0) >= from_mm))
+            (motion_counts_to_mm(motor_odometer() - odo0) >= from_mm))
         {
             motion_halt();
             wait_still();
@@ -526,7 +527,7 @@ LOCAL int32_t pass_box (int32_t sgn, int32_t front, int32_t lat_exp,
 
     /* how far it may go: the way ahead must be clear */
     dist     = x_pass + (b_side ? SIDE_EXTRA_MM : 0);
-    sonar_mm = sonar_ping_mm();
+    sonar_mm = obstacle_ping_mm();
 
     if ((SONAR_FAULT == sonar_mm) ||
         ((sonar_mm >= 0) && ((sonar_mm - MARGIN_MM) < x_pass)))
@@ -542,18 +543,18 @@ LOCAL int32_t pass_box (int32_t sgn, int32_t front, int32_t lat_exp,
 
     if (b_side)
     {
-        servo_look_side(-sgn); /* the box is on the other side */
+        obstacle_look_side(-sgn); /* the box is on the other side */
     }
 
-    odo0 = motion_odometer();
+    odo0 = motor_odometer();
 
     if (motion_drive(S5_FOLLOW_SPEED, dist) < E_OK)
     {
         goto out;
     }
 
-    sonar_ping_start();
-    t_ping = app_time_us();
+    obstacle_ping_start();
+    t_ping = app_timing_now_us();
 
     for (;;)
     {
@@ -562,13 +563,13 @@ LOCAL int32_t pass_box (int32_t sgn, int32_t front, int32_t lat_exp,
             goto out;
         }
 
-        done = motion_counts_to_mm(motion_odometer() - odo0);
+        done = motion_counts_to_mm(motor_odometer() - odo0);
 
-        if (b_side && ((app_time_us() - t_ping) >= 60000u))
+        if (b_side && ((app_timing_now_us() - t_ping) >= 60000u))
         {
-            sonar_mm = sonar_ping_result();
-            sonar_ping_start();
-            t_ping = app_time_us();
+            sonar_mm = obstacle_ping_result();
+            obstacle_ping_start();
+            t_ping = app_timing_now_us();
 
             if ((SONAR_FAULT == sonar_mm) ||
                 ((sonar_mm >= (lat_exp - SIDE_TOL_IN_MM)) &&
@@ -645,7 +646,7 @@ LOCAL int32_t pass_box (int32_t sgn, int32_t front, int32_t lat_exp,
             } /* drove x_pass */
 
             motion_halt();
-            servo_set_angle(90);
+            obstacle_servo_angle(90);
             halt((dist < (x_pass + SIDE_EXTRA_MM))
                      ? "box still beside, no room ahead to get past it"
                      : "still beside the box 300 mm on (box too long?)");
@@ -660,7 +661,7 @@ LOCAL int32_t pass_box (int32_t sgn, int32_t front, int32_t lat_exp,
 
     if (b_side)
     {
-        servo_set_angle(90);
+        obstacle_servo_angle(90);
 
         if (b_seen)
         {
@@ -678,7 +679,7 @@ out:
 
     if (b_side)
     {
-        servo_set_angle(90);
+        obstacle_servo_angle(90);
     }
 
     halt("bypass step did not finish");
@@ -793,7 +794,7 @@ LOCAL void on_obstacle (void)
 
     /* first scan from here, unless it stopped nearer than SCAN_NEAR_MM */
     {
-        int32_t dist = sonar_ping_mm();
+        int32_t dist = obstacle_ping_mm();
         int32_t back = SCAN_NEAR_MM - ((dist >= 0) ? dist : S5_TRIP_MM);
 
         if (back > 10)
@@ -939,7 +940,7 @@ LOCAL void on_obstacle (void)
         goto fail;
     }
 
-    odo0 = motion_odometer();
+    odo0 = motor_odometer();
     /* sideways from the robot to the box's side face, as the scan saw it */
     found = pass_box(
         sgn, profile.front_mm,
@@ -954,7 +955,7 @@ LOCAL void on_obstacle (void)
     if (found)
     {
         tm_sprintf(msg, app_str("line met behind the box, %d mm along"),
-                   motion_counts_to_mm(motion_odometer() - odo0));
+                   motion_counts_to_mm(motor_odometer() - odo0));
         say(msg);
     }
     else
@@ -967,7 +968,7 @@ LOCAL void on_obstacle (void)
             goto fail;
         }
 
-        odo0  = motion_odometer();
+        odo0  = motor_odometer();
         found = drive_until_line(y_off + REJOIN_FAR_MM, 20);
 
         if (found < 0)
@@ -982,7 +983,7 @@ LOCAL void on_obstacle (void)
         }
 
         tm_sprintf(msg, app_str("line found %d mm after the last turn"),
-                   motion_counts_to_mm(motion_odometer() - odo0));
+                   motion_counts_to_mm(motor_odometer() - odo0));
         say(msg);
     }
 
@@ -1038,7 +1039,7 @@ EXPORT void mission_task (int32_t stacd, void * p_exinf)
 
     (void)stacd;
     (void)p_exinf;
-    tele_set_state(mission_state_name());
+    telemetry_set_state(mission_state_name());
 
     for (;;)
     {

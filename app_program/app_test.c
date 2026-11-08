@@ -1,14 +1,18 @@
 /**
- * @file    app_stage_test.c
+ * @file    app_test_stage.c
  *  Picks the hands-on stage test (TEST_STAGE) and holds the helpers the
  *  stage tests share.  Built only with: make TEST=1 TEST_STAGE=n
  */
 
 #include "app.h"
-#include "app_stage_test.h"
+#include "app_test.h"
 #include "subsystem1/subsystem1.h"
 #include "subsystem3/subsystem3.h"
 #include "subsystem5/subsystem5.h"
+#include "subsystem2/subsystem2_test.h"
+#include "subsystem3/subsystem3_test.h"
+#include "subsystem4/subsystem4_test.h"
+#include "subsystem5/subsystem5_test.h"
 
 #if APP_TEST
 
@@ -17,16 +21,16 @@
 #endif
 
 /** Prints what to do, waits for START (button or panel), then waits 1 s. */
-EXPORT void test_wait_start (const char * p_what)
+EXPORT void app_test_wait_start (const char * p_what)
 {
-    uint32_t remote = tele_start_count();
+    uint32_t remote = telemetry_start_count();
 
     tm_printf(
         app_str("\n[DRIVE] %s\n[DRIVE] press START (GP20, or START on the "
                 "panel) to go\n"),
         p_what);
 
-    while (tele_start_count() == remote)
+    while (telemetry_start_count() == remote)
     {
         if (button_is_down(PIN_START))
         {
@@ -51,14 +55,14 @@ EXPORT void test_wait_start (const char * p_what)
 }
 
 /** true while a STOP reason is set. */
-EXPORT bool test_stop_pressed (void)
+EXPORT bool app_test_stop_pressed (void)
 {
     return app_stop_reasons() != 0u;
 }
 
 /** tm_printf has no %f: print x10 as "12.3" */
-EXPORT void test_print_x10 (const char * p_before, int32_t x10,
-                            const char * p_after)
+EXPORT void app_test_print_x10 (const char * p_before, int32_t x10,
+                                const char * p_after)
 {
     int32_t magnitude = (x10 < 0) ? -x10 : x10;
 
@@ -67,7 +71,7 @@ EXPORT void test_print_x10 (const char * p_before, int32_t x10,
 }
 
 /** Loads the test-only barcode mapping A=L, B=R, C=F, D=U. */
-EXPORT void test_use_test_mapping (void)
+EXPORT void app_test_use_test_mapping (void)
 {
     static const uint8_t map[] = "A=L,B=R,C=F,D=U";
     uint8_t              why[64];
@@ -80,7 +84,7 @@ EXPORT void test_use_test_mapping (void)
 
 /** Mission in charge.  Stage 2 runs it without obstacle watch and IMU
    (not tested yet), Stage 3 adds obstacles, Stage 6 uses everything. */
-EXPORT void app_course_test (bool b_obstacles, bool b_imu)
+EXPORT void app_test_course (bool b_obstacles, bool b_imu)
 {
     uint8_t map[24];
 
@@ -93,7 +97,7 @@ EXPORT void app_course_test (bool b_obstacles, bool b_imu)
         /* 7 Nov: START was pressed again and again while this waited
            for a mapping that was never sent; it looked like a crash.
            Remind every 10 s; START with no mapping = the TEST mapping. */
-        uint32_t remote = tele_start_count();
+        uint32_t remote = telemetry_start_count();
         int32_t  tick   = 0;
 
         tm_printf(
@@ -103,14 +107,15 @@ EXPORT void app_course_test (bool b_obstacles, bool b_imu)
 
         while (0 == barcode_mapping_text(map, sizeof(map)))
         {
-            if ((tele_start_count() != remote) || (button_is_down(PIN_START)))
+            if ((telemetry_start_count() != remote) ||
+                (button_is_down(PIN_START)))
             {
                 while (button_is_down(PIN_START))
                 {
                     tk_dly_tsk(10);
                 }
 
-                test_use_test_mapping();
+                app_test_use_test_mapping();
                 break;
             }
 
@@ -129,7 +134,7 @@ EXPORT void app_course_test (bool b_obstacles, bool b_imu)
         tm_printf(app_str("[DRIVE] mapping %s in use\n"), map);
     }
 #else
-    test_use_test_mapping();
+    app_test_use_test_mapping();
     (void)map;
 #endif
     tm_printf(
@@ -139,24 +144,24 @@ EXPORT void app_course_test (bool b_obstacles, bool b_imu)
 }
 
 /** Runs the hands-on test chosen at build time (TEST_STAGE). */
-EXPORT void app_stage_test (void)
+EXPORT void app_test_stage (void)
 {
     switch (APP_TEST_STAGE)
     {
         case 1:
-            subsystem2_drive_test();
+            subsystem2_test_drive();
         break;
         case 2:
-            subsystem3_stage_test();
+            subsystem3_test_stage();
         break;
         case 3:
-            subsystem5_stage_test();
+            subsystem5_test_stage();
         break;
         case 4:
-            subsystem4_stage_test();
+            subsystem4_test_stage();
         break;
         case 6:
-            app_course_test(true, true);
+            app_test_course(true, true);
         break;
         default:
             tm_printf(app_str("[DRIVE] no hands-on test for TEST_STAGE=%d\n"),

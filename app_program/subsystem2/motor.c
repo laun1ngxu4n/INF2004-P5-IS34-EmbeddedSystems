@@ -1,5 +1,5 @@
 /**
- * @file    motion_hw.c
+ * @file    motor.c
  *  Subsystem 2 -- motor PWM and wheel encoders.
  *
  *  Motors (Robo Pico M1/M2): forward = A driven with PWM and B low,
@@ -13,6 +13,7 @@
 #include "subsystem2.h"
 #include "../app_gpio.h"
 #include "../app_stop.h"
+#include "motor.h"
 
 #define PIN_M_L_A   8 /* PWM slice 4 */
 #define PIN_M_L_B   9
@@ -135,14 +136,14 @@ EXPORT void motor_safe_off (void)
     out_w(PWM_CC_R, 0u);
 }
 
-EXPORT int32_t motion_odometer (void)
+EXPORT int32_t motor_odometer (void)
 {
     return (g_enc_count[WHEEL_R] - g_enc_count[WHEEL_L]) / 2;
 }
 
 /** Counts with + = forward for both wheels */
-EXPORT void encoder_read (int32_t * p_left, int32_t * p_right,
-                          uint32_t * p_invalid)
+EXPORT void motor_encoders (int32_t * p_left, int32_t * p_right,
+                            uint32_t * p_invalid)
 {
     uint32_t irq_state;
 
@@ -159,7 +160,7 @@ EXPORT void encoder_read (int32_t * p_left, int32_t * p_right,
 }
 
 /** Sets up the motor PWM and the encoder interrupts. */
-EXPORT ER motion_hw_init (void)
+EXPORT ER motor_init (void)
 {
     const uint32_t mpins[MOTOR_PINS] = {PIN_M_L_A, PIN_M_L_B, PIN_M_R_A,
                                         PIN_M_R_B};
@@ -168,7 +169,7 @@ EXPORT ER motion_hw_init (void)
     ER             err;
     int32_t        idx;
 
-    app_hw_release(RESETS_RESET_PWM); /* not released by the kernel */
+    app_gpio_hw_release(RESETS_RESET_PWM); /* not released by the kernel */
     motor_safe_off();
 
     for (idx = 0; idx < MOTOR_PINS; idx++)

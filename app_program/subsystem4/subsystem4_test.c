@@ -9,8 +9,9 @@
 
 #include "subsystem4.h"
 #include "../test_report.h"
-#include "../app_stage_test.h"
+#include "../app_test.h"
 #include "../subsystem2/subsystem2.h"
+#include "subsystem4_test.h"
 
 #if APP_TEST
 
@@ -53,7 +54,7 @@ EXPORT void subsystem4_test (void)
 /** One S4-R01 run: drives over the hump and prints each bump. */
 LOCAL void ramp_run (uint32_t reports_start)
 {
-    int32_t  odo0        = motion_odometer();
+    int32_t  odo0        = motor_odometer();
     uint32_t jolts_start = imu_jolts();
     uint32_t jolts_bump  = 0;
     int32_t  tick;
@@ -76,7 +77,7 @@ LOCAL void ramp_run (uint32_t reports_start)
     for (tick = 0; tick < RUN_TICKS; tick++)
     {
         motion_status_t status;
-        int32_t         dist_mm = motion_counts_to_mm(motion_odometer() - odo0);
+        int32_t         dist_mm = motion_counts_to_mm(motor_odometer() - odo0);
         int32_t         sin_pitch = imu_pitch_mdeg_sin();
         int32_t         height    = imu_height_mm10();
         int32_t         roll      = imu_roll_sin_x1000();
@@ -90,7 +91,7 @@ LOCAL void ramp_run (uint32_t reports_start)
             break;
         }
 
-        if (test_stop_pressed())
+        if (app_test_stop_pressed())
         {
             break;
         }
@@ -179,8 +180,8 @@ LOCAL void ramp_run (uint32_t reports_start)
         if (imu_ramp_reports() != seen)
         {
             seen = imu_ramp_reports();
-            test_print_x10("[S4] IMU task reported a ramp: ",
-                           imu_ramp_peak_mm10(), " mm\n");
+            app_test_print_x10("[S4] IMU task reported a ramp: ",
+                               imu_ramp_peak_mm10(), " mm\n");
         }
 
         if ((!b_in_bump) && (last_end >= 0) &&
@@ -197,12 +198,12 @@ LOCAL void ramp_run (uint32_t reports_start)
     tm_printf(
         app_str("[S4-R01] %d bump(s) in %d mm, %d readings skipped as jolts "
                 "in all\n"),
-        bumps, motion_counts_to_mm(motion_odometer() - odo0),
+        bumps, motion_counts_to_mm(motor_odometer() - odo0),
         (int32_t)(imu_jolts() - jolts_start));
 }
 
 /** Stage 4 hands-on tests: IMU found, tilt view, ramp height runs. */
-EXPORT void subsystem4_stage_test (void)
+EXPORT void subsystem4_test_stage (void)
 {
     int32_t kdx;
     int32_t tick;
@@ -223,7 +224,7 @@ EXPORT void subsystem4_stage_test (void)
         return;
     }
 
-    test_wait_start("Robot level and still: calibrating for 1 s.");
+    app_test_wait_start("Robot level and still: calibrating for 1 s.");
     imu_calibrate();
 
     while (!imu_calibrated())
@@ -252,7 +253,7 @@ EXPORT void subsystem4_stage_test (void)
         uint32_t reports_start = imu_ramp_reports();
 
         tm_printf(app_str("\n[DRIVE] S4-R01 run %d of 5\n"), kdx);
-        test_wait_start(
+        app_test_wait_start(
             "Robot level about 20 cm before the hump, pointing "
             "straight ahead, the hump (triangle) in the path of the "
             "RIGHT wheel only, as on the course. It calibrates 1 s, "
@@ -275,8 +276,8 @@ EXPORT void subsystem4_stage_test (void)
                 app_str("[S4-R01] %d ramp(s) reported by the IMU task, the "
                         "last "),
                 (int32_t)(imu_ramp_reports() - reports_start));
-            test_print_x10("", imu_ramp_peak_mm10(),
-                           " mm (write down the measured ramp heights)\n");
+            app_test_print_x10("", imu_ramp_peak_mm10(),
+                               " mm (write down the measured ramp heights)\n");
         }
         else
         {
@@ -284,7 +285,7 @@ EXPORT void subsystem4_stage_test (void)
                               "this run\n"));
         }
 
-        if (test_stop_pressed())
+        if (app_test_stop_pressed())
         {
             tm_printf(app_str("[S4-R01] STOP pressed: runs ended\n"));
             break;

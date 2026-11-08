@@ -20,7 +20,7 @@ EXPORT void app_stop_request (uint32_t reason)
 
     if (0u == g_stop_reasons)
     {
-        g_stop_time_us = app_time_us();
+        g_stop_time_us = app_timing_now_us();
     }
 
     g_stop_reasons |= reason;
@@ -43,7 +43,7 @@ EXPORT uint32_t app_stop_reasons (void)
     return g_stop_reasons;
 }
 
-/** app_time_us() at the last STOP request. */
+/** app_timing_now_us() at the last STOP request. */
 EXPORT uint32_t app_stop_time_us (void)
 {
     return g_stop_time_us;

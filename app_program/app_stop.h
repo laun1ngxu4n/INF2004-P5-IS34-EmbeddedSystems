@@ -22,7 +22,8 @@
 IMPORT void     app_stop_request (uint32_t reason); /* any context */
 IMPORT void     app_stop_clear (uint32_t reason);
 IMPORT uint32_t app_stop_reasons (void); /* 0 = free to move */
-IMPORT uint32_t app_stop_time_us (void); /* app_time_us() of the last request */
+IMPORT uint32_t
+app_stop_time_us (void); /* app_timing_now_us() of the last request */
 
 #endif /* APP_STOP_H */
 

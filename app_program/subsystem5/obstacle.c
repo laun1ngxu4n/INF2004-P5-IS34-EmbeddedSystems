@@ -1,5 +1,5 @@
 /**
- * @file    task_obstacle.c
+ * @file    obstacle.c
  *  Subsystem 5 -- the Obstacle Scanner task (every 60 ms) and the
  *  profiling scan.
  *
@@ -18,6 +18,7 @@
 
 #include "subsystem5.h"
 #include "../app_math.h"
+#include "obstacle.h"
 
 #define PIN_TRIG    6
 #define PIN_ECHO    7
@@ -66,7 +67,7 @@ LOCAL int32_t          g_servo_now = 90;
 /** ECHO edges: interrupt context */
 LOCAL void sonar_echo_isr (uint32_t pin, uint32_t events)
 {
-    uint32_t now = app_time_us();
+    uint32_t now = app_timing_now_us();
 
     if (app_gpio_get(pin) != 0u)
     {
@@ -94,9 +95,9 @@ LOCAL void trigger (void)
     gb_echo_rose = false;
     gb_echo_done = false;
     gpio_set_val(PIN_TRIG, 1);
-    t_start = app_time_us();
+    t_start = app_timing_now_us();
 
-    while ((app_time_us() - t_start) < TRIG_US)
+    while ((app_timing_now_us() - t_start) < TRIG_US)
     {
         /* nothing: the trigger pulse is the wait itself */
     }
@@ -123,18 +124,18 @@ LOCAL int32_t echo_mm (void)
                      1000u); /* 0.348 mm/us at 28 C, / 2 */
 }
 
-EXPORT void sonar_ping_start (void)
+EXPORT void obstacle_ping_start (void)
 {
     trigger();
 }
-/** The result of the ping started by sonar_ping_start(). */
-EXPORT int32_t sonar_ping_result (void)
+/** The result of the ping started by obstacle_ping_start(). */
+EXPORT int32_t obstacle_ping_result (void)
 {
     return echo_mm();
 }
 
 /** One ping, waiting 60 ms: mm, SONAR_OPEN or SONAR_FAULT. */
-EXPORT int32_t sonar_ping_mm (void)
+EXPORT int32_t obstacle_ping_mm (void)
 {
     int32_t dist_mm;
 
@@ -171,7 +172,7 @@ LOCAL void servo_write (int32_t deg)
                                              : S5_SERVO_HALF_DEG)
 
 /** Turns the sonar servo slowly to deg (90 = ahead); blocks while it turns. */
-EXPORT void servo_set_angle (int32_t deg)
+EXPORT void obstacle_servo_angle (int32_t deg)
 {
     if (deg < (90 - SERVO_LIMIT))
     {
@@ -199,11 +200,11 @@ EXPORT void servo_set_angle (int32_t deg)
 }
 
 /** Turns the sonar to one side (+1 left, -1 right) by S5_SERVO_SIDE_DEG. */
-EXPORT void servo_look_side (int32_t side)
+EXPORT void obstacle_look_side (int32_t side)
 {
     int32_t left = S5_SERVO_LEFT_HIGH ? 1 : -1;
 
-    servo_set_angle(90 + (side * left * S5_SERVO_SIDE_DEG));
+    obstacle_servo_angle(90 + (side * left * S5_SERVO_SIDE_DEG));
 }
 
 /** Turns the forward obstacle watch on or off. */
@@ -232,7 +233,7 @@ EXPORT ER obstacle_hw_init (void)
 {
     ER err;
 
-    app_hw_release(RESETS_RESET_PWM);
+    app_gpio_hw_release(RESETS_RESET_PWM);
     /* servo: 125 MHz / 125 = 1 MHz, wrap 20000 = 50 Hz */
     out_w(PWM_BASE + (SERVO_SLICE * 0x14) + PWM_CHx_DIV, 125u << 4);
     pwm_set_wrap(PIN_SERVO, 19999);
@@ -411,13 +412,13 @@ EXPORT void obstacle_scan (obstacle_profile_t * p_profile)
         int32_t nfault = 0;
         int32_t jdx;
 
-        servo_set_angle(ang);
+        obstacle_servo_angle(ang);
         tk_dly_tsk((settle > SETTLE_MIN_MS) ? settle : SETTLE_MIN_MS); /* O1 */
 
         for (jdx = 0; jdx < PINGS; jdx++)
         {
             /* O2 */
-            int32_t dist_mm = sonar_ping_mm();
+            int32_t dist_mm = obstacle_ping_mm();
 
             if (dist_mm >= 0)
             {
@@ -441,7 +442,7 @@ EXPORT void obstacle_scan (obstacle_profile_t * p_profile)
         phi[kdx] = (ang - 90) * (S5_SERVO_LEFT_HIGH ? 1 : -1);
     }
 
-    servo_set_angle(90);
+    obstacle_servo_angle(90);
     tk_dly_tsk(60 * SETTLE_MS_DEG);
     gb_scanning = false;
 
@@ -614,7 +615,7 @@ EXPORT void obstacle_task (int32_t stacd, void * p_exinf)
 
                 if (g_servo_now != 90)
                 {
-                    servo_set_angle(90);
+                    obstacle_servo_angle(90);
                 }
 
                 trigger();
@@ -662,7 +663,7 @@ EXPORT void obstacle_task (int32_t stacd, void * p_exinf)
 
             if (g_servo_now != 90)
             {
-                servo_set_angle(90);
+                obstacle_servo_angle(90);
             }
 
             trigger();

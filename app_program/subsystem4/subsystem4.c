@@ -15,10 +15,11 @@ EXPORT int32_t g_tmg_imu;
 /** Creates subsystem 4's objects (safety and IMU tasks). */
 EXPORT ER subsystem4_init (void)
 {
-    g_tmg_safety  = app_timing_add("safety", PRI_SAFETY, PERIOD_SAFETY_MS);
-    g_tmg_imu     = app_timing_add("imu", PRI_IMU, PERIOD_IMU_MS);
-    gh_cyc_safety = app_create_wake_cyclic(&gh_tid_safety, PERIOD_SAFETY_MS);
-    gh_cyc_imu    = app_create_wake_cyclic(&gh_tid_imu, PERIOD_IMU_MS);
+    g_tmg_safety = app_timing_add("safety", PRI_SAFETY, PERIOD_SAFETY_MS);
+    g_tmg_imu    = app_timing_add("imu", PRI_IMU, PERIOD_IMU_MS);
+    gh_cyc_safety =
+        app_main_create_wake_cyclic(&gh_tid_safety, PERIOD_SAFETY_MS);
+    gh_cyc_imu = app_main_create_wake_cyclic(&gh_tid_imu, PERIOD_IMU_MS);
 
     if (g_tmg_safety < E_OK)
     {
@@ -41,14 +42,15 @@ EXPORT ER subsystem4_init (void)
 /** Starts subsystem 4's tasks (safety, IMU). */
 EXPORT ER subsystem4_start (void)
 {
-    gh_tid_safety = app_start_task(safety_task, PRI_SAFETY, 0, "safety_task");
+    gh_tid_safety =
+        app_main_start_task(safety_task, PRI_SAFETY, 0, "safety_task");
 
     if (gh_tid_safety < E_OK)
     {
         return gh_tid_safety;
     }
 
-    gh_tid_imu = app_start_task(imu_task, PRI_IMU, 0, "imu_task");
+    gh_tid_imu = app_main_start_task(imu_task, PRI_IMU, 0, "imu_task");
 
     if (gh_tid_imu < E_OK)
     {

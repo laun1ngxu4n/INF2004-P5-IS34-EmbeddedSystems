@@ -8,6 +8,7 @@
  */
 
 #include "subsystem4.h"
+#include "imu_i2c.h"
 
 #define I2C1_BASE        0x40048000
 #define IC_CON           (I2C1_BASE + 0x00)
@@ -59,7 +60,7 @@ EXPORT void imu_i2c_init (void)
 {
     uint32_t pin;
 
-    app_hw_release(RESETS_RESET_I2C1);
+    app_gpio_hw_release(RESETS_RESET_I2C1);
 
     for (pin = PIN_SDA; pin <= PIN_SCL; pin++)
     {
@@ -96,7 +97,7 @@ EXPORT ER imu_i2c_read (uint8_t addr, uint8_t reg, uint8_t * p_buf,
                                ((idx == (count - 1)) ? CMD_STOP : 0u));
     }
 
-    t_start = app_time_us();
+    t_start = app_timing_now_us();
 
     for (idx = 0; idx < count; idx++)
     {
@@ -107,7 +108,7 @@ EXPORT ER imu_i2c_read (uint8_t addr, uint8_t reg, uint8_t * p_buf,
                 return E_IO;
             }
 
-            if ((app_time_us() - t_start) > TIMEOUT_US)
+            if ((app_timing_now_us() - t_start) > TIMEOUT_US)
             {
                 return E_TMOUT;
             }
@@ -128,7 +129,7 @@ EXPORT ER imu_i2c_write (uint8_t addr, uint8_t reg, uint8_t val)
     (void)aborted();
     out_w(IC_DATA_CMD, reg);
     out_w(IC_DATA_CMD, (uint32_t)val | CMD_STOP); /* widened */
-    t_start = app_time_us();
+    t_start = app_timing_now_us();
 
     while ((0u == (in_w(IC_STATUS) & STATUS_TFE)) ||
            ((in_w(IC_STATUS) & STATUS_ACTIVITY) != 0u))
@@ -138,7 +139,7 @@ EXPORT ER imu_i2c_write (uint8_t addr, uint8_t reg, uint8_t val)
             return E_IO;
         }
 
-        if ((app_time_us() - t_start) > TIMEOUT_US)
+        if ((app_timing_now_us() - t_start) > TIMEOUT_US)
         {
             return E_TMOUT;
         }

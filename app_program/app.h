@@ -28,6 +28,7 @@ Inline const uint8_t * app_str (const char * p_text)
     return (const uint8_t *)p_text;
 }
 
+#include "app_main.h"   /* app_main_start_task, ... */
 #include "app_lock.h"   /* APP_LOCK / APP_UNLOCK for shared data */
 #include "app_timing.h" /* per-task period and run-time monitor */
 #include "app_gpio.h"   /* the shared GPIO interrupt dispatcher */
@@ -73,16 +74,6 @@ Inline const uint8_t * app_str (const char * p_text)
 
 #define TASK_STACK_SIZE 2048 /* bytes; tm_printf needs ~1 KB */
 
-/** Create and start a task.  prc = TP_PRC1 (core 0), TP_PRC2 (core 1), or
-   0 for "any core".  Defined in app_main.c. */
-IMPORT ID app_start_task (FP entry, PRI pri, uint32_t prc, const char * name);
-
-/** Create a cyclic handler that wakes the task whose ID is stored at
-   *p_tid every period_ms.  Create it in _init (it starts stopped); start
-   it with tk_sta_cyc() in _start, after the task exists.  Defined in
-   app_main.c. */
-IMPORT ID app_create_wake_cyclic (ID * p_tid, RELTIM period_ms);
-
 /** ---------------------------------------------------------------------
  *  Every subsystem provides these.  usermain() calls ALL the _init()
  *  functions first and only then ALL the _start() functions, so every
@@ -105,13 +96,6 @@ IMPORT ER subsystem5_start (void);
 
 #if APP_TEST
 #define APP_TEST_SETTLE_MS 3000 /* wait for WiFi start-up before testing */
-IMPORT void subsystem1_test (void);
-IMPORT void subsystem2_test (void);
-IMPORT void subsystem3_test (void);
-IMPORT void subsystem4_test (void);
-IMPORT void subsystem5_test (void);
-IMPORT void
-app_stage_test (void); /* hands-on, TEST_STAGE=n (app_stage_test.c) */
 #endif
 
 /** Print a readable message if a kernel call failed (negative error code) */

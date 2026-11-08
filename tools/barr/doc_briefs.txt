@@ -6,28 +6,28 @@ io_proc0_ints_reg: Address of the core 0 interrupt-status register for pin bank 
 usermain: micro T-Kernel's entry point: starts every subsystem, then the tests or the mission.
 app_absf: Absolute value of a float.
 app_sqrtf: Square root (no libm): scaled guess, then Newton steps.
-app_stage_test: Runs the hands-on test chosen at build time (TEST_STAGE).
-test_stop_pressed: TRUE while a STOP reason is set.
-test_use_test_mapping: Loads the test-only barcode mapping A=L, B=R, C=F, D=U.
-test_wait_start: Prints what to do, waits for START (button or panel), then waits 1 s.
+app_test_stage: Runs the hands-on test chosen at build time (TEST_STAGE).
+app_test_stop_pressed: TRUE while a STOP reason is set.
+app_test_use_test_mapping: Loads the test-only barcode mapping A=L, B=R, C=F, D=U.
+app_test_wait_start: Prints what to do, waits for START (button or panel), then waits 1 s.
 app_stop_clear: Clears the given STOP reasons (bit mask).
 app_stop_reasons: The STOP reasons now set; 0 = free to move.
 app_stop_request: Stops the motors at once and records why; any context, interrupts too.
-app_stop_time_us: app_time_us() at the last STOP request.
+app_stop_time_us: app_timing_now_us() at the last STOP request.
 aborted: TRUE if the I2C block reported an abort; clears it.
 imu_i2c_init: Sets up I2C1 for the IMU (pins, 100 kHz).
 imu_i2c_write: Writes one register of an I2C device; E_OK or an error.
 set_target: Points the I2C block at a device address.
 cc_pair: PWM compare value pair (A and B halves) for one motor's signed duty.
 enc_ab: The A/B level pair of one wheel's encoder.
-motion_hw_init: Sets up the motor PWM and the encoder interrupts.
+motor_init: Sets up the motor PWM and the encoder interrupts.
 motor_write: Sets both motor duties, -1000..1000 per mille, in one write per motor.
 subsystem1_start: Starts subsystem 1's task (telemetry).
 subsystem1_test: Subsystem 1's start-up tests (task timing).
 subsystem2_init: Creates subsystem 2's objects (motion): hardware, timing, cyclic handler.
 subsystem2_start: Starts subsystem 2's task (motion) and its cyclic handler.
 res_name: Name of a Motion result code, for test output.
-subsystem2_drive_test: Stage 1 hands-on test: wheel directions, drives, turns, STOP.
+subsystem2_test_drive: Stage 1 hands-on test: wheel directions, drives, turns, STOP.
 subsystem2_test: Subsystem 2's start-up tests (task timing).
 subsystem3_init: Creates subsystem 3's objects (line and barcode tasks).
 subsystem3_start: Starts subsystem 3's tasks (line following, barcode decoder).
@@ -35,16 +35,16 @@ bar_bench: Stage 2 S3-B00: barcode reads driving straight, four runs.
 bar_bench_run: One S3-B00 run: drives straight over a barcode and prints the profile.
 bench_raw: Bench view: blackness back to the raw analogue reading.
 ir_live: Live view of the IR sensors for secs seconds, with the barcode sensor levels.
-subsystem3_stage_test: Stage 2 hands-on tests: line following, junctions, barcodes, junction moves.
+subsystem3_test_stage: Stage 2 hands-on tests: line following, junctions, barcodes, junction moves.
 subsystem3_test: Subsystem 3's start-up tests (task timing).
 subsystem4_init: Creates subsystem 4's objects (safety and IMU tasks).
 subsystem4_start: Starts subsystem 4's tasks (safety, IMU).
 ramp_run: One S4-R01 run: drives over the hump and prints each bump.
-subsystem4_stage_test: Stage 4 hands-on tests: IMU found, tilt view, ramp height runs.
+subsystem4_test_stage: Stage 4 hands-on tests: IMU found, tilt view, ramp height runs.
 subsystem4_test: Subsystem 4's start-up tests (task timing).
 subsystem5_init: Creates subsystem 5's objects (mission flag, mission and obstacle tasks, STOP button).
 subsystem5_start: Starts subsystem 5's tasks (mission, obstacle).
-subsystem5_stage_test: Stage 3 hands-on tests: servo, sonar, obstacle width, then the bypass.
+subsystem5_test_stage: Stage 3 hands-on tests: servo, sonar, obstacle width, then the bypass.
 subsystem5_test: Subsystem 5's start-up tests (task timing, Telemetry's ping).
 adc_fifo_isr: ADC FIFO interrupt: turns each barcode sensor sample into black / white edges.
 adc_sample: One barcode sensor sample: learned levels, relative edges, edge to the ring.
@@ -117,11 +117,11 @@ obstacle_idle_ping: Pinging for the panel while Mission is IDLE, on or off.
 obstacle_sensor_fault: TRUE after 5 pings in a row without an ECHO.
 obstacle_task: The obstacle task: the forward watch, a ping every 60 ms.
 obstacle_watch: Turns the forward obstacle watch on or off.
-servo_look_side: Turns the sonar to one side (+1 left, -1 right) by S5_SERVO_SIDE_DEG.
-servo_set_angle: Turns the sonar servo slowly to deg (90 = ahead); blocks while it turns.
+obstacle_look_side: Turns the sonar to one side (+1 left, -1 right) by S5_SERVO_SIDE_DEG.
+obstacle_servo_angle: Turns the sonar servo slowly to deg (90 = ahead); blocks while it turns.
 servo_write: Sets the servo pulse for deg at once.
-sonar_ping_mm: One ping, waiting 60 ms: mm, SONAR_OPEN or SONAR_FAULT.
-sonar_ping_result: The result of the ping started by sonar_ping_start().
+obstacle_ping_mm: One ping, waiting 60 ms: mm, SONAR_OPEN or SONAR_FAULT.
+obstacle_ping_result: The result of the ping started by obstacle_ping_start().
 trigger: Sends the sonar's 10 us trigger pulse.
 safety_task: The safety task: watches the STOP button and the motors.
 app_mqtt_rx: Called by the MQTT glue for each message received: START, STOP, mapping.

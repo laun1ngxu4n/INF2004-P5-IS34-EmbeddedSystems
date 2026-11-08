@@ -1,5 +1,5 @@
 /**
- * @file    task_barcode.c
+ * @file    barcode.c
  *  Subsystem 3 -- the Barcode Decoder task (wakes every 10 ms).
  *
  *  The GP2 interrupt stores every edge with the odometer reading (encoder
@@ -20,6 +20,7 @@
 #include "subsystem3.h"
 #include "../subsystem2/subsystem2.h"
 #include "../subsystem5/subsystem5.h"
+#include "barcode.h"
 
 #define RING        128 /* edges kept, a power of 2 */
 #define MAX_ELEM    99  /* up to 10 characters */
@@ -92,7 +93,7 @@ LOCAL void barcode_edge_isr (uint32_t pin, uint32_t events)
     uint32_t ring_pos = g_ring_w;
 
     (void)events;
-    g_ring[ring_pos & (RING - 1)].odo = motion_odometer();
+    g_ring[ring_pos & (RING - 1)].odo = motor_odometer();
     g_ring[ring_pos & (RING - 1)].level =
         (uint8_t)app_gpio_get(pin); /* 0 or 1 */
     g_ring_w = ring_pos + 1;
@@ -281,7 +282,7 @@ LOCAL void adc_sample (int32_t sample)
 
         if (!gb_paused)
         {
-            g_ring[ring_pos & (RING - 1)].odo   = motion_odometer();
+            g_ring[ring_pos & (RING - 1)].odo   = motor_odometer();
             g_ring[ring_pos & (RING - 1)].level = lvl;
             g_ring_w                            = ring_pos + 1;
         }
@@ -306,7 +307,7 @@ EXPORT ER barcode_hw_init (void)
     T_DINT dint;
     ER     err;
 
-    app_hw_release(RESETS_RESET_ADC);
+    app_gpio_hw_release(RESETS_RESET_ADC);
     /* GP28 as an analogue pin: no digital input, no pulls */
     out_w(GPIO_CTRL(PIN_IR_BARCODE_AO), 31); /* FUNCSEL null */
     clr_w(GPIO(PIN_IR_BARCODE_AO), GPIO_IE | GPIO_PUE | GPIO_PDE);
@@ -395,7 +396,7 @@ EXPORT bool barcode_in_bars (void)
         return false;
     }
 
-    since = motion_odometer() - g_edge_pub;
+    since = motor_odometer() - g_edge_pub;
 
     if (since < 0)
     {
@@ -1117,7 +1118,7 @@ EXPORT void barcode_task (int32_t stacd, void * p_exinf)
         /* The latest level may have held long enough by now */
         if (b_raw_ok)
         {
-            int32_t delta = motion_odometer() - raw_odo;
+            int32_t delta = motor_odometer() - raw_odo;
 
             if (delta < 0)
             {
@@ -1133,7 +1134,7 @@ EXPORT void barcode_task (int32_t stacd, void * p_exinf)
         /* End of a barcode: quiet for S3_QUIET_MM */
         if (b_in_code)
         {
-            int32_t gap = motion_odometer() - prev_odo;
+            int32_t gap = motor_odometer() - prev_odo;
 
             if (gap < 0)
             {

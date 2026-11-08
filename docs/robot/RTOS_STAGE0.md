@@ -28,7 +28,7 @@ Shared pieces, used by everyone from now on:
 - `app_program/app_lock.h`: `APP_LOCK` / `APP_UNLOCK`, the one lock for
   shared data (interrupts off on single core; refuses to build with `SMP=1`).
 - `app_program/app_timing.[ch]`: per-task timing (period, overruns, run time).
-- `app_program/app_main.c`: `app_create_wake_cyclic()` wakes a task every N ms.
+- `app_program/app_main.c`: `app_main_create_wake_cyclic()` wakes a task every N ms.
 - `TEAM.md`: pins, peripheral owners, priorities, interfaces (draft for the
   team to confirm).
 - The bring-up tests and results are unchanged in `bringup/`.

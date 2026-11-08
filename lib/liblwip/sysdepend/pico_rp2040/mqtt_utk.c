@@ -30,7 +30,7 @@
                                            this long is dropped, then retried */
 
 /* P5-IS34 (Stage 5): the robot's own topics.  The application provides
- * app_mqtt_rx() / app_mqtt_tx() (app_program/subsystem1/task_telemetry.c);
+ * app_mqtt_rx() / app_mqtt_tx() (app_program/subsystem1/telemetry.c);
  * the weak versions below keep the template working without them.  Both
  * run here, in this task, and only copy data -- no lwIP call ever leaves
  * this task (docs/RELEASE.md safety rule 6). */

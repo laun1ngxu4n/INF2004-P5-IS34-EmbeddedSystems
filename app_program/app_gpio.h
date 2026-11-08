@@ -39,7 +39,7 @@ IMPORT ER app_gpio_irq_add (uint32_t pin, uint32_t events, app_gpio_cb_t cb);
 /** Take peripheral blocks out of reset (RESETS_RESET_PWM, _I2C1, ...).
    The kernel only releases what its own drivers use: with USE_PTMR = 0
    the PWM block stays in reset, so motors and servo must call this. */
-IMPORT void app_hw_release (uint32_t resets_mask);
+IMPORT void app_gpio_hw_release (uint32_t resets_mask);
 
 /** Make pin a plain output (low) */
 IMPORT ER app_gpio_output (uint32_t pin);

@@ -2,9 +2,9 @@
 
 Stage 1 makes the robot move under the RTOS. On top of Stage 0 it adds:
 
-- **Motors and encoders** (`app_program/subsystem2/motion_hw.c`): PWM 10 kHz
+- **Motors and encoders** (`app_program/subsystem2/motor.c`): PWM 10 kHz
   on GP8-GP11, encoders on GP4/5 and GP16/17 (+ = forward on both wheels).
-- **Motion task** (`subsystem2/task_motion.c`, every 10 ms): a speed
+- **Motion task** (`subsystem2/motion.c`, every 10 ms): a speed
   controller per wheel, a ramp up and slow-down, and two commands:
   `motion_drive(speed, mm)` and `motion_turn(deg)` (spin on the spot,
   + = left).

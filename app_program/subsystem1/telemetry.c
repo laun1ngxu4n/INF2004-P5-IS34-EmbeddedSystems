@@ -1,5 +1,5 @@
 /**
- * @file    task_telemetry.c
+ * @file    telemetry.c
  *  Subsystem 1 -- the Telemetry task (Notification merged in), the event
  *  outbox and the MQTT command inbox.
  *
@@ -22,6 +22,7 @@
 #include "../subsystem3/subsystem3.h"
 #include "../subsystem4/subsystem4.h"
 #include "../subsystem5/subsystem5.h"
+#include "telemetry.h"
 
 #define OUTBOX_N 8
 
@@ -38,7 +39,7 @@ LOCAL uint32_t          g_out_dropped;
 LOCAL const char *      gp_state_text = "IDLE";
 LOCAL volatile uint32_t g_start_count; /* MQTT START commands since boot */
 
-EXPORT uint32_t tele_start_count (void)
+EXPORT uint32_t telemetry_start_count (void)
 {
     return g_start_count;
 }
@@ -170,13 +171,13 @@ LOCAL void outbox_put (uint8_t topic, const uint8_t * p_text)
     APP_UNLOCK(irq_state);
 }
 
-EXPORT void tele_event (const uint8_t * p_text)
+EXPORT void telemetry_event (const uint8_t * p_text)
 {
     tm_printf(app_str("[EVT] %s\n"), p_text);
     outbox_put(0, p_text);
 }
 
-EXPORT void tele_set_state (const char * p_state)
+EXPORT void telemetry_set_state (const char * p_state)
 {
     gp_state_text = p_state;
 }
@@ -337,7 +338,7 @@ LOCAL void status_line (void)
         app_str("state=%s speed=%d,%d dist=%d line=%d junctions=%d "
                 "barcode=%c map=%s ramp_peak=%d.%d stop=%d"),
         gp_state_text, status.speed_l, status.speed_r,
-        motion_counts_to_mm(motion_odometer()), line_state(),
+        motion_counts_to_mm(motor_odometer()), line_state(),
         (int32_t)line_junctions(), (last_code.b_ok ? last_code.letter : '-'),
         (map[0] != '\0') ? (char *)map : "none", imu_ramp_peak_mm10() / 10,
         imu_ramp_peak_mm10() % 10, (int32_t)app_stop_reasons());

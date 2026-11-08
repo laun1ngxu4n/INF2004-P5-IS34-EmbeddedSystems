@@ -7,18 +7,16 @@
  *  files.  Other subsystems include it as "../subsystem1/subsystem1.h".
  *
  *  Stage 5:
- *    tele_event()  every subsystem reports results (barcode, junction move,
- *                  obstacle width, ramp height, faults) through this one
- *                  call: printed on USB as "[EVT] ..." and published on
- *                  MQTT topic is34/event.
- *    Telemetry task publishes a status line on is34/telemetry every 1 s.
- *    MQTT commands (only with "make NET=lwip MQTT=1"):
- *      is34/cmd/map    "K=L,Q=R,X=F,M=U"  -> barcode mapping, ack on
- * is34/ack/map is34/cmd/start  (any payload)      -> Mission START
- *      is34/cmd/stop   (any payload)      -> STOP at once
- *    The MQTT code itself stays in the kernel's WiFi task
+ *    telemetry_event()  every subsystem reports results (barcode, junction
+ * move, obstacle width, ramp height, faults) through this one call: printed on
+ * USB as "[EVT] ..." and published on MQTT topic is34/event. Telemetry task
+ * publishes a status line on is34/telemetry every 1 s. MQTT commands (only with
+ * "make NET=lwip MQTT=1"): is34/cmd/map    "K=L,Q=R,X=F,M=U"  -> barcode
+ * mapping, ack on is34/ack/map is34/cmd/start  (any payload)      -> Mission
+ * START is34/cmd/stop   (any payload)      -> STOP at once The MQTT code itself
+ * stays in the kernel's WiFi task
  *    (lib/liblwip/sysdepend/pico_rp2040/mqtt_utk.c); it calls the two
- *    hooks app_mqtt_rx() / app_mqtt_tx() defined in task_telemetry.c.
+ *    hooks app_mqtt_rx() / app_mqtt_tx() defined in telemetry.c.
  */
 
 #ifndef SUBSYSTEM1_H
@@ -34,30 +32,12 @@
 #define S1_STATUS_TICKS 10 /* is34/telemetry every 1 s */
 #define S1_SENSOR_TICKS 5  /* is34/sensors every 0.5 s (laptop panel) */
 
-#define TOPIC_EVENT      "is34/event"
-#define TOPIC_TELEMETRY  "is34/telemetry"
-#define TOPIC_ACK_MAP    "is34/ack/map"
-#define TOPIC_SENSORS    "is34/sensors"
-#define TOPIC_LOG        "is34/log" /* copy of the console (MQTT images) */
-#define TOPIC_CMD_PREFIX "is34/cmd/"
-
-#define TELE_TEXT_MAX 160
-
-/** Report one event line (any task; not from interrupt handlers) */
-IMPORT void tele_event (const uint8_t * text);
-
-/** Mission state text for the status line (set by Mission) */
-IMPORT void tele_set_state (const char * state);
-
-/** START commands received over MQTT since boot (the stage tests accept
-   the panel's START as well as the button) */
-IMPORT uint32_t tele_start_count (void);
-
 /* Private to subsystem 1, shared between its own .c files */
 IMPORT ID      gh_tid_telemetry;
 IMPORT ID      gh_cyc_telemetry;
 IMPORT int32_t g_tmg_telemetry;
-IMPORT void    telemetry_task (int32_t stacd, void * exinf);
+
+#include "telemetry.h"
 
 #endif /* SUBSYSTEM1_H */
 

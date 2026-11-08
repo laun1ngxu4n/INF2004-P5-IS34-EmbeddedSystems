@@ -142,7 +142,7 @@ send the log (a motor or encoder wire differs from bring-up).
    left (seen by B)`; at the end `junctions this run: crossings C, left
    branches L`. Start with the tape centred between L and R.
    If it wobbles or runs off curves: the steering settings are at the top
-   of `subsystem3/task_line.c`; try a change in `tools/sim/linesim.py` first
+   of `subsystem3/line.c`; try a change in `tools/sim/linesim.py` first
    (`python tools/sim/linesim.py`).
    **One place at a time**: then 7 short runs, each prompts where to put
    the robot: 20 cm before the X crossing (S3-L10), a left-only branch

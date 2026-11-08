@@ -1,5 +1,5 @@
 /**
- * @file    task_line.c
+ * @file    line.c
  *  Subsystem 3 -- the Line Following task (every 20 ms).
  *
  *  Two sensors STRADDLE the tape (7 Nov): L left of it, R right of it,
@@ -67,8 +67,9 @@
  */
 
 #include "subsystem3.h"
-#include "../subsystem2/subsystem2.h" /* motion_odometer() */
+#include "../subsystem2/subsystem2.h" /* motor_odometer() */
 #include "../subsystem5/subsystem5.h" /* gh_flg_mission */
+#include "line.h"
 
 /* Steering (mm/s each wheel) and Motion's speed while correcting */
 #define STEER_CORR      30 /* every correction, at once */
@@ -341,7 +342,7 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
 
     (void)stacd;
     (void)p_exinf;
-    hist_reset(motion_odometer());
+    hist_reset(motor_odometer());
 
     for (;;)
     {
@@ -361,7 +362,7 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
 
         b_raw_left  = (IR_BLACK == app_gpio_get(PIN_IR_LINE_L));
         b_raw_right = (IR_BLACK == app_gpio_get(PIN_IR_LINE_R));
-        odo         = motion_odometer();
+        odo         = motor_odometer();
         pat         = (b_raw_left ? PAT_L : 0u) | (b_raw_right ? PAT_R : 0u);
 
         if (gb_enabled && (!b_was_enabled))

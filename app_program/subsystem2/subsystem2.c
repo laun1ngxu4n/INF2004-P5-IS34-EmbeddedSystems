@@ -16,15 +16,16 @@ EXPORT ER subsystem2_init (void)
 {
     ER err;
 
-    err = motion_hw_init(); /* motors off, encoders counting */
+    err = motor_init(); /* motors off, encoders counting */
 
     if (err < E_OK)
     {
         return err;
     }
 
-    g_tmg_motion  = app_timing_add("motion", PRI_MOTION, PERIOD_MOTION_MS);
-    gh_cyc_motion = app_create_wake_cyclic(&gh_tid_motion, PERIOD_MOTION_MS);
+    g_tmg_motion = app_timing_add("motion", PRI_MOTION, PERIOD_MOTION_MS);
+    gh_cyc_motion =
+        app_main_create_wake_cyclic(&gh_tid_motion, PERIOD_MOTION_MS);
 
     if (g_tmg_motion < E_OK)
     {
@@ -37,7 +38,8 @@ EXPORT ER subsystem2_init (void)
 /** Starts subsystem 2's task (motion) and its cyclic handler. */
 EXPORT ER subsystem2_start (void)
 {
-    gh_tid_motion = app_start_task(motion_task, PRI_MOTION, 0, "motion_task");
+    gh_tid_motion =
+        app_main_start_task(motion_task, PRI_MOTION, 0, "motion_task");
 
     if (gh_tid_motion < E_OK)
     {

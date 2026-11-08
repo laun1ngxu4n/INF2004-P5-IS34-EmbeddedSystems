@@ -16,7 +16,7 @@
 LOCAL app_timing_t g_tmg[APP_TIMING_MAX];
 LOCAL int32_t      g_tmg_used;
 
-EXPORT uint32_t app_time_us (void)
+EXPORT uint32_t app_timing_now_us (void)
 {
     return RP2040_TIMERAWL;
 }
@@ -43,7 +43,7 @@ EXPORT int32_t app_timing_add (const char * p_name, PRI pri, uint32_t period_ms)
 EXPORT void app_timing_wake (int32_t slot, int32_t overruns)
 {
     app_timing_t * p_slot;
-    uint32_t       now = app_time_us();
+    uint32_t       now = app_timing_now_us();
     uint32_t       interval;
     uint32_t       irq_state;
 
@@ -107,7 +107,7 @@ EXPORT void app_timing_done (int32_t slot)
     p_slot = &g_tmg[slot];
 
     APP_LOCK(irq_state);
-    run = app_time_us() - p_slot->run_start_us;
+    run = app_timing_now_us() - p_slot->run_start_us;
 
     if (run > p_slot->win_max_run_us)
     {
@@ -169,7 +169,7 @@ EXPORT void app_timing_report (void)
     tm_printf(app_str("[tmg] t=%d ms | task pri period | wakes overruns | "
                       "interval min-max ms (boot max @ s) | run max us "
                       "(boot max)\n"),
-              (int32_t)(app_time_us() / 1000));
+              (int32_t)(app_timing_now_us() / 1000));
 
     for (idx = 0; idx < g_tmg_used; idx++)
     {

@@ -119,7 +119,7 @@ An outside review of the stage tests found real problems, fixed:
 
 - Shared helpers (whole team): `app_lock.h` (the one lock),
   `app_timing.[ch]` (per-task timing table), `app_gpio.[ch]` (the one GPIO
-  interrupt dispatcher, IO_IRQ_BANK0; also `app_hw_release()` because the
+  interrupt dispatcher, IO_IRQ_BANK0; also `app_gpio_hw_release()` because the
   kernel leaves PWM and I2C1 **in reset**), `app_stop.[ch]` (the one STOP
   helper: `app_stop_request(reason)` turns the motors off at once from any
   context; Motion refuses to drive while any reason is set).
@@ -136,7 +136,7 @@ An outside review of the stage tests found real problems, fixed:
   `motion_drive(speed, mm)`, `motion_turn(deg)` (+ = left, spin on the
   spot), `motion_follow(speed)`, `motion_halt()`. Every command times out
   at 2x expected + 1 s. GP21 STOP interrupt -> `app_stop_request`.
-- **Stage 2 (S3)**: line logic in `task_line.c`. Since 7 Nov the two
+- **Stage 2 (S3)**: line logic in `line.c`. Since 7 Nov the two
   line sensors straddle the tape (L GP1 left, R GP0 right, about 30 mm
   apart): both white = straight, one black = turn toward it (gentle,
   then hard and slow after 25 mm), overshoot search after a long
@@ -166,20 +166,20 @@ An outside review of the stage tests found real problems, fixed:
   for a long ramp and a short hump. When level again for 100 mm, a peak of
   8 mm or more is reported (`[EVT] ramp peak height ...`, plus L x
   sin(peak pitch)), then no second report for 600 mm (the way down).
-- **Stage 5 (S1)**: `tele_event()` prints `[EVT] ...` and queues it for
+- **Stage 5 (S1)**: `telemetry_event()` prints `[EVT] ...` and queues it for
   MQTT `is34/event`; status line on `is34/telemetry` every 1 s;
   commands `is34/cmd/map|start|stop`; mapping ack on `is34/ack/map`.
   `mqtt_utk.c` (kernel WiFi task) now subscribes to `is34/cmd/#`, calls
   `app_mqtt_rx()` for each message and publishes one outbox message every
   100 ms via `app_mqtt_tx()`; `lwipopts.h` got 2 more timeout slots.
-- **Stage 6 (S5)**: `task_mission.c` state machine (see
+- **Stage 6 (S5)**: `mission.c` state machine (see
   `TESTING_GUIDE.md` section 5). Follows at 120 mm/s everywhere (slow for
   barcodes; 150 until 7 Nov). Test images arm Mission only for the course part, so their
   START presses don't start a run.
 
 ### Tests
 `make TEST=1 TEST_STAGE=n` (n = 1, 2, 3, 4, 6): Stage 0 auto checks, then
-the hands-on test of stage n (`app_program/app_stage_test.c` and each
+the hands-on test of stage n (`app_program/app_test.c` and each
 `subsystemN_test.c`). Steps and pass criteria: `TESTING_GUIDE.md`.
 
 ## 6. Requirement changes after the Week 6 design (`TEAM.md` section 7)
@@ -221,8 +221,8 @@ Week 6 document section by section: what to change, add or drop.
 | Value | Where | Now | Tuned by |
 |---|---|---|---|
 | Track width | `S2_TRACK_MM` | 123 mm (from S2-M02 angles, 1 Nov) | ruler, or S2-M02 angles |
-| Speed controller | `FF_*`, `KP`, `KI` in `task_motion.c` | FF 1.25/mm/s + 80, KP 1, KI 6 (per mille) | wobble or sluggish speed |
-| Line steering | `STEER_SMALL/HARD` in `task_line.c` | 25 / 40 mm/s (2 Nov) | S3-L01 |
+| Speed controller | `FF_*`, `KP`, `KI` in `motion.c` | FF 1.25/mm/s + 80, KP 1, KI 6 (per mille) | wobble or sluggish speed |
+| Line steering | `STEER_SMALL/HARD` in `line.c` | 25 / 40 mm/s (2 Nov) | S3-L01 |
 | Junction length | `S3_JUNC_MIN_MM`, `S3_CROSS_MAX_MM` | 12-45 mm crossing (tape 20 mm) | S3-L02, L05, L10 |
 | Sensor to axle | `S3_SENSOR_TO_AXLE_MM` | 115 mm (measured 6 Nov) | junction turns land off the line |
 | Barcode sensor position | `S3_BAR_AHEAD_MM`, `S3_BAR_LEFT_MM` | -40 (behind) / 70 mm (measured 6 Nov) | S3-L03, S3-L05 |

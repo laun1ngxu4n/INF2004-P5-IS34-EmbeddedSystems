@@ -73,7 +73,7 @@ EXPORT ER subsystem5_init (void)
     g_tmg_obstacle =
         app_timing_add("obstacle", PRI_OBSTACLE, PERIOD_OBSTACLE_MS);
     gh_cyc_obstacle =
-        app_create_wake_cyclic(&gh_tid_obstacle, PERIOD_OBSTACLE_MS);
+        app_main_create_wake_cyclic(&gh_tid_obstacle, PERIOD_OBSTACLE_MS);
 
     if (g_tmg_mission < E_OK)
     {
@@ -92,7 +92,7 @@ EXPORT ER subsystem5_init (void)
 EXPORT ER subsystem5_start (void)
 {
     gh_tid_mission =
-        app_start_task(mission_task, PRI_MISSION, 0, "mission_task");
+        app_main_start_task(mission_task, PRI_MISSION, 0, "mission_task");
 
     if (gh_tid_mission < E_OK)
     {
@@ -100,7 +100,7 @@ EXPORT ER subsystem5_start (void)
     }
 
     gh_tid_obstacle =
-        app_start_task(obstacle_task, PRI_OBSTACLE, 0, "obstacle_task");
+        app_main_start_task(obstacle_task, PRI_OBSTACLE, 0, "obstacle_task");
 
     if (gh_tid_obstacle < E_OK)
     {

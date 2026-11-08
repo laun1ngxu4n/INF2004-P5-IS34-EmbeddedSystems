@@ -10,8 +10,9 @@
 
 #include "subsystem5.h"
 #include "../test_report.h"
-#include "../app_stage_test.h"
+#include "../app_test.h"
 #include "../subsystem2/subsystem2.h"
+#include "subsystem5_test.h"
 
 #if APP_TEST
 
@@ -49,7 +50,7 @@ EXPORT void subsystem5_test (void)
 /* ---- Stage 3 hands-on tests ---------------------------------------- */
 
 /** Stage 3 hands-on tests: servo, sonar, obstacle width, then the bypass. */
-EXPORT void subsystem5_stage_test (void)
+EXPORT void subsystem5_test_stage (void)
 {
     obstacle_profile_t scan_near;
     obstacle_profile_t scan_far;
@@ -60,24 +61,27 @@ EXPORT void subsystem5_stage_test (void)
     TEST_INIT();
 
     tm_printf(app_str("\n[DRIVE] === Stage 3: obstacle ===\n"));
-    servo_set_angle(90);
-    test_wait_start("Servo check: the ultrasonic should point STRAIGHT AHEAD "
-                    "(if not, refit the horn while it is powered).");
-    servo_set_angle(90 + S5_SERVO_HALF_DEG);
-    test_wait_start("Servo check: it should now point LEFT. If it points "
-                    "RIGHT, set S5_SERVO_LEFT_HIGH to 0 and rebuild. Do the "
-                    "wires at the back still have slack?");
-    servo_set_angle(90 - S5_SERVO_HALF_DEG);
-    test_wait_start(
+    obstacle_servo_angle(90);
+    app_test_wait_start(
+        "Servo check: the ultrasonic should point STRAIGHT AHEAD "
+        "(if not, refit the horn while it is powered).");
+    obstacle_servo_angle(90 + S5_SERVO_HALF_DEG);
+    app_test_wait_start(
+        "Servo check: it should now point LEFT. If it points "
+        "RIGHT, set S5_SERVO_LEFT_HIGH to 0 and rebuild. Do the "
+        "wires at the back still have slack?");
+    obstacle_servo_angle(90 - S5_SERVO_HALF_DEG);
+    app_test_wait_start(
         "Servo check: now it should point RIGHT. Wires still slack?");
 
     if (S5_SERVO_SIDE_DEG > 0)
     {
         /* the side look on the leg past the box (8 Nov): does the side
            of the beam hear a box face beside the robot? */
-        servo_look_side(-1);
-        test_wait_start("Side look check next (12 s): get a box ready to hold "
-                        "beside the robot on the right, then press START.");
+        obstacle_look_side(-1);
+        app_test_wait_start(
+            "Side look check next (12 s): get a box ready to hold "
+            "beside the robot on the right, then press START.");
         tm_printf(
             app_str("[S5] side look check, 12 s: the sonar points %d deg "
                     "right. Hold a box BESIDE the robot on the right, its "
@@ -91,19 +95,19 @@ EXPORT void subsystem5_stage_test (void)
 
         for (tick = 0; tick < SIDE_VIEW_PINGS; tick++)
         {
-            tm_printf(app_str("[S5] side %d mm\n"), sonar_ping_mm());
+            tm_printf(app_str("[S5] side %d mm\n"), obstacle_ping_mm());
             tk_dly_tsk(240);
         }
     }
 
-    servo_set_angle(90);
+    obstacle_servo_angle(90);
 
     tm_printf(
         app_str("[S5] forward distance for 10 s: move your hand in front\n"));
 
     for (tick = 0; tick < FRONT_VIEW_PINGS; tick++)
     {
-        tm_printf(app_str("[S5] front %d mm\n"), sonar_ping_mm());
+        tm_printf(app_str("[S5] front %d mm\n"), obstacle_ping_mm());
         tk_dly_tsk(270);
     }
 
@@ -113,7 +117,7 @@ EXPORT void subsystem5_stage_test (void)
             app_str("\n[DRIVE] S5-O01 width, try %d of 3 (a different box "
                     "each time, 10-20 cm wide; STOP ends early)\n"),
             kdx);
-        test_wait_start(
+        app_test_wait_start(
             "Box about 250 mm straight ahead of the sensor (where "
             "the forward watch stops and the bypass scans first), "
             "flat face to it, nothing else within 60 cm. Write down "
@@ -143,7 +147,7 @@ EXPORT void subsystem5_stage_test (void)
             scan_near.b_right_seen, scan_far.b_left_seen,
             scan_far.b_right_seen);
 
-        if (test_stop_pressed())
+        if (app_test_stop_pressed())
         {
             break;
         }
@@ -154,7 +158,7 @@ EXPORT void subsystem5_stage_test (void)
     tm_printf(app_str("\n[DRIVE] S5-O02 bypass: Mission takes over. Put an "
                       "obstacle "
                       "on the line ahead of the robot.\n"));
-    app_course_test(true, false); /* IMU is Stage 4 */
+    app_test_course(true, false); /* IMU is Stage 4 */
 }
 
 #endif /* APP_TEST */

@@ -28,7 +28,9 @@ This page holds the Week 13 evidence the requirement asks for:
 
 Not covered:
 - `bringup/` (October bench code, not in the firmware);
-- the hands-on stage tests' scratch data (bench samples, debug width arrays): test images only, never in the mission image.
+- the hands-on stage tests' own scratch data in the `subsystemN_test.c` files (`g_bn_odo`, `g_bn_v`, `g_j_cross`, `g_j_left`): compiled into test images only, never into the mission image.
+
+(The barcode debug widths `g_dbg_w` are in every image, because Mission prints them after a READ_FAIL. So they are covered and packed: section 3.)
 
 ## 2. What stayed wider, and why
 
@@ -39,16 +41,22 @@ keep a wider type, each for a stated reason.
 |---|---|---|
 | Encoder counts `g_enc_count[2]`, odometer positions (`g_junc_odo`, the barcode mark's centre, `count_l/r`) | 32 bits | **Range:** 0.080 mm per count, so a 20 m run is 250,000 counts (19 bits + sign) and there is no fixed upper bound for a run.<br>**Concurrency:** written in the encoder interrupt and read as one aligned word, so the read is atomic without a lock. Tribunal 1 decided to pack at the boundary, not in the encoder interrupt. |
 | Command ID `h_cmd_id` | 32 bits (kernel `ID`) | It only increases. A narrow ID would wrap and could let an old result count as the new command's (Tribunal 1, R5). |
-| Counters since boot (junctions, corrections, sweeps, IMU reports and jolts, quadrature errors, decoded results, `g_bar_seen`) | 32 bits | They only go up and are used as differences ("new since"). A narrow counter would have to wrap in step with every reader. Where a counter is sent or stored in a record, it is narrowed there (junctions mod 256 on MQTT, the result's `seq` in 8 bits). |
+| Counters since boot (`g_junctions`, `g_n_corr`, `g_n_sweep`, `g_ramp_reports`, `g_jolts`, `g_enc_invalid`, `g_seq_now`, `g_dbg_seq`, `g_mark_seq`, `g_mission_pings`, `g_start_count`, `g_out_dropped`, `g_log_seq`, `g_log_dropped`, `g_bar_seen`) | 32 bits | They only go up and are used as differences ("new since"). A narrow counter would have to wrap in step with every reader. Where a counter is sent or stored in a record, it is narrowed there (junctions mod 256 on MQTT, the result's `seq` in 8 bits). |
 | Times in µs (`g_stop_time_us`, `g_echo_rise_us`, `g_link_us`, timing monitor) | 32 bits | Times from the 32-bit hardware timer (wraps after 71 min); only differences are used. |
 | Flags with different writers (the sonar's `gb_echo_rose` / `gb_echo_done` (ISR and task), `gb_watch`, `gb_idle_ping`, `gb_scanning`, the IMU's `gb_cal_request` / `gb_calibrated`, `gb_enabled`, `gb_paused`, `gb_busy`) | 1 byte each | Tribunal 1 fallback: "if packing a shared field into one word cannot be made race-free, that field keeps its minimum width but gets its own storage unit". Packing them with another writer's bits would need a lock in an interrupt. |
 | Filter and controller state inside one task or interrupt (PID integrators, float filters, the ADC level trackers `g_env_w/b`, `g_rel_lo/hi`, loop variables) | computing width | Computational state, not data handed over. Whether it counts as application data is the question Tribunal 1 left for B5 to ask the lecturer. |
+| Line's private history of positions (`g_last_c`, `g_off_a[]`, `g_off_b[]`, `g_hist_from`, `g_off_n`) | 32 bits | Encoder counts (odometer positions), like the row above; inside the line task only. |
+| Free-running ring and queue indices (`g_ring_w` / `g_ring_r`, `g_ob_w` / `g_ob_r`, `g_log_w` / `g_log_r`) | 32 bits | They count up forever and are used mod the ring size or as differences (`w - r` = how many are waiting), which needs them to wrap together. Each index has one writer. |
+| Kernel object IDs (`gh_tid_...`, `gh_cyc_...`, `gh_flg_mission`, `gh_cmd_last_id`) | kernel `ID` | The kernel's own type, given to and returned by kernel calls (Barr C deviation D3). |
+| Timing-monitor slot numbers (`g_tmg_...`, `g_tmg_used`) | `int32_t` | Diagnostics (`app_timing.c`): the slot argument of the timing monitor's calls. |
+| Single flags with one writer (`gb_cmd_new`, `gb_map_set`, `gb_log_turn`, `gb_have_last`, `gb_off_open`, `g_adc_lvl`) | 1 byte each | A byte is the smallest unit a store can write on its own. Packing one of these with another writer's bits would need a lock. |
+| The quadrature table `g_qdec[16]` | 16 B in flash | A constant lookup table in program memory (`const`), not RAM data. |
 
 **Not application data** (kept, and said so):
 
 | Data | Why |
 |---|---|
-| Console log ring (8 KB, `telemetry.c`) | a text copy of the console for the panel's Robot log |
+| Console log ring `g_log_ring` (8 KB, `telemetry.c`) | a text copy of the console for the panel's Robot log |
 | Event sentences on `is34/event` | sentences for the operator, not values |
 | Task timing monitor (`app_timing.c`) | diagnostics |
 | Telemetry outbox slots (162 B each) | they carry the event text; the binary messages use 4–15 bytes of a slot |
@@ -74,6 +82,7 @@ Positions in the encoder-count rows are encoder counts (0.080 mm).
 | command amount | ±8191 (drive mm / turn deg) | 14 signed | bit-field, clamped | `int32_t` |
 | command result | NONE, BUSY, DONE, STOPPED, TIMEOUT | 3 | `motion_status_t` bit-field | `int32_t` |
 | measured speeds L, R | ±2047 mm/s | 12 signed each | bit-fields, clamped | `int32_t` × 2 |
+| follow speed limit `g_follow_limit` (Mission writes, Motion reads) | 0 = none, ±1023 mm/s | 16 (own halfword: another task writes it) | `int16_t`, clamped | `int32_t` |
 | duties last written L, R (new, for Safety) | ±1000 ‰ | 11 signed each | `motor_duty_t` bit-fields | not stored |
 | encoder A/B levels L, R | 2 bits each | 2 × 2 | one byte, masks and shifts | `uint8_t[2]` |
 
@@ -102,6 +111,8 @@ Positions in the encoder-count rows are encoder counts (0.080 mm).
 | mapping pair: letter, move | 7-bit ASCII; L R F U | 7 + 2 | `bar_pair_t` × 4 | `uint8_t[4]` × 2 |
 | mark width | 0..51.1 mm in 0.1 mm | 9 | `bar_mark_t` bit-field | `int32_t` |
 | raw ADC sample | 12-bit ADC | 16 (own halfword: ISR writer) | `uint16_t` | `int32_t` |
+| debug widths of the last code (`g_dbg_w[40]`, printed after a READ_FAIL) | 0..6553.5 mm in 0.1 mm, clamped | 16 each (array) | `uint16_t[40]` (80 B) | `int32_t[40]` (160 B) |
+| debug element count | ≤ 99 | 8 | `uint8_t` | `int32_t` |
 
 ### Obstacle (`obstacle.c`, `obstacle.h`)
 
@@ -166,12 +177,13 @@ The second is the fair same-features comparison Tribunal 1 asked for.
 
 | | Original | `APP_PACKED=0` | `APP_PACKED=1` | Saved (vs original) |
 |---|---|---|---|---|
-| Our modules' RAM, normal image | 3,795 B | 3,818 B | **3,228 B** | 567 B (14.9 %) |
-| Our modules' RAM, WiFi/MQTT image | 12,004 B | 12,027 B | **11,437 B** | 567 B (4.7 %; 8 KB of it is the log ring) |
-| Image RAM (.data + .bss), normal | 24,196 B | 24,216 B | 23,624 B | 572 B |
-| Image code (.text), normal | 301,480 B | 304,288 B | 305,672 B | **+4,192 B** (new Safety, wire.c, bit-field access code) |
+| Our modules' RAM, normal image | 3,795 B | 3,733 B | **3,143 B** | 652 B (17.2 %) |
+| Our modules' RAM, WiFi/MQTT image | 12,004 B | 11,942 B | **11,352 B** | 652 B (5.4 %; 8 KB of it is the log ring) |
+| Image RAM (.data + .bss), normal | 24,196 B | 24,136 B | 23,544 B | 652 B |
+| Image code (.text), normal | 301,480 B | 304,324 B | 305,704 B | **+4,224 B** (new Safety, wire.c, bit-field access code) |
 
-The packed build holds more data than the original (the fault word, Safety's state, the duties, the link time) and still uses 567 B less.
+The packed build holds more data than the original (the fault word, Safety's state, the duties, the link time) and still uses 652 B less.
+The debug widths and the follow limit got smaller plain types (`uint16_t`, `int16_t`), not bit-fields, so they are smaller in the `APP_PACKED=0` build as well. That is why that build is below the original.
 
 Record sizes:
 
@@ -187,6 +199,7 @@ Record sizes:
 | STOP + fault word | 4 B + 3 variables | 8 B | **4 B** |
 | mapping (4 pairs, `bar_pair_t`) | 8 B | 16 B | **8 B** (9 bits used of each 2-byte pair) |
 | telemetry outbox slot (`tele_msg_t`) | 161 B | 162 B | 162 B (it carries event text) |
+| barcode debug widths (`g_dbg_w`) | 160 B | 80 B | **80 B** |
 
 ## 5. Message size comparison
 
@@ -216,6 +229,7 @@ is changed only under `APP_LOCK`.
 | `g_duty` | Motion (`motor_write`), any context (`motor_safe_off`) | Safety | `APP_LOCK` |
 | `g_enc_prev` | the encoder interrupt only (and once before it is on) | the same interrupt | none needed |
 | `g_cmd_slot`, `g_status` | callers / Motion task | Motion task / everyone | `APP_LOCK` (as before) |
+| `g_follow_limit` | Mission (`motion_follow_limit`) | the motion task | its own halfword: one aligned 16-bit store, atomic |
 | line `g_out` | the line task only | Motion, Mission, Telemetry | one writer; a field read is one word read |
 | `g_ring[]` (barcode edges) | the barcode interrupt only (whole-entry store) | the barcode task | one writer; `g_ring_w` published after the entry |
 | `g_last`, `g_map[]`, `g_mark` | the barcode task / any caller | Mission, Telemetry, Line | `APP_LOCK` (as before) |

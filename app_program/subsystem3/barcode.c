@@ -20,6 +20,7 @@
 #include "subsystem3.h"
 #include "../subsystem2/subsystem2.h"
 #include "../subsystem5/subsystem5.h"
+#include "../app_math.h" /* app_clamp() */
 #include "barcode.h"
 
 #define RING        128 /* edges kept, a power of 2 */
@@ -75,7 +76,7 @@ LOCAL volatile int32_t  g_edge_pub; /* odometer at the last clean edge */
 typedef struct
 {
     uint16_t letter APP_FIELD(7);
-    uint16_t move APP_FIELD(2);
+    uint16_t move   APP_FIELD(2);
 } bar_pair_t;
 
 #define MOVE_CODES "LRFU" /* move index -> MOVE_... */
@@ -458,8 +459,11 @@ EXPORT bool barcode_in_bars (void)
 
 /* Debug (Stage 2 tests): the element widths of the last code that ended,
    even one too short to report, so a test can show what the sensor saw */
-LOCAL int32_t           g_dbg_w[BARCODE_DBG_MAX]; /* 0.1 mm */
-LOCAL int32_t           g_dbg_n;
+/* (Change Requirement 1: an element's width in 0.1 mm, 16 bits each,
+   0..6553.5 mm, clamped; the count is <= MAX_ELEM, 8 bits.  In every image:
+   Mission prints them after a READ_FAIL.) */
+LOCAL uint16_t          g_dbg_w[BARCODE_DBG_MAX]; /* 0.1 mm */
+LOCAL uint8_t           g_dbg_n;
 LOCAL volatile uint32_t g_dbg_seq;
 
 EXPORT uint32_t barcode_debug (int32_t * p_count, int32_t * p_w_mm10,
@@ -1129,11 +1133,13 @@ LOCAL uint32_t code_ended (bar_read_t * p_read, uint32_t seq)
     uint32_t seq_now = seq;
 
     APP_LOCK(irq_state);
-    g_dbg_n = p_read->count;
+    g_dbg_n = (uint8_t)p_read->count; /* <= MAX_ELEM (99): fits uint8_t */
 
     for (idx = 0; (idx < p_read->count) && (idx < BARCODE_DBG_MAX); idx++)
     {
-        g_dbg_w[idx] = (p_read->elem[idx] * S2_UM_PER_COUNT / 100);
+        /* clamped to 0..65535 first: fits uint16_t */
+        g_dbg_w[idx] = (uint16_t)app_clamp(
+            p_read->elem[idx] * S2_UM_PER_COUNT / 100, 0, 65535);
     }
 
     g_dbg_seq++;

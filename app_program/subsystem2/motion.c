@@ -115,11 +115,14 @@ EXPORT ID motion_follow (int32_t speed_mm_s)
     return cmd_post(CMD_FOLLOW, speed_mm_s, 0);
 }
 
-LOCAL volatile int32_t g_follow_limit; /* 0 = none */
+/* mm/s, 0 = none; +-1023 (11 bits), its own halfword: Mission writes it,
+   the motion task reads it (Change Requirement 1) */
+LOCAL volatile int16_t g_follow_limit;
 
 EXPORT void motion_follow_limit (int32_t speed_mm_s)
 {
-    g_follow_limit = speed_mm_s;
+    /* clamped to +-1023 first: fits int16_t */
+    g_follow_limit = (int16_t)app_clamp(speed_mm_s, -1023, 1023);
 }
 
 /** Stops the wheels (no STOP reason). */

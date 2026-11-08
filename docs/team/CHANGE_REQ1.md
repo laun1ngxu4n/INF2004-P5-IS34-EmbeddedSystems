@@ -258,7 +258,9 @@ Flash the new images, use the **updated panel** (the old one cannot read the bin
    - Pass: about 1 s after the wheel stops, the motors go off. The event says "Safety: a wheel driven hard is not turning". After 2 s the fault clears and START works again.
 6. **Mapping.**
    - Send a mapping from the panel: the acknowledgement shows it.
-   - Send one with the same barcode twice (paste `A=L,A=R,...`): it is refused, the event says why, and the old mapping is kept.
+   - The panel itself refuses a mapping with the same barcode twice, so send a bad one from the command line instead:
+     `"C:\Program Files\mosquitto\mosquitto_pub.exe" -h 127.0.0.1 -p 1884 -t is34/cmd/map -m "A=L,A=R,C=F,D=U"`
+   - Pass: it is refused, an event says why, and the panel's mapping box still shows the old mapping.
 
 ## 8. What changes for the robot's behaviour
 

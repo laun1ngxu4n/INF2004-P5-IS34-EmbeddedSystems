@@ -1,7 +1,7 @@
 """Re-run the obstacle width logic on real [SCAN] lines from robot logs.
 
-    python tools/sonarcheck.py robot_log.txt [more logs]
-    python tools/sonarcheck.py testing/subsystem5/scans_7nov.txt
+    python tools/logcheck/sonarcheck.py robot_log.txt [more logs]
+    python tools/logcheck/sonarcheck.py testing/subsystem5/scans_7nov.txt
 
 Then it combines scans 1+2, 3+4, ... (a log's scans come in pairs: near,
 then 100 mm further back) the way obstacle_combine does.

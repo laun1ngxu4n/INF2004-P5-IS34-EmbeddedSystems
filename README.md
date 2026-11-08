@@ -1,13 +1,32 @@
-> **P5-IS34:** this is the course template set up for our robot. Start
-> with **[RTOS_STAGE0.md](RTOS_STAGE0.md)** (what is built, how to flash and
-> test it), then **[RTOS_STAGE1.md](RTOS_STAGE1.md)** (motion + STOP, the robot drives) and **[TEAM.md](TEAM.md)** (pins, owners, priorities, interfaces).
-> Build with Pico SDK **2.2.0**; the default is now single core (`SMP=0`).
-> The hardware bring-up tests and their results are in [`bringup/`](bringup/).
-> **Requirement changes since the Week 6 design** (GP28 removed, instructor
-> barcode/obstacle/ramp rules, IMU is an LSM303D) are in
-> [TEAM.md section 7](TEAM.md#7-scope-changes-after-the-week-6-design).
-> **What we test, stage by stage:** [testing/PLAN.md](testing/PLAN.md) (essentials only).
-> **Ready-to-flash images:** [images/](images/). **Handover / full context:** [CONTEXT.md](CONTEXT.md). **How to run every stage:** [TESTING_GUIDE.md](TESTING_GUIDE.md).
+# P5-IS34 line-following robot (micro T-Kernel 3.0, Raspberry Pi Pico W)
+
+Follows a taped line, reads Code 39 barcodes and does the mapped move
+(left / right / straight / U-turn) at the next junction, drives round
+obstacles with an ultrasonic sensor on a servo, measures a hump's height
+with the IMU, and reports everything to a laptop panel over WiFi (MQTT).
+
+## Where things are
+
+| Folder | What is in it |
+|---|---|
+| [`testing/`](testing/) | **Start here for testing.** [`TESTING_GUIDE.md`](testing/TESTING_GUIDE.md): how to run every stage. [`TEST_STATUS.md`](testing/TEST_STATUS.md): what has passed, run by run. [`PLAN.md`](testing/PLAN.md), and one folder per subsystem with its `TEST_LOG.md` and saved logs. |
+| [`images/`](images/) | **Ready-to-flash `.uf2` files**, one per test stage plus the mission image (WiFi ones are built locally in `images/wifi/`). |
+| [`docs/`](docs/) | [`robot/ROBOT_BEHAVIOUR.md`](docs/robot/ROBOT_BEHAVIOUR.md): what the robot does and why. [`team/TEAM.md`](docs/team/TEAM.md): pins, owners, interfaces, requirement changes. [`team/CONTEXT.md`](docs/team/CONTEXT.md): handover. Track photos, datasheets. |
+| [`tools/`](tools/) | Laptop tools: the robot **panel** (`tools/panel/`), the line / bypass **simulators** (`tools/sim/`), **log checkers** for sonar scans and barcodes (`tools/logcheck/`). |
+| [`logs/`](logs/) | The panel's session logs and the robot's console logs (git-ignored, on the laptop only). |
+| [`app_program/`](app_program/) | **Our code:** one folder per subsystem (`subsystem1` telemetry/MQTT ... `subsystem5` mission/obstacle) and the stage tests. |
+| [`bringup/`](bringup/) | The hardware bring-up tests (Oct) and their results. |
+| [`config/`](config/) | Build configuration; WiFi credentials go in `config/wifi_secrets.h` (never committed). |
+| `build_make/` | Where the firmware is built (`make ...`). |
+| `kernel/`, `lib/`, `include/`, `device/`, `etc/` | micro T-Kernel 3.0 and its drivers (course template, leave as is). |
+| [`videos/`](videos/) | Links to test videos (unlisted YouTube). |
+
+Build with Pico SDK **2.2.0** or later; single core by default (`SMP=0`).
+Stage-by-stage set-up: [`docs/robot/RTOS_STAGE0.md`](docs/robot/RTOS_STAGE0.md),
+then [`docs/robot/RTOS_STAGE1.md`](docs/robot/RTOS_STAGE1.md). Requirement
+changes since the Week 6 design: [TEAM.md section 7](docs/team/TEAM.md#7-scope-changes-after-the-week-6-design).
+
+The rest of this page is the course template's set-up guide.
 
 # micro T-Kernel 3.0 project for Raspberry Pi Pico W
 

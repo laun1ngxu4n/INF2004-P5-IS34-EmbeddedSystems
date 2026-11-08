@@ -12,7 +12,7 @@
  *
  *	MQTT images also send a copy of the whole console on is34/log, so a
  *	test can run on the battery with no USB cable: the panel shows it and
- *	saves it (tools/is34_panel.py, "Save log").  Each message is
+ *	saves it (tools/panel/is34_panel.py, "Save log").  Each message is
  *	"L<seq> <dropped>|<text>": seq counts messages (a gap = lost on the
  *	WiFi), dropped counts bytes the robot could not keep (buffer full).
  */

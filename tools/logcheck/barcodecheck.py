@@ -1,6 +1,6 @@
 """Replay the robot's barcode decoder on the "code ended" lines of logs.
 
-    python tools/barcodecheck.py robot_log.txt [more logs]
+    python tools/logcheck/barcodecheck.py robot_log.txt [more logs]
 
 A Python copy of task_barcode.c: decode() is the clean decoder (a "*X*"
 anywhere in the elements, either direction); decode2() adds what the robot

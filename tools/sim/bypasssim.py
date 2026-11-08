@@ -26,7 +26,7 @@ Two rejoin methods:
        where it was heard; never earlier than J's.  A deep box no longer
        gets hit (J assumes at most 150 mm).
 
-    python tools/bypasssim.py S      (or any of OLD NEW J S)
+    python tools/sim/bypasssim.py S      (or any of OLD NEW J S)
 
 Results S alone (8 Nov): 471/486 ordinary cases (as J: the side look
 never shortens the leg), junctions under the box 54/54 each, box depth
@@ -45,12 +45,12 @@ junction (side line under the box: T left, T right, X), 54 runs each:
 NEW 20 / 45 / 5 (followed the side line), J 54 / 54 / 54.  A side line
 200 mm behind the box: 0/54 for all (it looks like the line turning).
 
-Robot model as in tools/linesim.py (track 123 mm, line sensors 115 mm
+Robot model as in tools/sim/linesim.py (track 123 mm, line sensors 115 mm
 ahead at +-15 mm, wheel lag and delay, wheel mismatch).  Spins and
 drives use the encoders: a spin ends 0-6 % off, wheel size mismatch
 bends straight drives.
 
-    python tools/bypasssim.py
+    python tools/sim/bypasssim.py
 """
 import math
 import random

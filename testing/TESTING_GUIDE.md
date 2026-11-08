@@ -142,8 +142,8 @@ send the log (a motor or encoder wire differs from bring-up).
    left (seen by B)`; at the end `junctions this run: crossings C, left
    branches L`. Start with the tape centred between L and R.
    If it wobbles or runs off curves: the steering settings are at the top
-   of `subsystem3/task_line.c`; try a change in `tools/linesim.py` first
-   (`python tools/linesim.py`).
+   of `subsystem3/task_line.c`; try a change in `tools/sim/linesim.py` first
+   (`python tools/sim/linesim.py`).
    **One place at a time**: then 7 short runs, each prompts where to put
    the robot: 20 cm before the X crossing (S3-L10), a left-only branch
    (L03), a T end (L05); the start of the tightest right curve (L06) and
@@ -196,7 +196,7 @@ it which **4 barcodes** mean **turn left, turn right, go straight and
 U-turn**. It stores the last barcode it read and does that move **at the
 next junction** (the U-turn too: instructor brief, TEAM.md 7.1 B6).
 
-In the panel (`python tools/is34_panel.py`), box "Barcode mapping":
+In the panel (`python tools/panel/is34_panel.py`), box "Barcode mapping":
 1. Under each move pick its barcode letter (A-Z or 0-9). Each move needs
    a different letter. If the instructor gives you a line like
    `K=L,Q=R,X=F,M=U` or "K left, Q right, X straight, M U-turn", paste it
@@ -211,7 +211,7 @@ In the panel (`python tools/is34_panel.py`), box "Barcode mapping":
    (barcode K)`.
 
 The panel remembers the last mapping you picked
-(`tools/is34_panel_mapping.txt`). On the wire it is the message
+(`tools/panel/is34_panel_mapping.txt`). On the wire it is the message
 `K=L,Q=R,X=F,M=U` on `is34/cmd/map` (barcode=move, L R F U).
 
 ### Stage 3: obstacle (`_test_s3`), owner B5
@@ -325,11 +325,11 @@ line found after every manoeuvre.
    (This file is git-ignored: never commit it.)
 4. `cd build_make && make NET=lwip MQTT=1` and flash
    `mtk3pico_smp0_usb_cdc_wifi_lwip_mqtt.uf2`.
-5. On the laptop: `pip install paho-mqtt`, then `python tools/is34_panel.py`.
+5. On the laptop: `pip install paho-mqtt`, then `python tools/panel/is34_panel.py`.
    The panel shows the status line and events, and has START, STOP
-   (Space) and mapping buttons; it logs everything to `tools/is34_*.log`.
+   (Space) and mapping buttons; it logs everything to `logs/panel/` (the robot's own console to `logs/robot/`).
    "Start broker" runs Mosquitto on port 1884
-   (`tools/mosquitto_robot.conf`): use that port in `wifi_secrets.h` if
+   (`tools/panel/mosquitto_robot.conf`): use that port in `wifi_secrets.h` if
    the Mosquitto Windows service already holds 1883 for localhost only.
 6. **Tests over WiFi** (any stage, no USB cable): flash
    `images/wifi/is34_test_stageN_wifi.uf2`, power bank on VIN only. The

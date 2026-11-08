@@ -2,8 +2,8 @@
 
 Last updated: 8 Nov 2026. How to run each test:
 [TESTING_GUIDE.md](TESTING_GUIDE.md). Formal results:
-[testing/](testing/) `TEST_LOG.md` files. What the robot does, its limits
-and everything still open: [ROBOT_BEHAVIOUR.md](ROBOT_BEHAVIOUR.md).
+[testing/](./) `TEST_LOG.md` files. What the robot does, its limits
+and everything still open: [ROBOT_BEHAVIOUR.md](../docs/robot/ROBOT_BEHAVIOUR.md).
 
 Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
 ⬜ not tested yet · ❌ tested and failing
@@ -142,7 +142,7 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
   barcode reader (relative edges, one pass, steering held straight over
   the bars), WiFi log, Stage 4 test.
 - **7 Nov, later: line following re-tuned in a simulation**
-  (`tools/linesim.py`), calibrated until it reproduced the three real runs
+  (`tools/sim/linesim.py`), calibrated until it reproduced the three real runs
   of the day (lost left curves at 150 mm/s, the zigzag, the good third
   run); the S-bend of track 3 (photo `docs/track/overshoot.jpg`) failed in it the
   same way as on the robot with a narrow sensor window. New: correction
@@ -239,7 +239,7 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
   (runs 1, 3); run 2 failed with the start `*` damaged (team: barcode
   positions were off). 2B: F read once, run 1 LINE LOST at 350 mm.
   **Added 8 Nov, not run yet: forgiving decode** (one `*` damaged, or one
-  narrow element lost), 0 wrong on every test (`tools/barcodecheck.py`);
+  narrow element lost), 0 wrong on every test (`tools/logcheck/barcodecheck.py`);
   the run-2 read now decodes (A), one older 27-element read too (A).
 - **8 Nov, third Stage 2 run: first U-turn from a barcode.** `barcode F ->
   U-TURN at next junction`, `junction 4 (crossing): U-TURN (barcode F)`;
@@ -328,7 +328,7 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
   open space behind nothing else answers first). Width test cut to 3
   tries the same day (team).
 - **Changed 8 Nov, not run yet (bypass rejoin):** chosen in
-  `tools/bypasssim.py` (486 simulated bypasses). The line sensors watch
+  `tools/sim/bypasssim.py` (486 simulated bypasses). The line sensors watch
   on the leg past the box, any black counts on the way back, and the
   robot spins toward the old direction until a line sensor finds the
   tape instead of a fixed 90 deg turn. Old way 36/486 (straights 24/54:
@@ -345,7 +345,7 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
   from here). Box widths used: 20, 14.5, 15 and 23 cm.
   **Fixed 8 Nov, not run yet:** a ray only counts as on the box when its
   distance fits a flat face (front / cos angle); side-of-beam echoes are
-  ignored (`tools/sonarcheck.py` on the 21 real scans: both edges in 21,
+  ignored (`tools/logcheck/sonarcheck.py` on the 21 real scans: both edges in 21,
   old rule 6; 100-340 mm instead of up to 500+). The plan is capped at
   300 mm wide / 200 mm out from the line.
 - **8 Nov, third Stage 3 run (`ultrason` log 3), the geometry rule on the
@@ -356,7 +356,7 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
   along`: the box stood on a junction, the leg alongside the box met the
   junction's side line (sensors 14 cm past the box's front) and the robot
   followed it away. **Fixed 8 Nov, not run yet:** that leg watches only
-  past the back of a 150 mm deep box (`tools/bypasssim.py`, boxes on T/X
+  past the back of a 150 mm deep box (`tools/sim/bypasssim.py`, boxes on T/X
   junctions: 5-45 of 54 -> 54/54 each; ordinary straight and curved
   lines 471/486 instead of 476: a few 300 mm curves that start right
   behind the box are now met later and missed). Also:
@@ -369,7 +369,7 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
   sonar turns 40 deg toward it (90 has no cable clearance) and listens
   for its side face; every echo pushes the end of the leg further, never
   shorter than the fixed 150 mm depth (another group does something
-  similar). `tools/bypasssim.py S`: depths 60-350 mm all 36/36 (fixed
+  similar). `tools/sim/bypasssim.py S`: depths 60-350 mm all 36/36 (fixed
   only: 250 mm deep 16 of 36 hit, 350 mm all hit), ordinary cases and
   junctions as before; 53/54 deep runs even with half the side echoes
   missed. Relies on the side of the beam hearing a face beside the
@@ -379,7 +379,7 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
   218 mm ahead: width 186 mm (scan 1; scan 2 from 320 mm: 334), went
   round RIGHT (out 312, past 770), `line found 188 mm after the last
   turn`, `bypass done`. S5-O01: 276 / 114 / 91 mm (boxes at 278 / 155 /
-  98 mm; real widths not sent). `tools/sonarcheck.py` gives the same
+  98 mm; real widths not sent). `tools/logcheck/sonarcheck.py` gives the same
   widths from the logged rays. **Side look did not hear the box's side:**
   bench check (box beside the robot, sonar 40 deg right) read mostly
   `-1`, once 222 and 275, otherwise 400-900 (the room). In the bypass it

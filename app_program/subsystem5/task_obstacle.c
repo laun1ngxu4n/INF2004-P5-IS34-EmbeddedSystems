@@ -40,7 +40,7 @@
    400-500 mm widths for 15-23 cm boxes).  A ray counts as on the box only
    when its distance fits front / cos(angle); one much nearer is that
    side-of-beam echo: neither the box nor something else.  Checked on the
-   21 scans of 7 Nov (tools/sonarcheck.py): both edges found in 21 (the old
+   21 scans of 7 Nov (tools/logcheck/sonarcheck.py): both edges found in 21 (the old
    rule 6), the clean scans unchanged (218 / 138 / 168 mm for 20 / 14.5 /
    15 cm boxes). */
 #define GEO_TOL_MM	15

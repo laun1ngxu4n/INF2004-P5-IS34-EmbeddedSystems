@@ -1,7 +1,7 @@
 # Prebuilt images (rebuilt 7 Nov: straddle line following)
 
 Built from this repo with Pico SDK 2.3.1 (GCC 15.2), 0 warnings, S2_TRACK_MM 123.
-Status of each stage: `../TEST_STATUS.md`. The 7 Nov line following
+Status of each stage: `../testing/TEST_STATUS.md`. The 7 Nov line following
 (sensors straddling the tape, crossings, left branches from the barcode
 sensor) is **not run on the robot yet**; it expects the two line sensors
 about 30 mm apart with the tape centred between them, and B 40 mm behind
@@ -10,7 +10,7 @@ All images read the barcode sensor on its **analogue output (AO to GP28,
 module on 3V3)** since 7 Nov; for the digital D0 on GP2 build with
 `S3_BARCODE_ANALOG 0`.
 Flash: hold BOOTSEL, plug in USB, drag the file onto RPI-RP2.
-Steps for each: `../TESTING_GUIDE.md`.
+Steps for each: `../testing/TESTING_GUIDE.md`.
 
 | File | Same as `make ...` in `build_make` | What it does |
 |---|---|---|

@@ -1,13 +1,13 @@
 # P5-IS34 robot: what it does, its limits, what is not done
 
 Plain-language overview of the mission image (`make NET=lwip MQTT=1`), with
-the numbers the code uses on 2 Nov 2026. Test results: [TEST_STATUS.md](TEST_STATUS.md).
-How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
+the numbers the code uses on 2 Nov 2026. Test results: [TEST_STATUS.md](../../testing/TEST_STATUS.md).
+How to run the tests: [TESTING_GUIDE.md](../../testing/TESTING_GUIDE.md).
 
 ## 1. What the robot does
 
 ### Start
-1. Send the mapping from the laptop panel (`tools/is34_panel.bat`), e.g.
+1. Send the mapping from the laptop panel (`tools/panel/is34_panel.bat`), e.g.
    `K=L,Q=R,X=F,M=U`: exactly 4 pairs, each barcode letter to Left,
    Right, Forward or U-turn. A bad mapping is rejected and the old one kept.
 2. START: button GP20 or the panel.
@@ -38,7 +38,7 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
   little in curves (0.5 % per mm/s of memory, never under 35 %).
 - **How it was tuned (7 Nov):** a simulation of the robot (track 123 mm,
   sensors 115 mm ahead, motion ramp and lag) with the line task ported
-  line for line (`tools/linesim.py`). Calibrated until it reproduced that
+  line for line (`tools/sim/linesim.py`). Calibrated until it reproduced that
   day's three robot runs: the lost left curves at 150 mm/s, the zigzag of
   the hard-at-once version and the good third run. Then 600 settings
   were tried on 480 scenarios (100-120 mm curves, the S-bend of track 3
@@ -90,7 +90,7 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
   an end, must decode cleanly (ends cut off the logs' good reads: 33
   right, 0 wrong). Reported as `barcode A (one * damaged)` / `(a lost bar
   put back)` / `(a missing end bar put back)`. Checked with
-  `tools/barcodecheck.py` and the robot's own C code on the PC: on the
+  `tools/logcheck/barcodecheck.py` and the robot's own C code on the PC: on the
   logs' good reads, every narrow element lost in turn: 117 recovered, 0
   wrong; start or stop replaced by noise: 988 right, 0 wrong; 20 000
   random bar patterns: none decoded. A failed read prints its widths to
@@ -184,7 +184,7 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
   the old rule (within 150 mm of the front distance) whole +-40 deg sweeps
   read as "box": widths of 400-500 mm for 15-23 cm boxes, and one detour
   ran into the room. Such side-of-beam echoes now count as neither the box
-  nor something else. On the 21 scans of 7 Nov (`tools/sonarcheck.py`):
+  nor something else. On the 21 scans of 7 Nov (`tools/logcheck/sonarcheck.py`):
   both edges found in all 21 (old rule: 6); the clean scans unchanged (218
   / 138 / 168 mm for the 20 / 14.5 / 15 cm boxes); the rest 100-340 mm.
 - Each edge is taken from the scan that saw past it; both did: the
@@ -224,7 +224,7 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
      the sonar saw ahead before the leg; otherwise it stops ("still
      beside the box ..."). A sonar fault counts as an echo. Reports `side
      look: box heard from A to B mm along, leg L mm (fixed F)`.
-     `tools/bypasssim.py S`: box depths 60-350 mm all 36/36, closest 56
+     `tools/sim/bypasssim.py S`: box depths 60-350 mm all 36/36, closest 56
      mm (fixed distance alone: 16 of 36 boxes 250 mm deep hit, all 350
      mm deep); still 53/54 with half the side echoes missed. Sonar 120 mm
      in front of the axle assumed (`S5_SONAR_TO_AXLE_MM`, not measured).
@@ -242,7 +242,7 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
      tape** (at most 170 deg, black ignored for the first 20 deg), then
      follows. So the line behind the box may curve either way, and a few
      degrees of error in the earlier spins do not matter.
-- **How it was chosen (8 Nov):** `tools/bypasssim.py` runs the whole
+- **How it was chosen (8 Nov):** `tools/sim/bypasssim.py` runs the whole
   manoeuvre (line following to the box, stop, scans with width errors,
   spins 0-6 % off, wheel size mismatch, the robot's footprint) on 486
   cases: straight lines and 300 / 500 mm curves either way behind 100-200

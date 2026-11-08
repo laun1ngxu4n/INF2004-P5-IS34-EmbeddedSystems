@@ -41,7 +41,7 @@
 #define SCAN_NEAR_MM		220
 #define REVERSE_MM		100	/* second scan position */
 #define D_MAX_MM		150	/* deepest expected obstacle (A9) */
-#define MARGIN_MM		100	/* 50 until 7 Nov, then 70: tools/bypasssim.py
+#define MARGIN_MM		100	/* 50 until 7 Nov, then 70: tools/sim/bypasssim.py
 					   with +-5 % spin error passed a 200 mm box
 					   21 mm away at 70, 42 mm at 100 */
 #define REJOIN_ENABLE_MM	60	/* line events back on after this */
@@ -366,7 +366,7 @@ LOCAL INT drive_until_line(INT dist_mm, INT from_mm)
    sensors count from past a 150 mm deep box and not while the box is
    beside (an echo in the last SIDE_MISS_PINGS): a junction's side line
    beside the box is not the line (8 Nov run).  A sonar fault counts as an
-   echo.  tools/bypasssim.py S: box depths 60-350 mm all 36/36, closest 56
+   echo.  tools/sim/bypasssim.py S: box depths 60-350 mm all 36/36, closest 56
    mm (fixed distance: 250 mm deep 16 of 36 hit, 350 mm all hit); with
    half the side echoes missed still 53/54.
    1 = line met, 0 = past the box (turn back to the line), -1 = halted */
@@ -605,7 +605,7 @@ LOCAL void on_obstacle(void)
 	   toward this side behind the box is met there.  Not before: 8 Nov
 	   the box stood on a junction and this leg met the junction's side
 	   line beside the box ("line met beside the box, 599 mm along" = 14
-	   cm past its front) and followed it away (tools/bypasssim.py, boxes
+	   cm past its front) and followed it away (tools/sim/bypasssim.py, boxes
 	   on a junction).  Until 8 Nov it watched from the box's front. */
 	if (!mv(motion_turn(sgn * 90))) goto fail;
 	if (!ahead_clear(y_off)) { halt("bypass leg 2 blocked"); return; }
@@ -647,7 +647,7 @@ LOCAL void on_obstacle(void)
 		if (found < 0) goto fail;
 		if (!found) {
 			/* not the other way: that found the line pointing back at
-			   the box in tools/bypasssim.py and drove into it */
+			   the box in tools/sim/bypasssim.py and drove into it */
 			halt("line not found after the bypass (spin)");
 			return;
 		}

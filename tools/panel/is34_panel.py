@@ -8,23 +8,23 @@ readings (is34/sensors, every 0.5 s) and every event
 (picked in the "Barcode mapping" box: which barcode means left, right,
 straight, U-turn at the next junction)
 (is34/cmd/start, is34/cmd/stop, is34/cmd/map).  Everything shown is also
-written to a log file next to this script (is34_<date>_<time>.log).
+written to logs/panel/is34_<date>_<time>.log (git-ignored).
 
 Robot log tab: images built with MQTT send a copy of the whole console
 (the same text as the USB console) on is34/log.  The tab shows it live;
 "Save log..." writes everything since the last "Clear" to a text file
 (send that file instead of a copied USB console).  It is also written
-as it comes to is34_<date>_<time>_robot.txt next to this script.
+as it comes to logs/robot/is34_<date>_<time>_robot.txt (git-ignored).
 START and STOP here also answer the stage tests' "press START" prompts.
 
     pip install paho-mqtt
-    python tools/is34_panel.py                  # broker on this laptop, port 1884
-    python tools/is34_panel.py --port 1883      # or another port / --host <ip>
+    python tools/panel/is34_panel.py                  # broker on this laptop, port 1884
+    python tools/panel/is34_panel.py --port 1883      # or another port / --host <ip>
 
 The broker must accept connections from the hotspot.  "Start broker"
-runs Mosquitto with tools/mosquitto_robot.conf (port 1884, any address),
+runs Mosquitto with tools/panel/mosquitto_robot.conf (port 1884, any address),
 or run it yourself:
-    "C:\\Program Files\\mosquitto\\mosquitto.exe" -c tools/mosquitto_robot.conf -v
+    "C:\\Program Files\\mosquitto\\mosquitto.exe" -c tools/panel/mosquitto_robot.conf -v
 
 Keys: Space = STOP, Ctrl+G = START.
 """
@@ -41,6 +41,9 @@ from tkinter import filedialog, ttk
 import paho.mqtt.client as mqtt
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+REPO = os.path.dirname(os.path.dirname(HERE))       # tools/panel -> the repo
+LOG_DIR = os.path.join(REPO, "logs", "panel")        # what the panel showed
+ROBOT_DIR = os.path.join(REPO, "logs", "robot")      # the robot's console
 MOSQUITTO = r"C:\Program Files\mosquitto\mosquitto.exe"
 OFFLINE_S = 3.0                 # no status line for this long = offline
 LOG_VIEW_LINES = 4000           # lines kept in the Robot log view (the file keeps all)
@@ -127,8 +130,10 @@ class Panel:
         self.last_status = 0.0
         self.broker_proc = None
         stamp = time.strftime("is34_%Y%m%d_%H%M%S")
-        self.log = open(os.path.join(HERE, stamp + ".log"), "a", encoding="utf-8")
-        self.robot_file = open(os.path.join(HERE, stamp + "_robot.txt"), "a",
+        os.makedirs(LOG_DIR, exist_ok=True)
+        os.makedirs(ROBOT_DIR, exist_ok=True)
+        self.log = open(os.path.join(LOG_DIR, stamp + ".log"), "a", encoding="utf-8")
+        self.robot_file = open(os.path.join(ROBOT_DIR, stamp + "_robot.txt"), "a",
                                encoding="utf-8")
         self.robot_text = []            # robot log since the last Clear
         self.robot_seq = None           # last is34/log message number
@@ -399,7 +404,7 @@ class Panel:
             return
         path = filedialog.asksaveasfilename(
             parent=self.root, title="Save robot log", defaultextension=".txt",
-            initialdir=HERE, initialfile=time.strftime("robot_log_%Y%m%d_%H%M.txt"),
+            initialdir=ROBOT_DIR, initialfile=time.strftime("robot_log_%Y%m%d_%H%M.txt"),
             filetypes=[("Text", "*.txt"), ("All files", "*.*")])
         if not path:
             return

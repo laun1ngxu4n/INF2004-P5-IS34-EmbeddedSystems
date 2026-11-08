@@ -13,7 +13,7 @@ sensor window it reproduced that day's three robot runs (150 mm/s lost
 the left curves, hard-at-once zigzagged, 9d10fa6 worked).  The sensor
 window after the mount was raised is narrower (about 8-12 mm).
 
-    python tools/linesim.py          # old vs new on the calibrated scenarios
+    python tools/sim/linesim.py          # old vs new on the calibrated scenarios
 
 No packages needed (plain Python 3).
 

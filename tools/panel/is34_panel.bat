@@ -1,7 +1,7 @@
 @echo off
 rem Double-click to open the robot control panel (works from any folder).
-cd /d "%~dp0.."
-python tools\is34_panel.py %*
+cd /d "%~dp0..\.."
+python tools\panel\is34_panel.py %*
 if errorlevel 1 (
     echo.
     echo The panel stopped with an error ^(see above^).

@@ -60,45 +60,74 @@
 #define M_RUN       2
 #define M_MANOEUVRE 3
 
-LOCAL int32_t       g_mstate = M_IDLE;
-LOCAL volatile bool gb_armed = !APP_TEST;
-LOCAL uint8_t       g_pending;  /* latest unconsumed barcode, 0 = none */
-LOCAL uint32_t      g_bar_seen; /* barcode result already handled */
+/* Mission's state (Change Requirement 1): one word, written only by the
+   mission task; other tasks read the state through mission_state(). */
+typedef struct
+{
+    uint32_t state   APP_FIELD(2); /* M_IDLE .. M_MANOEUVRE */
+    uint32_t pending APP_FIELD(7); /* latest unconsumed barcode letter,
+                                      7-bit ASCII, 0 = none */
+} mission_word_t;
+
+/* What other tasks set (a test arms Mission and picks its parts): one word,
+   changed only under APP_LOCK */
+typedef struct
+{
+    bool b_armed         APP_FIELD(1);
+    bool b_use_obstacles APP_FIELD(1);
+    bool b_use_imu       APP_FIELD(1);
+} mission_flags_t;
+
+LOCAL volatile mission_word_t  g_mw    = {M_IDLE, 0u};
+LOCAL volatile mission_flags_t g_flags = {!APP_TEST, true, true};
+LOCAL uint32_t g_bar_seen; /* barcode_seq() already handled: the same
+                              32-bit counter */
 /* A junction waits at most this far past its centre for a barcode that
    is still being read (see on_junction) */
 #define JUNC_WAIT_MM 150
-LOCAL bool gb_use_obstacles = true;
-LOCAL bool gb_use_imu       = true;
 
 EXPORT void mission_features (bool b_obstacles, bool b_imu)
 {
-    gb_use_obstacles = b_obstacles;
-    gb_use_imu       = b_imu;
+    uint32_t irq_state;
+
+    APP_LOCK(irq_state);
+    g_flags.b_use_obstacles = b_obstacles;
+    g_flags.b_use_imu       = b_imu;
+    APP_UNLOCK(irq_state);
 }
 
 /** Turns the forward obstacle watch on, if this build uses it. */
 LOCAL void watch_on (void)
 {
-    obstacle_watch(gb_use_obstacles);
+    obstacle_watch(g_flags.b_use_obstacles);
 }
 
 EXPORT void mission_arm (bool b_on)
 {
-    gb_armed = b_on;
+    uint32_t irq_state;
+
+    APP_LOCK(irq_state);
+    g_flags.b_armed = b_on;
+    APP_UNLOCK(irq_state);
+}
+
+/** The mission state: M_IDLE, M_CAL, M_RUN or M_MANOEUVRE (0..3). */
+EXPORT uint32_t mission_state (void)
+{
+    return g_mw.state;
 }
 
 EXPORT const char * mission_state_name (void)
 {
     static const char * names[] = {"IDLE", "CAL", "RUN", "MANOEUVRE"};
-    return names[g_mstate];
+    return names[g_mw.state];
 }
 
 /** Sets the mission state and tells the panel. */
 LOCAL void set_state (int32_t new_state)
 {
-    g_mstate = new_state;
+    g_mw.state = new_state;
     obstacle_idle_ping(M_IDLE == new_state);
-    telemetry_set_state(mission_state_name());
 }
 
 /** Sends a text event to the panel. */
@@ -206,7 +235,7 @@ LOCAL void start_run (void)
     set_state(M_CAL);
     motion_halt();
 
-    if (gb_use_imu && (imu_ok()))
+    if ((g_flags.b_use_imu) && (imu_ok()))
     {
         imu_calibrate();
 
@@ -216,7 +245,7 @@ LOCAL void start_run (void)
         }
     }
 
-    g_pending = 0;
+    g_mw.pending = 0;
     motion_follow_limit(0);
     barcode_reset();            /* nothing left over from before START */
     g_bar_seen = barcode_seq(); /* ... nor its last result */
@@ -273,8 +302,8 @@ LOCAL void on_barcode (void)
         return;
     }
 
-    g_pending = result.letter;
-    move      = barcode_move_for(result.letter);
+    g_mw.pending = result.letter;
+    move         = barcode_move_for(result.letter);
     /* a turn is coming: approach its junction slowly */
     motion_follow_limit(
         ((MOVE_LEFT == move) || (MOVE_RIGHT == move) || (MOVE_UTURN == move))
@@ -375,7 +404,7 @@ LOCAL void on_junction (void)
     }
 
     on_barcode(); /* a letter decoded meanwhile (once) */
-    letter = g_pending;
+    letter = g_mw.pending;
     move   = (letter != 0) ? barcode_move_for(letter) : MOVE_FORWARD;
 
     motion_follow_limit(0);
@@ -388,7 +417,7 @@ LOCAL void on_junction (void)
         return;
     }
 
-    g_pending = 0;
+    g_mw.pending = 0;
     /* junctions since boot, a handful: fit %d */
     tm_sprintf(msg, app_str("junction %d (%s): %s (barcode %c)"),
                (int32_t)line_junctions(),
@@ -1059,7 +1088,6 @@ EXPORT void mission_task (int32_t stacd, void * p_exinf)
 
     (void)stacd;
     (void)p_exinf;
-    telemetry_set_state(mission_state_name());
 
     for (;;)
     {
@@ -1078,7 +1106,7 @@ EXPORT void mission_task (int32_t stacd, void * p_exinf)
         }
 
         /* STOP: the motors are already off (app_stop_request) */
-        if ((g_mstate != M_IDLE) && (app_stop_reasons() != 0u))
+        if ((g_mw.state != M_IDLE) && (app_stop_reasons() != 0u))
         {
             obstacle_watch(false);
             line_set_enabled(false);
@@ -1086,7 +1114,7 @@ EXPORT void mission_task (int32_t stacd, void * p_exinf)
             say(app_str("STOP"));
         }
 
-        if ((M_IDLE == g_mstate) && gb_armed)
+        if ((M_IDLE == g_mw.state) && (g_flags.b_armed))
         {
             bool b_down =
                 (button_is_down(PIN_START)) && (!button_is_down(PIN_STOP));
@@ -1109,7 +1137,7 @@ EXPORT void mission_task (int32_t stacd, void * p_exinf)
                 start_run();
             }
         }
-        else if (M_RUN == g_mstate)
+        else if (M_RUN == g_mw.state)
         {
             /* barcode first: a code just before a junction counts */
             if ((ptn & MSN_FLG_BARCODE) != 0u)

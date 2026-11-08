@@ -10,6 +10,12 @@
  *  commands to app_mqtt_rx().  Both hooks only copy under APP_LOCK and
  *  never wait, because they run in the kernel's WiFi task.
  *
+ *  Change Requirement 1: the status line, the sensor readings and the
+ *  mapping acknowledgement are binary (wire.c, docs/team/MQTT_WIRE_FORMAT.md);
+ *  the mapping command arrives binary.  Events stay text: they are
+ *  sentences for the operator, not values.  The MQTT link's state is
+ *  FAULT_WIFI_LOSS in the fault word (a warning, never a stop).
+ *
  *  MQTT images also send a copy of the whole console on is34/log, so a
  *  test can run on the battery with no USB cable: the panel shows it and
  *  saves it (tools/panel/is34_panel.py, "Save log").  Each message is
@@ -23,21 +29,31 @@
 #include "../subsystem4/subsystem4.h"
 #include "../subsystem5/subsystem5.h"
 #include "telemetry.h"
+#include "wire.h"
 
 #define OUTBOX_N 8
 
+#define TOPIC_IDX_EVENT     0u
+#define TOPIC_IDX_TELEMETRY 1u
+#define TOPIC_IDX_ACK       2u
+#define TOPIC_IDX_SENSORS   3u
+#define LINK_LOST_US        1000000u /* the glue asks every 100 ms */
+
+/* One outgoing message: binary (wire.c) or event text, and its length */
 typedef struct
 {
-    uint8_t topic; /* 0 event, 1 telemetry, 2 ack/map, 3 sensors */
-    uint8_t text[TELE_TEXT_MAX];
+    uint8_t topic APP_FIELD(2); /* TOPIC_IDX_... */
+    uint8_t       len;          /* 0..TELE_TEXT_MAX - 1 bytes */
+    uint8_t       data[TELE_TEXT_MAX];
 } tele_msg_t;
 
 LOCAL tele_msg_t        g_outbox[OUTBOX_N];
 LOCAL uint32_t          g_ob_w;
 LOCAL uint32_t          g_ob_r; /* under APP_LOCK */
 LOCAL uint32_t          g_out_dropped;
-LOCAL const char *      gp_state_text = "IDLE";
 LOCAL volatile uint32_t g_start_count; /* MQTT START commands since boot */
+LOCAL volatile uint32_t g_link_us;     /* when the glue last asked for a
+                                          message: a time, all 32 bits */
 
 EXPORT uint32_t telemetry_start_count (void)
 {
@@ -147,11 +163,13 @@ LOCAL int32_t log_take (char * p_topic, uint32_t tmax, uint8_t * p_buf,
 }
 #endif
 
-/** Queues a message for MQTT; drops the oldest if the queue is full. */
-LOCAL void outbox_put (uint8_t topic, const uint8_t * p_text)
+/** Queues a message for MQTT (len bytes, at most TELE_TEXT_MAX - 1); drops
+   the oldest if the queue is full. */
+LOCAL void outbox_put (uint32_t topic, const uint8_t * p_data, int32_t len)
 {
-    uint32_t irq_state;
-    int32_t  idx;
+    uint32_t     irq_state;
+    int32_t      idx;
+    tele_msg_t * p_msg;
 
     APP_LOCK(irq_state);
 
@@ -161,27 +179,37 @@ LOCAL void outbox_put (uint8_t topic, const uint8_t * p_text)
         g_out_dropped++;
     }
 
-    g_outbox[g_ob_w % OUTBOX_N].topic = topic;
+    p_msg        = &g_outbox[g_ob_w % OUTBOX_N];
+    p_msg->topic = topic;
 
-    for (idx = 0; (idx < (TELE_TEXT_MAX - 1)) && (p_text[idx] != '\0'); idx++)
+    for (idx = 0; (idx < len) && (idx < (TELE_TEXT_MAX - 1)); idx++)
     {
-        g_outbox[g_ob_w % OUTBOX_N].text[idx] = p_text[idx];
+        p_msg->data[idx] = p_data[idx];
     }
 
-    g_outbox[g_ob_w % OUTBOX_N].text[idx] = '\0';
+    /* idx <= TELE_TEXT_MAX - 1 = 159: fits uint8_t */
+    p_msg->len = (uint8_t)idx;
     g_ob_w++;
     APP_UNLOCK(irq_state);
+}
+
+/** Queues a text (an event) for MQTT. */
+LOCAL void outbox_text (uint32_t topic, const uint8_t * p_text)
+{
+    int32_t len = 0;
+
+    while ((len < (TELE_TEXT_MAX - 1)) && (p_text[len] != '\0'))
+    {
+        len++;
+    }
+
+    outbox_put(topic, p_text, len);
 }
 
 EXPORT void telemetry_event (const uint8_t * p_text)
 {
     tm_printf(app_str("[EVT] %s\n"), p_text);
-    outbox_put(0, p_text);
-}
-
-EXPORT void telemetry_set_state (const char * p_state)
-{
-    gp_state_text = p_state;
+    outbox_text(TOPIC_IDX_EVENT, p_text);
 }
 
 /* ---- MQTT hooks, called from the WiFi task (mqtt_utk.c) ------------- */
@@ -227,12 +255,16 @@ EXPORT int app_mqtt_tx (char * p_topic, unsigned tmax, unsigned char * p_buf,
     tele_msg_t          msg;
     uint32_t            irq_state;
     uint32_t            idx;
-    bool                b_have;
+#if defined(TM_MQTT) && TM_MQTT
+    bool b_have;
+#endif
 
+    g_link_us = app_timing_now_us(); /* asked only while MQTT is connected */
+#if defined(TM_MQTT) && TM_MQTT
     APP_LOCK(irq_state);
     b_have = (g_ob_r != g_ob_w);
     APP_UNLOCK(irq_state);
-#if defined(TM_MQTT) && TM_MQTT
+
     /* Outbox and log take turns, so a long log never holds up an event */
     if ((!b_have) || (!gb_log_turn))
     {
@@ -266,13 +298,67 @@ EXPORT int app_mqtt_tx (char * p_topic, unsigned tmax, unsigned char * p_buf,
 
     p_topic[idx] = '\0';
 
-    for (idx = 0; ((idx + 1) < bmax) && (msg.text[idx] != '\0'); idx++)
+    for (idx = 0; (idx < bmax) && (idx < msg.len); idx++)
     {
-        p_buf[idx] = msg.text[idx];
+        p_buf[idx] = msg.data[idx];
     }
 
     /* idx < bmax, the glue's buffer size: fits int */
     return (int)idx;
+}
+
+/** A mapping command: binary (WIRE_MAP_LEN bytes, the panel) or the text
+   "K=L,Q=R,X=F,M=U" (typed by hand).  Answered with the binary
+   acknowledgement on is34/ack/map; why one was refused goes out as an
+   event (a sentence). */
+LOCAL void on_map_command (const uint8_t * p_data, int32_t len)
+{
+    uint8_t letters[4];
+    uint8_t text[24];
+    uint8_t why[64];
+    uint8_t msg[TELE_TEXT_MAX];
+    uint8_t ack[WIRE_ACK_LEN];
+    bool    b_ok;
+
+    if ((len > 0) && (WIRE_VERSION == p_data[0]))
+    {
+        b_ok = wire_map_unpack(p_data, len, letters);
+
+        if (b_ok)
+        {
+            /* letters for L, R, F, U into the text barcode_set_mapping()
+               checks (each letter is A-Z / 0-9) */
+            (void)tm_sprintf(text, app_str("%c=L,%c=R,%c=F,%c=U"), letters[0],
+                             letters[1], letters[2], letters[3]);
+            b_ok = barcode_set_mapping(text, 15, why, sizeof(why));
+        }
+        else
+        {
+            (void)tm_sprintf(why,
+                             app_str("not a version %d mapping of %d "
+                                     "bytes with 4 letters"),
+                             WIRE_VERSION, WIRE_MAP_LEN);
+        }
+    }
+    else
+    {
+        b_ok = barcode_set_mapping(p_data, len, why, sizeof(why));
+    }
+
+    barcode_mapping_get(letters);
+    outbox_put(TOPIC_IDX_ACK, ack, wire_ack_pack(b_ok, letters, ack));
+
+    if (b_ok)
+    {
+        (void)barcode_mapping_text(text, sizeof(text));
+        tm_printf(app_str("[MQTT] map: OK %s\n"), text);
+    }
+    else
+    {
+        (void)tm_sprintf(
+            msg, app_str("mapping REJECTED: %s (old mapping kept)"), why);
+        telemetry_event(msg);
+    }
 }
 
 /** Called by the MQTT glue for each message received: START, STOP, mapping. */
@@ -280,8 +366,6 @@ EXPORT void app_mqtt_rx (const char * p_topic, const unsigned char * p_data,
                          unsigned len)
 {
     const char * p_cmd;
-    uint8_t      why[64];
-    uint8_t      msg[TELE_TEXT_MAX];
 
     if (!starts_with(p_topic, TOPIC_CMD_PREFIX, &p_cmd))
     {
@@ -290,20 +374,8 @@ EXPORT void app_mqtt_rx (const char * p_topic, const unsigned char * p_data,
 
     if (same(p_cmd, "map"))
     {
-        /* len < MQTT_UTK_RX_DATA_MAX (128), the glue's buffer: fits int32_t */
-        if (barcode_set_mapping(p_data, (int32_t)len, why, sizeof(why)))
-        {
-            uint8_t map[24];
-            barcode_mapping_text(map, sizeof(map));
-            tm_sprintf(msg, app_str("OK %s"), map);
-        }
-        else
-        {
-            tm_sprintf(msg, app_str("REJECTED %s (old mapping kept)"), why);
-        }
-
-        tm_printf(app_str("[MQTT] map: %s\n"), msg);
-        outbox_put(2, msg);
+        on_map_command(p_data, (int32_t)len); /* len < 128 (the glue's
+                                                 buffer): fits int32_t */
     }
     else if (same(p_cmd, "start"))
     {
@@ -325,51 +397,66 @@ EXPORT void app_mqtt_rx (const char * p_topic, const unsigned char * p_data,
 
 /* ---- the task -------------------------------------------------------- */
 
-/** Builds the 1 s status line for the panel. */
+/** Builds the 1 s status message for the panel (binary, wire.c). */
 LOCAL void status_line (void)
 {
     motion_status_t  status;
     barcode_result_t last_code;
-    uint8_t          text[TELE_TEXT_MAX];
-    uint8_t          map[24];
+    wire_status_t    values;
+    uint8_t          msg[WIRE_STATUS_LEN];
 
     motion_get_status(&status);
     barcode_last(&last_code);
-    barcode_mapping_text(map, sizeof(map));
-    /* the junction count and the STOP reason bits are small: fit %d; map is
-       text, passed as char * like "none" */
-    tm_sprintf(
-        text,
-        app_str("state=%s speed=%d,%d dist=%d line=%d junctions=%d "
-                "barcode=%c map=%s ramp_peak=%d.%d stop=%d"),
-        gp_state_text, status.speed_l, status.speed_r,
-        motion_counts_to_mm(motor_odometer()), line_state(),
-        (int32_t)line_junctions(), (last_code.b_ok ? last_code.letter : '-'),
-        (map[0] != '\0') ? (char *)map : "none", imu_ramp_peak_mm10() / 10,
-        imu_ramp_peak_mm10() % 10, (int32_t)app_stop_reasons());
-    outbox_put(1, text);
+    barcode_mapping_get(values.map_letter);
+    values.mission_state  = mission_state();
+    values.line_state     = line_state(); /* 0..3: not negative */
+    values.stop_reasons   = app_stop_reasons();
+    values.faults         = app_stop_faults();
+    values.speed_l        = status.speed_l;
+    values.speed_r        = status.speed_r;
+    values.dist_mm        = motion_counts_to_mm(motor_odometer());
+    values.junctions      = line_junctions();
+    values.last_letter    = last_code.b_ok ? last_code.letter : 0u;
+    values.ramp_peak_mm10 = imu_ramp_peak_mm10();
+    outbox_put(TOPIC_IDX_TELEMETRY, msg, wire_status_pack(&values, msg));
 }
 
-/** Live sensor readings for the laptop panel (not graded, just to see what
-   the robot sees): ir = side, centre, barcode (1 = black), steer mm/s,
-   hold = steering held straight (B over bars), inbar = inside a barcode, front
-   = last forward sonar mm (-1 open, -2 no ECHO), tilt = sin(pitch) x1000, h10 =
-   climbed height in 0.1 mm, imu = IMU answering */
+/** Live sensor readings for the laptop panel (binary, wire.c): the line
+   and barcode sensors, steering, B over bars, inside a barcode, the last
+   forward sonar reading, sin(pitch), climbed height, IMU answering. */
 LOCAL void sensor_line (void)
 {
-    uint8_t text[TELE_TEXT_MAX];
+    wire_sensors_t values;
+    uint8_t        msg[WIRE_SENSORS_LEN];
 
-    /* comparisons and BOOLs are 0 or 1: fit %d */
-    tm_sprintf(text,
-               app_str("ir=%d%d%d steer=%d hold=%d inbar=%d front=%d "
-                       "tilt=%d h10=%d imu=%d"),
-               (int32_t)(IR_BLACK == app_gpio_get(PIN_IR_LINE_L)),
-               (int32_t)(IR_BLACK == app_gpio_get(PIN_IR_LINE_R)),
-               (int32_t)barcode_black(), line_steer_mm_s(),
-               (int32_t)barcode_in_bars(), (int32_t)barcode_busy(),
-               obstacle_front_mm(), imu_pitch_mdeg_sin(), imu_height_mm10(),
-               (int32_t)imu_ok());
-    outbox_put(3, text);
+    values.b_ir_left   = IR_BLACK == app_gpio_get(PIN_IR_LINE_L);
+    values.b_ir_right  = IR_BLACK == app_gpio_get(PIN_IR_LINE_R);
+    values.b_ir_bar    = barcode_black();
+    values.b_hold      = barcode_in_bars();
+    values.b_inbar     = barcode_busy();
+    values.b_imu_ok    = imu_ok();
+    values.steer       = line_steer_mm_s();
+    values.front_mm    = obstacle_front_mm();
+    values.tilt_x1000  = imu_pitch_mdeg_sin();
+    values.height_mm10 = imu_height_mm10();
+    outbox_put(TOPIC_IDX_SENSORS, msg, wire_sensors_pack(&values, msg));
+}
+
+/** The MQTT link: FAULT_WIFI_LOSS while the glue has not asked for a
+   message for LINK_LOST_US (it asks every 100 ms while connected).  A
+   warning: it never stops the robot. */
+LOCAL void check_link (void)
+{
+#if defined(TM_MQTT) && TM_MQTT
+    if ((app_timing_now_us() - g_link_us) > LINK_LOST_US)
+    {
+        app_stop_fault_set(FAULT_WIFI_LOSS);
+    }
+    else
+    {
+        app_stop_fault_clear(FAULT_WIFI_LOSS);
+    }
+#endif
 }
 
 /** The telemetry task: status line every 1 s, sensors every 0.5 s, timing
@@ -402,6 +489,7 @@ EXPORT void telemetry_task (int32_t stacd, void * p_exinf)
         if (status_tick >= S1_STATUS_TICKS)
         {
             status_tick = 0;
+            check_link();
             status_line();
         }
 

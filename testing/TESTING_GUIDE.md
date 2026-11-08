@@ -344,6 +344,24 @@ line found after every manoeuvre.
    than the robot's buffer). Stage 2C and 6 over WiFi wait for a mapping
    from the panel: for the TEST mapping send `A=L,B=R,C=F,D=U`.
 
+## 6a. Change Requirement 1 tests (binary MQTT, fault word, Safety)
+
+Since the evening of 8 Nov the robot's MQTT messages are binary
+([MQTT_WIRE_FORMAT.md](../docs/team/MQTT_WIRE_FORMAT.md)): use the
+**updated panel** (`tools/panel/is34_panel.py` with `is34_wire.py`); an
+older panel shows nothing. The panel has a new "Faults / warnings" field.
+On the laptop first: `python tools/panel/test_wire.py` (needs gcc) must
+print PASS. Then on the robot, the extra tests in
+[CHANGE_REQ1.md](../docs/team/CHANGE_REQ1.md) section 7.2:
+
+- timing tables of a full run with the normal image and with an
+  `APP_PACKED=0` image;
+- the WiFi switched off during line following (keeps going);
+- STOP at the end of a quick START/STOP burst (stays stopped);
+- one wheel held while driving (Safety stops the motors after about 1 s,
+  START works again 2 s later);
+- a good and a refused mapping.
+
 ## 7. Send back
 
 For each test: the whole log, plus what you wrote down (real angles, real

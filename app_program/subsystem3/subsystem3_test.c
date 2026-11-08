@@ -846,27 +846,27 @@ EXPORT void subsystem3_test_stage (void)
                 {"S3-L10",
                  "about 20 cm before the X CROSSING (track 3), square "
                  "to it",
-                 "exactly 1 junction, a crossing", 450, 1, 0},
+                 "exactly 1 junction, a crossing", 450, 1, 0, false},
                 {"S3-L03",
                  "about 20 cm before a branch to the LEFT only (the "
                  "line goes on), no barcode next to it",
-                 "exactly 1 junction, branch left", 450, 0, 1},
+                 "exactly 1 junction, branch left", 450, 0, 1, false},
                 {"S3-L05",
                  "about 20 cm before a T end (the line stops at a cross "
                  "bar with arms both ways)",
-                 "exactly 1 junction, a crossing", 450, 1, 0},
+                 "exactly 1 junction, a crossing", 450, 1, 0, false},
                 {"S3-L06",
                  "at the start of the tightest RIGHT curve with no "
                  "branches",
-                 "no junction and no line lost", 1200, 0, 0},
+                 "no junction and no line lost", 1200, 0, 0, false},
                 {"S3-L07",
                  "at the start of the tightest LEFT curve with no "
                  "branches",
-                 "no junction and no line lost", 1200, 0, 0},
+                 "no junction and no line lost", 1200, 0, 0, false},
                 {"S3-L08",
                  "about 20 cm before a GAP in the line (track 2), "
                  "after a straight",
-                 "drives across, no line lost, no junction", 450, 0, 0},
+                 "drives across, no line lost, no junction", 450, 0, 0, false},
                 {"S3-L09",
                  "on a straight. Once it moves, hold a black card "
                  "under R (the RIGHT line sensor) and keep it there (walk "

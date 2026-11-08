@@ -11,18 +11,24 @@
 #include "../app.h"
 
 /* Barcode results */
+/* Each field in the bits its range needs (Change Requirement 1) */
 typedef struct
 {
-    uint32_t seq;         /* +1 for every decode attempt */
-    bool     b_ok;        /* false = READ_FAIL */
-    uint8_t  letter;      /* decoded data character ('A'..'Z', '0'..'9', ...) */
-    bool     b_reversed;  /* read backwards */
-    int32_t  elements;    /* bars + spaces seen */
-    int32_t  narrow_mm10; /* mean narrow element, 0.1 mm */
-    int32_t  wide_mm10;   /* mean wide element, 0.1 mm */
-    uint8_t  fixed;       /* 0 clean read; BAR_FIX_STAR one '*' damaged;
-                    BAR_FIX_MERGED a lost narrow element put back;
-                    BAR_FIX_CUT a missing end bar put back */
+    uint32_t seq APP_FIELD(8);         /* +1 per decode attempt; wraps: it
+                                          only tells a new result */
+    bool b_ok       APP_FIELD(1);      /* false = READ_FAIL */
+    uint32_t letter APP_FIELD(7);      /* decoded character, 7-bit ASCII
+                                          ('A'..'Z', '0'..'9', ...) */
+    bool b_reversed      APP_FIELD(1); /* read backwards */
+    uint32_t elements    APP_FIELD(7); /* bars + spaces seen, <= 99 */
+    uint32_t narrow_mm10 APP_FIELD(9); /* mean narrow element, 0.1 mm,
+                                          saturates at 51.1 mm */
+    uint32_t wide_mm10 APP_FIELD(9);   /* mean wide element, the same */
+    uint32_t fixed     APP_FIELD(2);   /* 0 clean read; BAR_FIX_STAR one '*'
+                                          damaged; BAR_FIX_MERGED a lost
+                                          narrow element put back;
+                                          BAR_FIX_CUT a missing end bar
+                                          put back */
 } barcode_result_t;
 #define BAR_FIX_STAR   1
 #define BAR_FIX_MERGED 2
@@ -59,6 +65,9 @@ IMPORT uint32_t barcode_mark (int32_t * centre_odo, int32_t * width_mm10);
 IMPORT bool    barcode_set_mapping (const uint8_t * text, int32_t len,
                                     uint8_t * why, int32_t why_max);
 IMPORT int32_t barcode_move_for (uint8_t ch); /* MOVE_... or MOVE_NONE */
+/** The letter mapped to each move, in the order L, R, F, U; 0 for every
+   move while there is no mapping. */
+IMPORT void    barcode_mapping_get (uint8_t * p_letters);
 IMPORT int32_t barcode_mapping_text (uint8_t * out,
                                      int32_t   max); /* "K=L,Q=R,..." or "" */
 

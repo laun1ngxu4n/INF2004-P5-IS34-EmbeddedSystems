@@ -217,7 +217,12 @@ endif
 # before any recipe executes.
 ################################################################################
 
-PROFILE_ID := smp$(SMP)-$(CONSOLE)-wifi$(WIFI)-net$(NET)-mqtt$(MQTT)-crash$(CRASH_REPORT)-test$(TEST)-stage$(TEST_STAGE)$(if $(EXTRA_CFLAGS),-extra)
+# EXTRA_CFLAGS goes into the profile word for word (spaces as '_'): two
+# builds with different extra flags (e.g. -DAPP_PACKED=0) must not share
+# objects
+PROFILE_EMPTY :=
+PROFILE_SPACE := $(PROFILE_EMPTY) $(PROFILE_EMPTY)
+PROFILE_ID := smp$(SMP)-$(CONSOLE)-wifi$(WIFI)-net$(NET)-mqtt$(MQTT)-crash$(CRASH_REPORT)-test$(TEST)-stage$(TEST_STAGE)$(if $(EXTRA_CFLAGS),-extra-$(subst $(PROFILE_SPACE),_,$(strip $(EXTRA_CFLAGS))))
 PROFILE_FILE := .build_profile
 
 ifneq ($(strip $(shell cat $(PROFILE_FILE) 2>/dev/null)),$(PROFILE_ID))

@@ -6,9 +6,11 @@ code in `app_program/`. Read before doing anything:
 1. [`docs/team/CONTEXT.md`](docs/team/CONTEXT.md): the handover. What exists,
    what is proven, **section 3 = current status and the next steps in order**.
 2. [`testing/TEST_STATUS.md`](testing/TEST_STATUS.md): what passed on the robot.
-3. For the current work: [`docs/team/CHANGE_REQ1_PLAN.md`](docs/team/CHANGE_REQ1_PLAN.md)
-   (Change Requirement 1, field by field) and the course documents in
-   [`docs/team/course/`](docs/team/course/).
+3. Change Requirement 1 (implemented 8 Nov, robot retest pending):
+   [`docs/team/CHANGE_REQ1.md`](docs/team/CHANGE_REQ1.md) (what was done, the
+   Week 13 evidence, the retest list in section 7.2), the binary MQTT format
+   [`docs/team/MQTT_WIRE_FORMAT.md`](docs/team/MQTT_WIRE_FORMAT.md), and the course
+   documents in [`docs/team/course/`](docs/team/course/).
 4. How to run the tests: [`testing/TESTING_GUIDE.md`](testing/TESTING_GUIDE.md).
    Coding standard: [`docs/team/BARR_C_DEVIATIONS.md`](docs/team/BARR_C_DEVIATIONS.md).
 

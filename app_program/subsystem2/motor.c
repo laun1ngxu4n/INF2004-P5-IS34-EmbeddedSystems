@@ -38,10 +38,45 @@ LOCAL const int8_t g_qdec[16] = {0,        +1, -1, QDEC_BAD, -1, 0,
                                  QDEC_BAD, +1, +1, QDEC_BAD, 0,  -1,
                                  QDEC_BAD, -1, +1, 0};
 
+/* Encoder counts stay 32 bits (Change Requirement 1: packed where data is
+   handed over, not in the encoder interrupt; Tribunal 1): 0.080 mm per
+   count, so 2^31 counts are 171 km and no run comes near it, but a 20 m
+   run is already 250,000 counts (19 bits + sign).  Read as one aligned
+   word: atomic without a lock. */
 LOCAL volatile int32_t
     g_enc_count[2]; /* raw: the left one counts down forward */
-LOCAL volatile uint32_t g_enc_invalid;
-LOCAL uint8_t           g_enc_prev[2];
+LOCAL volatile uint32_t g_enc_invalid; /* a counter: all 32 bits */
+/* the last A/B levels, 2 bits per wheel (left in bits 0-1, right 2-3);
+   written only by the encoder interrupt (and once before it is on) */
+LOCAL uint8_t g_enc_prev;
+
+/* The duties last written, for Safety's stall check: -1000..1000 per
+   mille, 11 bits signed each.  Written by Motion and by motor_safe_off()
+   (any context), so always under APP_LOCK. */
+typedef struct
+{
+    int32_t left  APP_FIELD(11);
+    int32_t right APP_FIELD(11);
+} motor_duty_t;
+
+LOCAL volatile motor_duty_t g_duty;
+
+/** The A/B levels last seen on one wheel (2 bits). */
+Inline uint32_t enc_prev_get (int32_t wheel)
+{
+    /* wheel is WHEEL_L or WHEEL_R (0 or 1): the shift is 0 or 2 */
+    return ((uint32_t)g_enc_prev >> ((uint32_t)wheel * 2u)) & 3u;
+}
+
+/** Records the A/B levels of one wheel (2 bits). */
+Inline void enc_prev_set (int32_t wheel, uint32_t state_ab)
+{
+    uint32_t shift = (uint32_t)wheel * 2u; /* wheel 0 or 1: shift 0 or 2 */
+
+    /* only bits 0-3 are used: fits uint8_t */
+    g_enc_prev = (uint8_t)(((uint32_t)g_enc_prev & ~(3u << shift)) |
+                           ((state_ab & 3u) << shift));
+}
 
 /** The A/B level pair of one wheel's encoder. */
 LOCAL uint8_t enc_ab (int32_t wheel)
@@ -66,7 +101,7 @@ LOCAL void encoder_edge_isr (uint32_t pin, uint32_t events)
     int32_t wheel =
         ((PIN_ENC_L_A == pin) || (PIN_ENC_L_B == pin)) ? WHEEL_L : WHEEL_R;
     uint8_t state_ab = enc_ab(wheel);
-    int8_t  step     = g_qdec[(g_enc_prev[wheel] << 2) | state_ab];
+    int8_t  step     = g_qdec[(enc_prev_get(wheel) << 2) | state_ab];
 
     (void)events;
 
@@ -79,7 +114,7 @@ LOCAL void encoder_edge_isr (uint32_t pin, uint32_t events)
         g_enc_count[wheel] += step;
     }
 
-    g_enc_prev[wheel] = state_ab;
+    enc_prev_set(wheel, state_ab);
 }
 
 /* One write per slice sets A (low half) and B (high half) together, so a
@@ -121,19 +156,46 @@ EXPORT void motor_write (int32_t duty_l, int32_t duty_r)
 
     if (app_stop_reasons() != 0u)
     {
-        cc_l = 0u; /* STOP always wins */
-        cc_r = 0u;
+        cc_l   = 0u; /* STOP always wins */
+        cc_r   = 0u;
+        duty_l = 0;
+        duty_r = 0;
     }
 
     out_w(PWM_CC_L, cc_l);
     out_w(PWM_CC_R, cc_r);
+    /* cc_pair() clamped what reached the motors to -1000..1000: the same
+       range is recorded */
+    g_duty.left  = (duty_l > DUTY_FULL)    ? DUTY_FULL
+                   : (duty_l < -DUTY_FULL) ? -DUTY_FULL
+                                           : duty_l;
+    g_duty.right = (duty_r > DUTY_FULL)    ? DUTY_FULL
+                   : (duty_r < -DUTY_FULL) ? -DUTY_FULL
+                                           : duty_r;
     APP_UNLOCK(irq_state);
 }
 
 EXPORT void motor_safe_off (void)
 {
+    uint32_t irq_state;
+
     out_w(PWM_CC_L, 0u);
     out_w(PWM_CC_R, 0u);
+    APP_LOCK(irq_state);
+    g_duty.left  = 0;
+    g_duty.right = 0;
+    APP_UNLOCK(irq_state);
+}
+
+/** The duties last written, -1000..1000 per mille (0 after a safe-off). */
+EXPORT void motor_duties (int32_t * p_left, int32_t * p_right)
+{
+    uint32_t irq_state;
+
+    APP_LOCK(irq_state);
+    *p_left  = g_duty.left;
+    *p_right = g_duty.right;
+    APP_UNLOCK(irq_state);
 }
 
 EXPORT int32_t motor_odometer (void)
@@ -193,8 +255,8 @@ EXPORT ER motor_init (void)
         }
     }
 
-    g_enc_prev[WHEEL_L] = enc_ab(WHEEL_L);
-    g_enc_prev[WHEEL_R] = enc_ab(WHEEL_R);
+    enc_prev_set(WHEEL_L, enc_ab(WHEEL_L));
+    enc_prev_set(WHEEL_R, enc_ab(WHEEL_R));
 
     for (idx = 0; idx < ENC_PINS; idx++)
     {

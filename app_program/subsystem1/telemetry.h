@@ -22,9 +22,6 @@
 /** Report one event line (any task; not from interrupt handlers) */
 IMPORT void telemetry_event (const uint8_t * text);
 
-/** Mission state text for the status line (set by Mission) */
-IMPORT void telemetry_set_state (const char * state);
-
 /** START commands received over MQTT since boot (the stage tests accept
    the panel's START as well as the button) */
 IMPORT uint32_t telemetry_start_count (void);

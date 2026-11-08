@@ -22,6 +22,8 @@ IMPORT ER   motor_init (void);
 IMPORT void motor_write (int32_t duty_l,
                          int32_t duty_r); /* -1000..1000 per mille */
 IMPORT void motor_encoders (int32_t * l, int32_t * r, uint32_t * invalid);
+/** The duties last written, -1000..1000 per mille (0 after a safe-off). */
+IMPORT void motor_duties (int32_t * p_left, int32_t * p_right);
 
 #endif /* MOTOR_H */
 

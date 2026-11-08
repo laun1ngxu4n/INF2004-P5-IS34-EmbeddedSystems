@@ -57,21 +57,32 @@
    pitch's (ROLL_LPF_K ~ 30 ms; 100 ms took about 15 % off the peak). */
 #define ROLL_LPF_K 0.3f
 
-LOCAL volatile bool     gb_chip_ok;
-LOCAL volatile bool     gb_cal_request = true; /* calibrate once at boot too */
-LOCAL volatile bool     gb_calibrated;
-LOCAL volatile int32_t  g_height_mm10;
-LOCAL volatile int32_t  g_sin_x1000;
-LOCAL volatile int32_t  g_roll_x1000;
-LOCAL volatile int32_t  g_one_h_mm10; /* one-wheel height now, 0.1 mm */
-LOCAL volatile int32_t  g_ramp_peak_mm10;
-LOCAL volatile uint32_t g_ramp_reports;
-LOCAL volatile uint32_t g_jolts;
+LOCAL volatile bool gb_cal_request = true; /* calibrate once at boot too */
+LOCAL volatile bool gb_calibrated;
+/* The IMU's results (Change Requirement 1): written only by the IMU task,
+   each in the bits its range needs, clamped (app_clamp) on the way in.
+   Whether the chip answers is FAULT_IMU in the fault word.  The
+   calibration flags above stay separate: Mission writes them too. */
+typedef struct
+{
+    int32_t sin_x1000   APP_FIELD(11);     /* sin(pitch) x 1000, +-1023 */
+    int32_t roll_x1000  APP_FIELD(11);     /* sin(side tilt) x 1000 */
+    int32_t height_mm10 APP_FIELD(13);     /* climbed height, 0.1 mm,
+                                              +-409.5 mm */
+    uint32_t one_h_mm10 APP_FIELD(11);     /* one wheel up, 0.1 mm,
+                                              0..204.7 (track x 1 = 123) */
+    uint32_t ramp_peak_mm10 APP_FIELD(12); /* last ramp reported, 0.1 mm,
+                                              0..409.5 */
+} imu_out_t;
+
+LOCAL volatile imu_out_t g_out = {0, 0, 0, 0u, 0u};
+LOCAL volatile uint32_t  g_ramp_reports;
+LOCAL volatile uint32_t  g_jolts;
 
 /** true once the IMU answered and was configured. */
 EXPORT bool imu_ok (void)
 {
-    return gb_chip_ok;
+    return 0u == (app_stop_faults() & FAULT_IMU);
 }
 /** Starts a 1 s level calibration (robot level and still). */
 EXPORT void imu_calibrate (void)
@@ -87,28 +98,28 @@ EXPORT bool imu_calibrated (void)
 /** Current climbed height, 0.1 mm. */
 EXPORT int32_t imu_height_mm10 (void)
 {
-    return g_height_mm10;
+    return g_out.height_mm10;
 }
 /** sin(pitch) x 1000, relative to the level. */
 EXPORT int32_t imu_pitch_mdeg_sin (void)
 {
-    return g_sin_x1000;
+    return g_out.sin_x1000;
 }
 /** sin(side tilt) x 1000, relative to the level. */
 EXPORT int32_t imu_roll_sin_x1000 (void)
 {
-    return g_roll_x1000;
+    return g_out.roll_x1000;
 }
 /** Height of one wheel above the other now (track x sin(side tilt)), 0.1
  * mm. */
 EXPORT int32_t imu_one_wheel_mm10 (void)
 {
-    return g_one_h_mm10;
+    return g_out.one_h_mm10;
 }
 /** The last reported ramp height, 0.1 mm. */
 EXPORT int32_t imu_ramp_peak_mm10 (void)
 {
-    return g_ramp_peak_mm10;
+    return g_out.ramp_peak_mm10;
 }
 /** Ramps reported since boot. */
 EXPORT uint32_t imu_ramp_reports (void)
@@ -150,11 +161,11 @@ LOCAL void chip_retry (int32_t * p_retry)
 
     if (*p_retry <= 0)
     {
-        *p_retry   = 100; /* try again in 1 s */
-        gb_chip_ok = chip_setup();
+        *p_retry = 100; /* try again in 1 s */
 
-        if (gb_chip_ok)
+        if (chip_setup())
         {
+            app_stop_fault_clear(FAULT_IMU);
             tm_printf(app_str("[IMU] LSM303D found at 0x1D\n"));
         }
     }
@@ -203,7 +214,7 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
         tk_slp_tsk(TMO_FEVR); /* woken every 10 ms */
         app_timing_wake(g_tmg_imu, tk_can_wup(TSK_SELF));
 
-        if (!gb_chip_ok)
+        if (!imu_ok())
         {
             chip_retry(&retry);
             goto done;
@@ -211,7 +222,7 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
 
         if (imu_i2c_read(IMU_ADDR, REG_OUT_X_L_A, raw, 6) != E_OK)
         {
-            gb_chip_ok = false;
+            app_stop_fault_set(FAULT_IMU);
             telemetry_event(app_str("IMU read failed, retrying"));
             goto done;
         }
@@ -280,8 +291,10 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
                     base += BASE_K * (sin_f - base);
                 }
 
-                tilt        = sin_f - base;
-                g_sin_x1000 = (int32_t)(tilt * 1000.0f); /* |sin| <= 1 */
+                tilt = sin_f - base;
+                /* |sin| <= 1: x 1000 fits int32_t */
+                g_out.sin_x1000 =
+                    app_clamp((int32_t)(tilt * 1000.0f), -1023, 1023);
                 /* side tilt, the same way (level offset, filter,
                    slowly following driving level) */
                 roll_f += ROLL_LPF_K * (((acc_y / mag) - side_level) - roll_f);
@@ -291,8 +304,10 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
                     base_r += BASE_K * (roll_f - base_r);
                 }
 
-                roll         = roll_f - base_r;
-                g_roll_x1000 = (int32_t)(roll * 1000.0f); /* |sin| <= 1 */
+                roll = roll_f - base_r;
+                /* |sin| <= 1: x 1000 fits int32_t */
+                g_out.roll_x1000 =
+                    app_clamp((int32_t)(roll * 1000.0f), -1023, 1023);
             }
             else
             {
@@ -310,7 +325,8 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
             odo_prev = odo;
             height += step_mm * tilt;
             /* metres at most: fits int32_t in 0.1 mm */
-            g_height_mm10 = (int32_t)(height * 10.0f);
+            g_out.height_mm10 =
+                app_clamp((int32_t)(height * 10.0f), -4095, 4095);
             /* climbs only: a nose-down dip (rear wheels on the
                hump, or coming off it) is not a ramp (6 Nov run 1
                reported a -56 mm dip as 56 mm) */
@@ -332,8 +348,9 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
                 /* mm, small: exact as a float, back to 0.1 mm in int32_t */
                 float32_t height_roll = (float32_t)S2_TRACK_MM * roll_abs;
 
-                g_one_h_mm10 =
-                    (int32_t)(height_roll * 10.0f); /* 0.1 mm: fits */
+                /* 0.1 mm: fits int32_t */
+                g_out.one_h_mm10 =
+                    app_clamp((int32_t)(height_roll * 10.0f), 0, 2047);
 
                 if (height_roll > one_peak)
                 {
@@ -384,7 +401,7 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
                        1000 fits %d */
                     int32_t c10 = (int32_t)(one_pitch_peak * 10.0f);
 
-                    g_ramp_peak_mm10 = o10;
+                    g_out.ramp_peak_mm10 = app_clamp(o10, 0, 4095);
                     g_ramp_reports++;
                     /* sin x 1000, |sin| <= 1: fits %d */
                     tm_sprintf(msg,
@@ -405,7 +422,7 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
                        int32_t */
                     int32_t l10 = (int32_t)(peak_sin * S4_L_MM * 10.0f);
 
-                    g_ramp_peak_mm10 = p10;
+                    g_out.ramp_peak_mm10 = app_clamp(p10, 0, 4095);
                     g_ramp_reports++;
                     /* sin x 1000, |sin| <= 1: fits %d */
                     tm_sprintf(msg,

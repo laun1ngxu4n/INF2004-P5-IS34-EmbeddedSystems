@@ -71,6 +71,13 @@ Inline float32_t app_absf (float32_t value)
     return (value < 0.0f) ? -value : value;
 }
 
+/** value limited to low..high (Change Requirement 1: a value going into a
+   bit-field is clamped to the field's range, never cut off) */
+Inline int32_t app_clamp (int32_t value, int32_t low, int32_t high)
+{
+    return (value < low) ? low : ((value > high) ? high : value);
+}
+
 #endif /* APP_MATH_H */
 
 /*** end of file ***/

@@ -53,16 +53,20 @@
 #define MAX_FRONT_MM 600  /* nothing nearer = no obstacle */
 #define BEAM_UNC_DEG 3.0f /* +/- on the beam correction */
 
-LOCAL volatile uint32_t g_echo_rise_us;
-LOCAL volatile uint32_t g_echo_width_us;
-LOCAL volatile bool     gb_echo_rose;
-LOCAL volatile bool     gb_echo_done;
-LOCAL volatile bool     gb_watch;
+/* Change Requirement 1: the flags below are written by different
+   contexts (the ECHO interrupt, this task, Mission), so each keeps its own
+   byte (packing them into one word would need a lock in the interrupt).
+   The values take their minimum storage unit. */
+LOCAL volatile uint32_t g_echo_rise_us;  /* a timer value: all 32 bits */
+LOCAL volatile uint16_t g_echo_width_us; /* 0..25000 us is valid; saturates
+                                            at 65535 (= open) */
+LOCAL volatile bool gb_echo_rose;
+LOCAL volatile bool gb_echo_done;
+LOCAL volatile bool gb_watch;
 LOCAL volatile bool gb_idle_ping = true; /* Mission IDLE: ping for the panel */
 LOCAL volatile bool gb_scanning;
-LOCAL volatile int32_t g_front_mm = FAR;
-LOCAL volatile bool    gb_sensor_fault;
-LOCAL int32_t          g_servo_now = 90;
+LOCAL volatile int16_t g_front_mm  = FAR; /* -2..4350 mm */
+LOCAL uint8_t          g_servo_now = 90;  /* servo degrees, 50..130 */
 
 /** ECHO edges: interrupt context */
 LOCAL void sonar_echo_isr (uint32_t pin, uint32_t events)
@@ -76,7 +80,10 @@ LOCAL void sonar_echo_isr (uint32_t pin, uint32_t events)
     }
     else if (gb_echo_rose)
     {
-        g_echo_width_us = now - g_echo_rise_us;
+        uint32_t width = now - g_echo_rise_us;
+
+        /* <= 65535 after the test: fits uint16_t */
+        g_echo_width_us = (uint16_t)((width > 0xFFFFu) ? 0xFFFFu : width);
         gb_echo_done    = true;
     }
     else
@@ -225,7 +232,7 @@ EXPORT int32_t obstacle_front_mm (void)
 /** true after 5 pings in a row without an ECHO. */
 EXPORT bool obstacle_sensor_fault (void)
 {
-    return gb_sensor_fault;
+    return 0u != (app_stop_faults() & FAULT_NO_ECHO);
 }
 
 /** Sets up the sonar pins, its ECHO interrupt and the servo PWM. */
@@ -398,6 +405,12 @@ EXPORT void obstacle_scan (obstacle_profile_t * p_profile)
     int32_t centre = (90 - SCAN_FROM) / SCAN_STEP;
     int32_t unc_left;
     int32_t unc_right;
+    int32_t edge_left;
+    int32_t edge_right;
+    bool    b_clear_left;
+    bool    b_clear_right;
+    bool    b_seen_left;
+    bool    b_seen_right;
 
     gb_scanning = true;
 
@@ -466,7 +479,7 @@ EXPORT void obstacle_scan (obstacle_profile_t * p_profile)
         }
     }
 
-    p_profile->front_mm = dist[centre];
+    p_profile->front_mm = app_clamp(dist[centre], -8192, 8191);
     p_profile->b_found =
         ((dist[centre] >= 0) && (dist[centre] <= MAX_FRONT_MM));
 
@@ -482,23 +495,29 @@ EXPORT void obstacle_scan (obstacle_profile_t * p_profile)
 
     /* phi rises with k only if LEFT_HIGH: walk "left" in the right order */
     side_edge(dist, phi, centre, S5_SERVO_LEFT_HIGH ? +1 : -1, dist[centre],
-              &p_profile->left_mm, &unc_left, &p_profile->b_left_clear,
-              &p_profile->b_left_seen);
+              &edge_left, &unc_left, &b_clear_left, &b_seen_left);
     side_edge(dist, phi, centre, S5_SERVO_LEFT_HIGH ? -1 : +1, dist[centre],
-              &p_profile->right_mm, &unc_right, &p_profile->b_right_clear,
-              &p_profile->b_right_seen);
-    p_profile->left_unc  = unc_left;
-    p_profile->right_unc = unc_right;
-    p_profile->width_mm  = p_profile->left_mm - p_profile->right_mm;
+              &edge_right, &unc_right, &b_clear_right, &b_seen_right);
+    p_profile->left_mm       = app_clamp(edge_left, -4095, 4095);
+    p_profile->right_mm      = app_clamp(edge_right, -4095, 4095);
+    p_profile->b_left_clear  = b_clear_left;
+    p_profile->b_right_clear = b_clear_right;
+    p_profile->b_left_seen   = b_seen_left;
+    p_profile->b_right_seen  = b_seen_right;
+    p_profile->left_unc      = app_clamp(unc_left, 0, 4095);
+    p_profile->right_unc     = app_clamp(unc_right, 0, 4095);
+    p_profile->width_mm      = p_profile->left_mm - p_profile->right_mm;
     {
         /* distances in mm, small: exact as floats; the square root is below
            the distances, fits int32_t */
         float32_t beam =
             2.0f * (float32_t)dist[centre] * app_sin_deg(BEAM_UNC_DEG);
         /* uncertainties in mm, small: exact as floats; the root fits int32_t */
-        p_profile->unc_mm = (int32_t)app_sqrtf(
-            (float32_t)((unc_left * unc_left) + (unc_right * unc_right)) +
-            (beam * beam));
+        p_profile->unc_mm =
+            app_clamp((int32_t)app_sqrtf((float32_t)((unc_left * unc_left) +
+                                                     (unc_right * unc_right)) +
+                                         (beam * beam)),
+                      0, 4095);
     }
 }
 
@@ -548,26 +567,39 @@ EXPORT void obstacle_combine (const obstacle_profile_t * p_near,
                               obstacle_profile_t *       p_out)
 {
     float32_t beam;
+    int32_t   edge;
+    int32_t   unc;
+    bool      b_seen;
+    bool      b_clear;
 
     *p_out         = *p_far;
     p_out->b_found = (p_near->b_found) && (p_far->b_found);
     pick_edge(p_near->left_mm, p_near->left_unc, p_near->b_left_seen,
               p_near->b_left_clear, p_far->left_mm, p_far->left_unc,
-              p_far->b_left_seen, p_far->b_left_clear, &p_out->left_mm,
-              &p_out->left_unc, &p_out->b_left_seen, &p_out->b_left_clear);
+              p_far->b_left_seen, p_far->b_left_clear, &edge, &unc, &b_seen,
+              &b_clear);
+    p_out->left_mm      = edge; /* one of the two scans' edges: in range */
+    p_out->left_unc     = unc;
+    p_out->b_left_seen  = b_seen;
+    p_out->b_left_clear = b_clear;
     pick_edge(p_near->right_mm, p_near->right_unc, p_near->b_right_seen,
               p_near->b_right_clear, p_far->right_mm, p_far->right_unc,
-              p_far->b_right_seen, p_far->b_right_clear, &p_out->right_mm,
-              &p_out->right_unc, &p_out->b_right_seen, &p_out->b_right_clear);
-    p_out->width_mm = p_out->left_mm - p_out->right_mm;
+              p_far->b_right_seen, p_far->b_right_clear, &edge, &unc, &b_seen,
+              &b_clear);
+    p_out->right_mm      = edge;
+    p_out->right_unc     = unc;
+    p_out->b_right_seen  = b_seen;
+    p_out->b_right_clear = b_clear;
+    p_out->width_mm      = p_out->left_mm - p_out->right_mm;
     /* distances in mm, small: exact as floats; the square root is below the
        distances, fits int32_t */
     beam = 2.0f * (float32_t)p_out->front_mm * app_sin_deg(BEAM_UNC_DEG);
     /* uncertainties in mm, small: exact as floats; the root fits int32_t */
-    p_out->unc_mm =
+    p_out->unc_mm = app_clamp(
         (int32_t)app_sqrtf((float32_t)((p_out->left_unc * p_out->left_unc) +
                                        (p_out->right_unc * p_out->right_unc)) +
-                           (beam * beam));
+                           (beam * beam)),
+        0, 4095);
 }
 
 /* ---- the task: forward watch ---------------------------------------- */
@@ -591,7 +623,7 @@ LOCAL void watch_idle (watch_state_t * p_state)
 
     if (!gb_scanning)
     {
-        gb_sensor_fault = false; /* fresh start next watch */
+        app_stop_fault_clear(FAULT_NO_ECHO); /* fresh start next watch */
     }
 #if !APP_TEST
     /* Idle: keep pinging ahead so the laptop panel shows a live
@@ -639,7 +671,7 @@ LOCAL void watch_echo (watch_state_t * p_state)
 
     if ((p_state->fault_count >= 5) && (!p_state->b_told))
     {
-        gb_sensor_fault = true;
+        app_stop_fault_set(FAULT_NO_ECHO);
         p_state->b_told = true;
         tk_set_flg(gh_flg_mission, MSN_FLG_OBSTACLE);
     }

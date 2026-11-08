@@ -131,30 +131,43 @@ Inline int32_t mm_to_counts (int32_t dist_mm)
 #define PAT_L 2u
 #define PAT_R 1u
 
-LOCAL volatile int32_t  g_steer;
-LOCAL volatile int32_t  g_state = LINE_ON;
+/* Line's results for the other tasks (Change Requirement 1): one word,
+   written only by the line task, so a field can be read without a lock.
+   Why a line sensor fault happened is in the fault word (FAULT_LINE_...). */
+typedef struct
+{
+    int32_t steer       APP_FIELD(8); /* mm/s, |steer| <= 40 */
+    uint32_t state      APP_FIELD(2); /* LINE_ON .. LINE_FAULT */
+    uint32_t speed_pct  APP_FIELD(7); /* 35..100 % */
+    uint32_t junc_sides APP_FIELD(2); /* JUNC_SIDE_S | JUNC_SIDE_B */
+} line_out_t;
+
+LOCAL volatile line_out_t g_out = {0, LINE_ON, 100u, 0u};
+/* Counters and an odometer position stay 32 bits: counters only ever go up
+   (differences are taken), the position is an encoder count (motor.c) */
 LOCAL volatile uint32_t g_junctions;
 LOCAL volatile bool gb_enabled = false; /* until a start (Mission or a test) */
-LOCAL volatile int32_t  g_speed_pct = 100;
-LOCAL volatile int32_t  g_junc_odo; /* last junction centre */
-LOCAL volatile int32_t  g_junc_sides;
-LOCAL volatile int32_t  g_fault_why;
-LOCAL volatile uint32_t g_n_corr;  /* corrections since the start */
-LOCAL volatile uint32_t g_n_sweep; /* sweeps right across the tape */
+LOCAL volatile int32_t  g_junc_odo;     /* last junction centre */
+LOCAL volatile uint32_t g_n_corr;       /* corrections since the start */
+LOCAL volatile uint32_t g_n_sweep;      /* sweeps right across the tape */
 
 EXPORT int32_t line_steer_mm_s (void)
 {
-    return g_steer;
+    return g_out.steer;
 }
 /** The line task's state (LINE_ON, LINE_SEARCH, LINE_LOST, LINE_FAULT). */
 EXPORT int32_t line_state (void)
 {
-    return g_state;
+    return g_out.state;
 }
 /** Why the line task stopped with LINE_FAULT (LINE_FAULT_...), or 0. */
 EXPORT int32_t line_fault (void)
 {
-    return g_fault_why;
+    uint32_t faults = app_stop_faults();
+
+    return ((faults & FAULT_LINE_ONE) != 0u)    ? LINE_FAULT_ONE
+           : ((faults & FAULT_LINE_BOTH) != 0u) ? LINE_FAULT_BOTH
+                                                : 0;
 }
 /** Junctions seen since boot. */
 EXPORT uint32_t line_junctions (void)
@@ -177,7 +190,7 @@ EXPORT void line_set_enabled (bool b_on)
  * while correcting. */
 EXPORT int32_t line_speed_pct (void)
 {
-    return g_speed_pct;
+    return g_out.speed_pct;
 }
 /** Odometer count where the line sensors crossed the last junction's
  * centre. */
@@ -188,7 +201,7 @@ EXPORT int32_t line_junction_odo (void)
 /** The last junction's branches (JUNC_SIDE_S, JUNC_SIDE_B). */
 EXPORT int32_t line_junction_sides (void)
 {
-    return g_junc_sides;
+    return g_out.junc_sides;
 }
 /** true while either line sensor sees black (raw). */
 EXPORT bool line_any_black (void)
@@ -215,14 +228,14 @@ LOCAL void junction_at (int32_t centre, int32_t side)
 
     if (gb_have_last && (delta < mm_to_counts(S3_JUNC_MERGE_MM)))
     {
-        g_junc_sides |= side; /* same one: no second event */
+        g_out.junc_sides |= side; /* same one: no second event */
         return;
     }
 
-    g_last_c     = centre;
-    gb_have_last = true;
-    g_junc_odo   = centre;
-    g_junc_sides = side;
+    g_last_c         = centre;
+    gb_have_last     = true;
+    g_junc_odo       = centre;
+    g_out.junc_sides = side;
     g_junctions++;
     tk_set_flg(gh_flg_mission, MSN_FLG_JUNCTION);
 }
@@ -383,8 +396,8 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
             hist_reset(odo);
             mark_seen =
                 barcode_mark(&mark_centre, &mark_width); /* drop old patches */
-            g_state     = LINE_ON;
-            g_fault_why = 0;
+            g_out.state = LINE_ON;
+            app_stop_fault_clear(FAULT_LINE_ONE | FAULT_LINE_BOTH);
         }
 
         b_was_enabled = gb_enabled;
@@ -573,7 +586,7 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
             out = target;
         }
 
-        g_steer = out;
+        g_out.steer = out;
         /* steering memory: average of the steering by distance */
         {
             int32_t step = odo - mem_odo;
@@ -599,7 +612,7 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
 
         if (b_searching)
         {
-            g_speed_pct = S3_SEARCH_PCT;
+            g_out.speed_pct = S3_SEARCH_PCT;
         }
         else
         {
@@ -608,15 +621,15 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
             if (b_single &&
                 ((odo - single_from) >= mm_to_counts(S3_LOW_AFTER_MM)))
             {
-                g_speed_pct = S3_LOW_PCT;
+                g_out.speed_pct = S3_LOW_PCT;
             }
             else if (b_single)
             {
-                g_speed_pct = S3_CORR_PCT;
+                g_out.speed_pct = S3_CORR_PCT;
             }
             else
             {
-                g_speed_pct = 100;
+                g_out.speed_pct = 100;
             }
 
             /* |mem| <= the steering limit (mm/s): the product is small */
@@ -627,9 +640,9 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
                 cap = 35;
             }
 
-            if (cap < g_speed_pct)
+            if (cap < line_speed_pct())
             {
-                g_speed_pct = cap;
+                g_out.speed_pct = cap;
             }
         }
 
@@ -646,7 +659,7 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
         }
 
         /* ---- Lost, and stuck sensors ---- */
-        if ((g_state != LINE_FAULT) && (g_state != LINE_LOST))
+        if ((g_out.state != LINE_FAULT) && (g_out.state != LINE_LOST))
         {
             int32_t why = 0;
 
@@ -658,17 +671,18 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
                 bool b_far = ((odo - search_from) > mm_to_counts(S3_LOST_MM));
 
                 search_n += b_far ? 0 : 1;
-                g_state = (b_far || (search_n > (S3_LOST_MS / PERIOD_LINE_MS)))
-                              ? LINE_LOST
-                              : LINE_SEARCH;
+                g_out.state =
+                    (b_far || (search_n > (S3_LOST_MS / PERIOD_LINE_MS)))
+                        ? LINE_LOST
+                        : LINE_SEARCH;
             }
             else if (b_probe_none)
             {
-                g_state = LINE_LOST;
+                g_out.state = LINE_LOST;
             }
             else
             {
-                g_state = LINE_ON;
+                g_out.state = LINE_ON;
             }
 
             if (b_single &&
@@ -688,11 +702,12 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
 
             if (why != 0)
             {
-                g_fault_why = why;
-                g_state     = LINE_FAULT;
+                app_stop_fault_set((LINE_FAULT_ONE == why) ? FAULT_LINE_ONE
+                                                           : FAULT_LINE_BOTH);
+                g_out.state = LINE_FAULT;
             }
 
-            if ((LINE_LOST == g_state) || (LINE_FAULT == g_state))
+            if ((LINE_LOST == g_out.state) || (LINE_FAULT == g_out.state))
             {
                 tk_set_flg(gh_flg_mission, MSN_FLG_LINE_LOST);
             }

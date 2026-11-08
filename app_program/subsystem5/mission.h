@@ -11,6 +11,9 @@
 
 /** The mission state's name: "IDLE", "CAL", "RUN" or "MANOEUVRE". */
 IMPORT const char * mission_state_name (void);
+/** The mission state as a number: 0 IDLE, 1 CAL, 2 RUN, 3 MANOEUVRE
+   (2 bits; the binary status message carries it). */
+IMPORT uint32_t mission_state (void);
 /** Mission reacts to START only when armed: always in the normal image;
    in a test image only after the test arms it (so tests can use START). */
 IMPORT void mission_arm (bool on);

@@ -1,6 +1,6 @@
 # Change Requirement 1 (course document, text copy)
 
-Text of `Change Requirement 1.docx` as given by the course. The plan for it: [`../CHANGE_REQ1_PLAN.md`](../CHANGE_REQ1_PLAN.md).
+Text of `Change Requirement 1.docx` as given by the course. How it was done, and the Week 13 evidence: [`../CHANGE_REQ1.md`](../CHANGE_REQ1.md).
 
 ```text
 Change Requirement: Minimum-Bit Data Representation

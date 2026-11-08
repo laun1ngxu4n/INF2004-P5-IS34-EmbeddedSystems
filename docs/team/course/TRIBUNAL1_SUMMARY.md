@@ -14,13 +14,13 @@ and student IDs are left out; buddies are shown by role:
 | B5 | ultrasonic, servo, obstacle; Mission controller and integration |
 
 The curveball was **Change Requirement 1, Minimum-Bit Data Representation**
-([`CHANGE_REQUIREMENT_1.md`](CHANGE_REQUIREMENT_1.md)). How the current
-code compares, and the work list: [`../CHANGE_REQ1_PLAN.md`](../CHANGE_REQ1_PLAN.md).
+([`CHANGE_REQUIREMENT_1.md`](CHANGE_REQUIREMENT_1.md)). How it was
+implemented, and the Week 13 evidence: [`../CHANGE_REQ1.md`](../CHANGE_REQ1.md).
 
 The record describes the **Week 6 design** (message queues `motion_cmd_q`,
 `branch_q`, `nav_cmd_q`, `mission_evt_q`, `line_cmd_q`; `ir_edge_t`; a
 6-state line machine; Safety at the highest priority with a watchdog).
-The built code differs. Where it does: `CHANGE_REQ1_PLAN.md` section 6.
+The built code differs. Where it does: `CHANGE_REQ1.md` section 9.
 
 ## 1. Decisions
 

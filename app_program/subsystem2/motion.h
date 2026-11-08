@@ -17,15 +17,21 @@
 #define MOT_RES_STOPPED 3 /* cancelled by app_stop_request() */
 #define MOT_RES_TIMEOUT 4 /* took > 2x expected + 1 s (blocked?) */
 
+/* Motion's status (Change Requirement 1): the result and the speeds in
+   the bits their ranges need.  The command ID, the encoder counts and the
+   error counter stay 32 bits: they only ever count up or are encoder
+   counts (see motor.c), and a narrow command ID could wrap (Tribunal 1). */
 typedef struct
 {
-    ID       h_cmd_id; /* id of the last command accepted */
-    int32_t  result;   /* MOT_RES_... of that command */
-    int32_t  count_l;  /* encoder counts since boot, + = forward */
+    ID              h_cmd_id;      /* id of the last command accepted */
+    uint32_t result APP_FIELD(3);  /* MOT_RES_... of that command */
+    int32_t speed_l APP_FIELD(12); /* measured mm/s, + = forward (40 ms
+                                      average), +-2047 */
+    int32_t speed_r APP_FIELD(12);
+    int32_t         count_l; /* encoder counts since boot, +
+                                = forward */
     int32_t  count_r;
-    int32_t  speed_l; /* measured mm/s, + = forward (40 ms average) */
-    int32_t  speed_r;
-    uint32_t invalid; /* quadrature errors since boot (missed edges) */
+    uint32_t invalid; /* quadrature errors since boot */
 } motion_status_t;
 
 /** Commands.  Each returns the command id (> 0), or E_OBJ while a STOP

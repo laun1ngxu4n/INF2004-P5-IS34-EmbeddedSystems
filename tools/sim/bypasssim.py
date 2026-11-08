@@ -290,7 +290,7 @@ def bypass(rb, method, rng, scan_err):
     """the mission's on_obstacle, after the forward watch stopped it"""
     w = rb.w
     # NEW: back up to scan from SCAN_FROM_MM, then REVERSE_MM more.
-    # J (9 Nov): scan where the forward watch stopped (at least
+    # J (8 Nov): scan where the forward watch stopped (at least
     # SCAN_NEAR_MM away), then REVERSE_MM back
     d = rb.sonar() or TRIP_MM
     first = SCAN_NEAR_MM if method in ('J', 'S') else SCAN_FROM_MM

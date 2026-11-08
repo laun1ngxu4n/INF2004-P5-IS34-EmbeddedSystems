@@ -42,12 +42,17 @@
 #define KI          6.0f /* per mille per (mm/s * s) */
 #define I_LIMIT     400.0f
 
+/* A command (Change Requirement 1: each field in the bits its range
+   needs; cmd_post() clamps into range).  The command ID stays an ID: it
+   only ever goes up, and a narrow ID that wrapped could let an old
+   result count as the new command's (Tribunal 1, R5). */
 typedef struct
 {
-    int32_t type;
-    ID      h_cmd_id;
-    int32_t speed;  /* mm/s, sign = direction (drive) */
-    int32_t amount; /* drive: mm; turn: deg (+ = left) */
+    uint32_t type  APP_FIELD(3); /* CMD_NONE .. CMD_FOLLOW (5) */
+    ID             h_cmd_id;
+    int32_t speed  APP_FIELD(11); /* mm/s, +-1023, sign = direction */
+    int32_t amount APP_FIELD(14); /* drive: mm, turn: deg (+ = left),
+                                     +-8191 */
 } motion_cmd_t;
 
 LOCAL motion_cmd_t    g_cmd_slot; /* written by callers, under APP_LOCK */
@@ -78,8 +83,8 @@ LOCAL ID cmd_post (int32_t type, int32_t speed, int32_t amount)
     h_cmd               = ++gh_cmd_last_id;
     g_cmd_slot.type     = type;
     g_cmd_slot.h_cmd_id = h_cmd;
-    g_cmd_slot.speed    = speed;
-    g_cmd_slot.amount   = amount;
+    g_cmd_slot.speed    = app_clamp(speed, -1023, 1023);
+    g_cmd_slot.amount   = app_clamp(amount, -8191, 8191);
     gb_cmd_new          = true;
     g_status.h_cmd_id   = h_cmd;
     g_status.result     = MOT_RES_BUSY;
@@ -110,11 +115,14 @@ EXPORT ID motion_follow (int32_t speed_mm_s)
     return cmd_post(CMD_FOLLOW, speed_mm_s, 0);
 }
 
-LOCAL volatile int32_t g_follow_limit; /* 0 = none */
+/* mm/s, 0 = none; +-1023 (11 bits), its own halfword: Mission writes it,
+   the motion task reads it (Change Requirement 1) */
+LOCAL volatile int16_t g_follow_limit;
 
 EXPORT void motion_follow_limit (int32_t speed_mm_s)
 {
-    g_follow_limit = speed_mm_s;
+    /* clamped to +-1023 first: fits int16_t */
+    g_follow_limit = (int16_t)app_clamp(speed_mm_s, -1023, 1023);
 }
 
 /** Stops the wheels (no STOP reason). */
@@ -517,8 +525,9 @@ EXPORT void motion_task (int32_t stacd, void * p_exinf)
         g_status.count_l = count_left;
         g_status.count_r = count_right;
         /* measured speeds, |v| < 2000 mm/s: fit int32_t */
-        g_status.speed_l = (int32_t)vel_left;
-        g_status.speed_r = (int32_t)vel_right; /* the same */
+        g_status.speed_l = app_clamp((int32_t)vel_left, -2047, 2047);
+        g_status.speed_r =
+            app_clamp((int32_t)vel_right, -2047, 2047); /* the same */
         g_status.invalid = invalid;
         APP_UNLOCK(irq_state);
 

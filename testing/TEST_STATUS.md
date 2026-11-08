@@ -1,6 +1,10 @@
 # P5-IS34 test status checklist
 
-Last updated: 8 Nov 2026. How to run each test:
+Last updated: 8 Nov 2026 (evening). **Since the robot runs earlier on 8 Nov the code was
+brought to the Barr C standard and Change Requirement 1 (minimum-bit data,
+binary MQTT) was implemented: every stage needs a confirmation run with the
+new images and the updated panel. The extra tests are in
+[CHANGE_REQ1.md](../docs/team/CHANGE_REQ1.md) section 7.2.** How to run each test:
 [TESTING_GUIDE.md](TESTING_GUIDE.md). Formal results:
 [testing/](./) `TEST_LOG.md` files. What the robot does, its limits
 and everything still open: [ROBOT_BEHAVIOUR.md](../docs/robot/ROBOT_BEHAVIOUR.md).

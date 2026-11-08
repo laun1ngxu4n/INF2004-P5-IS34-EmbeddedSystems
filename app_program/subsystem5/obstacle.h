@@ -22,24 +22,33 @@ IMPORT void obstacle_idle_ping (bool on); /* mission image: ping for the panel
 IMPORT bool    obstacle_sensor_fault (void); /* 5 pings in a row without ECHO */
 IMPORT int32_t obstacle_front_mm (void); /* last forward reading, -1 = none */
 
+/* One scan's result (Change Requirement 1): each field in the bits its
+   range needs; values are clamped into range when stored.  Distances stay
+   signed (they are used in signed arithmetic, e.g. sgn x unc). */
 typedef struct
 {
-    bool    b_found;      /* an obstacle straight ahead */
-    int32_t front_mm;     /* distance straight ahead */
-    int32_t left_mm;      /* left edge, mm left of the robot's centre line */
-    int32_t right_mm;     /* right edge, mm (negative = right of centre) */
-    int32_t width_mm;     /* left - right */
-    int32_t unc_mm;       /* +/- uncertainty */
-    bool    b_left_clear; /* open space beyond the left edge */
-    bool    b_right_clear;
-    bool    b_left_seen; /* the scan saw past the left edge (false:
-                  the obstacle filled the scan that side,
-                  edge and clear unknown) */
-    bool    b_right_seen;
-    int32_t left_unc; /* +/- of each edge */
-    int32_t right_unc;
-    int32_t rays;       /* rays scanned */
-    int32_t fault_rays; /* rays where the sensor did not answer */
+    bool b_found       APP_FIELD(1); /* an obstacle straight ahead */
+    bool b_left_clear  APP_FIELD(1); /* open space beyond the left edge */
+    bool b_right_clear APP_FIELD(1);
+    bool b_left_seen   APP_FIELD(1); /* the scan saw past the left edge
+                                        (false: the obstacle filled the
+                                        scan that side, edge and clear
+                                        unknown) */
+    bool b_right_seen  APP_FIELD(1);
+    int32_t rays       APP_FIELD(6); /* rays scanned, <= 17 */
+    int32_t fault_rays APP_FIELD(6); /* rays where the sensor did not
+                                        answer, <= 17 */
+    int32_t front_mm APP_FIELD(14);  /* distance straight ahead: mm
+                                        (<= 4350), SONAR_OPEN or
+                                        SONAR_FAULT */
+    int32_t left_mm APP_FIELD(13);   /* left edge, mm left of the robot's
+                                        centre line, +-4095 */
+    int32_t right_mm APP_FIELD(13);  /* right edge, mm (negative = right
+                                        of centre) */
+    int32_t width_mm  APP_FIELD(14); /* left - right, +-8191 */
+    int32_t unc_mm    APP_FIELD(13); /* +/- uncertainty, 0..4095 */
+    int32_t left_unc  APP_FIELD(13); /* +/- of each edge, 0..4095 */
+    int32_t right_unc APP_FIELD(13);
 } obstacle_profile_t;
 
 /** Blocking: called by Mission (or a test) while the robot stands still.

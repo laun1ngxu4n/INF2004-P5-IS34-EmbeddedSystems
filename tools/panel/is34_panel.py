@@ -27,6 +27,11 @@ or run it yourself:
     "C:\\Program Files\\mosquitto\\mosquitto.exe" -c tools/panel/mosquitto_robot.conf -v
 
 Keys: Space = STOP, Ctrl+G = START.
+
+Change Requirement 1: the status, sensor and mapping-acknowledgement
+messages are binary (is34_wire.py, docs/team/MQTT_WIRE_FORMAT.md); the
+panel sends the mapping binary and START / STOP with an empty payload.
+Messages from an older robot image (text) are still shown.
 """
 import argparse
 import math
@@ -40,6 +45,8 @@ from tkinter import filedialog, ttk
 
 import paho.mqtt.client as mqtt
 
+import is34_wire as wire
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(os.path.dirname(HERE))       # tools/panel -> the repo
 LOG_DIR = os.path.join(REPO, "logs", "panel")        # what the panel showed
@@ -48,12 +55,13 @@ MOSQUITTO = r"C:\Program Files\mosquitto\mosquitto.exe"
 OFFLINE_S = 3.0                 # no status line for this long = offline
 LOG_VIEW_LINES = 4000           # lines kept in the Robot log view (the file keeps all)
 
-LINE_NAMES = {"0": "ON", "1": "SEARCH", "2": "LOST"}
-STOP_BITS = {1: "button", 2: "laptop", 4: "fault"}
+LINE_NAMES = {"0": "ON", "1": "SEARCH", "2": "LOST", "3": "FAULT"}
+STOP_BITS = wire.STOP_BITS
 FIELDS = [                      # (telemetry key, label)
     ("state", "State"), ("speed", "Speed L,R (mm/s)"), ("dist", "Distance (mm)"),
     ("line", "Line"), ("junctions", "Junctions"), ("barcode", "Last barcode"),
     ("map", "Mapping"), ("ramp_peak", "Ramp peak (mm)"), ("stop", "Stop reason"),
+    ("faults", "Faults / warnings"),
 ]
 STATE_COLOURS = {"IDLE": "#888888", "CAL": "#d9a400", "RUN": "#2a9d3a"}
 
@@ -117,9 +125,38 @@ def pretty(key, value):
         if bits == 0:
             return "none"
         return ", ".join(n for b, n in STOP_BITS.items() if bits & b)
+    if key == "faults":
+        try:
+            return wire.bits_names(int(value), wire.FAULT_BITS)
+        except ValueError:
+            return value
     if key == "map" and value == "none":
         return "none (send one)"
     return value
+
+
+def status_from_binary(d):
+    """a decoded binary status message -> the text status line's fields"""
+    return {
+        "state": wire.MISSION_NAMES[d["mission"]],
+        "speed": f"{d['speed_l']},{d['speed_r']}",
+        "dist": str(d["dist_mm"]),
+        "line": str(d["line"]),
+        "junctions": str(d["junctions"]),
+        "barcode": wire.letter(d["last"]) or "-",
+        "map": wire.map_text(d) or "none",
+        "ramp_peak": f"{d['ramp_peak_mm10'] // 10}.{d['ramp_peak_mm10'] % 10}",
+        "stop": str(d["stop"]),
+        "faults": str(d["faults"]),
+    }
+
+
+def sensors_from_binary(d):
+    """a decoded binary sensors message -> the text sensor line's fields"""
+    front = {0: d["front_mm"], 1: -1, 2: -2}.get(d["front_status"], -2)
+    return {"ir": f"{d['ir_l']}{d['ir_r']}{d['ir_b']}", "steer": str(d["steer"]),
+            "hold": str(d["hold"]), "inbar": str(d["inbar"]), "front": str(front),
+            "tilt": str(d["tilt"]), "h10": str(d["h10"]), "imu": str(d["imu_ok"])}
 
 
 class Panel:
@@ -155,8 +192,7 @@ class Panel:
             self.cli = mqtt.Client(client_id=cid)
         self.cli.on_connect = self._on_connect
         self.cli.on_disconnect = lambda c, u, *rest: self.q.put(("conn", False))
-        self.cli.on_message = lambda c, u, m: self.q.put(
-            ("msg", m.topic, m.payload.decode("utf-8", "replace")))
+        self.cli.on_message = lambda c, u, m: self.q.put(("msg", m.topic, bytes(m.payload)))
         self.connect()
 
         root.bind("<space>", lambda e: self.stop())
@@ -311,19 +347,21 @@ class Panel:
         except OSError as e:
             self.add_event("panel", f"could not start Mosquitto: {e}")
 
-    def publish(self, topic, payload):
+    def publish(self, topic, payload, shown=None):
         r = self.cli.publish(topic, payload, qos=1)
         ok = r.rc == mqtt.MQTT_ERR_SUCCESS
-        self.add_event("sent", f"{topic} {payload}" + ("" if ok else
+        if shown is None:
+            shown = payload.hex(" ") if isinstance(payload, bytes) else payload
+        self.add_event("sent", f"{topic} {shown}" + ("" if ok else
                        "  (NOT SENT: not connected to the broker, press Start broker)"))
         if ok and time.time() - self.last_status > OFFLINE_S:
             self.add_event("panel", "warning: the robot is not online, it will not see this")
 
     def start(self):
-        self.publish("is34/cmd/start", "go")
+        self.publish("is34/cmd/start", b"", shown="(the topic is the command)")
 
     def stop(self):
-        self.publish("is34/cmd/stop", "now")
+        self.publish("is34/cmd/stop", b"", shown="(the topic is the command)")
 
     # ---- barcode mapping ---------------------------------------------------
     def _map_choice(self):
@@ -396,7 +434,8 @@ class Panel:
                                    fg="#b00020")
             return
         self.ack_lbl.configure(text="waiting for the robot ...", foreground="#666666")
-        self.publish("is34/cmd/map", text)
+        payload = wire.pack_map(self._map_choice())
+        self.publish("is34/cmd/map", payload, shown=f"{text} = {payload.hex(' ')}")
 
     def save_robot_log(self):
         if not self.robot_text:
@@ -506,24 +545,38 @@ class Panel:
             self.robot_lbl.configure(text="robot: online", fg="#2a9d3a")
         self.root.after(100, self._poll)
 
-    def _message(self, topic, text):
+    def _message(self, topic, payload):
+        text = payload.decode("utf-8", "replace")
         if topic == "is34/telemetry":
             self.last_status = time.time()
-            self.log.write(time.strftime("%H:%M:%S ") + f"{topic} {text}\n")
-            for key, val in parse_status(text).items():
+            d = wire.unpack_status(payload)
+            fields = status_from_binary(d) if d else parse_status(text)
+            shown = " ".join(f"{k}={v}" for k, v in fields.items()) if d else text
+            self.log.write(time.strftime("%H:%M:%S ") + f"{topic} {shown}\n")
+            for key, val in fields.items():
                 if key in self.vals:
                     self.vals[key].configure(text=pretty(key, val))
-            state = parse_status(text).get("state", "")
+            state = fields.get("state", "")
             self.vals["state"].configure(fg=STATE_COLOURS.get(state, "#b00020"))
-            robot_map = parse_status(text).get("map", "")
+            robot_map = fields.get("map", "")
             if robot_map != self.robot_map:
                 self.robot_map = robot_map
                 self._show_robot_map()
         elif topic == "is34/sensors":
-            self.log.write(time.strftime("%H:%M:%S ") + f"{topic} {text}\n")
-            self._sensors(parse_status(text))
+            d = wire.unpack_sensors(payload)
+            fields = sensors_from_binary(d) if d else parse_status(text)
+            shown = " ".join(f"{k}={v}" for k, v in fields.items()) if d else text
+            self.log.write(time.strftime("%H:%M:%S ") + f"{topic} {shown}\n")
+            self._sensors(fields)
         elif topic == "is34/ack/map":
-            good = text.startswith("OK")
+            d = wire.unpack_ack(payload)
+            if d:
+                good = bool(d["ok"])
+                have = wire.map_text(d) or "none"
+                text = (f"OK {have}" if good else
+                        f"REJECTED (the robot keeps {have}; why: see Events)")
+            else:
+                good = text.startswith("OK")
             self.ack_lbl.configure(text=text, foreground="#2a9d3a" if good else "#b00020")
             self.add_event("robot", f"mapping: {text}")
         elif topic == "is34/event":
@@ -532,6 +585,7 @@ class Panel:
             self._robot_log(text)
         elif not topic.startswith("is34/cmd/"):     # our own commands are echoed back
             self.add_event("robot", f"{topic} {text}")
+
 
     def _sensors(self, d):
         def num(key):

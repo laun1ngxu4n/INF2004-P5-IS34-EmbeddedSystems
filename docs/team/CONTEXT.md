@@ -43,7 +43,7 @@ Team (subsystem owners, `TEAM.md` section 1):
   Word files outside the repo. They are not edited; `TEAM.md` section 7
   overrides them.
 
-## 3. Status (9 Nov)
+## 3. Status (8 Nov, evening)
 
 The test status, stage by stage, is in
 [`testing/TEST_STATUS.md`](../../testing/TEST_STATUS.md) (the record; this
@@ -52,7 +52,7 @@ robot; 2 (line, barcodes, junction moves) and 4 (hump) work but not every
 run; 6 (whole course) not run yet.
 
 Since the last robot runs (8 Nov) the code was brought to the **Barr C
-coding standard** (9 Nov, commits `f639186`..`79b9ca4`; deviations and
+coding standard** (8 Nov evening, commits `f639186`..`79b9ca4`; deviations and
 how it was checked: [`BARR_C_DEVIATIONS.md`](BARR_C_DEVIATIONS.md)).
 Most steps were proven byte-identical, but `bool` instead of `BOOL` and
 the if-nesting refactors changed the code of every stage, so **every
@@ -62,22 +62,22 @@ speed 0 is now refused (it was undefined behaviour; nothing passes 0).
 
 ### Next steps (in this order)
 
-1. **Change Requirement 1, Minimum-Bit Data Representation** (Week 13,
-   required): the whole plan, field by field, is
-   [`CHANGE_REQ1_PLAN.md`](CHANGE_REQ1_PLAN.md); the requirement and
-   the tribunal decisions it builds on are in [`course/`](course/)
-   (`CHANGE_REQUIREMENT_1.md`, `TRIBUNAL1_SUMMARY.md`). Put the packing
-   behind a build switch `APP_PACKED` (0 = today's representation): the
-   "before" numbers for the Week 13 comparison come from the
-   `APP_PACKED=0` build, so nothing has to be measured first.
+1. ~~Change Requirement 1, Minimum-Bit Data Representation~~: **done
+   in the code, 8 Nov evening** ([`CHANGE_REQ1.md`](CHANGE_REQ1.md): what
+   changed, the data table, RAM and message sizes, the laptop checks;
+   binary MQTT format: [`MQTT_WIRE_FORMAT.md`](MQTT_WIRE_FORMAT.md)).
+   The panel must be the updated one (it decodes the binary messages).
+   New behaviour: Safety stops the motors for a stalled wheel or a hung
+   Motion task.
 2. **Full stage retest** on the result (one run per stage at least,
    `testing/TESTING_GUIDE.md`; WiFi images in `images/wifi/`, power bank
    only): full course with the mission image, then Stage 2 (S3-B00 x2,
    one 2B run, 2C), Stage 1, Stage 3 (one width, covered sonar, one
-   bypass), Stage 4 (hump runs), plus the new tests in the plan
-   (section 7). This covers the Barr C clean-up as well. A failure:
-   save the log; the images from before the clean-up are in git at
-   `61cc060` (USB images only).
+   bypass), Stage 4 (hump runs), plus the Change Requirement 1 tests
+   (`CHANGE_REQ1.md` section 7.2: timing tables packed / unpacked, Wi-Fi
+   drop, STOP in a burst, a held wheel, mapping). This covers the
+   Barr C clean-up as well. A failure: save the log; the images from
+   before the clean-up are in git at `61cc060` (USB images only).
 3. **Turn tuning** (turns end a little past the angle), during the
    retest: run S2-M02 on the course floor, write down the 9 real angles
    next to the printed encoder angles. Encoder angle over the target =
@@ -245,7 +245,7 @@ Week 6 document section by section: what to change, add or drop.
 - Safety task: collision (2 g), stall, fault latching (FR9 minus battery)
   are not in the essentials plan; `safety_task` is the Stage 0 stub.
   Change Requirement 1 and the tribunal (Safety cuts the motors if
-  Motion hangs) need it: `CHANGE_REQ1_PLAN.md` section 3.
+  Motion hangs) need it: `CHANGE_REQ1.md` section 8 (stall and Motion-hung are now built).
 - Notification (NeoPixel / buzzer) not built.
 - NFR measurements (CPU load, stack use, reconnect trials) not done.
 - Questions for the instructor: may we change `mqtt_utk.c` and

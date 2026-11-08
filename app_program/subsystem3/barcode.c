@@ -20,6 +20,7 @@
 #include "subsystem3.h"
 #include "../subsystem2/subsystem2.h"
 #include "../subsystem5/subsystem5.h"
+#include "../app_math.h" /* app_clamp() */
 #include "barcode.h"
 
 #define RING        128 /* edges kept, a power of 2 */
@@ -48,10 +49,14 @@
  * 0 of 20000 decode either way. */
 #define S3_WIDE_RATIO_X10 13
 
+/* One edge in the ring (Change Requirement 1, Tribunal 1): the interrupt
+   keeps only the low 16 bits of the odometer; the task widens it back
+   (odo_from16), exact while the edge is less than 32768 counts (2.6 m)
+   behind the odometer: the ring is emptied every 10 ms. */
 typedef struct
 {
-    int32_t odo;
-    uint8_t level;
+    uint32_t odo16 APP_FIELD(16); /* odometer counts, low 16 bits */
+    uint32_t level APP_FIELD(1);  /* IR_BLACK or not */
 } bar_edge_t;
 
 LOCAL bar_edge_t        g_ring[RING];
@@ -65,10 +70,38 @@ LOCAL volatile int32_t  g_edge_pub; /* odometer at the last clean edge */
 
 #define S3_IN_BARS_MM 15 /* edge this recent = B over bars */
 
+/* One pair of the mapping: a letter (7-bit ASCII) and its move as an
+   index into MOVE_CODES (2 bits) */
+/* (uint16_t fields: the 9 bits fit a 2-byte unit; uint32_t would take 4) */
+typedef struct
+{
+    uint16_t letter APP_FIELD(7);
+    uint16_t move   APP_FIELD(2);
+} bar_pair_t;
+
+#define MOVE_CODES "LRFU" /* move index -> MOVE_... */
+
 LOCAL barcode_result_t g_last;
-LOCAL uint8_t          g_map_ch[BAR_MOVES];
-LOCAL uint8_t          g_map_mv[BAR_MOVES];
+LOCAL bar_pair_t       g_map[BAR_MOVES]; /* under APP_LOCK */
 LOCAL bool             gb_map_set;
+
+/** An edge's 16-bit odometer back to the full count (see bar_edge_t). */
+LOCAL int32_t odo_from16 (uint32_t odo16)
+{
+    uint32_t now  = (uint32_t)motor_odometer(); /* the same bits, mod 2^32 */
+    uint32_t back = (now - odo16) & 0xFFFFu;    /* how far back, mod 2^16 */
+
+    /* back < 32768 counts (see bar_edge_t): now - back is the edge's count,
+       mod 2^32; as int32_t it is the odometer value again */
+    return (int32_t)(now - back);
+}
+
+/** A width in 0.1 mm into its 9-bit result field (saturates at 51.1 mm). */
+Inline uint32_t width_field (int32_t mm10)
+{
+    /* 0..511 when it is cast: fits uint32_t */
+    return (mm10 < 0) ? 0u : ((mm10 > 511) ? 511u : (uint32_t)mm10);
+}
 
 /* Code 39: 9 elements bar/space/bar..., 1 = wide.  Bit 8 = first bar. */
 typedef struct
@@ -87,19 +120,21 @@ LOCAL const c39_char_t g_c39[] = {
     {'Z', 0x0D0}, {'-', 0x085}, {'.', 0x184}, {' ', 0x0C4}, {'*', 0x094},
     {'$', 0x0A8}, {'/', 0x0A2}, {'+', 0x08A}, {'%', 0x02A}};
 
+#if !S3_BARCODE_ANALOG
+
 /** GP2 edge: interrupt context */
 LOCAL void barcode_edge_isr (uint32_t pin, uint32_t events)
 {
-    uint32_t ring_pos = g_ring_w;
+    uint32_t   ring_pos = g_ring_w;
+    bar_edge_t edge;
 
     (void)events;
-    g_ring[ring_pos & (RING - 1)].odo = motor_odometer();
-    g_ring[ring_pos & (RING - 1)].level =
-        (uint8_t)app_gpio_get(pin); /* 0 or 1 */
-    g_ring_w = ring_pos + 1;
+    /* the low 16 bits of the count (see bar_edge_t) */
+    edge.odo16                    = (uint32_t)motor_odometer() & 0xFFFFu;
+    edge.level                    = app_gpio_get(pin); /* 0 or 1 */
+    g_ring[ring_pos & (RING - 1)] = edge;
+    g_ring_w                      = ring_pos + 1;
 }
-
-#if !S3_BARCODE_ANALOG
 
 /** Sets up the barcode sensor input and its interrupt. */
 EXPORT ER barcode_hw_init (void)
@@ -151,7 +186,8 @@ EXPORT bool barcode_adc (int32_t * p_raw, int32_t * p_white, int32_t * p_black)
  * "black". */
 #define ENV_DECAY_SH   20
 
-LOCAL volatile int32_t g_adc_raw;
+LOCAL volatile uint16_t g_adc_raw; /* 12-bit ADC, its own halfword:
+                                       written by the interrupt alone */
 LOCAL int32_t          g_env_w = -1;
 LOCAL int32_t          g_env_b = -1; /* white / black level x16 */
 LOCAL int32_t          g_rel_lo;
@@ -210,7 +246,7 @@ LOCAL void adc_sample (int32_t sample)
     int32_t black = adc_blackness(sample) << ENV_SH;
     uint8_t lvl   = g_adc_lvl;
 
-    g_adc_raw = sample;
+    g_adc_raw = (uint16_t)sample; /* 12 bits (adc_fifo_isr masks it) */
 
     if (g_env_w < 0)
     {
@@ -293,9 +329,13 @@ LOCAL void adc_sample (int32_t sample)
 
         if (!gb_paused)
         {
-            g_ring[ring_pos & (RING - 1)].odo   = motor_odometer();
-            g_ring[ring_pos & (RING - 1)].level = lvl;
-            g_ring_w                            = ring_pos + 1;
+            bar_edge_t edge;
+
+            /* the low 16 bits of the count (see bar_edge_t) */
+            edge.odo16 = (uint32_t)motor_odometer() & 0xFFFFu;
+            edge.level = lvl;
+            g_ring[ring_pos & (RING - 1)] = edge;
+            g_ring_w                      = ring_pos + 1;
         }
     }
 }
@@ -419,8 +459,11 @@ EXPORT bool barcode_in_bars (void)
 
 /* Debug (Stage 2 tests): the element widths of the last code that ended,
    even one too short to report, so a test can show what the sensor saw */
-LOCAL int32_t           g_dbg_w[BARCODE_DBG_MAX]; /* 0.1 mm */
-LOCAL int32_t           g_dbg_n;
+/* (Change Requirement 1: an element's width in 0.1 mm, 16 bits each,
+   0..6553.5 mm, clamped; the count is <= MAX_ELEM, 8 bits.  In every image:
+   Mission prints them after a READ_FAIL.) */
+LOCAL uint16_t          g_dbg_w[BARCODE_DBG_MAX]; /* 0.1 mm */
+LOCAL uint8_t           g_dbg_n;
 LOCAL volatile uint32_t g_dbg_seq;
 
 EXPORT uint32_t barcode_debug (int32_t * p_count, int32_t * p_w_mm10,
@@ -442,8 +485,15 @@ EXPORT uint32_t barcode_debug (int32_t * p_count, int32_t * p_w_mm10,
     return g_dbg_seq;
 }
 /* Single black patches (left branches, grout lines) */
-LOCAL int32_t           g_mark_odo;
-LOCAL int32_t           g_mark_w; /* 0.1 mm */
+/* the last first-bar: its centre (an odometer count: 32 bits like the
+   encoder counts) and its width, 0.1 mm, 9 bits (saturates at 51.1 mm) */
+typedef struct
+{
+    int32_t         odo;
+    uint32_t w_mm10 APP_FIELD(9);
+} bar_mark_t;
+
+LOCAL bar_mark_t        g_mark; /* under APP_LOCK */
 LOCAL volatile uint32_t g_mark_seq;
 
 EXPORT uint32_t barcode_mark (int32_t * p_centre_odo, int32_t * p_width_mm10)
@@ -452,8 +502,8 @@ EXPORT uint32_t barcode_mark (int32_t * p_centre_odo, int32_t * p_width_mm10)
     uint32_t seq;
 
     APP_LOCK(irq_state);
-    *p_centre_odo = g_mark_odo;
-    *p_width_mm10 = g_mark_w;
+    *p_centre_odo = g_mark.odo;
+    *p_width_mm10 = g_mark.w_mm10;
     seq           = g_mark_seq;
     APP_UNLOCK(irq_state);
     return seq;
@@ -470,8 +520,8 @@ LOCAL void mark_pub (int32_t end_odo, int32_t width)
     uint32_t irq_state;
 
     APP_LOCK(irq_state);
-    g_mark_odo = end_odo - (width / 2); /* driving forward: centre is behind */
-    g_mark_w   = width * S2_UM_PER_COUNT / 100;
+    g_mark.odo = end_odo - (width / 2); /* driving forward: centre is behind */
+    g_mark.w_mm10 = width_field(width * S2_UM_PER_COUNT / 100);
     g_mark_seq++;
     APP_UNLOCK(irq_state);
 }
@@ -622,9 +672,9 @@ LOCAL bool decode (int32_t * p_elem, int32_t count, barcode_result_t * p_result)
                     p_result->b_reversed = (1 == pass);
                     /* 3 chars of 6 narrow + 3 wide counted above */
                     p_result->narrow_mm10 =
-                        (narrow_sum * S2_UM_PER_COUNT / 100 / 18);
+                        width_field(narrow_sum * S2_UM_PER_COUNT / 100 / 18);
                     p_result->wide_mm10 =
-                        (wide_sum * S2_UM_PER_COUNT / 100 / 9);
+                        width_field(wide_sum * S2_UM_PER_COUNT / 100 / 9);
                     return true;
                 }
             }
@@ -840,8 +890,8 @@ LOCAL bool decode_one_star (int32_t * p_elem, int32_t count,
     p_result->letter      = found;
     p_result->b_reversed  = b_rev_found;
     p_result->fixed       = BAR_FIX_STAR;
-    p_result->narrow_mm10 = f_nar * S2_UM_PER_COUNT / 100;
-    p_result->wide_mm10   = f_wid * S2_UM_PER_COUNT / 100;
+    p_result->narrow_mm10 = width_field(f_nar * S2_UM_PER_COUNT / 100);
+    p_result->wide_mm10   = width_field(f_wid * S2_UM_PER_COUNT / 100);
     return true;
 }
 
@@ -1083,11 +1133,13 @@ LOCAL uint32_t code_ended (bar_read_t * p_read, uint32_t seq)
     uint32_t seq_now = seq;
 
     APP_LOCK(irq_state);
-    g_dbg_n = p_read->count;
+    g_dbg_n = (uint8_t)p_read->count; /* <= MAX_ELEM (99): fits uint8_t */
 
     for (idx = 0; (idx < p_read->count) && (idx < BARCODE_DBG_MAX); idx++)
     {
-        g_dbg_w[idx] = (p_read->elem[idx] * S2_UM_PER_COUNT / 100);
+        /* clamped to 0..65535 first: fits uint16_t */
+        g_dbg_w[idx] = (uint16_t)app_clamp(
+            p_read->elem[idx] * S2_UM_PER_COUNT / 100, 0, 65535);
     }
 
     g_dbg_seq++;
@@ -1175,14 +1227,15 @@ EXPORT void barcode_task (int32_t stacd, void * p_exinf)
         }
         while (g_ring_r != end)
         {
-            bar_edge_t edge = g_ring[g_ring_r & (RING - 1)];
+            bar_edge_t edge     = g_ring[g_ring_r & (RING - 1)];
+            int32_t    edge_odo = odo_from16(edge.odo16);
             int32_t    delta;
 
             g_ring_r++;
 
             if (b_raw_ok)
             {
-                delta = edge.odo - raw_odo;
+                delta = edge_odo - raw_odo;
 
                 if (delta < 0)
                 {
@@ -1195,8 +1248,8 @@ EXPORT void barcode_task (int32_t stacd, void * p_exinf)
                 }
             }
 
-            raw_lvl  = edge.level;
-            raw_odo  = edge.odo;
+            raw_lvl  = edge.level; /* 0 or 1 */
+            raw_odo  = edge_odo;
             b_raw_ok = true;
         }
 
@@ -1247,6 +1300,20 @@ LOCAL bool is_code_char (uint8_t letter)
 {
     return ((letter >= 'A') && (letter <= 'Z')) ||
            ((letter >= '0') && (letter <= '9'));
+}
+
+/** A move letter ('L' 'R' 'F' 'U') as its index in MOVE_CODES. */
+LOCAL uint32_t move_code (uint8_t move_ch)
+{
+    uint32_t code = 0u;
+    uint32_t idx;
+
+    for (idx = 0u; idx < BAR_MOVES; idx++)
+    {
+        code = (MOVE_CODES[idx] == move_ch) ? idx : code;
+    }
+
+    return code;
 }
 
 /** Takes a new mapping text; false and the reason if it is refused. */
@@ -1337,13 +1404,35 @@ EXPORT bool barcode_set_mapping (const uint8_t * p_text, int32_t len,
 
     for (first = 0; first < BAR_MOVES; first++)
     {
-        g_map_ch[first] = letters[first];
-        g_map_mv[first] = moves[first];
+        g_map[first].letter = letters[first];
+        g_map[first].move   = move_code(moves[first]);
     }
 
     gb_map_set = true;
     APP_UNLOCK(irq_state);
     return true;
+}
+
+/** The letter mapped to each move, in MOVE_CODES order (L, R, F, U); 0 for
+   every move while there is no mapping. */
+EXPORT void barcode_mapping_get (uint8_t * p_letters)
+{
+    uint32_t irq_state;
+    int32_t  idx;
+
+    APP_LOCK(irq_state);
+
+    for (idx = 0; idx < BAR_MOVES; idx++)
+    {
+        p_letters[idx] = 0u;
+    }
+
+    for (idx = 0; gb_map_set && (idx < BAR_MOVES); idx++)
+    {
+        p_letters[g_map[idx].move] = g_map[idx].letter; /* 7-bit ASCII */
+    }
+
+    APP_UNLOCK(irq_state);
 }
 
 /** The mapped move (MOVE_LEFT ...) for a barcode letter, or MOVE_NONE. */
@@ -1359,9 +1448,9 @@ EXPORT int32_t barcode_move_for (uint8_t letter)
     {
         for (idx = 0; idx < BAR_MOVES; idx++)
         {
-            if (g_map_ch[idx] == letter)
+            if (g_map[idx].letter == letter)
             {
-                move = g_map_mv[idx];
+                move = (int32_t)MOVE_CODES[g_map[idx].move]; /* a letter */
             }
         }
     }
@@ -1384,8 +1473,8 @@ EXPORT int32_t barcode_mapping_text (uint8_t * p_out, int32_t max)
 
     for (idx = 0; idx < BAR_MOVES; idx++)
     {
-        letters[idx] = g_map_ch[idx];
-        moves[idx]   = g_map_mv[idx];
+        letters[idx] = g_map[idx].letter;           /* 7-bit ASCII */
+        moves[idx]   = MOVE_CODES[g_map[idx].move]; /* 'L' 'R' 'F' 'U' */
     }
 
     APP_UNLOCK(irq_state);

@@ -18,8 +18,10 @@ code in `app_program/`. Read before doing anything:
   (the WiFi images contain the WiFi password in plain text). Both are
   git-ignored; do not `git add -f` them.
 - Do not commit `.vscode/`, `desktop.ini`, the Barr standard PDF, or the
-  course `.docx` files (the tribunal document has student IDs; the text
-  copies in `docs/team/course/` have them removed).
+  course `.docx` files (they hold names and student IDs). What matters
+  in them is in `docs/team/course/`: the change requirement word for
+  word, and a summary of the tribunal decisions with buddies by role
+  (B1-B5) only.
 - Never tell the user to power the robot from USB and the power bank at
   the same time.
 - Never build with `CRASH_REPORT=1` while the IR sensors are on GP0/GP1.

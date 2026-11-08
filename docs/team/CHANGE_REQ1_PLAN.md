@@ -6,8 +6,9 @@ for, what the code does now, and what to change, subsystem by subsystem.
 Nothing here has been changed in the code yet.
 
 Sources: [`course/CHANGE_REQUIREMENT_1.md`](course/CHANGE_REQUIREMENT_1.md)
-and [`course/TRIBUNAL1_POSTTRI.md`](course/TRIBUNAL1_POSTTRI.md) (Version B
-decisions, Version C fixes): text copies of the course `.docx` files.
+(the requirement, word for word) and
+[`course/TRIBUNAL1_SUMMARY.md`](course/TRIBUNAL1_SUMMARY.md) (what the
+team decided in Tribunal 1, the risks and the promised tests).
 
 ## 1. In short: how much will it change?
 
@@ -27,20 +28,21 @@ Where it can go wrong (the risks to test):
 - **Firmware and panel disagree:** the bit layout differs between the two ends.
 - **Stale results:** a command ID that wraps too soon accepts an old result.
 
-## 2. Baseline to record before any change ("before")
+## 2. Before / after comparison
 
-Measure on the commit before the first change, and keep the numbers:
+PostTri decision: **one build with a compile-time switch** (`APP_PACKED`
+0 = today's representation, 1 = packed), with the same features, buffer
+sizes and compiler settings. "Before" = the `APP_PACKED=0` build, measured
+whenever convenient: nothing has to be recorded before the change starts.
+Measure these for both builds:
 
-| What | How | Value now |
+| What | How | Today's value (for reference) |
 |---|---|---|
 | RAM, whole image | `arm-none-eabi-size` on the `.elf` | normal: 24,088 B bss + 108 B data; WiFi/MQTT: 90,568 B bss + 116 B data |
 | RAM, our modules | `arm-none-eabi-size` on each `app_program` object | about 12,004 B (WiFi build): `telemetry.o` 9,513 B (log ring 8,192 + outbox 8 × 161); `barcode.o` 1,268 B (edge ring 128 × 8 B); `app_timing.o` 676 B; `line.o` 175 B; the rest under 60 B each |
 | MQTT payload sizes | count bytes of each topic's messages in a panel log | to measure: `is34/telemetry`, `is34/sensors`, `is34/cmd/map`, `is34/ack/map` |
 | Task timing | the `[tmg]` table every 10 s (`app_timing`) | to save from a full run |
 
-PostTri decision: compare with **one build and a compile-time switch**
-(`APP_PACKED` 0 / 1). It keeps the same features, buffers and compiler
-settings, so the comparison is fair.
 
 ## 3. The shared fault word (do first: a lost fault is a safety failure)
 
@@ -238,11 +240,10 @@ Robot-side checks:
 
 ## 8. Suggested order
 
-1. Record the baseline (section 2).
+1. The `APP_PACKED` build switch (section 2), so every packed change can be compared with today's representation.
 2. Fault word and Safety (section 3).
 3. MQTT binary formats and the panel decoder (section 5): the biggest visible saving.
 4. Barcode edge ring and result (4.3), then the other fields (4.1, 4.2, 4.4–4.7) behind `APP_PACKED`.
 5. Per-object protection table (4.8) and the "not application data" decisions (4.9).
-6. Measure and write the Week 13 evidence (section 7).
-
-After steps 2 to 4: the full stage retest (`testing/TESTING_GUIDE.md`).
+6. The full stage retest with `APP_PACKED=1` (`testing/TESTING_GUIDE.md`, plus the new tests in section 7); it also covers the Barr C clean-up.
+7. Measure both builds and write the Week 13 evidence (section 7).

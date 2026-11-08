@@ -62,25 +62,27 @@ speed 0 is now refused (it was undefined behaviour; nothing passes 0).
 
 ### Next steps (in this order)
 
-1. **Confirmation runs on the current code** (one per stage, WiFi images
-   in `images/wifi/`, power bank only): full course with the mission
-   image first, then Stage 2 (S3-B00 x2, one 2B run), Stage 1, Stage 3
-   (one width, covered sonar, one bypass), Stage 4 (1-2 hump runs).
-   Same results as 8 Nov expected. A failure: save the log; the images
-   before the clean-up are in git at `61cc060` (USB images only).
-2. **Turn tuning** (turns end a little past the angle): run S2-M02 on the
-   course floor, write down the 9 real angles next to the printed
-   encoder angles. Encoder angle over the target = coasting after the
-   motors switch off (end the turn early or brake); real over encoder =
-   `S2_TRACK_MM` (new = 123 x encoder / real). Nothing changed yet.
-3. **Record the "before" numbers for Change Requirement 1** (RAM, message
-   sizes, timing table): [`CHANGE_REQ1_PLAN.md`](CHANGE_REQ1_PLAN.md)
-   section 2. Must be done before any packing change.
-4. **Change Requirement 1, Minimum-Bit Data Representation** (Week 13):
-   the whole plan, field by field, is
-   [`CHANGE_REQ1_PLAN.md`](CHANGE_REQ1_PLAN.md); the requirement and the
-   tribunal decisions it builds on are in [`course/`](course/).
-   Then the full stage retest again.
+1. **Change Requirement 1, Minimum-Bit Data Representation** (Week 13,
+   required): the whole plan, field by field, is
+   [`CHANGE_REQ1_PLAN.md`](CHANGE_REQ1_PLAN.md); the requirement and
+   the tribunal decisions it builds on are in [`course/`](course/)
+   (`CHANGE_REQUIREMENT_1.md`, `TRIBUNAL1_SUMMARY.md`). Put the packing
+   behind a build switch `APP_PACKED` (0 = today's representation): the
+   "before" numbers for the Week 13 comparison come from the
+   `APP_PACKED=0` build, so nothing has to be measured first.
+2. **Full stage retest** on the result (one run per stage at least,
+   `testing/TESTING_GUIDE.md`; WiFi images in `images/wifi/`, power bank
+   only): full course with the mission image, then Stage 2 (S3-B00 x2,
+   one 2B run, 2C), Stage 1, Stage 3 (one width, covered sonar, one
+   bypass), Stage 4 (hump runs), plus the new tests in the plan
+   (section 7). This covers the Barr C clean-up as well. A failure:
+   save the log; the images from before the clean-up are in git at
+   `61cc060` (USB images only).
+3. **Turn tuning** (turns end a little past the angle), during the
+   retest: run S2-M02 on the course floor, write down the 9 real angles
+   next to the printed encoder angles. Encoder angle over the target =
+   coasting after the motors switch off (end the turn early or brake);
+   real over encoder = `S2_TRACK_MM` (new = 123 x encoder / real).
 
 ## 4. Hardware (measured in bring-up)
 

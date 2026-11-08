@@ -48,6 +48,8 @@ RULES = {
     '4.2a': 'source file without a header of the same name',
     '6.1i': 'public function not prefixed with its module name',
     '8.2b': 'if ... else nested deeper than two levels',
+    '8.2c': 'assignment (or ++ / --) in an if test',
+    '8.4b': 'assignment in a loop test',
     '8.2d': 'else if chain without a final else',
     '8.4a': 'magic number in a loop start or end test',
     '8.4d': 'empty loop body without braces and a comment',
@@ -281,6 +283,27 @@ def check_structure(f, src, lines, toks, idx, code, line_of, hit):
         owner[bo] = kw
     for (kw, bo, bc) in blocks:
         word = code[kw].text
+        # 8.4b: no assignment in a loop's controlling expression (a for
+        # loop's first and third clauses may set and step its counter)
+        if word in ('while', 'for'):
+            close = transform.match(code, kw + 1)
+            parts = code[kw + 2:close]
+            if word == 'for':
+                semi = [i for i, t in enumerate(parts) if t.text == ';']
+                parts = parts[semi[0] + 1:semi[1]] if len(semi) >= 2 else []
+            for t in parts:
+                if t.text in ('=', '+=', '-=', '*=', '/=', '%=', '&=', '|=', '^=',
+                              '<<=', '>>=', '++', '--'):
+                    hit('8.4b', ln(kw), ' '.join(x.text for x in code[kw:close + 1])[:70])
+                    break
+        # 8.2c: no assignment (nor ++ / --) in an if or else if test
+        if word == 'if':
+            close = transform.match(code, kw + 1)
+            for t in code[kw + 2:close]:
+                if t.text in ('=', '+=', '-=', '*=', '/=', '%=', '&=', '|=', '^=',
+                              '<<=', '>>=', '++', '--'):
+                    hit('8.2c', ln(kw), ' '.join(x.text for x in code[kw:close + 1])[:70])
+                    break
         # 8.2b: if inside if/else bodies, more than two levels
         if word == 'if' and not (kw > 0 and code[kw - 1].text == 'else'):
             depth = 1

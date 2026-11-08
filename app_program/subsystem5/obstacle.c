@@ -572,13 +572,98 @@ EXPORT void obstacle_combine (const obstacle_profile_t * p_near,
 
 /* ---- the task: forward watch ---------------------------------------- */
 
+/* the forward watch's state from one ping to the next */
+typedef struct
+{
+    int32_t close_count; /* pings in a row nearer than S5_TRIP_MM */
+    int32_t fault_count; /* pings in a row without an ECHO */
+    bool    b_pinged;    /* a ping is out: read its echo next time */
+    bool    b_told;      /* Mission has been told */
+} watch_state_t;
+
+/** Not watching (a scan, or the watch is off): forget the counts; in the
+   mission image, ping ahead for the panel while Mission is IDLE. */
+LOCAL void watch_idle (watch_state_t * p_state)
+{
+    p_state->close_count = 0;
+    p_state->fault_count = 0;
+    p_state->b_told      = false;
+
+    if (!gb_scanning)
+    {
+        gb_sensor_fault = false; /* fresh start next watch */
+    }
+#if !APP_TEST
+    /* Idle: keep pinging ahead so the laptop panel shows a live
+       distance; Mission is told nothing until the watch is on.
+       Only while Mission is IDLE: in a manoeuvre Mission pings
+       itself (ahead_clear) and two pings at once corrupt each
+       other's echo.  Not in test images: their tests turn the
+       servo and ping themselves. */
+
+    if ((!gb_scanning) && gb_idle_ping)
+    {
+        if (p_state->b_pinged)
+        {
+            g_front_mm = echo_mm();
+        }
+
+        if (g_servo_now != 90)
+        {
+            obstacle_servo_angle(90);
+        }
+
+        trigger();
+        p_state->b_pinged = true;
+    }
+    else
+    {
+        p_state->b_pinged = false;
+    }
+#else
+    p_state->b_pinged = false;
+#endif
+}
+
+/** The watch: the last ping's echo; tells Mission about a sensor fault
+   or something near ahead. */
+LOCAL void watch_echo (watch_state_t * p_state)
+{
+    int32_t dist_mm = echo_mm();
+
+    g_front_mm = dist_mm;
+    /* No ECHO 5 times in a row (300 ms): the sensor is
+       not working, so Mission must stop, not drive blind */
+    p_state->fault_count =
+        (SONAR_FAULT == dist_mm) ? p_state->fault_count + 1 : 0;
+
+    if ((p_state->fault_count >= 5) && (!p_state->b_told))
+    {
+        gb_sensor_fault = true;
+        p_state->b_told = true;
+        tk_set_flg(gh_flg_mission, MSN_FLG_OBSTACLE);
+    }
+
+    if ((dist_mm >= 0) && (dist_mm < S5_TRIP_MM))
+    {
+        p_state->close_count++;
+
+        if ((p_state->close_count >= 2) && (!p_state->b_told))
+        {
+            p_state->b_told = true;
+            tk_set_flg(gh_flg_mission, MSN_FLG_OBSTACLE);
+        }
+    }
+    else
+    {
+        p_state->close_count = 0;
+    }
+}
+
 /** The obstacle task: the forward watch, a ping every 60 ms. */
 EXPORT void obstacle_task (int32_t stacd, void * p_exinf)
 {
-    int32_t close_count = 0;
-    int32_t fault_count = 0;
-    bool    b_pinged    = false;
-    bool    b_told      = false;
+    watch_state_t state = {0, 0, false, false};
 
     (void)stacd;
     (void)p_exinf;
@@ -590,75 +675,13 @@ EXPORT void obstacle_task (int32_t stacd, void * p_exinf)
 
         if (gb_scanning || (!gb_watch))
         {
-            close_count = 0;
-            fault_count = 0;
-            b_told      = false;
-
-            if (!gb_scanning)
-            {
-                gb_sensor_fault = false; /* fresh start next watch */
-            }
-#if !APP_TEST
-            /* Idle: keep pinging ahead so the laptop panel shows a live
-               distance; Mission is told nothing until the watch is on.
-               Only while Mission is IDLE: in a manoeuvre Mission pings
-               itself (ahead_clear) and two pings at once corrupt each
-               other's echo.  Not in test images: their tests turn the
-               servo and ping themselves. */
-
-            if ((!gb_scanning) && gb_idle_ping)
-            {
-                if (b_pinged)
-                {
-                    g_front_mm = echo_mm();
-                }
-
-                if (g_servo_now != 90)
-                {
-                    obstacle_servo_angle(90);
-                }
-
-                trigger();
-                b_pinged = true;
-            }
-            else
-            {
-                b_pinged = false;
-            }
-#else
-            b_pinged = false;
-#endif
+            watch_idle(&state);
         }
         else
         {
-            if (b_pinged)
+            if (state.b_pinged)
             {
-                int32_t dist_mm = echo_mm();
-
-                g_front_mm = dist_mm;
-                /* No ECHO 5 times in a row (300 ms): the sensor is
-                   not working, so Mission must stop, not drive blind */
-                fault_count = (SONAR_FAULT == dist_mm) ? fault_count + 1 : 0;
-
-                if ((fault_count >= 5) && (!b_told))
-                {
-                    gb_sensor_fault = true;
-                    b_told          = true;
-                    tk_set_flg(gh_flg_mission, MSN_FLG_OBSTACLE);
-                }
-
-                if ((dist_mm >= 0) && (dist_mm < S5_TRIP_MM))
-                {
-                    if ((++close_count >= 2) && (!b_told))
-                    {
-                        b_told = true;
-                        tk_set_flg(gh_flg_mission, MSN_FLG_OBSTACLE);
-                    }
-                }
-                else
-                {
-                    close_count = 0;
-                }
+                watch_echo(&state);
             }
 
             if (g_servo_now != 90)
@@ -667,7 +690,7 @@ EXPORT void obstacle_task (int32_t stacd, void * p_exinf)
             }
 
             trigger();
-            b_pinged = true;
+            state.b_pinged = true;
         }
 
         app_timing_done(g_tmg_obstacle);

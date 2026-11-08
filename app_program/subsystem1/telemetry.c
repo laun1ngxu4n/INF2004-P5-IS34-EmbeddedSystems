@@ -190,10 +190,13 @@ LOCAL bool starts_with (const char * p_text, const char * p_prefix,
 {
     while (*p_prefix != '\0')
     {
-        if (*p_text++ != *p_prefix++)
+        if (*p_text != *p_prefix)
         {
             return false;
         }
+
+        p_text++;
+        p_prefix++;
     }
 
     *pp_rest = p_text;
@@ -384,25 +387,33 @@ EXPORT void telemetry_task (int32_t stacd, void * p_exinf)
         tk_slp_tsk(TMO_FEVR); /* woken every 100 ms */
         app_timing_wake(g_tmg_telemetry, tk_can_wup(TSK_SELF));
 
-        if (++ping_tick >= S1_PING_TICKS)
+        ping_tick++;
+
+        if (ping_tick >= S1_PING_TICKS)
         {
             ping_tick = 0;
             app_check(tk_set_flg(gh_flg_mission, MSN_FLG_PING), "IF-01 ping");
         }
 
-        if (++status_tick >= S1_STATUS_TICKS)
+        status_tick++;
+
+        if (status_tick >= S1_STATUS_TICKS)
         {
             status_tick = 0;
             status_line();
         }
 
-        if (++sensor_tick >= S1_SENSOR_TICKS)
+        sensor_tick++;
+
+        if (sensor_tick >= S1_SENSOR_TICKS)
         {
             sensor_tick = 0;
             sensor_line();
         }
 
-        if (++report_tick >= S1_REPORT_TICKS)
+        report_tick++;
+
+        if (report_tick >= S1_REPORT_TICKS)
         {
             report_tick = 0;
             /* The report's printing counts in this task's run time on

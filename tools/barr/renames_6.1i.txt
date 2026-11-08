@@ -1,0 +1,31 @@
+# Barr 6.1i: public functions prefixed with their module's name
+func app_hw_release app_gpio_hw_release
+func app_time_us app_timing_now_us
+func app_start_task app_main_start_task
+func app_create_wake_cyclic app_main_create_wake_cyclic
+# app_stage_test.c -> app_test.c
+func app_stage_test app_test_stage
+func app_course_test app_test_course
+func test_print_x10 app_test_print_x10
+func test_stop_pressed app_test_stop_pressed
+func test_use_test_mapping app_test_use_test_mapping
+func test_wait_start app_test_wait_start
+# task_telemetry.c -> telemetry.c
+func tele_event telemetry_event
+func tele_set_state telemetry_set_state
+func tele_start_count telemetry_start_count
+# motion_hw.c -> motor.c
+func motion_hw_init motor_init
+func encoder_read motor_encoders
+func motion_odometer motor_odometer
+# task_obstacle.c -> obstacle.c
+func servo_set_angle obstacle_servo_angle
+func servo_look_side obstacle_look_side
+func sonar_ping_mm obstacle_ping_mm
+func sonar_ping_start obstacle_ping_start
+func sonar_ping_result obstacle_ping_result
+# subsystemN_test.c
+func subsystem2_drive_test subsystem2_test_drive
+func subsystem3_stage_test subsystem3_test_stage
+func subsystem4_stage_test subsystem4_test_stage
+func subsystem5_stage_test subsystem5_test_stage

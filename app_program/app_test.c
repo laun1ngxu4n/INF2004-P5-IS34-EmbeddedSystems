@@ -119,7 +119,9 @@ EXPORT void app_test_course (bool b_obstacles, bool b_imu)
                 break;
             }
 
-            if (0 == (++tick % 100))
+            tick++;
+
+            if (0 == (tick % 100))
             {
                 tm_printf(
                     app_str("[DRIVE] still waiting for a mapping (panel: "

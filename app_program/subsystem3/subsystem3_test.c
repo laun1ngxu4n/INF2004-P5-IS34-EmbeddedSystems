@@ -558,6 +558,132 @@ Inline int32_t bench_raw (int32_t blackness)
     return S3_BAR_BLACK_HIGH ? blackness : (4095 - blackness);
 }
 
+/** The S3-B00 profile: the reader's own rule (S3_BAR_RELATIVE) on the
+   count 10 ms samples of the run, each bar and space with its darkest /
+   lightest reading.  '!' = its contrast to the element before was under
+   2 x S3_BAR_DELTA, close to being missed (a narrow bar or space the spot
+   blurs). */
+LOCAL void bench_profile (int32_t count)
+{
+    int32_t idx;
+    int32_t cnt = 0;
+    int32_t low;
+    int32_t high;
+    int32_t ref       = 0;
+    int32_t weak      = 0;
+    bool    b_blk     = false;
+    bool    b_started = false;
+    int32_t st_odo    = 0;
+
+    low = high = bench_blackness(g_bn_v[0]);
+
+    for (idx = 1; (idx < count) && (cnt < BENCH_PRINT_MAX); idx++)
+    {
+        int32_t blackness = bench_blackness(g_bn_v[idx]);
+        bool    b_change;
+
+        if (!b_blk)
+        {
+            if (blackness < low)
+            {
+                low = blackness;
+            }
+
+            b_change = ((blackness > (low + S3_BAR_DELTA)) &&
+                        (blackness >= bench_blackness(S3_BAR_BLACK_MIN)));
+        }
+        else
+        {
+            if (blackness > high)
+            {
+                high = blackness;
+            }
+
+            b_change = (blackness < (high - S3_BAR_DELTA));
+        }
+
+        if (!b_change)
+        {
+            continue;
+        }
+
+        if (!b_started)
+        {
+            b_started = true; /* the white before the code */
+            tm_printf(app_str("[S3] B profile, bar (B) and space (s): width "
+                              "mm / darkest or lightest reading; '!' = under "
+                              "%d "
+                              "from the one before, nearly missed:\n[S3]  "),
+                      2 * S3_BAR_DELTA);
+        }
+        else
+        {
+            int32_t width = g_bn_odo[idx] - st_odo;
+            int32_t mm10 =
+                ((width < 0) ? -width : width) * S2_UM_PER_COUNT / 100;
+            int32_t ext = b_blk ? high : low;
+            bool b_bad  = (b_blk ? ext - ref : ref - ext) < (2 * S3_BAR_DELTA);
+
+            if (b_bad)
+            {
+                weak++;
+            }
+
+            tm_printf(app_str("%c%d.%d/%d%s "), b_blk ? 'B' : 's', mm10 / 10,
+                      mm10 % 10, bench_raw(ext), b_bad ? "!" : "");
+
+            cnt++;
+
+            if (0 == (cnt % 10))
+            {
+                tm_printf(app_str("\n[S3]  "));
+            }
+        }
+
+        ref    = b_blk ? high : low;
+        st_odo = g_bn_odo[idx];
+
+        if (!b_blk)
+        {
+            ref   = low;
+            b_blk = true;
+            high  = blackness;
+        }
+        else
+        {
+            b_blk = false;
+            low   = blackness;
+        }
+    }
+
+    if (b_blk && b_started)
+    {
+        /* the last bar */
+        int32_t width = g_bn_odo[count - 1] - st_odo;
+        int32_t mm10  = ((width < 0) ? -width : width) * S2_UM_PER_COUNT / 100;
+
+        tm_printf(app_str("B%d.%d/%d (end of samples) "), mm10 / 10, mm10 % 10,
+                  bench_raw(high));
+        cnt++;
+    }
+
+    if (!b_started)
+    {
+        tm_printf(app_str("[S3] B profile: no bar in %d samples (lightest %d, "
+                          "darkest %d): B did not pass over the bars\n"),
+                  count, bench_raw(low), bench_raw(high));
+    }
+    else
+    {
+        tm_printf(app_str("\n[S3] %d bars and spaces (a code is 29), %d "
+                          "nearly "
+                          "missed. At 120 mm/s the samples are 1.2 mm apart: "
+                          "narrow "
+                          "ones blur together here, not in the reader\n"),
+                  cnt, weak);
+    }
+}
+
 /** One S3-B00 run: drives straight over a barcode and prints the profile. */
 LOCAL bool bar_bench_run (int32_t speed)
 {
@@ -572,7 +698,6 @@ LOCAL bool bar_bench_run (int32_t speed)
     int32_t          raw;
     int32_t          white_lvl;
     int32_t          black_lvl;
-    int32_t          idx;
     bool             b_ana = false;
     bool             b_ok  = false;
 
@@ -621,132 +746,7 @@ LOCAL bool bar_bench_run (int32_t speed)
 
     if (b_ana && (count > 0))
     {
-        /* The reader's own rule (S3_BAR_RELATIVE) on the 10 ms samples:
-           each bar and space with its darkest / lightest reading.  '!' =
-           its contrast to the element before was under 2 x S3_BAR_DELTA,
-           close to being missed (a narrow bar or space the spot blurs). */
-        int32_t cnt = 0;
-        int32_t low;
-        int32_t high;
-        int32_t ref       = 0;
-        int32_t weak      = 0;
-        bool    b_blk     = false;
-        bool    b_started = false;
-        int32_t st_odo    = 0;
-
-        low = high = bench_blackness(g_bn_v[0]);
-
-        for (idx = 1; (idx < count) && (cnt < BENCH_PRINT_MAX); idx++)
-        {
-            int32_t blackness = bench_blackness(g_bn_v[idx]);
-            bool    b_change;
-
-            if (!b_blk)
-            {
-                if (blackness < low)
-                {
-                    low = blackness;
-                }
-
-                b_change = ((blackness > (low + S3_BAR_DELTA)) &&
-                            (blackness >= bench_blackness(S3_BAR_BLACK_MIN)));
-            }
-            else
-            {
-                if (blackness > high)
-                {
-                    high = blackness;
-                }
-
-                b_change = (blackness < (high - S3_BAR_DELTA));
-            }
-
-            if (!b_change)
-            {
-                continue;
-            }
-
-            if (!b_started)
-            {
-                b_started = true; /* the white before the code */
-                tm_printf(
-                    app_str("[S3] B profile, bar (B) and space (s): width "
-                            "mm / darkest or lightest reading; '!' = under "
-                            "%d "
-                            "from the one before, nearly missed:\n[S3]  "),
-                    2 * S3_BAR_DELTA);
-            }
-            else
-            {
-                int32_t width = g_bn_odo[idx] - st_odo;
-                int32_t mm10 =
-                    ((width < 0) ? -width : width) * S2_UM_PER_COUNT / 100;
-                int32_t ext = b_blk ? high : low;
-                bool    b_bad =
-                    (b_blk ? ext - ref : ref - ext) < (2 * S3_BAR_DELTA);
-
-                if (b_bad)
-                {
-                    weak++;
-                }
-
-                tm_printf(app_str("%c%d.%d/%d%s "), b_blk ? 'B' : 's',
-                          mm10 / 10, mm10 % 10, bench_raw(ext),
-                          b_bad ? "!" : "");
-
-                if (0 == (++cnt % 10))
-                {
-                    tm_printf(app_str("\n[S3]  "));
-                }
-            }
-
-            ref    = b_blk ? high : low;
-            st_odo = g_bn_odo[idx];
-
-            if (!b_blk)
-            {
-                ref   = low;
-                b_blk = true;
-                high  = blackness;
-            }
-            else
-            {
-                b_blk = false;
-                low   = blackness;
-            }
-        }
-
-        if (b_blk && b_started)
-        {
-            /* the last bar */
-            int32_t width = g_bn_odo[count - 1] - st_odo;
-            int32_t mm10 =
-                ((width < 0) ? -width : width) * S2_UM_PER_COUNT / 100;
-
-            tm_printf(app_str("B%d.%d/%d (end of samples) "), mm10 / 10,
-                      mm10 % 10, bench_raw(high));
-            cnt++;
-        }
-
-        if (!b_started)
-        {
-            tm_printf(
-                app_str("[S3] B profile: no bar in %d samples (lightest %d, "
-                        "darkest %d): B did not pass over the bars\n"),
-                count, bench_raw(low), bench_raw(high));
-        }
-        else
-        {
-            tm_printf(
-                app_str("\n[S3] %d bars and spaces (a code is 29), %d "
-                        "nearly "
-                        "missed. At 120 mm/s the samples are 1.2 mm apart: "
-                        "narrow "
-                        "ones blur together here, not in the reader\n"),
-                cnt, weak);
-        }
-#undef BK
-#undef RAW
+        bench_profile(count);
     }
 
     return b_ok;

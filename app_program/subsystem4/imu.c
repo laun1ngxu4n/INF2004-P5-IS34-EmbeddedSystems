@@ -142,6 +142,24 @@ LOCAL bool chip_setup (void)
            (E_OK == imu_i2c_write(IMU_ADDR, 0x26, 0x00));   /* CTRL7: no HPF */
 }
 
+/** The IMU is not answering: sets it up again every 1 s (*p_retry counts
+   the 10 ms periods down). */
+LOCAL void chip_retry (int32_t * p_retry)
+{
+    (*p_retry)--;
+
+    if (*p_retry <= 0)
+    {
+        *p_retry   = 100; /* try again in 1 s */
+        gb_chip_ok = chip_setup();
+
+        if (gb_chip_ok)
+        {
+            tm_printf(app_str("[IMU] LSM303D found at 0x1D\n"));
+        }
+    }
+}
+
 /** The IMU task: reads the accelerometer, tracks tilt and ramp height,
  * reports ramps. */
 EXPORT void imu_task (int32_t stacd, void * p_exinf)
@@ -187,17 +205,7 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
 
         if (!gb_chip_ok)
         {
-            if (--retry <= 0)
-            {
-                retry      = 100; /* try again in 1 s */
-                gb_chip_ok = chip_setup();
-
-                if (gb_chip_ok)
-                {
-                    tm_printf(app_str("[IMU] LSM303D found at 0x1D\n"));
-                }
-            }
-
+            chip_retry(&retry);
             goto done;
         }
 
@@ -238,7 +246,9 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
                 cal_m += mag;
                 cal_y += acc_y / mag;
 
-                if (++ncal >= CAL_SAMPLES)
+                ncal++;
+
+                if (ncal >= CAL_SAMPLES)
                 {
                     sin_level  = cal_s / CAL_SAMPLES;
                     cos_level  = cal_c / CAL_SAMPLES;

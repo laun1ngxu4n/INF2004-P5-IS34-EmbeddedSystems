@@ -370,15 +370,8 @@ EXPORT void motion_task (int32_t stacd, void * p_exinf)
             if (!b_off)
             {
                 /* on the line: never run a wheel backwards */
-                if (t_l < 0.0f)
-                {
-                    t_l = 0.0f;
-                }
-
-                if (t_r < 0.0f)
-                {
-                    t_r = 0.0f;
-                }
+                t_l = (t_l < 0.0f) ? 0.0f : t_l;
+                t_r = (t_r < 0.0f) ? 0.0f : t_r;
             }
 
             duty_l = wheel_duty(&pi_l, t_l, vel_left);
@@ -487,21 +480,22 @@ EXPORT void motion_task (int32_t stacd, void * p_exinf)
             }
 
             /* back to wheel directions */
-            if (CMD_DRIVE == cur.type)
+            if ((CMD_DRIVE == cur.type) && (cur.speed < 0))
             {
-                if (cur.speed < 0)
-                {
-                    duty_l = -duty_l;
-                    duty_r = -duty_r;
-                }
+                duty_l = -duty_l; /* reversing */
+                duty_r = -duty_r;
+            }
+            else if (CMD_DRIVE == cur.type)
+            {
+                /* driving forward: already the wheels' directions */
             }
             else if (cur.amount >= 0)
             {
-                duty_l = -duty_l;
+                duty_l = -duty_l; /* spin left: left wheel back */
             }
             else
             {
-                duty_r = -duty_r;
+                duty_r = -duty_r; /* spin right: right wheel back */
             }
 
             motor_write(duty_l, duty_r);

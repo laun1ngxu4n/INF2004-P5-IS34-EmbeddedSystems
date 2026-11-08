@@ -434,18 +434,18 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
             if (b_single)
             {
                 single_from = odo;
+            }
 
-                if (0u == prev)
-                {
-                    g_n_corr++;
-                }
+            if (b_single && (0u == prev))
+            {
+                g_n_corr++;
+            }
 
-                /* L, both, R (or R, both, L): swept right across */
-                if ((prev == (PAT_L | PAT_R)) && (before_both != 0u) &&
-                    (before_both != stable))
-                {
-                    g_n_sweep++;
-                }
+            /* L, both, R (or R, both, L): swept right across */
+            if (b_single && (prev == (PAT_L | PAT_R)) && (before_both != 0u) &&
+                (before_both != stable))
+            {
+                g_n_sweep++;
             }
 
             if (0u == stable)
@@ -652,13 +652,15 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
 
             if (b_searching)
             {
-                g_state = LINE_SEARCH;
+                /* lost once the search has gone S3_LOST_MM or taken
+                   S3_LOST_MS (its time counted while within that
+                   distance) */
+                bool b_far = ((odo - search_from) > mm_to_counts(S3_LOST_MM));
 
-                if (((odo - search_from) > mm_to_counts(S3_LOST_MM)) ||
-                    (++search_n > (S3_LOST_MS / PERIOD_LINE_MS)))
-                {
-                    g_state = LINE_LOST;
-                }
+                search_n += b_far ? 0 : 1;
+                g_state = (b_far || (search_n > (S3_LOST_MS / PERIOD_LINE_MS)))
+                              ? LINE_LOST
+                              : LINE_SEARCH;
             }
             else if (b_probe_none)
             {

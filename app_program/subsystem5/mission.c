@@ -481,6 +481,74 @@ LOCAL int32_t drive_until_line (int32_t dist_mm, int32_t from_mm)
 #define SIDE_MISS_PINGS 5   /* no echo in this many = not beside */
 #define SIDE_EXTRA_MM   300 /* at most this past x_pass */
 
+/* the side look's record of the box on the leg past it (pass_box) */
+typedef struct
+{
+    bool    b_seen;  /* the box heard at all */
+    bool    b_told;  /* the panel told what the side look found */
+    int32_t first;   /* mm along the leg where the box was first heard */
+    int32_t last;    /* ... and where it was last heard */
+    int32_t miss;    /* side pings in a row without the box */
+    int32_t stop_at; /* the leg ends here, mm along */
+} side_look_t;
+
+/** One side-look ping, done mm along the leg: an echo near lat_exp (or a
+   sensor fault) is the box, and the leg goes on at least until the robot
+   is past where it was heard. */
+LOCAL void side_ping (side_look_t * p_look, int32_t sonar_mm, int32_t lat_exp,
+                      int32_t done)
+{
+    if ((SONAR_FAULT == sonar_mm) ||
+        ((sonar_mm >= (lat_exp - SIDE_TOL_IN_MM)) &&
+         (sonar_mm <= (lat_exp + SIDE_TOL_OUT_MM))))
+    {
+        int32_t past =
+            done + S5_SONAR_TO_AXLE_MM + (S2_ROBOT_WIDTH_MM / 2) + MARGIN_MM;
+
+        if (!p_look->b_seen)
+        {
+            p_look->first = done;
+        }
+
+        p_look->b_seen = true;
+        p_look->last   = done;
+        p_look->miss   = 0;
+
+        if (past > p_look->stop_at)
+        {
+            p_look->stop_at = past;
+        }
+    }
+    else
+    {
+        p_look->miss++;
+    }
+}
+
+/** At x_pass along the leg, once: tells the panel what the side look
+   found. */
+LOCAL void side_report (side_look_t * p_look, int32_t done, int32_t x_pass)
+{
+    if ((!p_look->b_told) && (done >= x_pass))
+    {
+        p_look->b_told = true;
+
+        if (!p_look->b_seen)
+        {
+            say(app_str("side look heard nothing: assuming "
+                        "the box is at most 150 mm deep"));
+        }
+        else if (p_look->stop_at > x_pass)
+        {
+            say(app_str("side look: box still beside, going on"));
+        }
+        else
+        {
+            /* past the box already: nothing to say */
+        }
+    }
+}
+
 /** Leg 4, past the box (8 Nov).  With the side look the sonar turns 40 deg
    (the cables' limit) toward the box and pings every 60 ms while the
    robot drives.  At 40 deg the beam's axis meets the box's side face at a
@@ -510,13 +578,8 @@ LOCAL int32_t pass_box (int32_t sgn, int32_t front, int32_t lat_exp,
 {
     uint8_t         msg[TELE_TEXT_MAX];
     bool            b_side    = (S5_SERVO_SIDE_DEG > 0);
-    bool            b_seen    = false;
-    bool            b_told    = false;
+    side_look_t     look      = {false, false, 0, 0, SIDE_MISS_PINGS, x_pass};
     int32_t         line_from = front + D_MAX_MM + 30;
-    int32_t         first     = 0;
-    int32_t         last      = 0;
-    int32_t         miss      = SIDE_MISS_PINGS;
-    int32_t         stop_at   = x_pass;
     int32_t         dist;
     int32_t         done;
     int32_t         sonar_mm;
@@ -570,61 +633,18 @@ LOCAL int32_t pass_box (int32_t sgn, int32_t front, int32_t lat_exp,
             sonar_mm = obstacle_ping_result();
             obstacle_ping_start();
             t_ping = app_timing_now_us();
-
-            if ((SONAR_FAULT == sonar_mm) ||
-                ((sonar_mm >= (lat_exp - SIDE_TOL_IN_MM)) &&
-                 (sonar_mm <= (lat_exp + SIDE_TOL_OUT_MM))))
-            {
-                if (!b_seen)
-                {
-                    first = done;
-                }
-
-                b_seen = true;
-                last   = done;
-                miss   = 0;
-
-                if ((last + S5_SONAR_TO_AXLE_MM + (S2_ROBOT_WIDTH_MM / 2) +
-                     MARGIN_MM) > stop_at)
-                {
-                    stop_at = last + S5_SONAR_TO_AXLE_MM +
-                              (S2_ROBOT_WIDTH_MM / 2) + MARGIN_MM;
-                }
-            }
-            else
-            {
-                miss++;
-            }
-
-            if ((!b_told) && (done >= x_pass))
-            {
-                b_told = true;
-
-                if (!b_seen)
-                {
-                    say(app_str("side look heard nothing: assuming "
-                                "the box is at most 150 mm deep"));
-                }
-                else if (stop_at > x_pass)
-                {
-                    say(app_str("side look: box still beside, going "
-                                "on"));
-                }
-                else
-                {
-                    /* nothing to do for any other case */
-                }
-            }
+            side_ping(&look, sonar_mm, lat_exp, done);
+            side_report(&look, done, x_pass);
         }
 
-        if ((done >= line_from) && (miss >= SIDE_MISS_PINGS) &&
+        if ((done >= line_from) && (look.miss >= SIDE_MISS_PINGS) &&
             (line_any_black()))
         {
             outcome = 1;
             break;
         }
 
-        if (done >= stop_at)
+        if (done >= look.stop_at)
         {
             outcome = 0;
             break;
@@ -663,12 +683,12 @@ LOCAL int32_t pass_box (int32_t sgn, int32_t front, int32_t lat_exp,
     {
         obstacle_servo_angle(90);
 
-        if (b_seen)
+        if (look.b_seen)
         {
             tm_sprintf(msg,
                        app_str("side look: box heard from %d to %d "
                                "mm along, leg %d mm (fixed %d)"),
-                       first, last, done, x_pass);
+                       look.first, look.last, done, x_pass);
             say(msg);
         }
     }
@@ -1079,13 +1099,13 @@ EXPORT void mission_task (int32_t stacd, void * p_exinf)
 
             b_start_was_down = b_down;
 
+            if (b_go && (!button_is_down(PIN_STOP)))
+            {
+                app_stop_clear(STOP_BUTTON | STOP_MQTT);
+            }
+
             if (b_go)
             {
-                if (!button_is_down(PIN_STOP))
-                {
-                    app_stop_clear(STOP_BUTTON | STOP_MQTT);
-                }
-
                 start_run();
             }
         }

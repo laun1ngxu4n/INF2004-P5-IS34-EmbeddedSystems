@@ -164,6 +164,45 @@ Inline int32_t adc_blackness (int32_t sample)
     return S3_BAR_BLACK_HIGH ? sample : (4095 - sample);
 }
 
+/** S3_BAR_RELATIVE: black once the reading rises S3_BAR_DELTA above the
+   lowest since the last bar (and is at least S3_BAR_BLACK_MIN), white
+   once it falls S3_BAR_DELTA below the highest since.  The level after
+   this sample. */
+LOCAL uint8_t relative_level (uint8_t lvl, int32_t blackness)
+{
+    uint8_t next = lvl;
+
+    if (lvl != IR_BLACK)
+    {
+        if (blackness < g_rel_lo)
+        {
+            g_rel_lo = blackness;
+        }
+
+        if ((blackness > (g_rel_lo + S3_BAR_DELTA)) &&
+            (blackness >= adc_blackness(S3_BAR_BLACK_MIN)))
+        {
+            next     = IR_BLACK;
+            g_rel_hi = blackness;
+        }
+    }
+    else
+    {
+        if (blackness > g_rel_hi)
+        {
+            g_rel_hi = blackness;
+        }
+
+        if (blackness < (g_rel_hi - S3_BAR_DELTA))
+        {
+            next     = !IR_BLACK;
+            g_rel_lo = blackness;
+        }
+    }
+
+    return next;
+}
+
 /** One barcode sensor sample: learned levels, relative edges, edge to the
  * ring. */
 LOCAL void adc_sample (int32_t sample)
@@ -201,35 +240,7 @@ LOCAL void adc_sample (int32_t sample)
 
     if (S3_BAR_RELATIVE)
     {
-        int32_t blackness = adc_blackness(sample);
-
-        if (lvl != IR_BLACK)
-        {
-            if (blackness < g_rel_lo)
-            {
-                g_rel_lo = blackness;
-            }
-
-            if ((blackness > (g_rel_lo + S3_BAR_DELTA)) &&
-                (blackness >= adc_blackness(S3_BAR_BLACK_MIN)))
-            {
-                lvl      = IR_BLACK;
-                g_rel_hi = blackness;
-            }
-        }
-        else
-        {
-            if (blackness > g_rel_hi)
-            {
-                g_rel_hi = blackness;
-            }
-
-            if (blackness < (g_rel_hi - S3_BAR_DELTA))
-            {
-                lvl      = !IR_BLACK;
-                g_rel_lo = blackness;
-            }
-        }
+        lvl = relative_level(lvl, adc_blackness(sample));
     }
     else if (S3_BAR_ADC_ON > 0)
     {
@@ -989,60 +1000,134 @@ LOCAL bool decode_truncated (const int32_t * p_elem, int32_t count,
     return true;
 }
 
+/* the code being read: the decoder's state from one edge to the next */
+typedef struct
+{
+    int32_t elem[MAX_ELEM]; /* element widths so far, odometer counts */
+    int32_t count;          /* elements so far */
+    int32_t prev_odo;       /* where the last element ended */
+    bool    b_in_code;      /* inside a code */
+    bool    b_too_long;     /* more than MAX_ELEM elements: no decode */
+    uint8_t stable;         /* the debounced level */
+} bar_read_t;
+
+/** The end of an element of the code being read, at pos: its width. */
+LOCAL void add_element (bar_read_t * p_read, int32_t pos)
+{
+    int32_t width = pos - p_read->prev_odo;
+
+    if (width < 0)
+    {
+        width = -width;
+    }
+
+    if (p_read->count < MAX_ELEM)
+    {
+        p_read->elem[p_read->count] = width;
+        p_read->count++;
+    }
+    else
+    {
+        p_read->b_too_long = true;
+    }
+
+    if (1 == p_read->count)
+    {
+        mark_pub(pos, width);
+    }
+
+    p_read->prev_odo = pos;
+    g_edge_pub       = pos;
+}
+
+/** A level counts only once it has held for MERGE_COUNTS of travel: then
+   it starts at pos, where its last raw edge was.  Flicker never holds, so
+   it neither makes elements nor keeps a code open (Stage 2, 2 Nov:
+   pair-cancelling let every other flicker edge through). */
+LOCAL void commit_level (bar_read_t * p_read, uint8_t lvl, int32_t pos)
+{
+    if ((lvl != p_read->stable) && (!p_read->b_in_code))
+    {
+        p_read->stable = lvl;
+
+        if (IR_BLACK == lvl)
+        {
+            /* the first bar: a code starts */
+            p_read->b_in_code  = true;
+            p_read->b_too_long = false;
+            p_read->count      = 0;
+            p_read->prev_odo   = pos;
+            g_edge_pub         = pos;
+            gb_busy            = true;
+        }
+    }
+    else if (lvl != p_read->stable)
+    {
+        p_read->stable = lvl;
+        add_element(p_read, pos);
+    }
+    else
+    {
+        /* the same level: nothing changes */
+    }
+}
+
+/** The end of a code (quiet for S3_QUIET_MM): its element widths are kept
+   for the tests (barcode_debug); a code long enough is decoded (the
+   forgiving decodes if the clean one fails) and published, and Mission is
+   told.  Returns the number of results published so far. */
+LOCAL uint32_t code_ended (bar_read_t * p_read, uint32_t seq)
+{
+    int32_t  idx;
+    uint32_t irq_state;
+    uint32_t seq_now = seq;
+
+    APP_LOCK(irq_state);
+    g_dbg_n = p_read->count;
+
+    for (idx = 0; (idx < p_read->count) && (idx < BARCODE_DBG_MAX); idx++)
+    {
+        g_dbg_w[idx] = (p_read->elem[idx] * S2_UM_PER_COUNT / 100);
+    }
+
+    g_dbg_seq++;
+    APP_UNLOCK(irq_state);
+
+    if (p_read->count >= MIN_ELEM_REPORT)
+    {
+        barcode_result_t result = {0};
+
+        if ((!p_read->b_too_long) &&
+            (!decode(p_read->elem, p_read->count, &result)) &&
+            (!decode_one_star(p_read->elem, p_read->count, &result)) &&
+            (!decode_merged(p_read->elem, p_read->count, &result)))
+        {
+            (void)decode_truncated(p_read->elem, p_read->count, &result);
+        }
+
+        seq_now++;
+        result.seq      = seq_now;
+        result.elements = p_read->count;
+        APP_LOCK(irq_state);
+        g_last = result;
+        APP_UNLOCK(irq_state);
+        g_seq_now = seq_now;
+        tk_set_flg(gh_flg_mission, MSN_FLG_BARCODE);
+    }
+
+    return seq_now;
+}
+
 /** The barcode decoder task: builds bar widths from the edges and decodes
  * each code. */
 EXPORT void barcode_task (int32_t stacd, void * p_exinf)
 {
-    int32_t  elem[MAX_ELEM];
-    int32_t  count      = 0;
-    int32_t  prev_odo   = 0;
-    bool     b_in_code  = false;
-    bool     b_too_long = false;
-    uint32_t seq        = 0;
-    uint32_t end;
-    uint8_t  stable   = !IR_BLACK; /* debounced level */
-    uint8_t  raw_lvl  = !IR_BLACK; /* level after the last raw edge */
-    int32_t  raw_odo  = 0;         /* where that raw edge was */
-    bool     b_raw_ok = false;
-
-    /* A level counts only once it has held for MERGE_COUNTS of travel:
-       then it starts where its last raw edge was.  Flicker never holds,
-       so it neither makes elements nor keeps a code open (Stage 2, 2 Nov:
-       pair-cancelling let every other flicker edge through). */
-#define COMMIT(lvl, pos)                       \
-    do                                         \
-    {                                          \
-        if ((lvl) != stable)                   \
-        {                                      \
-            stable = (lvl);                    \
-            if (!b_in_code)                    \
-            {                                  \
-                if ((lvl) == IR_BLACK)         \
-                {                              \
-                    b_in_code  = true;         \
-                    b_too_long = false;        \
-                    count      = 0;            \
-                    prev_odo   = (pos);        \
-                    g_edge_pub = (pos);        \
-                    gb_busy    = true;         \
-                }                              \
-            }                                  \
-            else                               \
-            {                                  \
-                int32_t w_ = (pos) - prev_odo; \
-                if (w_ < 0)                    \
-                    w_ = -w_;                  \
-                if (count < MAX_ELEM)          \
-                    elem[count++] = w_;        \
-                else                           \
-                    b_too_long = true;         \
-                if (count == 1)                \
-                    mark_pub((pos), w_);       \
-                prev_odo   = (pos);            \
-                g_edge_pub = (pos);            \
-            }                                  \
-        }                                      \
-    } while (0)
+    bar_read_t read = {{0}, 0, 0, false, false, !IR_BLACK};
+    uint32_t   seq  = 0;
+    uint32_t   end;
+    uint8_t    raw_lvl  = !IR_BLACK; /* level after the last raw edge */
+    int32_t    raw_odo  = 0;         /* where that raw edge was */
+    bool       b_raw_ok = false;
 
     (void)stacd;
     (void)p_exinf;
@@ -1058,12 +1143,12 @@ EXPORT void barcode_task (int32_t stacd, void * p_exinf)
 
         if (gb_paused)
         {
-            g_ring_r  = g_ring_w;
-            b_in_code = false;
-            count     = 0;
-            gb_busy   = false;
-            stable    = !IR_BLACK;
-            b_raw_ok  = false;
+            g_ring_r       = g_ring_w;
+            read.b_in_code = false;
+            read.count     = 0;
+            gb_busy        = false;
+            read.stable    = !IR_BLACK;
+            b_raw_ok       = false;
             app_timing_done(g_tmg_barcode);
             continue;
         }
@@ -1078,12 +1163,12 @@ EXPORT void barcode_task (int32_t stacd, void * p_exinf)
 
             if (avail > RING)
             {
-                g_ring_r  = g_ring_w - RING;
-                b_in_code = false;
-                count     = 0;
-                stable    = !IR_BLACK;
-                b_raw_ok  = false;
-                avail     = RING;
+                g_ring_r       = g_ring_w - RING;
+                read.b_in_code = false;
+                read.count     = 0;
+                read.stable    = !IR_BLACK;
+                b_raw_ok       = false;
+                avail          = RING;
             }
 
             end = g_ring_r + avail;
@@ -1106,7 +1191,7 @@ EXPORT void barcode_task (int32_t stacd, void * p_exinf)
 
                 if (delta >= MERGE_COUNTS)
                 {
-                    COMMIT(raw_lvl, raw_odo); /* that level held */
+                    commit_level(&read, raw_lvl, raw_odo); /* that level held */
                 }
             }
 
@@ -1127,14 +1212,14 @@ EXPORT void barcode_task (int32_t stacd, void * p_exinf)
 
             if (delta >= MERGE_COUNTS)
             {
-                COMMIT(raw_lvl, raw_odo);
+                commit_level(&read, raw_lvl, raw_odo);
             }
         }
 
         /* End of a barcode: quiet for S3_QUIET_MM */
-        if (b_in_code)
+        if (read.b_in_code)
         {
-            int32_t gap = motor_odometer() - prev_odo;
+            int32_t gap = motor_odometer() - read.prev_odo;
 
             if (gap < 0)
             {
@@ -1143,50 +1228,13 @@ EXPORT void barcode_task (int32_t stacd, void * p_exinf)
 
             if (motion_counts_to_mm(gap) > S3_QUIET_MM)
             {
-                b_in_code = false;
-                {
-                    int32_t  idx;
-                    uint32_t irq_state;
-
-                    APP_LOCK(irq_state);
-                    g_dbg_n = count;
-
-                    for (idx = 0; (idx < count) && (idx < BARCODE_DBG_MAX);
-                         idx++)
-                    {
-                        g_dbg_w[idx] = (elem[idx] * S2_UM_PER_COUNT / 100);
-                    }
-
-                    g_dbg_seq++;
-                    APP_UNLOCK(irq_state);
-                }
-
-                if (count >= MIN_ELEM_REPORT)
-                {
-                    barcode_result_t result = {0};
-                    uint32_t         irq_state;
-
-                    if ((!b_too_long) && (!decode(elem, count, &result)) &&
-                        (!decode_one_star(elem, count, &result)) &&
-                        (!decode_merged(elem, count, &result)))
-                    {
-                        (void)decode_truncated(elem, count, &result);
-                    }
-
-                    result.seq      = ++seq;
-                    result.elements = count;
-                    APP_LOCK(irq_state);
-                    g_last = result;
-                    APP_UNLOCK(irq_state);
-                    g_seq_now = seq;
-                    tk_set_flg(gh_flg_mission, MSN_FLG_BARCODE);
-                }
-
-                count = 0;
+                read.b_in_code = false;
+                seq            = code_ended(&read, seq);
+                read.count     = 0;
             }
         }
 
-        gb_busy = b_in_code;
+        gb_busy = read.b_in_code;
 
         app_timing_done(g_tmg_barcode);
     }

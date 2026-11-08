@@ -1,0 +1,46 @@
+# Layout for app_program/: the Barr Group "Embedded C Coding Standard"
+# (2018) rules that a formatter can apply.  Format a file with
+#   clang-format -i app_program/<file>.c
+# then run tools/barr/fix_layout.py (break aligned with case, Barr 8.3a)
+# and tools/barr/check.py.  Barr rules in brackets.
+Language: Cpp
+BasedOnStyle: LLVM
+IndentWidth: 4                      # [3.4a] multiples of 4
+TabWidth: 4
+UseTab: Never                       # [3.5a] no tab characters
+ColumnLimit: 80                     # [1.2a] 80 characters at most
+BreakBeforeBraces: Allman           # [1.3b] braces on their own lines
+InsertBraces: true                  # [1.3a] braces always, even for one statement
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
+AllowShortBlocksOnASingleLine: Never
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortEnumsOnASingleLine: false
+IndentCaseLabels: true              # [3.4b] case labels aligned, contents one more
+SpaceBeforeParens: Custom           # [3.1a, 3.1j]
+SpaceBeforeParensOptions:
+  AfterControlStatements: true      # if (, while (, for (, switch (
+  AfterFunctionDeclarationName: true  # the one place a name is followed by " ("
+  AfterFunctionDefinitionName: true
+  AfterForeachMacros: true
+  AfterIfMacros: true
+PointerAlignment: Middle            # [3.1e] "UB * p" in declarations
+SpacesInParens: Never               # [3.1i]
+AlignConsecutiveDeclarations: Consecutive   # [3.2a]
+AlignConsecutiveAssignments: Consecutive    # [3.2c]
+AlignConsecutiveMacros: Consecutive
+AlignTrailingComments: true
+AlignEscapedNewlines: Left
+ReflowComments: Always              # [1.2a] long comments wrapped at 80
+SortIncludes: Never                 # include order is kept as written
+IncludeBlocks: Preserve
+IndentPPDirectives: None            # [3.2d] # at the start of the line
+MaxEmptyLinesToKeep: 1
+KeepEmptyLines:
+  AtStartOfBlock: false
+BinPackArguments: true
+BinPackParameters: true
+BreakStringLiterals: true
+Cpp11BracedListStyle: true
+SpaceAfterCStyleCast: false

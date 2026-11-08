@@ -22,6 +22,17 @@
 
 #include <tm/tmonitor.h>
 
+/* A failed check says where it is.  APP_COMPARE_BUILD (tools/barr/
+   compare.sh) leaves the file and line out, so a reformatted source gives
+   the same image as before and the two can be compared byte for byte. */
+#ifdef APP_COMPARE_BUILD
+#define TEST_WHERE_FILE	""
+#define TEST_WHERE_LINE	0
+#else
+#define TEST_WHERE_FILE	__FILE__
+#define TEST_WHERE_LINE	__LINE__
+#endif
+
 #define TEST_INIT()	INT test_pass_ = 0, test_fail_ = 0
 
 #define TEST_CHECK(id, cond, desc)					\
@@ -32,7 +43,7 @@
 		} else {						\
 			test_fail_++;					\
 			tm_printf((UB*)"[TEST] %s FAIL  %s   (%s:%d)\n",	\
-				  (id), (desc), __FILE__, __LINE__);	\
+				  (id), (desc), TEST_WHERE_FILE, TEST_WHERE_LINE); \
 		}							\
 	} while (0)
 

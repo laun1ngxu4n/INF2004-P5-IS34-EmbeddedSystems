@@ -20,19 +20,21 @@ LOCAL APP_GPIO_CB	gpio_cb[GPIO_NUM];
 LOCAL void gpio_inthdr(UINT intno)
 {
 	UW	ints;
-	UINT	reg, pin, sh;
+	UINT	reg;
+	UINT pin;
+	UINT sh;
 
 	for (reg = 0; reg < 4; reg++) {
 		ints = in_w(IO_PROC0_INTS(reg));
-		if (ints == 0u) {
+		if (0u == ints) {
 			continue;
 		}
 		/* Acknowledge first, so an edge during the callbacks is kept */
 		out_w(IO_INTR(reg), ints & IO_EDGE_BITS);
 		for (sh = 0; sh < 8; sh++) {
 			UW ev = (ints >> (sh * 4)) & APP_GPIO_BOTH;
-			pin = reg * 8 + sh;
-			if (ev != 0u && pin < GPIO_NUM && gpio_cb[pin] != NULL) {
+			pin = (reg * 8) + sh;
+			if ((ev != 0u) && (pin < GPIO_NUM) && (gpio_cb[pin] != NULL)) {
 				gpio_cb[pin](pin, ev);
 			}
 		}
@@ -89,7 +91,7 @@ EXPORT ER app_gpio_irq_add(UINT pin, UW events, APP_GPIO_CB cb)
 	UINT	s;
 	UW	bits;
 
-	if (pin >= GPIO_NUM || cb == NULL || (events & ~APP_GPIO_BOTH) != 0u) {
+	if ((pin >= GPIO_NUM) || (NULL == cb) || ((events & ~APP_GPIO_BOTH) != 0u)) {
 		return E_PAR;
 	}
 	bits = events << ((pin % 8) * 4);

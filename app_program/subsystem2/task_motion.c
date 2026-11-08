@@ -58,7 +58,7 @@ LOCAL ID cmd_post(INT type, INT speed, INT amount)
 	UINT	s;
 	ID	id;
 
-	if (type != CMD_HALT && app_stop_reasons() != 0u) {
+	if ((type != CMD_HALT) && (app_stop_reasons() != 0u)) {
 		return E_OBJ;
 	}
 	APP_LOCK(s);
@@ -131,35 +131,48 @@ LOCAL INT wheel_duty(WHEEL_PI *w, float target, float measured)
 	float	err = target - measured;
 	float	ff;
 
-	if (target == 0.0f) {
+	if (0.0f == target) {
 		w->integ = 0.0f;
 		return 0;
 	}
-	ff = FF_PER_MM_S * target + ((target > 0.0f) ? FF_OFFSET : -FF_OFFSET);
-	w->integ = clampf(w->integ + KI * err * DT_S, -I_LIMIT, I_LIMIT);
-	return (INT)clampf(ff + KP * err + w->integ, -1000.0f, 1000.0f);
+	ff = (FF_PER_MM_S * target) + ((target > 0.0f) ? FF_OFFSET : -FF_OFFSET);
+	w->integ = clampf(w->integ + (KI * err * DT_S), -I_LIMIT, I_LIMIT);
+	return (INT)clampf(ff + (KP * err) + w->integ, -1000.0f, 1000.0f);
 }
 
 EXPORT void motion_task(INT stacd, void *exinf)
 {
-	W		hist_l[SPEED_AVG_N] = {0}, hist_r[SPEED_AVG_N] = {0};
+	W		hist_l[SPEED_AVG_N] = {0};
+	W hist_r[SPEED_AVG_N] = {0};
 	INT		h = 0;
-	W		cl, cr, prev_l, prev_r, start_l = 0, start_r = 0;
+	W		cl;
+	W cr;
+	W prev_l;
+	W prev_r;
+	W start_l = 0;
+	W start_r = 0;
 	UW		invalid;
 	CMD		cur = {0};
-	WHEEL_PI	pi_l = {0}, pi_r = {0};
+	WHEEL_PI	pi_l = {0};
+	WHEEL_PI pi_r = {0};
 	float		v_prof = 0.0f;		/* profile speed now, mm/s */
-	UW		elapsed_ms = 0, limit_ms = 0;
+	UW		elapsed_ms = 0;
+	UW limit_ms = 0;
 	INT		result = MOT_RES_NONE;
 	UINT		s;
 
 	(void)stacd; (void)exinf;
 	encoder_read(&prev_l, &prev_r, NULL);
 
-	while (1) {
-		float	vl, vr, dl_mm, dr_mm;
-		INT	duty_l = 0, duty_r = 0;
-		W	sum_l = 0, sum_r = 0;
+	for (;;) {
+		float	vl;
+		float vr;
+		float dl_mm;
+		float dr_mm;
+		INT	duty_l = 0;
+		INT duty_r = 0;
+		W	sum_l = 0;
+		W sum_r = 0;
 		INT	i;
 		BOOL	fresh;
 
@@ -211,14 +224,14 @@ EXPORT void motion_task(INT stacd, void *exinf)
 			v_prof = 0.0f;
 			pi_l.integ = pi_r.integ = 0.0f;
 			result = MOT_RES_BUSY;
-			if (cur.type == CMD_DRIVE) {
+			if (CMD_DRIVE == cur.type) {
 				limit_ms = (UW)(2000 * absf((float)cur.amount) /
 					absf((float)cur.speed)) + 1000;
-			} else if (cur.type == CMD_TURN) {
+			} else if (CMD_TURN == cur.type) {
 				limit_ms = (UW)(2000.0f * 3.14159f * S2_TRACK_MM *
 					absf((float)cur.amount) / 360.0f /
 					(float)cur.speed) + 1000;
-			} else if (cur.type == CMD_FOLLOW) {
+			} else if (CMD_FOLLOW == cur.type) {
 				limit_ms = 0;		/* runs until replaced */
 			} else {			/* HALT */
 				result = MOT_RES_DONE;
@@ -227,14 +240,15 @@ EXPORT void motion_task(INT stacd, void *exinf)
 		}
 
 		/* 3. Run the command */
-		if (cur.type == CMD_FOLLOW) {
+		if (CMD_FOLLOW == cur.type) {
 			float	steer = (float)line_steer_mm_s();	/* + = steer left */
-			float	t_l, t_r;
+			float	t_l;
+			float t_r;
 			float	cap = absf((float)cur.speed);
 			INT	pct = line_speed_pct();	/* 100 = on track */
 			BOOL	off = (pct < 100);
 
-			if (follow_limit > 0 && cap > (float)follow_limit) {
+			if ((follow_limit > 0) && (cap > (float)follow_limit)) {
 				cap = (float)follow_limit;
 			}
 
@@ -260,7 +274,7 @@ EXPORT void motion_task(INT stacd, void *exinf)
 			if (off) {
 				cap = cap * (float)pct / 100.0f;
 			}
-			if (barcode_busy() && cap > (float)S2_SPEED_IN_BARCODE) {
+			if ((barcode_busy()) && (cap > (float)S2_SPEED_IN_BARCODE)) {
 				cap = (float)S2_SPEED_IN_BARCODE;
 			}
 			v_prof += ACCEL_MM_S2 * DT_S;
@@ -275,14 +289,20 @@ EXPORT void motion_task(INT stacd, void *exinf)
 			duty_l = wheel_duty(&pi_l, t_l, vl);
 			duty_r = wheel_duty(&pi_r, t_r, vr);
 			motor_write(duty_l, duty_r);
-		} else if (cur.type == CMD_DRIVE || cur.type == CMD_TURN) {
-			float	target, done, remain, v_cap, sl, sr, corr;
+		} else if ((CMD_DRIVE == cur.type) || (CMD_TURN == cur.type)) {
+			float	target;
+			float done;
+			float remain;
+			float v_cap;
+			float sl;
+			float sr;
+			float corr;
 
 			elapsed_ms += 10;
 			dl_mm = (float)(cl - start_l) * S2_UM_PER_COUNT / 1000.0f;
 			dr_mm = (float)(cr - start_r) * S2_UM_PER_COUNT / 1000.0f;
 
-			if (cur.type == CMD_DRIVE) {
+			if (CMD_DRIVE == cur.type) {
 				target = absf((float)cur.amount);
 				sl = (cur.speed >= 0) ? dl_mm : -dl_mm;
 				sr = (cur.speed >= 0) ? dr_mm : -dr_mm;
@@ -295,7 +315,7 @@ EXPORT void motion_task(INT stacd, void *exinf)
 			done = 0.5f * (sl + sr);
 			remain = target - done;
 
-			if (remain <= 0.0f || elapsed_ms > limit_ms) {
+			if ((remain <= 0.0f) || (elapsed_ms > limit_ms)) {
 				motor_safe_off();
 				result = (remain <= 0.0f) ? MOT_RES_DONE : MOT_RES_TIMEOUT;
 				cur.type = CMD_NONE;
@@ -316,12 +336,13 @@ EXPORT void motion_task(INT stacd, void *exinf)
 			{
 				float	t_l = v_prof - corr;
 				float	t_r = v_prof + corr;
-				float	m_l, m_r;
+				float	m_l;
+				float m_r;
 
 				if (t_l < 0.0f) t_l = 0.0f;
 				if (t_r < 0.0f) t_r = 0.0f;
 				/* measured speeds in the same "along the move" sense */
-				if (cur.type == CMD_DRIVE) {
+				if (CMD_DRIVE == cur.type) {
 					m_l = (cur.speed >= 0) ? vl : -vl;
 					m_r = (cur.speed >= 0) ? vr : -vr;
 				} else {
@@ -332,7 +353,7 @@ EXPORT void motion_task(INT stacd, void *exinf)
 				duty_r = wheel_duty(&pi_r, t_r, m_r);
 			}
 			/* back to wheel directions */
-			if (cur.type == CMD_DRIVE) {
+			if (CMD_DRIVE == cur.type) {
 				if (cur.speed < 0) {
 					duty_l = -duty_l;
 					duty_r = -duty_r;

@@ -31,7 +31,8 @@ typedef struct {
 } OUTMSG;
 
 LOCAL OUTMSG		outbox[OUTBOX_N];
-LOCAL UW		ob_w, ob_r;	/* under APP_LOCK */
+LOCAL UW		ob_w;
+LOCAL UW ob_r;	/* under APP_LOCK */
 LOCAL UW		out_dropped;
 LOCAL const char	*state_text = "IDLE";
 LOCAL volatile UW	start_count;	/* MQTT START commands since boot */
@@ -44,7 +45,8 @@ EXPORT UW tele_start_count(void)	{ return start_count; }
    test output; the link takes about 2.5 KB/s. */
 #define LOG_RING	8192		/* a power of 2 */
 LOCAL UB		log_ring[LOG_RING];
-LOCAL UW		log_w, log_r;	/* under APP_LOCK */
+LOCAL UW		log_w;
+LOCAL UW log_r;	/* under APP_LOCK */
 LOCAL UW		log_dropped;	/* bytes lost: ring full */
 LOCAL UW		log_seq;
 LOCAL BOOL		log_turn;	/* last message sent was a log chunk */
@@ -57,8 +59,8 @@ EXPORT void tm_console_mirror(const UB *buf, INT size)
 
 	APP_LOCK(s);
 	for (i = 0; i < size; i++) {
-		if (buf[i] == '\r') continue;		/* the panel wants \n only */
-		if (log_w - log_r >= LOG_RING) {
+		if ('\r' == buf[i]) continue;		/* the panel wants \n only */
+		if ((log_w - log_r) >= LOG_RING) {
 			log_dropped++;
 		} else {
 			log_ring[log_w & (LOG_RING - 1)] = buf[i];
@@ -73,13 +75,15 @@ LOCAL int log_take(char *topic, unsigned tmax, unsigned char *buf, unsigned bmax
 {
 	UB		head[24];
 	UINT		s;
-	unsigned	i, n, h;
+	unsigned	i;
+	unsigned n;
+	unsigned h;
 	UW		avail;
 
 	APP_LOCK(s);
 	avail = log_w - log_r;
 	APP_UNLOCK(s);
-	if (avail == 0u || bmax < 64u) return 0;
+	if ((0u == avail) || (bmax < 64u)) return 0;
 
 	h = (unsigned)tm_sprintf(head, (const UB*)"L%d %d|", (INT)(log_seq + 1u),
 				 (INT)log_dropped);
@@ -94,7 +98,7 @@ LOCAL int log_take(char *topic, unsigned tmax, unsigned char *buf, unsigned bmax
 	APP_UNLOCK(s);
 	log_seq++;
 
-	for (i = 0; i + 1 < tmax && TOPIC_LOG[i] != '\0'; i++) topic[i] = TOPIC_LOG[i];
+	for (i = 0; ((i + 1) < tmax) && (TOPIC_LOG[i] != '\0'); i++) topic[i] = TOPIC_LOG[i];
 	topic[i] = '\0';
 	return (int)(h + n);
 }
@@ -106,12 +110,12 @@ LOCAL void outbox_put(UB topic, const UB *text)
 	INT	i;
 
 	APP_LOCK(s);
-	if (ob_w - ob_r >= OUTBOX_N) {
+	if ((ob_w - ob_r) >= OUTBOX_N) {
 		ob_r++;			/* full: drop the oldest */
 		out_dropped++;
 	}
 	outbox[ob_w % OUTBOX_N].topic = topic;
-	for (i = 0; i < TELE_TEXT_MAX - 1 && text[i] != '\0'; i++) {
+	for (i = 0; (i < (TELE_TEXT_MAX - 1)) && (text[i] != '\0'); i++) {
 		outbox[ob_w % OUTBOX_N].text[i] = text[i];
 	}
 	outbox[ob_w % OUTBOX_N].text[i] = '\0';
@@ -144,7 +148,7 @@ LOCAL BOOL starts_with(const char *s, const char *prefix, const char **rest)
 
 LOCAL BOOL same(const char *a, const char *b)
 {
-	while (*a != '\0' && *a == *b) {
+	while ((*a != '\0') && (*a == *b)) {
 		a++;
 		b++;
 	}
@@ -165,7 +169,7 @@ EXPORT int app_mqtt_tx(char *topic, unsigned tmax, unsigned char *buf, unsigned 
 	APP_UNLOCK(s);
 #if defined(TM_MQTT) && TM_MQTT
 	/* Outbox and log take turns, so a long log never holds up an event */
-	if (!have || !log_turn) {
+	if ((!have) || (!log_turn)) {
 		int n = log_take(topic, tmax, buf, bmax);
 		if (n > 0) {
 			log_turn = TRUE;
@@ -183,11 +187,11 @@ EXPORT int app_mqtt_tx(char *topic, unsigned tmax, unsigned char *buf, unsigned 
 	ob_r++;
 	APP_UNLOCK(s);
 
-	for (i = 0; i + 1 < tmax && names[m.topic][i] != '\0'; i++) {
+	for (i = 0; ((i + 1) < tmax) && (names[m.topic][i] != '\0'); i++) {
 		topic[i] = names[m.topic][i];
 	}
 	topic[i] = '\0';
-	for (i = 0; i + 1 < bmax && m.text[i] != '\0'; i++) {
+	for (i = 0; ((i + 1) < bmax) && (m.text[i] != '\0'); i++) {
 		buf[i] = m.text[i];
 	}
 	return (int)i;
@@ -258,8 +262,8 @@ LOCAL void sensor_line(void)
 
 	tm_sprintf(text, (const UB*)
 		"ir=%d%d%d steer=%d hold=%d inbar=%d front=%d tilt=%d h10=%d imu=%d",
-		(INT)(app_gpio_get(PIN_IR_LINE_L) == IR_BLACK),
-		(INT)(app_gpio_get(PIN_IR_LINE_R) == IR_BLACK),
+		(INT)(IR_BLACK == app_gpio_get(PIN_IR_LINE_L)),
+		(INT)(IR_BLACK == app_gpio_get(PIN_IR_LINE_R)),
 		(INT)barcode_black(),
 		line_steer_mm_s(), (INT)barcode_in_bars(), (INT)barcode_busy(),
 		obstacle_front_mm(), imu_pitch_mdeg_sin(), imu_height_mm10(),
@@ -276,7 +280,7 @@ EXPORT void telemetry_task(INT stacd, void *exinf)
 
 	(void)stacd; (void)exinf;
 
-	while (1) {
+	for (;;) {
 		tk_slp_tsk(TMO_FEVR);			/* woken every 100 ms */
 		app_timing_wake(tmg_telemetry, tk_can_wup(TSK_SELF));
 

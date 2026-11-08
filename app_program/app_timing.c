@@ -45,7 +45,7 @@ EXPORT void app_timing_wake(INT slot, INT overruns)
 	UW		iv;
 	UINT		s;
 
-	if (slot < 0 || slot >= tmg_used) {
+	if ((slot < 0) || (slot >= tmg_used)) {
 		return;
 	}
 	t = &tmg[slot];
@@ -76,7 +76,7 @@ EXPORT void app_timing_done(INT slot)
 	UW		run;
 	UINT		s;
 
-	if (slot < 0 || slot >= tmg_used) {
+	if ((slot < 0) || (slot >= tmg_used)) {
 		return;
 	}
 	t = &tmg[slot];
@@ -92,7 +92,7 @@ EXPORT void app_timing_test_start(INT slot)
 {
 	UINT	s;
 
-	if (slot < 0 || slot >= tmg_used) {
+	if ((slot < 0) || (slot >= tmg_used)) {
 		return;
 	}
 	APP_LOCK(s);
@@ -104,7 +104,7 @@ EXPORT ER app_timing_get(INT slot, APP_TIMING *p_copy)
 {
 	UINT	s;
 
-	if (slot < 0 || slot >= tmg_used) {
+	if ((slot < 0) || (slot >= tmg_used)) {
 		return E_PAR;
 	}
 	APP_LOCK(s);
@@ -140,7 +140,7 @@ EXPORT void app_timing_report(void)
 		tm_printf((UB*)"[tmg] %-9s %2d %3d | %6d %3d | ",
 			  c.name, (INT)c.pri, (INT)c.period_ms,
 			  (INT)c.count, (INT)c.overruns);
-		if (c.win_max_iv_us == 0) {
+		if (0 == c.win_max_iv_us) {
 			tm_printf((UB*)"no wake this window");
 		} else {
 			print_ms(c.win_min_iv_us);

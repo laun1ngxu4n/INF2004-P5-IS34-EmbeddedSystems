@@ -46,7 +46,7 @@ LOCAL UB enc_ab(INT wheel)
 {
 	UW in = in_w(GPIO_IN);
 
-	if (wheel == WHEEL_L) {
+	if (WHEEL_L == wheel) {
 		return (UB)((((in >> PIN_ENC_L_A) & 1u) << 1) | ((in >> PIN_ENC_L_B) & 1u));
 	}
 	return (UB)((((in >> PIN_ENC_R_A) & 1u) << 1) | ((in >> PIN_ENC_R_B) & 1u));
@@ -55,12 +55,12 @@ LOCAL UB enc_ab(INT wheel)
 /* Interrupt context, from app_gpio.c */
 LOCAL void enc_edge(UINT pin, UW events)
 {
-	INT	wheel = (pin == PIN_ENC_L_A || pin == PIN_ENC_L_B) ? WHEEL_L : WHEEL_R;
+	INT	wheel = ((PIN_ENC_L_A == pin) || (PIN_ENC_L_B == pin)) ? WHEEL_L : WHEEL_R;
 	UB	ab = enc_ab(wheel);
 	B	step = qdec[(enc_prev[wheel] << 2) | ab];
 
 	(void)events;
-	if (step == QDEC_BAD) {
+	if (QDEC_BAD == step) {
 		enc_invalid++;
 	} else {
 		enc_count[wheel] += step;

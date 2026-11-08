@@ -13,7 +13,8 @@
 
 Inline float app_sqrtf(float x)
 {
-	float	r = 1.0f, s = x;
+	float	r = 1.0f;
+	float s = x;
 	int	i;
 
 	if (x <= 0.0f) {
@@ -28,7 +29,7 @@ Inline float app_sqrtf(float x)
 		r *= 0.5f;
 	}
 	for (i = 0; i < 6; i++) {
-		r = 0.5f * (r + x / r);
+		r = 0.5f * (r + (x / r));
 	}
 	return r;
 }
@@ -39,8 +40,8 @@ Inline float app_sin_deg(float deg)
 	float x = deg * 3.14159265f / 180.0f;
 	float x2 = x * x;
 
-	return x * (1.0f - x2 / 6.0f * (1.0f - x2 / 20.0f * (1.0f - x2 / 42.0f *
-		(1.0f - x2 / 72.0f))));
+	return x * (1.0f - (x2 / 6.0f * (1.0f - (x2 / 20.0f * (1.0f - (x2 / 42.0f *
+		(1.0f - (x2 / 72.0f))))))));
 }
 
 Inline float app_absf(float x)

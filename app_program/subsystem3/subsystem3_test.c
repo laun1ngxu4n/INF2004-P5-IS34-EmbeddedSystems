@@ -33,8 +33,14 @@ EXPORT void subsystem3_test(void)
 
 LOCAL void ir_live(void)
 {
-	INT	t, raw, wl, bl, lo = 4095, hi = 0;
-	UW	prev = 0xFFu, e1 = barcode_edges();
+	INT	t;
+	INT raw;
+	INT wl;
+	INT bl;
+	INT lo = 4095;
+	INT hi = 0;
+	UW	prev = 0xFFu;
+	UW e1 = barcode_edges();
 	BOOL	ana = barcode_adc(&raw, &wl, &bl);
 
 	tm_printf((UB*)"\n[S3] IR live view for 30 s: slide black tape under each "
@@ -65,8 +71,8 @@ LOCAL void ir_live(void)
 		}
 	}
 	for (t = 0; t < 3000; t++) {
-		UW now = ((UW)(app_gpio_get(PIN_IR_LINE_L) == IR_BLACK) << 2) |
-			 ((UW)(app_gpio_get(PIN_IR_LINE_R) == IR_BLACK) << 1) |
+		UW now = ((UW)(IR_BLACK == app_gpio_get(PIN_IR_LINE_L)) << 2) |
+			 ((UW)(IR_BLACK == app_gpio_get(PIN_IR_LINE_R)) << 1) |
 			 (barcode_black() ? 1u : 0u);
 		if (now != prev) {
 			tm_printf((UB*)"[S3] L %d  R %d  B %d\n", (INT)((now >> 2) & 1u),
@@ -78,7 +84,7 @@ LOCAL void ir_live(void)
 			if (raw < lo) lo = raw;
 			if (raw > hi) hi = raw;
 		}
-		if (t % 100 == 99) {
+		if ((t % 100) == 99) {
 			/* the interrupt sees every flicker; the 10 ms view above does not */
 			UW e2 = barcode_edges();
 
@@ -99,16 +105,16 @@ LOCAL void ir_live(void)
 		(void)barcode_adc(&raw, &wl, &bl);
 		if (S3_BAR_RELATIVE) {
 			tm_printf((UB*)"[S3] B: whitest %d, darkest %d seen%s\n", wl, bl,
-				  (bl - wl < S3_BAR_MIN_SPAN && wl - bl < S3_BAR_MIN_SPAN) ?
+				  (((bl - wl) < S3_BAR_MIN_SPAN) && ((wl - bl) < S3_BAR_MIN_SPAN)) ?
 				  " (it never saw black: pass it over tape)" : "");
-		} else if (bl - wl >= S3_BAR_MIN_SPAN || wl - bl >= S3_BAR_MIN_SPAN) {
+		} else if (((bl - wl) >= S3_BAR_MIN_SPAN) || ((wl - bl) >= S3_BAR_MIN_SPAN)) {
 			/* black from 60 % of the way from white to black, white
 			   again below 40 %: grout should stay under 40 % */
 			tm_printf((UB*)"[S3] B thresholds from what it saw: "
 				  "S3_BAR_ADC_ON %d, S3_BAR_ADC_OFF %d. Grout or a tile "
 				  "join must stay on the white side of OFF (see the "
 				  "readings above); if not, tell B3 before using them\n",
-				  wl + (bl - wl) * 6 / 10, wl + (bl - wl) * 4 / 10);
+				  wl + ((bl - wl) * 6 / 10), wl + ((bl - wl) * 4 / 10));
 		} else {
 			tm_printf((UB*)"[S3] B has not seen enough contrast (white %d, "
 				  "black %d): check AO is on GP28, the module is on 3V3, "
@@ -118,7 +124,8 @@ LOCAL void ir_live(void)
 }
 
 /* Junctions seen in the last follow_and_watch(), by kind */
-LOCAL INT	j_cross, j_left;
+LOCAL INT	j_cross;
+LOCAL INT j_left;
 
 /* Follow the line for up to secs (and up to max_mm, 0 = no limit); print
    junctions, barcodes, line lost */
@@ -127,12 +134,17 @@ LOCAL INT follow_and_watch(INT secs, INT max_mm, INT *junc, INT *lost,
 {
 	W		odo0 = motion_odometer();
 	UW		e0 = barcode_edges();
-	UW		j0 = line_junctions(), jn;
+	UW		j0 = line_junctions();
+	UW jn;
 	BARCODE_RESULT	r;
 	UW		seq;
-	INT		t, last_state = LINE_ON, traced = 0;
+	INT		t;
+	INT last_state = LINE_ON;
+	INT traced = 0;
 	UW		lc_prev = 0xFFu;
-	INT		dn, dw[40], k;
+	INT		dn;
+	INT dw[40];
+	INT k;
 	UW		dseq = barcode_debug(&dn, dw, 40);
 	W		mo;
 	INT		mw;
@@ -145,20 +157,20 @@ LOCAL INT follow_and_watch(INT secs, INT max_mm, INT *junc, INT *lost,
 	line_set_enabled(TRUE);
 	tm_printf((UB*)"[S3] at start: L %d  R %d (want L 0, R 0: the tape centred "
 		  "between them)\n",
-		  app_gpio_get(PIN_IR_LINE_L) == IR_BLACK,
-		  app_gpio_get(PIN_IR_LINE_R) == IR_BLACK);
+		  IR_BLACK == app_gpio_get(PIN_IR_LINE_L),
+		  IR_BLACK == app_gpio_get(PIN_IR_LINE_R));
 	if (motion_follow(S2_SPEED_BARCODE) < E_OK) return 0;
-	for (t = 0; t < secs * 100 && !test_stop_pressed(); t++) {
+	for (t = 0; (t < (secs * 100)) && (!test_stop_pressed()); t++) {
 		UW lc;
 
 		tk_dly_tsk(10);
-		if (max_mm > 0 && S2_COUNTS_TO_MM(motion_odometer() - odo0) >= max_mm) {
+		if ((max_mm > 0) && (S2_COUNTS_TO_MM(motion_odometer() - odo0) >= max_mm)) {
 			break;
 		}
 		/* Trace what the line sensors see: every change, first 150 */
-		lc = ((UW)(app_gpio_get(PIN_IR_LINE_L) == IR_BLACK) << 1) |
-		     (UW)(app_gpio_get(PIN_IR_LINE_R) == IR_BLACK);
-		if (lc != lc_prev && traced < 150) {
+		lc = ((UW)(IR_BLACK == app_gpio_get(PIN_IR_LINE_L)) << 1) |
+		     (UW)(IR_BLACK == app_gpio_get(PIN_IR_LINE_R));
+		if ((lc != lc_prev) && (traced < 150)) {
 			tm_printf((UB*)"[S3T] %d mm  L %d  R %d  steer %d\n",
 				  (INT)S2_COUNTS_TO_MM(motion_odometer() - odo0),
 				  (INT)(lc >> 1), (INT)(lc & 1u), line_steer_mm_s());
@@ -166,7 +178,7 @@ LOCAL INT follow_and_watch(INT secs, INT max_mm, INT *junc, INT *lost,
 			traced++;
 		}
 		jn = line_junctions();
-		if (jn != j0 + (UW)*junc) {
+		if (jn != (j0 + (UW)*junc)) {
 			INT sd = line_junction_sides();
 
 			(*junc)++;
@@ -182,15 +194,15 @@ LOCAL INT follow_and_watch(INT secs, INT max_mm, INT *junc, INT *lost,
 		}
 		if (line_state() != last_state) {
 			last_state = line_state();
-			if (last_state == LINE_LOST) {
+			if (LINE_LOST == last_state) {
 				(*lost)++;
 				tm_printf((UB*)"[S3] LINE LOST, stopping\n");
 				break;
 			}
-			if (last_state == LINE_FAULT) {
+			if (LINE_FAULT == last_state) {
 				(*lost)++;
 				tm_printf((UB*)"[S3] LINE SENSOR FAULT: %s, stopping\n",
-					  (line_fault() == LINE_FAULT_ONE) ?
+					  (LINE_FAULT_ONE == line_fault()) ?
 					  "one sensor black for 30 cm (stuck black?)" :
 					  "both black for 15 cm (stuck, or a wide black area)");
 				break;
@@ -200,9 +212,9 @@ LOCAL INT follow_and_watch(INT secs, INT max_mm, INT *junc, INT *lost,
 			dseq = barcode_debug(&dn, dw, 40);
 			if (dn >= 2) {		/* 1 = a grout line or junction */
 				tm_printf((UB*)"[S3] code ended, %d elements (mm):", dn);
-				for (k = 0; k < dn && k < 40; k++) {
+				for (k = 0; (k < dn) && (k < 40); k++) {
 					tm_printf((UB*)"%s%d.%d",
-						  (k % 10 == 0 && k > 0) ? " | " : " ",
+						  (((k % 10) == 0) && (k > 0)) ? " | " : " ",
 						  dw[k] / 10, dw[k] % 10);
 				}
 				tm_printf((UB*)"\n");
@@ -213,7 +225,7 @@ LOCAL INT follow_and_watch(INT secs, INT max_mm, INT *junc, INT *lost,
 			mseq = barcode_mark(&mo, &mw);
 			tm_printf((UB*)"[S3] %d mm: B patch %d.%d mm (%s)\n",
 				  (INT)S2_COUNTS_TO_MM(mo - odo0), mw / 10, mw % 10,
-				  (mw >= S3_JUNC_MIN_MM * 10 && mw <= S3_JUNC_MAX_MM * 10) ?
+				  ((mw >= (S3_JUNC_MIN_MM * 10)) && (mw <= (S3_JUNC_MAX_MM * 10))) ?
 				  "tape width: a left arm, if the robot drove straight there" :
 				  "not tape width: grout or a barcode bar, not a junction");
 		}
@@ -224,9 +236,9 @@ LOCAL INT follow_and_watch(INT secs, INT max_mm, INT *junc, INT *lost,
 				(*codes_ok)++;
 				tm_printf((UB*)"[S3] barcode %c%s%s, narrow %d.%d mm, wide %d.%d mm\n",
 					  r.ch, r.reversed ? " (backwards)" : "",
-					  (r.fixed == BAR_FIX_STAR) ? " (one * damaged)" :
-					  (r.fixed == BAR_FIX_MERGED) ? " (a lost bar put back)" :
-					  (r.fixed == BAR_FIX_CUT) ? " (a missing end bar put back)" : "",
+					  (BAR_FIX_STAR == r.fixed) ? " (one * damaged)" :
+					  (BAR_FIX_MERGED == r.fixed) ? " (a lost bar put back)" :
+					  (BAR_FIX_CUT == r.fixed) ? " (a missing end bar put back)" : "",
 					  r.narrow_mm10 / 10, r.narrow_mm10 % 10,
 					  r.wide_mm10 / 10, r.wide_mm10 % 10);
 			} else {
@@ -242,7 +254,8 @@ LOCAL INT follow_and_watch(INT secs, INT max_mm, INT *junc, INT *lost,
 	tm_printf((UB*)"[S3] junctions this run: crossings %d, left branches %d\n",
 		  j_cross, j_left);
 	{
-		UW  nc, ns;
+		UW  nc;
+		UW ns;
 		INT mm = (INT)S2_COUNTS_TO_MM(motion_odometer() - odo0);
 
 		line_wobble(&nc, &ns);
@@ -261,8 +274,8 @@ LOCAL BOOL ask_run(const char *what)
 	app_stop_clear(STOP_BUTTON | STOP_MQTT);	/* a STOP from the last run */
 	tm_printf((UB*)"\n[DRIVE] %s\n[DRIVE] START (GP20) = run it, STOP (GP21) = "
 		  "skip it (or START / STOP on the panel)\n", what);
-	while (1) {
-		if (button_down(PIN_STOP) || (app_stop_reasons() & STOP_MQTT) != 0u) {
+	for (;;) {
+		if ((button_down(PIN_STOP)) || ((app_stop_reasons() & STOP_MQTT) != 0u)) {
 			while (button_down(PIN_STOP)) tk_dly_tsk(10);
 			tk_dly_tsk(50);
 			app_stop_clear(STOP_BUTTON | STOP_MQTT);
@@ -274,7 +287,7 @@ LOCAL BOOL ask_run(const char *what)
 		}
 		if (button_down(PIN_START)) {
 			tk_dly_tsk(30);			/* debounce */
-			if (button_down(PIN_START) && !button_down(PIN_STOP)) {
+			if ((button_down(PIN_START)) && (!button_down(PIN_STOP))) {
 				while (button_down(PIN_START)) tk_dly_tsk(10);
 				return TRUE;
 			}
@@ -287,14 +300,16 @@ LOCAL BOOL ask_run(const char *what)
 LOCAL BOOL print_new_code(UW *seq, UW *dseq)
 {
 	BARCODE_RESULT	r;
-	INT		dn, dw[40], k;
+	INT		dn;
+	INT dw[40];
+	INT k;
 	BOOL		ok = FALSE;
 
 	if (barcode_debug(&dn, dw, 40) != *dseq) {
 		*dseq = barcode_debug(&dn, dw, 40);
 		tm_printf((UB*)"[S3] code ended, %d elements (mm):", dn);
-		for (k = 0; k < dn && k < 40; k++) {
-			tm_printf((UB*)"%s%d.%d", (k % 10 == 0 && k > 0) ? " | " : " ",
+		for (k = 0; (k < dn) && (k < 40); k++) {
+			tm_printf((UB*)"%s%d.%d", (((k % 10) == 0) && (k > 0)) ? " | " : " ",
 				  dw[k] / 10, dw[k] % 10);
 		}
 		tm_printf((UB*)"\n");
@@ -306,9 +321,9 @@ LOCAL BOOL print_new_code(UW *seq, UW *dseq)
 			ok = TRUE;
 			tm_printf((UB*)"[S3] barcode %c%s%s, narrow %d.%d mm, wide %d.%d mm\n",
 				  r.ch, r.reversed ? " (backwards)" : "",
-				  (r.fixed == BAR_FIX_STAR) ? " (one * damaged)" :
-				  (r.fixed == BAR_FIX_MERGED) ? " (a lost bar put back)" :
-					  (r.fixed == BAR_FIX_CUT) ? " (a missing end bar put back)" : "",
+				  (BAR_FIX_STAR == r.fixed) ? " (one * damaged)" :
+				  (BAR_FIX_MERGED == r.fixed) ? " (a lost bar put back)" :
+					  (BAR_FIX_CUT == r.fixed) ? " (a missing end bar put back)" : "",
 				  r.narrow_mm10 / 10, r.narrow_mm10 % 10,
 				  r.wide_mm10 / 10, r.wide_mm10 % 10);
 		} else {
@@ -334,53 +349,67 @@ LOCAL BOOL bar_bench_run(INT speed)
 {
 	MOTION_STATUS	st;
 	BARCODE_RESULT	r;
-	UW		seq, dseq;
-	INT		n = 0, t, dn, dw[40], raw, wl, bl, i;
-	BOOL		ana = FALSE, ok = FALSE;
+	UW		seq;
+	UW dseq;
+	INT		n = 0;
+	INT t;
+	INT dn;
+	INT dw[40];
+	INT raw;
+	INT wl;
+	INT bl;
+	INT i;
+	BOOL		ana = FALSE;
+	BOOL ok = FALSE;
 
 	barcode_last(&r);
 	seq = r.seq;
 	dseq = barcode_debug(&dn, dw, 40);
 	barcode_reset();
 	if (motion_drive(speed, BENCH_MM) < E_OK) return FALSE;
-	for (t = 0; t < 2000 && !test_stop_pressed(); t++) {
+	for (t = 0; (t < 2000) && (!test_stop_pressed()); t++) {
 		tk_dly_tsk(10);
 		ana = barcode_adc(&raw, &wl, &bl);
-		if (ana && n < BENCH_N) {
+		if (ana && (n < BENCH_N)) {
 			bn_odo[n] = motion_odometer();
 			bn_v[n] = (UH)raw;
 			n++;
 		}
 		if (print_new_code(&seq, &dseq)) ok = TRUE;
 		motion_get_status(&st);
-		if (t > 10 && st.result != MOT_RES_BUSY) break;
+		if ((t > 10) && (st.result != MOT_RES_BUSY)) break;
 	}
 	motion_halt();
 	tk_dly_tsk(50);
 	if (print_new_code(&seq, &dseq)) ok = TRUE;
 
-	if (ana && n > 0) {
+	if (ana && (n > 0)) {
 		/* The reader's own rule (S3_BAR_RELATIVE) on the 10 ms samples:
 		   each bar and space with its darkest / lightest reading.  '!' =
 		   its contrast to the element before was under 2 x S3_BAR_DELTA,
 		   close to being missed (a narrow bar or space the spot blurs). */
 #define BK(v)	(S3_BAR_BLACK_HIGH ? (INT)(v) : 4095 - (INT)(v))
 #define RAW(x)	(S3_BAR_BLACK_HIGH ? (x) : 4095 - (x))
-		INT	cnt = 0, lo, hi, ref = 0, weak = 0;
-		BOOL	blk = FALSE, started = FALSE;
+		INT	cnt = 0;
+		INT lo;
+		INT hi;
+		INT ref = 0;
+		INT weak = 0;
+		BOOL	blk = FALSE;
+		BOOL started = FALSE;
 		W	st_odo = 0;
 
 		lo = hi = BK(bn_v[0]);
-		for (i = 1; i < n && cnt < 80; i++) {
+		for (i = 1; (i < n) && (cnt < 80); i++) {
 			INT	x = BK(bn_v[i]);
 			BOOL	change;
 
 			if (!blk) {
 				if (x < lo) lo = x;
-				change = (x > lo + S3_BAR_DELTA && x >= BK(S3_BAR_BLACK_MIN));
+				change = ((x > (lo + S3_BAR_DELTA)) && (x >= BK(S3_BAR_BLACK_MIN)));
 			} else {
 				if (x > hi) hi = x;
-				change = (x < hi - S3_BAR_DELTA);
+				change = (x < (hi - S3_BAR_DELTA));
 			}
 			if (!change) continue;
 			if (!started) {
@@ -391,14 +420,14 @@ LOCAL BOOL bar_bench_run(INT speed)
 					  2 * S3_BAR_DELTA);
 			} else {
 				W	w = bn_odo[i] - st_odo;
-				INT	mm10 = (INT)((w < 0 ? -w : w) * S2_UM_PER_COUNT / 100);
+				INT	mm10 = (INT)(((w < 0) ? -w : w) * S2_UM_PER_COUNT / 100);
 				INT	ext = blk ? hi : lo;
-				BOOL	bad = (blk ? ext - ref : ref - ext) < 2 * S3_BAR_DELTA;
+				BOOL	bad = (blk ? ext - ref : ref - ext) < (2 * S3_BAR_DELTA);
 
 				if (bad) weak++;
 				tm_printf((UB*)"%c%d.%d/%d%s ", blk ? 'B' : 's',
 					  mm10 / 10, mm10 % 10, RAW(ext), bad ? "!" : "");
-				if (++cnt % 10 == 0) tm_printf((UB*)"\n[S3]  ");
+				if ((++cnt % 10) == 0) tm_printf((UB*)"\n[S3]  ");
 			}
 			ref = blk ? hi : lo;
 			st_odo = bn_odo[i];
@@ -413,7 +442,7 @@ LOCAL BOOL bar_bench_run(INT speed)
 		}
 		if (blk && started) {			/* the last bar */
 			W	w = bn_odo[n - 1] - st_odo;
-			INT	mm10 = (INT)((w < 0 ? -w : w) * S2_UM_PER_COUNT / 100);
+			INT	mm10 = (INT)(((w < 0) ? -w : w) * S2_UM_PER_COUNT / 100);
 
 			tm_printf((UB*)"B%d.%d/%d (end of samples) ", mm10 / 10, mm10 % 10,
 				  RAW(hi));
@@ -466,7 +495,12 @@ LOCAL void bar_bench(void)
 
 EXPORT void subsystem3_stage_test(void)
 {
-	INT	junc = 0, lost = 0, ok = 0, fail = 0, k, dist;
+	INT	junc = 0;
+	INT lost = 0;
+	INT ok = 0;
+	INT fail = 0;
+	INT k;
+	INT dist;
 	TEST_INIT();
 
 	tm_printf((UB*)"\n[DRIVE] === Stage 2: line, junctions, barcodes ===\n"
@@ -481,7 +515,7 @@ EXPORT void subsystem3_stage_test(void)
 		dist = follow_and_watch(60, 0, &junc, &lost, &ok, &fail);
 		tm_printf((UB*)"[S3-L01] followed %d mm, line lost %d times; [S3-L02] "
 			  "junctions counted %d (write down the real number)\n", dist, lost, junc);
-		TEST_CHECK("S3-L01", lost == 0 && dist >= 3000,
+		TEST_CHECK("S3-L01", (0 == lost) && (dist >= 3000),
 			   "followed at least 3 m without LINE_LOST");
 
 		/* One kind of place at a time: the robot drives at most max_mm, so
@@ -490,8 +524,12 @@ EXPORT void subsystem3_stage_test(void)
 		   the track" in the log). */
 		{
 			static const struct {
-				const char *id, *where, *pass;
-				INT max_mm, want_cross, want_left;
+				const char *id;
+				const char *where;
+				const char *pass;
+				INT max_mm;
+				INT want_cross;
+				INT want_left;
 				BOOL want_fault;	/* TRUE: must stop with LINE_FAULT_ONE */
 			} pl[] = {
 				/* S3-L04 (right-only branch) dropped 7 Nov: the track has
@@ -521,7 +559,10 @@ EXPORT void subsystem3_stage_test(void)
 
 			tm_printf((UB*)"\n[DRIVE] --- Stage 2A: one place at a time ---\n");
 			for (i = 0; i < (INT)(sizeof(pl) / sizeof(pl[0])); i++) {
-				INT j = 0, l = 0, o = 0, f = 0;
+				INT j = 0;
+				INT l = 0;
+				INT o = 0;
+				INT f = 0;
 
 				tm_printf((UB*)"\n[DRIVE] %s: robot on the line %s. It drives at "
 					  "most %d mm. Pass: %s.\n", pl[i].id, pl[i].where,
@@ -530,11 +571,11 @@ EXPORT void subsystem3_stage_test(void)
 						"then STOP at once).");
 				follow_and_watch(30, pl[i].max_mm, &j, &l, &o, &f);
 				if (pl[i].want_fault) {
-					TEST_CHECK(pl[i].id, line_state() == LINE_FAULT &&
-						   line_fault() == LINE_FAULT_ONE, pl[i].pass);
+					TEST_CHECK(pl[i].id, (LINE_FAULT == line_state()) &&
+						   (LINE_FAULT_ONE == line_fault()), pl[i].pass);
 				} else {
-					TEST_CHECK(pl[i].id, l == 0 && j_cross == pl[i].want_cross &&
-						   j_left == pl[i].want_left, pl[i].pass);
+					TEST_CHECK(pl[i].id, (0 == l) && (j_cross == pl[i].want_cross) &&
+						   (j_left == pl[i].want_left), pl[i].pass);
 				}
 			}
 		}
@@ -549,7 +590,8 @@ EXPORT void subsystem3_stage_test(void)
 		    "Before each run write down the codes on the track in the "
 		    "order the robot meets them; compare with the printed ones ---")) {
 		for (k = 1; k <= 3; k++) {
-			INT j = 0, l = 0;
+			INT j = 0;
+			INT l = 0;
 			tm_printf((UB*)"\n[DRIVE] S3-B01..B03 barcodes, run %d of 3\n", k);
 			test_wait_start("Put the robot on the line before a stretch with barcodes "
 					"(both directions over the runs). Up to 40 s.");

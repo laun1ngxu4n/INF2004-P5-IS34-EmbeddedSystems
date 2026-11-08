@@ -84,29 +84,43 @@ LOCAL BOOL chip_setup(void)
 {
 	UB who = 0;
 
-	if (imu_i2c_read(IMU_ADDR, REG_WHO_AM_I, &who, 1) != E_OK || who != WHO_AM_I_VAL) {
+	if ((imu_i2c_read(IMU_ADDR, REG_WHO_AM_I, &who, 1) != E_OK) || (who != WHO_AM_I_VAL)) {
 		return FALSE;
 	}
-	return imu_i2c_write(IMU_ADDR, 0x20, 0x6F) == E_OK &&	/* CTRL1: 100 Hz, BDU, XYZ */
-	       imu_i2c_write(IMU_ADDR, 0x21, 0xC8) == E_OK &&	/* CTRL2: +/-4 g, 50 Hz
+	return (E_OK == imu_i2c_write(IMU_ADDR, 0x20, 0x6F)) &&	/* CTRL1: 100 Hz, BDU, XYZ */
+	       (E_OK == imu_i2c_write(IMU_ADDR, 0x21, 0xC8)) &&	/* CTRL2: +/-4 g, 50 Hz
 								   anti-alias filter (was
 								   773 Hz: motor vibration
 								   folded into the tilt) */
-	       imu_i2c_write(IMU_ADDR, 0x24, 0x70) == E_OK &&	/* CTRL5 */
-	       imu_i2c_write(IMU_ADDR, 0x25, 0x20) == E_OK &&	/* CTRL6 */
-	       imu_i2c_write(IMU_ADDR, 0x26, 0x00) == E_OK;	/* CTRL7: no HPF */
+	       (E_OK == imu_i2c_write(IMU_ADDR, 0x24, 0x70)) &&	/* CTRL5 */
+	       (E_OK == imu_i2c_write(IMU_ADDR, 0x25, 0x20)) &&	/* CTRL6 */
+	       (E_OK == imu_i2c_write(IMU_ADDR, 0x26, 0x00));	/* CTRL7: no HPF */
 }
 
 EXPORT void imu_task(INT stacd, void *exinf)
 {
-	INT	retry = 0, ncal = 0;
-	float	cal_s = 0.0f, cal_c = 0.0f, s0 = 0.0f, c0 = 1.0f;
-	float	cal_m = 0.0f, m0 = 0.0f;		/* |a| when level and still */
-	float	cal_y = 0.0f, y0 = 0.0f;		/* sideways share when level */
-	float	roll_f = 0.0f, base_r = 0.0f, roll = 0.0f;
-	float	one_peak = 0.0f, one_pitch_peak = 0.0f, roll_peak = 0.0f;
-	float	sin_f = 0.0f, h = 0.0f, peak = 0.0f, peak_sin = 0.0f;
-	float	base = 0.0f, tilt = 0.0f;	/* driving level; sin_f - base */
+	INT	retry = 0;
+	INT ncal = 0;
+	float	cal_s = 0.0f;
+	float cal_c = 0.0f;
+	float s0 = 0.0f;
+	float c0 = 1.0f;
+	float	cal_m = 0.0f;
+	float m0 = 0.0f;		/* |a| when level and still */
+	float	cal_y = 0.0f;
+	float y0 = 0.0f;		/* sideways share when level */
+	float	roll_f = 0.0f;
+	float base_r = 0.0f;
+	float roll = 0.0f;
+	float	one_peak = 0.0f;
+	float one_pitch_peak = 0.0f;
+	float roll_peak = 0.0f;
+	float	sin_f = 0.0f;
+	float h = 0.0f;
+	float peak = 0.0f;
+	float peak_sin = 0.0f;
+	float	base = 0.0f;
+	float tilt = 0.0f;	/* driving level; sin_f - base */
 	W	odo_prev;
 	INT	flat_mm10 = 0;
 	INT	quiet_mm10 = 0;		/* distance left before another report */
@@ -115,7 +129,7 @@ EXPORT void imu_task(INT stacd, void *exinf)
 	imu_i2c_init();
 	odo_prev = motion_odometer();
 
-	while (1) {
+	for (;;) {
 		UB	b[6];
 		W	odo;
 
@@ -141,12 +155,14 @@ EXPORT void imu_task(INT stacd, void *exinf)
 			float	ax = (float)(H)(b[0] | (b[1] << 8));
 			float	ay = (float)(H)(b[2] | (b[3] << 8));
 			float	az = (float)(H)(b[4] | (b[5] << 8));
-			float	mag = app_sqrtf(ax * ax + ay * ay + az * az);
-			float	sp, cp, rel;
+			float	mag = app_sqrtf((ax * ax) + (ay * ay) + (az * az));
+			float	sp;
+			float cp;
+			float rel;
 
 			if (mag < 1.0f) goto done;
 			sp = ax / mag;				/* sin(pitch) */
-			cp = app_sqrtf(ay * ay + az * az) / mag;	/* cos(pitch) */
+			cp = app_sqrtf((ay * ay) + (az * az)) / mag;	/* cos(pitch) */
 
 			if (cal_request) {
 				cal_s += sp;
@@ -171,8 +187,8 @@ EXPORT void imu_task(INT stacd, void *exinf)
 			}
 			/* sin(pitch - level pitch), low-pass filtered; jolts
 			   skipped (the pitch from before them is kept) */
-			if (app_absf(mag - m0) <= JOLT_FRAC * m0) {
-				rel = sp * c0 - cp * s0;
+			if (app_absf(mag - m0) <= (JOLT_FRAC * m0)) {
+				rel = (sp * c0) - (cp * s0);
 				sin_f += LPF_K * (rel - sin_f);
 				if (app_absf(sin_f - base) < BASE_WIN) {
 					base += BASE_K * (sin_f - base);
@@ -181,7 +197,7 @@ EXPORT void imu_task(INT stacd, void *exinf)
 				sin_x1000 = (INT)(tilt * 1000.0f);
 				/* side tilt, the same way (level offset, filter,
 				   slowly following driving level) */
-				roll_f += ROLL_LPF_K * ((ay / mag - y0) - roll_f);
+				roll_f += ROLL_LPF_K * (((ay / mag) - y0) - roll_f);
 				if (app_absf(roll_f - base_r) < BASE_WIN) {
 					base_r += BASE_K * (roll_f - base_r);
 				}
@@ -226,16 +242,16 @@ EXPORT void imu_task(INT stacd, void *exinf)
 			if (quiet_mm10 > 0) {
 				quiet_mm10 -= (INT)(app_absf(ds) * 10.0f);
 			}
-			if (app_absf(tilt) < FLAT_SIN && app_absf(roll) < FLAT_SIN) {
+			if ((app_absf(tilt) < FLAT_SIN) && (app_absf(roll) < FLAT_SIN)) {
 				flat_mm10 += (INT)(app_absf(ds) * 10.0f);
 			} else {
 				flat_mm10 = 0;
 			}
-			if (flat_mm10 > FLAT_MM * 10) {
+			if (flat_mm10 > (FLAT_MM * 10)) {
 				INT p10 = (INT)(peak * 10.0f);
 				INT o10 = (INT)(one_peak * 10.0f);
 
-				if (o10 >= REPORT_MIN_MM10 && o10 >= p10 && quiet_mm10 <= 0) {
+				if ((o10 >= REPORT_MIN_MM10) && (o10 >= p10) && (quiet_mm10 <= 0)) {
 					/* one wheel went over it (the course's hump) */
 					UB	msg[TELE_TEXT_MAX];
 					INT	c10 = (INT)(one_pitch_peak * 10.0f);
@@ -249,7 +265,7 @@ EXPORT void imu_task(INT stacd, void *exinf)
 						c10 / 10, c10 % 10);
 					tele_event(msg);
 					quiet_mm10 = QUIET_AFTER_MM * 10;
-				} else if (p10 >= REPORT_MIN_MM10 && quiet_mm10 <= 0) {
+				} else if ((p10 >= REPORT_MIN_MM10) && (quiet_mm10 <= 0)) {
 					UB	msg[TELE_TEXT_MAX];
 					INT	l10 = (INT)(peak_sin * S4_L_MM * 10.0f);
 

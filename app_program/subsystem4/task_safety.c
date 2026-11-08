@@ -11,7 +11,7 @@ EXPORT void safety_task(INT stacd, void *exinf)
 {
 	(void)stacd; (void)exinf;
 
-	while (1) {
+	for (;;) {
 		tk_slp_tsk(TMO_FEVR);			/* woken every 20 ms */
 		app_timing_wake(tmg_safety, tk_can_wup(TSK_SELF));
 

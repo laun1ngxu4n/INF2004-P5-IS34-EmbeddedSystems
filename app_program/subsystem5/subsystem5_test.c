@@ -32,7 +32,7 @@ EXPORT void subsystem5_test(void)
 	tk_dly_tsk(3000);
 	tm_printf((UB*)"[TEST] mission: %d pings in 3000 ms (expected 3)\n",
 		  (INT)(mission_pings - p0));
-	TEST_CHECK("INT-01", (mission_pings - p0) >= 2 && (mission_pings - p0) <= 4,
+	TEST_CHECK("INT-01", ((mission_pings - p0) >= 2) && ((mission_pings - p0) <= 4),
 		   "IF-01 ping from Telemetry wakes Mission once a second");
 
 	TEST_SUMMARY("subsystem5");
@@ -42,9 +42,12 @@ EXPORT void subsystem5_test(void)
 
 EXPORT void subsystem5_stage_test(void)
 {
-	OBSTACLE_PROFILE	a, b, p;
+	OBSTACLE_PROFILE	a;
+	OBSTACLE_PROFILE b;
+	OBSTACLE_PROFILE p;
 	MOTION_STATUS		st;
-	INT			k, t;
+	INT			k;
+	INT t;
 	TEST_INIT();
 
 	tm_printf((UB*)"\n[DRIVE] === Stage 3: obstacle ===\n");
@@ -95,7 +98,7 @@ EXPORT void subsystem5_stage_test(void)
 		do {
 			tk_dly_tsk(10);
 			motion_get_status(&st);
-		} while (st.result == MOT_RES_BUSY);
+		} while (MOT_RES_BUSY == st.result);
 		tk_dly_tsk(300);
 		obstacle_scan(&b);
 		obstacle_combine(&a, &b, &p);

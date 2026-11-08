@@ -16,7 +16,7 @@ EXPORT void app_stop_request(UW reason)
 
 	motor_safe_off();			/* first, before anything else */
 	APP_LOCK(s);
-	if (stop_reasons == 0u) {
+	if (0u == stop_reasons) {
 		stop_time_us = app_time_us();
 	}
 	stop_reasons |= reason;

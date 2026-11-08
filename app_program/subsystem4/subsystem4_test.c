@@ -48,11 +48,20 @@ EXPORT void subsystem4_test(void)
 LOCAL void ramp_run(UW n0)
 {
 	W	odo0 = motion_odometer();
-	UW	j0 = imu_jolts(), jb = 0;
-	INT	t, nb = 0, traced = 0;
+	UW	j0 = imu_jolts();
+	UW jb = 0;
+	INT	t;
+	INT nb = 0;
+	INT traced = 0;
 	BOOL	in_bump = FALSE;
-	INT	b_from = 0, b_flat = 0, b_up = 0, b_down = 0, b_h0 = 0, b_hmax = 0;
-	INT	b_roll = 0, b_one = 0;
+	INT	b_from = 0;
+	INT b_flat = 0;
+	INT b_up = 0;
+	INT b_down = 0;
+	INT b_h0 = 0;
+	INT b_hmax = 0;
+	INT	b_roll = 0;
+	INT b_one = 0;
 	INT	last_end = -1;
 	UW	seen = n0;
 
@@ -67,10 +76,10 @@ LOCAL void ramp_run(UW n0)
 		INT		ra = (rl < 0) ? -rl : rl;
 
 		motion_get_status(&st);
-		if (t > 10 && st.result != MOT_RES_BUSY) break;
+		if ((t > 10) && (st.result != MOT_RES_BUSY)) break;
 		if (test_stop_pressed()) break;
 
-		if (!in_bump && (sn > BUMP_SIN || sn < -BUMP_SIN || ra > BUMP_SIN)) {
+		if ((!in_bump) && ((sn > BUMP_SIN) || (sn < -BUMP_SIN) || (ra > BUMP_SIN))) {
 			in_bump = TRUE;
 			b_from = mm;
 			b_flat = mm;
@@ -86,15 +95,15 @@ LOCAL void ramp_run(UW n0)
 			if (h > b_hmax) b_hmax = h;
 			if (ra > b_roll) b_roll = ra;
 			if (one > b_one) b_one = one;
-			if (sn > BUMP_SIN || sn < -BUMP_SIN || ra > BUMP_SIN) b_flat = mm;
+			if ((sn > BUMP_SIN) || (sn < -BUMP_SIN) || (ra > BUMP_SIN)) b_flat = mm;
 			if (traced < TRACE_MAX) {
 				tm_printf((UB*)"[S4T] %d mm  sin %d  side %d  one-wheel %d.%d  h %s%d.%d\n",
 					  mm, sn, rl, one / 10, one % 10,
-					  (h < 0) ? "-" : "", (h < 0 ? -h : h) / 10,
-					  (h < 0 ? -h : h) % 10);
+					  (h < 0) ? "-" : "", ((h < 0) ? -h : h) / 10,
+					  ((h < 0) ? -h : h) % 10);
 				traced++;
 			}
-			if (mm - b_flat >= BUMP_FLAT_MM) {
+			if ((mm - b_flat) >= BUMP_FLAT_MM) {
 				INT l10 = b_up * S4_L_MM / 100;	/* 0.1 mm */
 				INT c10 = b_hmax - b_h0;
 
@@ -116,7 +125,7 @@ LOCAL void ramp_run(UW n0)
 			test_print_x10("[S4] IMU task reported a ramp: ", imu_ramp_peak_mm10(),
 				       " mm\n");
 		}
-		if (!in_bump && last_end >= 0 && mm - last_end >= BUMP_END_MM) {
+		if ((!in_bump) && (last_end >= 0) && ((mm - last_end) >= BUMP_END_MM)) {
 			break;			/* well past the last ramp */
 		}
 		tk_dly_tsk(10);
@@ -129,11 +138,12 @@ LOCAL void ramp_run(UW n0)
 
 EXPORT void subsystem4_stage_test(void)
 {
-	INT	k, t;
+	INT	k;
+	INT t;
 	TEST_INIT();
 
 	tm_printf((UB*)"\n[DRIVE] === Stage 4: IMU ramp height ===\n");
-	for (t = 0; t < 30 && !imu_ok(); t++) tk_dly_tsk(100);
+	for (t = 0; (t < 30) && (!imu_ok()); t++) tk_dly_tsk(100);
 	TEST_CHECK("S4-I01", imu_ok(), "LSM303D found at 0x1D");
 	if (!imu_ok()) {
 		TEST_SUMMARY("subsystem4 stage 4");

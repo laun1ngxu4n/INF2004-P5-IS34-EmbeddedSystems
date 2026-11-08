@@ -25,7 +25,7 @@ EXPORT void test_wait_start(const char *what)
 	while (tele_start_count() == remote) {
 		if (button_down(PIN_START)) {
 			tk_dly_tsk(30);			/* debounce */
-			if (button_down(PIN_START) && !button_down(PIN_STOP)) {
+			if ((button_down(PIN_START)) && (!button_down(PIN_STOP))) {
 				while (button_down(PIN_START)) {
 					tk_dly_tsk(10);
 				}
@@ -83,13 +83,13 @@ EXPORT void app_course_test(BOOL obstacles, BOOL imu)
 		tm_printf((UB*)"[DRIVE] send the mapping from the PC (panel: Barcode "
 			  "mapping box), or press START to use the TEST mapping "
 			  "A=L,B=R,C=F,D=U\n");
-		while (barcode_mapping_text(map, sizeof(map)) == 0) {
-			if (tele_start_count() != remote || button_down(PIN_START)) {
+		while (0 == barcode_mapping_text(map, sizeof(map))) {
+			if ((tele_start_count() != remote) || (button_down(PIN_START))) {
 				while (button_down(PIN_START)) tk_dly_tsk(10);
 				test_use_test_mapping();
 				break;
 			}
-			if (++t % 100 == 0) {
+			if ((++t % 100) == 0) {
 				tm_printf((UB*)"[DRIVE] still waiting for a mapping (panel: Barcode "
 					  "mapping box) or START for the TEST mapping\n");
 			}

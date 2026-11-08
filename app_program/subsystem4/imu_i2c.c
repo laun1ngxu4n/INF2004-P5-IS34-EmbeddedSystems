@@ -80,14 +80,14 @@ EXPORT ER imu_i2c_read(UB addr, UB reg, UB *buf, INT n)
 	(void)aborted();
 	out_w(IC_DATA_CMD, (UW)(reg | ((n > 1) ? 0x80u : 0u)));
 	for (i = 0; i < n; i++) {
-		out_w(IC_DATA_CMD, CMD_READ | ((i == 0) ? CMD_RESTART : 0u) |
-			((i == n - 1) ? CMD_STOP : 0u));
+		out_w(IC_DATA_CMD, CMD_READ | ((0 == i) ? CMD_RESTART : 0u) |
+			((i == (n - 1)) ? CMD_STOP : 0u));
 	}
 	t0 = app_time_us();
 	for (i = 0; i < n; i++) {
-		while (in_w(IC_RXFLR) == 0u) {
+		while (0u == in_w(IC_RXFLR)) {
 			if (aborted()) return E_IO;
-			if (app_time_us() - t0 > TIMEOUT_US) return E_TMOUT;
+			if ((app_time_us() - t0) > TIMEOUT_US) return E_TMOUT;
 		}
 		buf[i] = (UB)(in_w(IC_DATA_CMD) & 0xFFu);
 	}
@@ -103,10 +103,10 @@ EXPORT ER imu_i2c_write(UB addr, UB reg, UB val)
 	out_w(IC_DATA_CMD, reg);
 	out_w(IC_DATA_CMD, (UW)val | CMD_STOP);
 	t0 = app_time_us();
-	while ((in_w(IC_STATUS) & STATUS_TFE) == 0u ||
-	       (in_w(IC_STATUS) & STATUS_ACTIVITY) != 0u) {
+	while ((0u == (in_w(IC_STATUS) & STATUS_TFE)) ||
+	       ((in_w(IC_STATUS) & STATUS_ACTIVITY) != 0u)) {
 		if (aborted()) return E_IO;
-		if (app_time_us() - t0 > TIMEOUT_US) return E_TMOUT;
+		if ((app_time_us() - t0) > TIMEOUT_US) return E_TMOUT;
 	}
 	return aborted() ? E_IO : E_OK;
 }

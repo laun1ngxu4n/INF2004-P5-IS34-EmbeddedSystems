@@ -56,8 +56,10 @@ LOCAL uint32_t g_log_dropped; /* bytes lost: ring full */
 LOCAL uint32_t g_log_seq;
 LOCAL bool     gb_log_turn; /* last message sent was a log chunk */
 
-/** Called by the console driver for every byte it sends: any context */
-EXPORT void tm_console_mirror (const uint8_t * p_buf, int32_t size)
+/** Called by the console driver for every byte it sends: any context.
+   NOTE: INT size, as the caller declares it (lib/libtm/.../tm_com.c;
+   Barr C deviation D2). */
+EXPORT void tm_console_mirror (const uint8_t * p_buf, INT size)
 {
     uint32_t irq_state;
     int32_t  idx;

@@ -429,6 +429,14 @@ than the robot, so the robot tips over it instead of driving up a slope.
   L x peak tilt for every run
 
 ### Not done yet
+- **8 Nov: the course's hump is a 2-5 cm triangle under the RIGHT wheel
+  only** (not a block under both wheels, as assumed above). That tilts
+  the robot sideways, which the code never measured: the readings above
+  were jolts. **Changed 8 Nov, not run yet:** height = 123 mm x sin(side
+  tilt) at its peak, cross-checked with 160 mm x sin(nose-down tilt);
+  the test prints both (`[S4] bump N one wheel: ...`), the tilt view
+  shows the side tilt (put the right wheel on a block), and the run
+  prompt places the triangle under the right wheel.
 - [ ] 🟡 **S4-R01** height within ±5 mm, now **5 runs** (was 10).
 
   **Runs 2 Nov** (old code): 18.3, 66.0, none. Jolts were read as tilt.

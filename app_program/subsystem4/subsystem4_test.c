@@ -52,6 +52,7 @@ LOCAL void ramp_run(UW n0)
 	INT	t, nb = 0, traced = 0;
 	BOOL	in_bump = FALSE;
 	INT	b_from = 0, b_flat = 0, b_up = 0, b_down = 0, b_h0 = 0, b_hmax = 0;
+	INT	b_roll = 0, b_one = 0;
 	INT	last_end = -1;
 	UW	seen = n0;
 
@@ -61,16 +62,20 @@ LOCAL void ramp_run(UW n0)
 		INT		mm = (INT)S2_COUNTS_TO_MM(motion_odometer() - odo0);
 		INT		sn = imu_pitch_mdeg_sin();
 		INT		h = imu_height_mm10();
+		INT		rl = imu_roll_sin_x1000();
+		INT		one = imu_one_wheel_mm10();
+		INT		ra = (rl < 0) ? -rl : rl;
 
 		motion_get_status(&st);
 		if (t > 10 && st.result != MOT_RES_BUSY) break;
 		if (test_stop_pressed()) break;
 
-		if (!in_bump && (sn > BUMP_SIN || sn < -BUMP_SIN)) {
+		if (!in_bump && (sn > BUMP_SIN || sn < -BUMP_SIN || ra > BUMP_SIN)) {
 			in_bump = TRUE;
 			b_from = mm;
 			b_flat = mm;
 			b_up = b_down = 0;
+			b_roll = b_one = 0;
 			b_h0 = b_hmax = h;
 			jb = imu_jolts();
 			tm_printf((UB*)"[S4] bump %d starts at %d mm\n", nb + 1, mm);
@@ -79,9 +84,12 @@ LOCAL void ramp_run(UW n0)
 			if (sn > b_up) b_up = sn;
 			if (sn < b_down) b_down = sn;
 			if (h > b_hmax) b_hmax = h;
-			if (sn > BUMP_SIN || sn < -BUMP_SIN) b_flat = mm;
+			if (ra > b_roll) b_roll = ra;
+			if (one > b_one) b_one = one;
+			if (sn > BUMP_SIN || sn < -BUMP_SIN || ra > BUMP_SIN) b_flat = mm;
 			if (traced < TRACE_MAX) {
-				tm_printf((UB*)"[S4T] %d mm  sin %d  h %s%d.%d\n", mm, sn,
+				tm_printf((UB*)"[S4T] %d mm  sin %d  side %d  one-wheel %d.%d  h %s%d.%d\n",
+					  mm, sn, rl, one / 10, one % 10,
 					  (h < 0) ? "-" : "", (h < 0 ? -h : h) / 10,
 					  (h < 0 ? -h : h) % 10);
 				traced++;
@@ -98,6 +106,9 @@ LOCAL void ramp_run(UW n0)
 					  "%d.%d mm, %d readings skipped as jolts\n", nb,
 					  b_from, b_flat, b_up, b_down, l10 / 10, l10 % 10,
 					  c10 / 10, c10 % 10, (INT)(imu_jolts() - jb));
+				tm_printf((UB*)"[S4] bump %d one wheel: side tilt peak "
+					  "sin %d/1000, height T x sin = %d.%d mm\n", nb,
+					  b_roll, b_one / 10, b_one % 10);
 			}
 		}
 		if (imu_ramp_reports() != seen) {
@@ -131,9 +142,13 @@ EXPORT void subsystem4_stage_test(void)
 	test_wait_start("Robot level and still: calibrating for 1 s.");
 	imu_calibrate();
 	while (!imu_calibrated()) tk_dly_tsk(10);
-	tm_printf((UB*)"[S4] tilt view for 10 s: lift the front a little (sin x1000)\n");
-	for (t = 0; t < 20; t++) {
-		tm_printf((UB*)"[S4] sin(pitch) x1000 = %d\n", imu_pitch_mdeg_sin());
+	tm_printf((UB*)"[S4] tilt view for 15 s: lift the front a little, then put "
+		  "the RIGHT wheel on a 2-3 cm block (x1000; one-wheel height in mm)\n");
+	for (t = 0; t < 30; t++) {
+		INT one = imu_one_wheel_mm10();
+
+		tm_printf((UB*)"[S4] sin(pitch) %d  sin(side) %d  one-wheel %d.%d mm\n",
+			  imu_pitch_mdeg_sin(), imu_roll_sin_x1000(), one / 10, one % 10);
 		tk_dly_tsk(500);
 	}
 
@@ -141,9 +156,11 @@ EXPORT void subsystem4_stage_test(void)
 		UW n0 = imu_ramp_reports();
 
 		tm_printf((UB*)"\n[DRIVE] S4-R01 run %d of 5\n", k);
-		test_wait_start("Robot level about 20 cm before the (first) ramp, "
-				"pointing straight at it. It calibrates 1 s, then drives "
-				"until 30 cm after the last ramp (at most 1.5 m).");
+		test_wait_start("Robot level about 20 cm before the hump, pointing "
+				"straight ahead, the hump (triangle) in the path of the "
+				"RIGHT wheel only, as on the course. It calibrates 1 s, "
+				"then drives until 30 cm after the last bump (at most "
+				"1.5 m). Write down the hump's real height.");
 		imu_calibrate();
 		while (!imu_calibrated()) tk_dly_tsk(10);
 		ramp_run(n0);

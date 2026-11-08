@@ -36,6 +36,23 @@
    ramp or hump (10 mm hump: about 0.12) it stays put. */
 #define BASE_K		0.002f
 #define BASE_WIN	0.060f	/* about 3.4 deg */
+/* One-wheel hump (8 Nov): the course's hump is a small triangle, 2-5 cm
+   high, under the RIGHT wheel only (the barcode sensor's other side).
+   The robot stands on both wheels and the front support, so lifting one
+   wheel by h tilts it sideways by h over the track width and tips the
+   nose DOWN a little (the axle centre rises h / 2, the front support
+   stays).  The chassis is rigid: the axle between the wheels stays T
+   long and tilts, so the lifted wheel is h = T x sin(side tilt) above
+   the other (T = S2_TRACK_MM, 123 mm; 5 cm = 24 deg, 2 cm = 9 deg; the
+   formula another group uses too).  From the nose-down tilt: the axle
+   centre rises h / 2 at S4_L_MM from the front support, h = 2 x S4_L_MM
+   x sin(pitch), as a cross-check.  (A first version used tan, which
+   assumes the wheels stay T apart on the floor: 5 mm too high at 5 cm.)  The
+   pitch-only code saw nothing of it (it ignores nose-down): 2-6 Nov
+   S4-R01 read 18, 66, -, 49, -, -, 27, -, 9 mm.  The triangle has a
+   sharp top, so the side tilt peaks briefly: a lighter filter than the
+   pitch's (ROLL_LPF_K ~ 30 ms; 100 ms took about 15 % off the peak). */
+#define ROLL_LPF_K	0.3f
 
 IMPORT void	imu_i2c_init(void);
 IMPORT ER	imu_i2c_read(UB addr, UB reg, UB *buf, INT n);
@@ -46,6 +63,8 @@ LOCAL volatile BOOL	cal_request = TRUE;	/* calibrate once at boot too */
 LOCAL volatile BOOL	calibrated;
 LOCAL volatile INT	height_mm10;
 LOCAL volatile INT	sin_x1000;
+LOCAL volatile INT	roll_x1000;
+LOCAL volatile INT	one_h_mm10;		/* one-wheel height now, 0.1 mm */
 LOCAL volatile INT	ramp_peak_mm10;
 LOCAL volatile UW	ramp_reports;
 LOCAL volatile UW	jolts;
@@ -55,6 +74,8 @@ EXPORT void imu_calibrate(void)		{ calibrated = FALSE; cal_request = TRUE; }
 EXPORT BOOL imu_calibrated(void)	{ return calibrated; }
 EXPORT INT imu_height_mm10(void)	{ return height_mm10; }
 EXPORT INT imu_pitch_mdeg_sin(void)	{ return sin_x1000; }
+EXPORT INT imu_roll_sin_x1000(void)	{ return roll_x1000; }
+EXPORT INT imu_one_wheel_mm10(void)	{ return one_h_mm10; }
 EXPORT INT imu_ramp_peak_mm10(void)	{ return ramp_peak_mm10; }
 EXPORT UW imu_ramp_reports(void)		{ return ramp_reports; }
 EXPORT UW imu_jolts(void)		{ return jolts; }
@@ -81,6 +102,9 @@ EXPORT void imu_task(INT stacd, void *exinf)
 	INT	retry = 0, ncal = 0;
 	float	cal_s = 0.0f, cal_c = 0.0f, s0 = 0.0f, c0 = 1.0f;
 	float	cal_m = 0.0f, m0 = 0.0f;		/* |a| when level and still */
+	float	cal_y = 0.0f, y0 = 0.0f;		/* sideways share when level */
+	float	roll_f = 0.0f, base_r = 0.0f, roll = 0.0f;
+	float	one_peak = 0.0f, one_pitch_peak = 0.0f, roll_peak = 0.0f;
 	float	sin_f = 0.0f, h = 0.0f, peak = 0.0f, peak_sin = 0.0f;
 	float	base = 0.0f, tilt = 0.0f;	/* driving level; sin_f - base */
 	W	odo_prev;
@@ -128,16 +152,20 @@ EXPORT void imu_task(INT stacd, void *exinf)
 				cal_s += sp;
 				cal_c += cp;
 				cal_m += mag;
+				cal_y += ay / mag;
 				if (++ncal >= CAL_SAMPLES) {
 					s0 = cal_s / CAL_SAMPLES;
 					c0 = cal_c / CAL_SAMPLES;
 					m0 = cal_m / CAL_SAMPLES;
-					cal_s = cal_c = cal_m = 0.0f;
+					y0 = cal_y / CAL_SAMPLES;
+					cal_s = cal_c = cal_m = cal_y = 0.0f;
 					ncal = 0;
 					cal_request = FALSE;
 					calibrated = TRUE;
 					h = peak = peak_sin = 0.0f;
 					sin_f = base = tilt = 0.0f;
+					roll_f = base_r = roll = 0.0f;
+					one_peak = one_pitch_peak = roll_peak = 0.0f;
 				}
 				goto done;
 			}
@@ -151,6 +179,14 @@ EXPORT void imu_task(INT stacd, void *exinf)
 				}
 				tilt = sin_f - base;
 				sin_x1000 = (INT)(tilt * 1000.0f);
+				/* side tilt, the same way (level offset, filter,
+				   slowly following driving level) */
+				roll_f += ROLL_LPF_K * ((ay / mag - y0) - roll_f);
+				if (app_absf(roll_f - base_r) < BASE_WIN) {
+					base_r += BASE_K * (roll_f - base_r);
+				}
+				roll = roll_f - base_r;
+				roll_x1000 = (INT)(roll * 1000.0f);
 			} else {
 				jolts++;
 			}
@@ -169,19 +205,51 @@ EXPORT void imu_task(INT stacd, void *exinf)
 			   reported a -56 mm dip as 56 mm) */
 			if (h > peak) peak = h;
 			if (tilt > peak_sin) peak_sin = tilt;
+			/* one wheel up: h = T x sin(side tilt); cross-check
+			   from the nose-down tilt, 2 L x sin(pitch) */
+			{
+				float	r = app_absf(roll);
+				float	hr = (float)S2_TRACK_MM * r;
+
+				one_h_mm10 = (INT)(hr * 10.0f);
+				if (hr > one_peak) {
+					one_peak = hr;
+					roll_peak = r;
+				}
+				if (tilt < 0.0f) {
+					float hp = 2.0f * (float)S4_L_MM * -tilt;
+
+					if (hp > one_pitch_peak) one_pitch_peak = hp;
+				}
+			}
 
 			if (quiet_mm10 > 0) {
 				quiet_mm10 -= (INT)(app_absf(ds) * 10.0f);
 			}
-			if (app_absf(tilt) < FLAT_SIN) {
+			if (app_absf(tilt) < FLAT_SIN && app_absf(roll) < FLAT_SIN) {
 				flat_mm10 += (INT)(app_absf(ds) * 10.0f);
 			} else {
 				flat_mm10 = 0;
 			}
 			if (flat_mm10 > FLAT_MM * 10) {
 				INT p10 = (INT)(peak * 10.0f);
+				INT o10 = (INT)(one_peak * 10.0f);
 
-				if (p10 >= REPORT_MIN_MM10 && quiet_mm10 <= 0) {
+				if (o10 >= REPORT_MIN_MM10 && o10 >= p10 && quiet_mm10 <= 0) {
+					/* one wheel went over it (the course's hump) */
+					UB	msg[TELE_TEXT_MAX];
+					INT	c10 = (INT)(one_pitch_peak * 10.0f);
+
+					ramp_peak_mm10 = o10;
+					ramp_reports++;
+					tm_sprintf(msg, (const UB*)
+						"ramp peak height %d.%d mm (one wheel: side tilt "
+						"sin %d/1000; from the nose-down tilt %d.%d mm)",
+						o10 / 10, o10 % 10, (INT)(roll_peak * 1000.0f),
+						c10 / 10, c10 % 10);
+					tele_event(msg);
+					quiet_mm10 = QUIET_AFTER_MM * 10;
+				} else if (p10 >= REPORT_MIN_MM10 && quiet_mm10 <= 0) {
 					UB	msg[TELE_TEXT_MAX];
 					INT	l10 = (INT)(peak_sin * S4_L_MM * 10.0f);
 
@@ -196,6 +264,7 @@ EXPORT void imu_task(INT stacd, void *exinf)
 					quiet_mm10 = QUIET_AFTER_MM * 10;
 				}
 				h = peak = peak_sin = 0.0f;	/* back on the floor */
+				one_peak = one_pitch_peak = roll_peak = 0.0f;
 				flat_mm10 = 0;
 			}
 		}

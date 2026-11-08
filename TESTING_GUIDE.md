@@ -264,18 +264,22 @@ The panel remembers the last mapping you picked
 
 ### Stage 4: ramp height (`_test_s4`), owner B4
 
-0. First measure the lower practice ramp (height, length, flat top?).
-1. `[TEST] S4-I01 PASS` = IMU found. Tilt view: lifting the front must
-   change `sin(pitch)`.
-2. **S4-R01**: 5 runs. Robot level, about 20 cm before the (first) ramp,
-   aimed straight at it; one or two ramps in a run are fine. **Hold each
-   ramp down.** START: it calibrates 1 s, then drives until 30 cm after
-   the last ramp (at most 1.5 m). For every ramp it prints `[S4] bump N:
-   from-to mm, nose-up peak, nose-down peak, L x sin(up) H mm, climbed C
-   mm, J readings skipped as jolts`, and while on it a `[S4T]` line every
-   10 ms. Pass: L x sin(up) (a hump shorter than the robot) or the
-   reported ramp height (a real slope) within +/- 5 mm of the measured
-   height. Send the log and the measured heights.
+0. **Measure the hump**: the course's hump is a small triangle (2-5 cm
+   high) that only the RIGHT wheel goes over (8 Nov). Write down its
+   height with a ruler. Tape it down so it does not slide.
+1. `[TEST] S4-I01 PASS` = IMU found. Tilt view (15 s): lift the front a
+   little (`sin(pitch)` changes), then put the RIGHT wheel on a 2-3 cm
+   block: `sin(side)` changes and `one-wheel` should read about the
+   block's height.
+2. **S4-R01**: 5 runs. Robot level, about 20 cm before the hump, pointing
+   straight ahead, **the triangle in the path of the right wheel only**.
+   START: it calibrates 1 s, then drives until 30 cm after the last bump
+   (at most 1.5 m). For every bump it prints `[S4] bump N one wheel: side
+   tilt peak sin S/1000, height T x sin = H mm` (and the older nose-up
+   numbers), a `[S4T]` line every 10 ms while on it, and the IMU task's
+   report `ramp peak height H mm (one wheel: ...; from the nose-down tilt
+   P mm)`. Pass: H within +/- 5 mm of the measured height, 5 runs. Send
+   the log and the measured height.
 
 ### Stage 5: telemetry + MQTT (demo image), owner B1
 

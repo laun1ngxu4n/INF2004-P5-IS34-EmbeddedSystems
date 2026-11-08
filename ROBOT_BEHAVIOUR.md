@@ -261,6 +261,19 @@ How to run the tests: [TESTING_GUIDE.md](TESTING_GUIDE.md).
   side line within about 35 cm behind the box still fools it (0/54).
 
 ### Ramp / hump (IMU)
+- **The course's hump goes under ONE wheel (8 Nov):** a small triangle,
+  2-5 cm high, under the right wheel only. The robot tips sideways (and
+  its nose a little DOWN: the axle centre rises half as much, the front
+  support stays down), which the pitch-only code below could not see
+  (S4-R01 2-6 Nov: 18, 66, -, 49, -, -, 27, -, 9 mm). Now: **height = track
+  width (123 mm) x sin(side tilt)** at its peak: the rigid axle tilts
+  about the wheel left on the floor (5 cm = 24 deg, 2 cm = 9 deg); also
+  from the nose-down tilt, 2 x 80 mm x sin(pitch), as a cross-check. Side tilt filtered lightly (~30 ms: the sharp top of the
+  triangle only lasts a moment). Reported as `ramp peak height H mm (one
+  wheel: side tilt sin S/1000; from the nose-down tilt P mm)`. The
+  climb-based report below stays for a hump or ramp under both wheels;
+  whichever is larger is reported, once.
+  **Not run on the robot yet.**
 - Climbed height = distance driven x sin(tilt), all the time. Tilt is
   measured from the "driving level", which follows the tilt slowly (about
   5 s) while it is within about 3.4 deg, so the chassis leaning a little

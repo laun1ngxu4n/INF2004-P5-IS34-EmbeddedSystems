@@ -106,15 +106,13 @@ app_stage_test (void); /* hands-on, TEST_STAGE=n (app_stage_test.c) */
 #endif
 
 /* Print a readable message if a kernel call failed (negative error code) */
-#define CHECK(er, what)                                                \
-    do                                                                 \
-    {                                                                  \
-        int32_t check_er_ = (int32_t)(er); /* evaluate once */         \
-        if (check_er_ < E_OK)                                          \
-        {                                                              \
-            tm_printf((uint8_t *)"ERROR %s: %d\n", (what), check_er_); \
-        }                                                              \
-    } while (0)
+Inline void app_check (int32_t err, const char * p_what)
+{
+    if (err < E_OK)
+    {
+        tm_printf((uint8_t *)"ERROR %s: %d\n", p_what, err);
+    }
+}
 
 #endif /* APP_H */
 

@@ -26,12 +26,12 @@ EXPORT void test_wait_start (const char * p_what)
         p_what);
     while (tele_start_count() == remote)
     {
-        if (button_down(PIN_START))
+        if (button_is_down(PIN_START))
         {
             tk_dly_tsk(30); /* debounce */
-            if ((button_down(PIN_START)) && (!button_down(PIN_STOP)))
+            if ((button_is_down(PIN_START)) && (!button_is_down(PIN_STOP)))
             {
-                while (button_down(PIN_START))
+                while (button_is_down(PIN_START))
                 {
                     tk_dly_tsk(10);
                 }
@@ -95,9 +95,9 @@ EXPORT void app_course_test (BOOL b_obstacles, BOOL b_imu)
                        "A=L,B=R,C=F,D=U\n");
         while (0 == barcode_mapping_text(map, sizeof(map)))
         {
-            if ((tele_start_count() != remote) || (button_down(PIN_START)))
+            if ((tele_start_count() != remote) || (button_is_down(PIN_START)))
             {
-                while (button_down(PIN_START))
+                while (button_is_down(PIN_START))
                 {
                     tk_dly_tsk(10);
                 }

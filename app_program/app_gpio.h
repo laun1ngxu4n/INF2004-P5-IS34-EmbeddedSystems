@@ -45,7 +45,10 @@ IMPORT void app_hw_release (uint32_t resets_mask);
 IMPORT ER app_gpio_output (uint32_t pin);
 
 /* Current level of an input pin (0 or 1) */
-#define app_gpio_get(pin) ((in_w(GPIO_IN) >> (pin)) & 1u)
+Inline uint32_t app_gpio_get (uint32_t pin)
+{
+    return (in_w(GPIO_IN) >> pin) & 1u;
+}
 
 #endif /* APP_GPIO_H */
 

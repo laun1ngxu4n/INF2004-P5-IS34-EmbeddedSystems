@@ -36,9 +36,14 @@ IMPORT ID gh_flg_mission;
 #define MSN_FLG_ALL       0x007Fu /* every bit Mission waits for */
 
 /* On-board buttons (active low), owned by subsystem 5 */
-#define PIN_START        20
-#define PIN_STOP         21
-#define button_down(pin) (app_gpio_get(pin) == 0u)
+#define PIN_START 20
+#define PIN_STOP  21
+
+/* TRUE while the button on pin is pressed (active low) */
+Inline BOOL button_is_down (uint32_t pin)
+{
+    return (0u == app_gpio_get(pin));
+}
 
 /* ---- Obstacle Scanner ---------------------------------------------- */
 

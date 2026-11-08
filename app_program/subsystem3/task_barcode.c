@@ -112,18 +112,18 @@ EXPORT BOOL barcode_adc (int32_t * p_raw, int32_t * p_white, int32_t * p_black)
    stores each change exactly like a GP2 edge, so the decoder below is the
    same for both inputs.  The kernel's sample ADC driver ("adca") is not
    used by the application; its interrupt handler is replaced here. */
-#define ADC_REG(o)     (0x4004C000u + (o))
-#define ADC_CS         ADC_REG(0x00)
-#define ADC_FCS        ADC_REG(0x08)
-#define ADC_FIFO       ADC_REG(0x0C)
-#define ADC_DIV        ADC_REG(0x10)
-#define ADC_INTE       ADC_REG(0x18)
+#define ADC_BASE       0x4004C000u
+#define ADC_CS         (ADC_BASE + 0x00u)
+#define ADC_FCS        (ADC_BASE + 0x08u)
+#define ADC_FIFO       (ADC_BASE + 0x0Cu)
+#define ADC_DIV        (ADC_BASE + 0x10u)
+#define ADC_INTE       (ADC_BASE + 0x18u)
 #define CS_EN          (1u << 0)
 #define CS_START_MANY  (1u << 3)
 #define CS_READY       (1u << 8)
 #define FCS_EN         (1u << 0)
 #define FCS_EMPTY      (1u << 8)
-#define FCS_THRESH(n)  ((uint32_t)(n) << 24)
+#define FCS_THRESH_1   (1u << 24) /* FIFO interrupt at 1 sample */
 #define INTNO_ADC_FIFO 22
 #define INTPRI_ADC     2 /* below the GPIO edges (1) */
 #define ADC_RATE_HZ    2000
@@ -143,18 +143,21 @@ LOCAL int32_t          g_rel_hi; /* S3_BAR_RELATIVE: extremes so far */
 LOCAL volatile uint8_t g_adc_lvl = !IR_BLACK;
 
 /* bigger = blacker, whichever way the module is wired */
-#define BLACKNESS(v)   (S3_BAR_BLACK_HIGH ? (v) : 4095 - (v))
+Inline int32_t adc_blackness (int32_t sample)
+{
+    return S3_BAR_BLACK_HIGH ? sample : (4095 - sample);
+}
 
 LOCAL void adc_sample (int32_t sample)
 {
-    int32_t black = BLACKNESS(sample) << ENV_SH;
+    int32_t black = adc_blackness(sample) << ENV_SH;
     uint8_t lvl   = g_adc_lvl;
 
     g_adc_raw = sample;
     if (g_env_w < 0)
     {
         g_env_w = g_env_b = black;
-        g_rel_lo = g_rel_hi = BLACKNESS(sample);
+        g_rel_lo = g_rel_hi = adc_blackness(sample);
     }
     /* black level: rises fast to a new darkest, sinks very slowly */
     if (black > g_env_b)
@@ -177,7 +180,7 @@ LOCAL void adc_sample (int32_t sample)
 
     if (S3_BAR_RELATIVE)
     {
-        int32_t blackness = BLACKNESS(sample);
+        int32_t blackness = adc_blackness(sample);
 
         if (lvl != IR_BLACK)
         {
@@ -186,7 +189,7 @@ LOCAL void adc_sample (int32_t sample)
                 g_rel_lo = blackness;
             }
             if ((blackness > (g_rel_lo + S3_BAR_DELTA)) &&
-                (blackness >= BLACKNESS(S3_BAR_BLACK_MIN)))
+                (blackness >= adc_blackness(S3_BAR_BLACK_MIN)))
             {
                 lvl      = IR_BLACK;
                 g_rel_hi = blackness;
@@ -207,12 +210,13 @@ LOCAL void adc_sample (int32_t sample)
     }
     else if (S3_BAR_ADC_ON > 0)
     {
-        int32_t blackness = BLACKNESS(sample);
-        if ((lvl != IR_BLACK) && (blackness >= BLACKNESS(S3_BAR_ADC_ON)))
+        int32_t blackness = adc_blackness(sample);
+        if ((lvl != IR_BLACK) && (blackness >= adc_blackness(S3_BAR_ADC_ON)))
         {
             lvl = IR_BLACK;
         }
-        else if ((IR_BLACK == lvl) && (blackness <= BLACKNESS(S3_BAR_ADC_OFF)))
+        else if ((IR_BLACK == lvl) &&
+                 (blackness <= adc_blackness(S3_BAR_ADC_OFF)))
         {
             lvl = !IR_BLACK;
         }
@@ -222,7 +226,7 @@ LOCAL void adc_sample (int32_t sample)
         int32_t span      = (g_env_b - g_env_w) >> ENV_SH;
         int32_t mid       = (g_env_b + g_env_w) >> (ENV_SH + 1);
         int32_t hyst      = span / 6;
-        int32_t blackness = BLACKNESS(sample);
+        int32_t blackness = adc_blackness(sample);
 
         if (span < S3_BAR_MIN_SPAN)
         {
@@ -278,7 +282,7 @@ EXPORT ER barcode_hw_init (void)
     }
     out_w(ADC_DIV, (uint32_t)((48000000 / ADC_RATE_HZ) - 1)
                        << 8); /* clk_adc 48 MHz */
-    out_w(ADC_FCS, FCS_EN | FCS_THRESH(1));
+    out_w(ADC_FCS, FCS_EN | FCS_THRESH_1);
     while (0u == (in_w(ADC_FCS) & FCS_EMPTY))
     {
         (void)in_w(ADC_FIFO);
@@ -1005,7 +1009,7 @@ EXPORT void barcode_task (int32_t stacd, void * p_exinf)
             {
                 gap = -gap;
             }
-            if (S2_COUNTS_TO_MM(gap) > S3_QUIET_MM)
+            if (motion_counts_to_mm(gap) > S3_QUIET_MM)
             {
                 b_in_code = FALSE;
                 {

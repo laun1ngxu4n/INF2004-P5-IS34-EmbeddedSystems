@@ -295,7 +295,7 @@ LOCAL void status_line (void)
         (const uint8_t *)"state=%s speed=%d,%d dist=%d line=%d junctions=%d "
                          "barcode=%c map=%s ramp_peak=%d.%d stop=%d",
         gp_state_text, status.speed_l, status.speed_r,
-        (int32_t)S2_COUNTS_TO_MM(motion_odometer()), line_state(),
+        motion_counts_to_mm(motion_odometer()), line_state(),
         (int32_t)line_junctions(), (last_code.b_ok ? last_code.letter : '-'),
         (map[0] != '\0') ? (char *)map : "none", imu_ramp_peak_mm10() / 10,
         imu_ramp_peak_mm10() % 10, (int32_t)app_stop_reasons());
@@ -341,7 +341,7 @@ EXPORT void telemetry_task (int32_t stacd, void * p_exinf)
         if (++ping_tick >= S1_PING_TICKS)
         {
             ping_tick = 0;
-            CHECK(tk_set_flg(gh_flg_mission, MSN_FLG_PING), "IF-01 ping");
+            app_check(tk_set_flg(gh_flg_mission, MSN_FLG_PING), "IF-01 ping");
         }
         if (++status_tick >= S1_STATUS_TICKS)
         {

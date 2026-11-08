@@ -75,9 +75,10 @@ LOCAL void encoder_edge_isr (uint32_t pin, uint32_t events)
 
 /* One write per slice sets A (low half) and B (high half) together, so a
    STOP in an interrupt can never be undone by a half-finished update. */
-#define PWM_SLICE_CC(slice) (PWM_BASE + (slice) * 0x14 + PWM_CHx_CC)
-#define SLICE_L             4 /* GP8 = A, GP9 = B */
-#define SLICE_R             5 /* GP10 = A, GP11 = B */
+#define SLICE_L  4 /* GP8 = A, GP9 = B */
+#define SLICE_R  5 /* GP10 = A, GP11 = B */
+#define PWM_CC_L (PWM_BASE + (SLICE_L * 0x14) + PWM_CHx_CC)
+#define PWM_CC_R (PWM_BASE + (SLICE_R * 0x14) + PWM_CHx_CC)
 
 LOCAL uint32_t cc_pair (int32_t duty)
 {
@@ -108,15 +109,15 @@ EXPORT void motor_write (int32_t duty_l, int32_t duty_r)
         cc_l = 0u; /* STOP always wins */
         cc_r = 0u;
     }
-    out_w(PWM_SLICE_CC(SLICE_L), cc_l);
-    out_w(PWM_SLICE_CC(SLICE_R), cc_r);
+    out_w(PWM_CC_L, cc_l);
+    out_w(PWM_CC_R, cc_r);
     APP_UNLOCK(irq_state);
 }
 
 EXPORT void motor_safe_off (void)
 {
-    out_w(PWM_SLICE_CC(SLICE_L), 0u);
-    out_w(PWM_SLICE_CC(SLICE_R), 0u);
+    out_w(PWM_CC_L, 0u);
+    out_w(PWM_CC_R, 0u);
 }
 
 EXPORT int32_t motion_odometer (void)

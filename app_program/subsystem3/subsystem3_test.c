@@ -228,7 +228,7 @@ LOCAL int32_t follow_and_watch (int32_t secs, int32_t max_mm, int32_t * p_junc,
 
         tk_dly_tsk(10);
         if ((max_mm > 0) &&
-            (S2_COUNTS_TO_MM(motion_odometer() - odo0) >= max_mm))
+            (motion_counts_to_mm(motion_odometer() - odo0) >= max_mm))
         {
             break;
         }
@@ -238,7 +238,7 @@ LOCAL int32_t follow_and_watch (int32_t secs, int32_t max_mm, int32_t * p_junc,
         if ((pattern != lc_prev) && (traced < 150))
         {
             tm_printf((uint8_t *)"[S3T] %d mm  L %d  R %d  steer %d\n",
-                      (int32_t)S2_COUNTS_TO_MM(motion_odometer() - odo0),
+                      motion_counts_to_mm(motion_odometer() - odo0),
                       (int32_t)(pattern >> 1), (int32_t)(pattern & 1u),
                       line_steer_mm_s());
             lc_prev = pattern;
@@ -260,7 +260,7 @@ LOCAL int32_t follow_and_watch (int32_t secs, int32_t max_mm, int32_t * p_junc,
             }
             tm_printf(
                 (uint8_t *)"[S3] junction %d at %d mm: %s\n", *p_junc,
-                (int32_t)S2_COUNTS_TO_MM(motion_odometer() - odo0),
+                motion_counts_to_mm(motion_odometer() - odo0),
                 (sides == (JUNC_SIDE_S | JUNC_SIDE_B))
                     ? "crossing (both line sensors black, B saw the left arm)"
                 : ((sides & JUNC_SIDE_S) != 0)
@@ -309,7 +309,7 @@ LOCAL int32_t follow_and_watch (int32_t secs, int32_t max_mm, int32_t * p_junc,
             mseq = barcode_mark(&mark_odo, &mark_width);
             tm_printf(
                 (uint8_t *)"[S3] %d mm: B patch %d.%d mm (%s)\n",
-                (int32_t)S2_COUNTS_TO_MM(mark_odo - odo0), mark_width / 10,
+                motion_counts_to_mm(mark_odo - odo0), mark_width / 10,
                 mark_width % 10,
                 ((mark_width >= (S3_JUNC_MIN_MM * 10)) &&
                  (mark_width <= (S3_JUNC_MAX_MM * 10)))
@@ -357,7 +357,7 @@ LOCAL int32_t follow_and_watch (int32_t secs, int32_t max_mm, int32_t * p_junc,
     {
         uint32_t corrections;
         uint32_t sweeps;
-        int32_t  dist_mm = (int32_t)S2_COUNTS_TO_MM(motion_odometer() - odo0);
+        int32_t  dist_mm = motion_counts_to_mm(motion_odometer() - odo0);
 
         line_wobble(&corrections, &sweeps);
         tm_printf(
@@ -367,7 +367,7 @@ LOCAL int32_t follow_and_watch (int32_t secs, int32_t max_mm, int32_t * p_junc,
             (dist_mm > 0) ? (int32_t)corrections * 1000 / dist_mm : 0,
             (int32_t)sweeps);
     }
-    return (int32_t)S2_COUNTS_TO_MM(motion_odometer() - odo0); /* mm followed */
+    return motion_counts_to_mm(motion_odometer() - odo0); /* mm followed */
 }
 
 /* START = run this part, STOP = skip it.  TRUE = run it. */
@@ -382,9 +382,10 @@ LOCAL BOOL ask_run (const char * p_what)
         p_what);
     for (;;)
     {
-        if ((button_down(PIN_STOP)) || ((app_stop_reasons() & STOP_MQTT) != 0u))
+        if ((button_is_down(PIN_STOP)) ||
+            ((app_stop_reasons() & STOP_MQTT) != 0u))
         {
-            while (button_down(PIN_STOP))
+            while (button_is_down(PIN_STOP))
             {
                 tk_dly_tsk(10);
             }
@@ -397,12 +398,12 @@ LOCAL BOOL ask_run (const char * p_what)
         {
             return TRUE;
         }
-        if (button_down(PIN_START))
+        if (button_is_down(PIN_START))
         {
             tk_dly_tsk(30); /* debounce */
-            if ((button_down(PIN_START)) && (!button_down(PIN_STOP)))
+            if ((button_is_down(PIN_START)) && (!button_is_down(PIN_STOP)))
             {
-                while (button_down(PIN_START))
+                while (button_is_down(PIN_START))
                 {
                     tk_dly_tsk(10);
                 }
@@ -474,6 +475,17 @@ LOCAL BOOL print_new_code (uint32_t * p_seq, uint32_t * p_dseq)
 LOCAL int32_t  g_bn_odo[BENCH_N];
 LOCAL uint16_t g_bn_v[BENCH_N];
 
+/* Bench view: bigger = blacker, whichever way the module is wired,
+   and back to the raw reading */
+Inline int32_t bench_blackness (int32_t raw)
+{
+    return S3_BAR_BLACK_HIGH ? raw : (4095 - raw);
+}
+Inline int32_t bench_raw (int32_t blackness)
+{
+    return S3_BAR_BLACK_HIGH ? blackness : (4095 - blackness);
+}
+
 LOCAL BOOL bar_bench_run (int32_t speed)
 {
     motion_status_t  status;
@@ -532,8 +544,6 @@ LOCAL BOOL bar_bench_run (int32_t speed)
            each bar and space with its darkest / lightest reading.  '!' =
            its contrast to the element before was under 2 x S3_BAR_DELTA,
            close to being missed (a narrow bar or space the spot blurs). */
-#define BK(v)          (S3_BAR_BLACK_HIGH ? (int32_t)(v) : 4095 - (int32_t)(v))
-#define RAW(blackness) (S3_BAR_BLACK_HIGH ? (blackness) : 4095 - (blackness))
         int32_t cnt = 0;
         int32_t low;
         int32_t high;
@@ -543,10 +553,10 @@ LOCAL BOOL bar_bench_run (int32_t speed)
         BOOL    b_started = FALSE;
         int32_t st_odo    = 0;
 
-        low = high = BK(g_bn_v[0]);
+        low = high = bench_blackness(g_bn_v[0]);
         for (idx = 1; (idx < count) && (cnt < 80); idx++)
         {
-            int32_t blackness = BK(g_bn_v[idx]);
+            int32_t blackness = bench_blackness(g_bn_v[idx]);
             BOOL    b_change;
 
             if (!b_blk)
@@ -556,7 +566,7 @@ LOCAL BOOL bar_bench_run (int32_t speed)
                     low = blackness;
                 }
                 b_change = ((blackness > (low + S3_BAR_DELTA)) &&
-                            (blackness >= BK(S3_BAR_BLACK_MIN)));
+                            (blackness >= bench_blackness(S3_BAR_BLACK_MIN)));
             }
             else
             {
@@ -594,7 +604,8 @@ LOCAL BOOL bar_bench_run (int32_t speed)
                     weak++;
                 }
                 tm_printf((uint8_t *)"%c%d.%d/%d%s ", b_blk ? 'B' : 's',
-                          mm10 / 10, mm10 % 10, RAW(ext), b_bad ? "!" : "");
+                          mm10 / 10, mm10 % 10, bench_raw(ext),
+                          b_bad ? "!" : "");
                 if (0 == (++cnt % 10))
                 {
                     tm_printf((uint8_t *)"\n[S3]  ");
@@ -621,7 +632,7 @@ LOCAL BOOL bar_bench_run (int32_t speed)
                                       S2_UM_PER_COUNT / 100);
 
             tm_printf((uint8_t *)"B%d.%d/%d (end of samples) ", mm10 / 10,
-                      mm10 % 10, RAW(high));
+                      mm10 % 10, bench_raw(high));
             cnt++;
         }
         if (!b_started)
@@ -629,7 +640,7 @@ LOCAL BOOL bar_bench_run (int32_t speed)
             tm_printf(
                 (uint8_t *)"[S3] B profile: no bar in %d samples (lightest %d, "
                            "darkest %d): B did not pass over the bars\n",
-                count, RAW(low), RAW(high));
+                count, bench_raw(low), bench_raw(high));
         }
         else
         {

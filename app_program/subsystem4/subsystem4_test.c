@@ -69,12 +69,12 @@ LOCAL void ramp_run (uint32_t reports_start)
     for (tick = 0; tick < 2000; tick++)
     {
         motion_status_t status;
-        int32_t dist_mm   = (int32_t)S2_COUNTS_TO_MM(motion_odometer() - odo0);
-        int32_t sin_pitch = imu_pitch_mdeg_sin();
-        int32_t height    = imu_height_mm10();
-        int32_t roll      = imu_roll_sin_x1000();
-        int32_t one       = imu_one_wheel_mm10();
-        int32_t roll_abs  = (roll < 0) ? -roll : roll;
+        int32_t         dist_mm = motion_counts_to_mm(motion_odometer() - odo0);
+        int32_t         sin_pitch = imu_pitch_mdeg_sin();
+        int32_t         height    = imu_height_mm10();
+        int32_t         roll      = imu_roll_sin_x1000();
+        int32_t         one       = imu_one_wheel_mm10();
+        int32_t         roll_abs  = (roll < 0) ? -roll : roll;
 
         motion_get_status(&status);
         if ((tick > 10) && (status.result != MOT_RES_BUSY))
@@ -174,7 +174,7 @@ LOCAL void ramp_run (uint32_t reports_start)
     tm_printf(
         (uint8_t *)"[S4-R01] %d bump(s) in %d mm, %d readings skipped as jolts "
                    "in all\n",
-        bumps, (int32_t)S2_COUNTS_TO_MM(motion_odometer() - odo0),
+        bumps, motion_counts_to_mm(motion_odometer() - odo0),
         (int32_t)(imu_jolts() - jolts_start));
 }
 

@@ -113,7 +113,11 @@
 #define S3_PAIR_MM       25
 #define S3_STUCK_ONE_MM  300
 #define S3_STUCK_BOTH_MM 150
-#define MM(mm) ((int32_t)(mm) * 1000 / S2_UM_PER_COUNT) /* mm -> counts */
+/* mm to odometer counts */
+Inline int32_t mm_to_counts (int32_t dist_mm)
+{
+    return (dist_mm * 1000) / S2_UM_PER_COUNT;
+}
 
 /* Left arm under B, centre at cc (where the line sensors crossed it):
    no correction from cc - S3_ARM_BEFORE_MM to cc - S3_ARM_SELF_MM (L
@@ -193,7 +197,7 @@ LOCAL void junction_at (int32_t centre, int32_t side)
     {
         delta = -delta;
     }
-    if (gb_have_last && (delta < MM(S3_JUNC_MERGE_MM)))
+    if (gb_have_last && (delta < mm_to_counts(S3_JUNC_MERGE_MM)))
     {
         g_junc_sides |= side; /* same one: no second event */
         return;
@@ -379,7 +383,7 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
         if (stable != prev)
         {
             if (((PAT_L == prev) || (PAT_R == prev)) &&
-                ((odo - single_from) >= MM(S3_LONG_CORR_MM)))
+                ((odo - single_from) >= mm_to_counts(S3_LONG_CORR_MM)))
             {
                 b_long_corr = TRUE; /* a long correction ended */
             }
@@ -423,7 +427,7 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
 
         /* Overshoot: white for a while right after a long correction */
         if ((!b_searching) && (0u == stable) && b_long_corr &&
-            ((odo - white_from) >= MM(S3_OVERSHOOT_MM)))
+            ((odo - white_from) >= mm_to_counts(S3_OVERSHOOT_MM)))
         {
             b_searching = TRUE;
             search_from = odo;
@@ -437,14 +441,14 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
             b_probe_none      = FALSE;
         }
         else if ((0 == probe) && (!b_probe_none) &&
-                 ((odo - white_from) >= MM(S3_PROBE_AFTER_MM)))
+                 ((odo - white_from) >= mm_to_counts(S3_PROBE_AFTER_MM)))
         {
             probe      = (last_side >= 0) ? +1 : -1;
             probe_leg  = 1;
             probe_from = odo;
         }
         else if ((probe != 0) &&
-                 ((odo - probe_from) >= MM(S3_PROBE_MM * probe_leg)))
+                 ((odo - probe_from) >= mm_to_counts(S3_PROBE_MM * probe_leg)))
         {
             if (1 == probe_leg)
             {
@@ -521,7 +525,7 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
             if (step > 0)
             {
                 float32_t share =
-                    (float32_t)S2_COUNTS_TO_MM(step) / (float32_t)S3_MEM_MM;
+                    (float32_t)motion_counts_to_mm(step) / (float32_t)S3_MEM_MM;
 
                 if (share > 1.0f)
                 {
@@ -541,7 +545,8 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
         {
             int32_t cap;
 
-            if (b_single && ((odo - single_from) >= MM(S3_LOW_AFTER_MM)))
+            if (b_single &&
+                ((odo - single_from) >= mm_to_counts(S3_LOW_AFTER_MM)))
             {
                 g_speed_pct = S3_LOW_PCT;
             }
@@ -582,7 +587,7 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
             if (b_searching)
             {
                 g_state = LINE_SEARCH;
-                if (((odo - search_from) > MM(S3_LOST_MM)) ||
+                if (((odo - search_from) > mm_to_counts(S3_LOST_MM)) ||
                     (++search_n > (S3_LOST_MS / PERIOD_LINE_MS)))
                 {
                     g_state = LINE_LOST;
@@ -596,12 +601,13 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
             {
                 g_state = LINE_ON;
             }
-            if (b_single && ((odo - single_from) > MM(S3_STUCK_ONE_MM)))
+            if (b_single &&
+                ((odo - single_from) > mm_to_counts(S3_STUCK_ONE_MM)))
             {
                 why = LINE_FAULT_ONE;
             }
             else if ((stable == (PAT_L | PAT_R)) &&
-                     ((odo - both_from) > MM(S3_STUCK_BOTH_MM)))
+                     ((odo - both_from) > mm_to_counts(S3_STUCK_BOTH_MM)))
             {
                 why = LINE_FAULT_BOTH;
             }
@@ -621,14 +627,15 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
         {
             int32_t len = odo - both_from;
 
-            if ((len >= MM(S3_JUNC_MIN_MM)) && (len <= MM(S3_CROSS_MAX_MM)) &&
-                (quiet_over(both_from - MM(S3_CROSS_BEFORE_MM),
-                            both_from - MM(S3_CROSS_LEAD_MM), odo)))
+            if ((len >= mm_to_counts(S3_JUNC_MIN_MM)) &&
+                (len <= mm_to_counts(S3_CROSS_MAX_MM)) &&
+                (quiet_over(both_from - mm_to_counts(S3_CROSS_BEFORE_MM),
+                            both_from - mm_to_counts(S3_CROSS_LEAD_MM), odo)))
             {
                 junction_at(both_from + (len / 2), JUNC_SIDE_S);
             }
-            else if ((len >= MM(S3_PAIR_BOTH_MIN_MM)) &&
-                     (len <= MM(S3_CROSS_MAX_MM)))
+            else if ((len >= mm_to_counts(S3_PAIR_BOTH_MIN_MM)) &&
+                     (len <= mm_to_counts(S3_CROSS_MAX_MM)))
             {
                 /* while correcting: a crossing only if B agrees */
                 pair_c    = both_from + (len / 2);
@@ -637,7 +644,7 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
             /* else swept across the line on a curve: not a crossing */
         }
         if (b_pair_ok &&
-            ((odo - pair_c) > MM(S3_PAIR_MM - S3_BAR_AHEAD_MM + 20)))
+            ((odo - pair_c) > mm_to_counts(S3_PAIR_MM - S3_BAR_AHEAD_MM + 20)))
         {
             b_pair_ok = FALSE; /* B is past it and saw nothing */
         }
@@ -650,7 +657,7 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
 
             if (seq != mark_seen)
             {
-                int32_t centre = mark_centre + MM(S3_BAR_AHEAD_MM);
+                int32_t centre = mark_centre + mm_to_counts(S3_BAR_AHEAD_MM);
                 int32_t gap    = centre - pair_c;
 
                 mark_seen = seq;
@@ -658,7 +665,7 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
                 {
                     gap = -gap;
                 }
-                if (b_pair_ok && (gap <= MM(S3_PAIR_MM)) &&
+                if (b_pair_ok && (gap <= mm_to_counts(S3_PAIR_MM)) &&
                     (mark_width >= S3_PAIR_B_MIN_MM10) &&
                     (mark_width <= (S3_JUNC_MAX_MM * 10)))
                 {
@@ -669,17 +676,17 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
                     (mark_width <= (S3_JUNC_MAX_MM * 10)))
                 {
                     b_bpend = TRUE;
-                    bpend_c = mark_centre + MM(S3_BAR_AHEAD_MM);
+                    bpend_c = mark_centre + mm_to_counts(S3_BAR_AHEAD_MM);
                 }
             }
         }
-        if (b_bpend && ((odo - bpend_c) >= MM(S3_ARM_AFTER_MM)))
+        if (b_bpend && ((odo - bpend_c) >= mm_to_counts(S3_ARM_AFTER_MM)))
         {
             int32_t centre = bpend_c;
 
             b_bpend = FALSE;
-            if (quiet_over(centre - MM(S3_ARM_BEFORE_MM),
-                           centre - MM(S3_ARM_SELF_MM), odo))
+            if (quiet_over(centre - mm_to_counts(S3_ARM_BEFORE_MM),
+                           centre - mm_to_counts(S3_ARM_SELF_MM), odo))
             {
                 junction_at(centre, JUNC_SIDE_B);
             }

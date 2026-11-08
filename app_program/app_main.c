@@ -82,13 +82,13 @@ EXPORT ID app_start_task (FP p_entry, PRI pri, uint32_t prc,
     h_tid = tk_cre_tsk(&ctsk);
     if (h_tid < E_OK)
     {
-        CHECK(h_tid, p_name);
+        app_check(h_tid, p_name);
         return h_tid;
     }
 
     /* tk_sta_tsk: DORMANT -> READY.  The int is passed as stacd. */
     err = tk_sta_tsk(h_tid, 0);
-    CHECK(err, p_name);
+    app_check(err, p_name);
     return h_tid;
 }
 
@@ -137,21 +137,21 @@ EXPORT int32_t usermain (void)
 #endif
 
     /* The shared GPIO interrupt (app_gpio.c), before anyone registers */
-    CHECK(app_gpio_init(), "app_gpio_init");
+    app_check(app_gpio_init(), "app_gpio_init");
 
     /* Phase 1: every subsystem creates its kernel objects */
-    CHECK(subsystem1_init(), "subsystem1_init");
-    CHECK(subsystem2_init(), "subsystem2_init");
-    CHECK(subsystem3_init(), "subsystem3_init");
-    CHECK(subsystem4_init(), "subsystem4_init");
-    CHECK(subsystem5_init(), "subsystem5_init");
+    app_check(subsystem1_init(), "subsystem1_init");
+    app_check(subsystem2_init(), "subsystem2_init");
+    app_check(subsystem3_init(), "subsystem3_init");
+    app_check(subsystem4_init(), "subsystem4_init");
+    app_check(subsystem5_init(), "subsystem5_init");
 
     /* Phase 2: every subsystem starts its tasks */
-    CHECK(subsystem1_start(), "subsystem1_start");
-    CHECK(subsystem2_start(), "subsystem2_start");
-    CHECK(subsystem3_start(), "subsystem3_start");
-    CHECK(subsystem4_start(), "subsystem4_start");
-    CHECK(subsystem5_start(), "subsystem5_start");
+    app_check(subsystem1_start(), "subsystem1_start");
+    app_check(subsystem2_start(), "subsystem2_start");
+    app_check(subsystem3_start(), "subsystem3_start");
+    app_check(subsystem4_start(), "subsystem4_start");
+    app_check(subsystem5_start(), "subsystem5_start");
 
     tm_printf((uint8_t *)"all subsystems started\n\n");
 

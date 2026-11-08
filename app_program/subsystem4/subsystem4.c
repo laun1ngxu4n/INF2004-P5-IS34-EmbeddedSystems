@@ -45,7 +45,7 @@ EXPORT ER subsystem4_start (void)
     {
         return gh_tid_imu;
     }
-    CHECK(tk_sta_cyc(gh_cyc_safety), "cyc_safety");
+    app_check(tk_sta_cyc(gh_cyc_safety), "cyc_safety");
     return tk_sta_cyc(gh_cyc_imu);
 }
 

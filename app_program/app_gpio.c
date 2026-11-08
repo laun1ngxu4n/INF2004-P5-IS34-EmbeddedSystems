@@ -10,10 +10,20 @@
 #define INTPRI_IO_BANK0 1  /* above the kernel tick */
 
 /* IO_BANK0 interrupt registers: 4 bits per pin, 8 pins per register */
-#define IO_INTR(n)       (IO_BANK0_BASE + 0x0F0 + ((n) * 4))
-#define IO_PROC0_INTE(n) (IO_BANK0_BASE + 0x100 + ((n) * 4))
-#define IO_PROC0_INTS(n) (IO_BANK0_BASE + 0x120 + ((n) * 4))
-#define IO_EDGE_BITS     0xCCCCCCCCu /* edge-low/edge-high of all 8 pins */
+/* Interrupt registers of IO bank 0, 8 pins per register */
+Inline uint32_t io_intr_reg (uint32_t reg)
+{
+    return IO_BANK0_BASE + 0x0F0u + (reg * 4u);
+}
+Inline uint32_t io_proc0_inte_reg (uint32_t reg)
+{
+    return IO_BANK0_BASE + 0x100u + (reg * 4u);
+}
+Inline uint32_t io_proc0_ints_reg (uint32_t reg)
+{
+    return IO_BANK0_BASE + 0x120u + (reg * 4u);
+}
+#define IO_EDGE_BITS 0xCCCCCCCCu /* edge-low/edge-high of all 8 pins */
 
 LOCAL app_gpio_cb_t g_gpio_cb[GPIO_NUM];
 
@@ -26,13 +36,13 @@ LOCAL void gpio_bank0_isr (uint32_t intno)
 
     for (reg = 0; reg < 4; reg++)
     {
-        ints = in_w(IO_PROC0_INTS(reg));
+        ints = in_w(io_proc0_ints_reg(reg));
         if (0u == ints)
         {
             continue;
         }
         /* Acknowledge first, so an edge during the callbacks is kept */
-        out_w(IO_INTR(reg), ints & IO_EDGE_BITS);
+        out_w(io_intr_reg(reg), ints & IO_EDGE_BITS);
         for (slot = 0; slot < 8; slot++)
         {
             uint32_t events = (ints >> (slot * 4)) & APP_GPIO_BOTH;
@@ -114,8 +124,8 @@ EXPORT ER app_gpio_irq_add (uint32_t pin, uint32_t events,
         return E_OBJ; /* pin already has an owner */
     }
     g_gpio_cb[pin] = p_callback;
-    out_w(IO_INTR(pin / 8), bits); /* drop stale edges */
-    set_w(IO_PROC0_INTE(pin / 8), bits);
+    out_w(io_intr_reg(pin / 8), bits); /* drop stale edges */
+    set_w(io_proc0_inte_reg(pin / 8), bits);
     APP_UNLOCK(irq_state);
     return E_OK;
 }

@@ -82,7 +82,11 @@ IMPORT void motor_safe_off (void);
 /* Distance driven since boot, mean of both wheels, in encoder counts
    (0.080 mm each).  Any context, also interrupt handlers (barcode edges). */
 IMPORT int32_t motion_odometer (void);
-#define S2_COUNTS_TO_MM(c) ((c) * S2_UM_PER_COUNT / 1000)
+/* Odometer counts (a difference of motion_odometer()) to mm */
+Inline int32_t motion_counts_to_mm (int32_t counts)
+{
+    return (counts * S2_UM_PER_COUNT) / 1000;
+}
 
 /* Robot body (NOT MEASURED YET, used by obstacle bypass and junctions) */
 /* 130 measured (6 Nov) + the barcode arm sticking out 17 mm, counted both

@@ -166,7 +166,7 @@ LOCAL BOOL resume_follow (void)
     {
         return FALSE;
     }
-    while (S2_COUNTS_TO_MM(motion_odometer() - odo0) < REJOIN_ENABLE_MM)
+    while (motion_counts_to_mm(motion_odometer() - odo0) < REJOIN_ENABLE_MM)
     {
         if (app_stop_reasons() != 0u)
         {
@@ -326,7 +326,7 @@ LOCAL void on_junction (void)
        JUNC_WAIT_MM past the centre; the move below measures from the
        centre, so it backs up if it went past. */
     while ((barcode_busy()) &&
-           (S2_COUNTS_TO_MM(motion_odometer() - junc_odo) < JUNC_WAIT_MM))
+           (motion_counts_to_mm(motion_odometer() - junc_odo) < JUNC_WAIT_MM))
     {
         if (app_stop_reasons() != 0u)
         {
@@ -369,7 +369,7 @@ LOCAL void on_junction (void)
        reported later than a crossing (B is behind them), so measure
        from there. */
     to_go = S3_SENSOR_TO_AXLE_MM -
-            (int32_t)S2_COUNTS_TO_MM(motion_odometer() - line_junction_odo());
+            motion_counts_to_mm(motion_odometer() - line_junction_odo());
     if (((to_go > 0) && (!mv(motion_drive(S5_FOLLOW_SPEED, to_go)))) ||
         ((to_go < 0) && (!mv(motion_drive(-S5_FOLLOW_SPEED, -to_go)))) ||
         (!turn_onto_line(deg)) || (!resume_follow()))
@@ -409,7 +409,7 @@ LOCAL int32_t drive_until_line (int32_t dist_mm, int32_t from_mm)
             return -1;
         }
         if ((line_any_black()) &&
-            (S2_COUNTS_TO_MM(motion_odometer() - odo0) >= from_mm))
+            (motion_counts_to_mm(motion_odometer() - odo0) >= from_mm))
         {
             motion_halt();
             wait_still();
@@ -503,7 +503,7 @@ LOCAL int32_t pass_box (int32_t sgn, int32_t front, int32_t lat_exp,
         {
             goto out;
         }
-        done = (int32_t)S2_COUNTS_TO_MM(motion_odometer() - odo0);
+        done = motion_counts_to_mm(motion_odometer() - odo0);
 
         if (b_side && ((app_time_us() - t_ping) >= 60000u))
         {
@@ -835,7 +835,7 @@ LOCAL void on_obstacle (void)
     if (found)
     {
         tm_sprintf(msg, (const uint8_t *)"line met behind the box, %d mm along",
-                   (int32_t)S2_COUNTS_TO_MM(motion_odometer() - odo0));
+                   motion_counts_to_mm(motion_odometer() - odo0));
         say(msg);
     }
     else
@@ -858,7 +858,7 @@ LOCAL void on_obstacle (void)
             return;
         }
         tm_sprintf(msg, (const uint8_t *)"line found %d mm after the last turn",
-                   (int32_t)S2_COUNTS_TO_MM(motion_odometer() - odo0));
+                   motion_counts_to_mm(motion_odometer() - odo0));
         say(msg);
     }
 
@@ -934,8 +934,9 @@ EXPORT void mission_task (int32_t stacd, void * p_exinf)
 
         if ((M_IDLE == g_mstate) && gb_armed)
         {
-            BOOL b_down = (button_down(PIN_START)) && (!button_down(PIN_STOP));
-            BOOL b_go   = (ptn & MSN_FLG_START) != 0u;
+            BOOL b_down =
+                (button_is_down(PIN_START)) && (!button_is_down(PIN_STOP));
+            BOOL b_go = (ptn & MSN_FLG_START) != 0u;
 
             if (b_start_was_down && (!b_down))
             {
@@ -944,7 +945,7 @@ EXPORT void mission_task (int32_t stacd, void * p_exinf)
             b_start_was_down = b_down;
             if (b_go)
             {
-                if (!button_down(PIN_STOP))
+                if (!button_is_down(PIN_STOP))
                 {
                     app_stop_clear(STOP_BUTTON | STOP_MQTT);
                 }

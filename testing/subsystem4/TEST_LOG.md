@@ -30,3 +30,6 @@ Add a new row for every run. Never edit or delete old rows.
 | 2026-10-26 | S4-U02 | `836d3fe` | B1 Ikhwan | PASS | `../integration/logs/2026-10-26_stage0_test.txt` | test image `stage0_test_v4.uf2`, laptop USB, 3 s start-up wait |
 | 2026-10-26 | S4-U03 | `836d3fe` | B1 Ikhwan | PASS | `../integration/logs/2026-10-26_stage0_test.txt` | test image `stage0_test_v4.uf2`, laptop USB, 3 s start-up wait |
 | 2026-10-26 | S4-U04 | `836d3fe` | B1 Ikhwan | PASS | `../integration/logs/2026-10-26_stage0_test.txt` | test image `stage0_test_v4.uf2`, laptop USB, 3 s start-up wait |
+| 2026-11-09 | S4-U01..U04 | `490d07c` | B1 Ikhwan | PASS | `logs/2026-11-09_stage4_imu_robot.txt` | Stage 4 WiFi test image, CR1 packed build |
+| 2026-11-09 | S4-I01 | `490d07c` | B1 Ikhwan | PASS | `logs/2026-11-09_stage4_imu_robot.txt` | LSM303D found at 0x1D |
+| 2026-11-09 | S4-R01 | `490d07c` | B1 Ikhwan | INCOMPLETE | `logs/2026-11-09_stage4_imu_robot.txt` | run 1 of 5: the test saw the hump, side tilt peak 143/1000 = 17.6 mm (real height not recorded); the IMU task did not report it (level check too strict, fixed after); STOP ended the remaining runs (fixed after: STOP ends one run) |

@@ -535,6 +535,24 @@ than the robot, so the robot tips over it instead of driving up a slope.
   shows L x sin within +/- 5 mm.
 - [x] ✅ **L measured: 80 mm** (`S4_L_MM`), same as the guess
 - Note for B4: a hard STOP can give a false ramp report (braking tilt)
+- **9 Nov, first one-wheel run (`subsystem4/logs/2026-11-09_stage4_imu_robot.txt`,
+  Change Requirement 1 build): the hump was seen**, side tilt peak
+  0.143 at about 214 mm = **17.6 mm** (the test's own figure; the real
+  height was not written down, so not judged yet). Tilt view: front
+  lifted gives sin(pitch) up to 251; a block under the right wheel read
+  16.3 mm once. **Two bugs, fixed 9 Nov, not run yet:**
+  - **The IMU task never reported it** ("no ramp reported by the IMU
+    task"): it reports once tilt and side tilt are both under 0.030 for
+    100 mm, but the fast side-tilt reading jitters +-0.03 while driving
+    (-34, -31 on the flat), so the level stretch kept restarting (longest
+    43 mm in the trace). Now the level test uses a slower copy (about
+    100 ms, as the pitch): at most 0.006 on the same flat stretches; the
+    peak still comes from the fast one.
+  - **STOP ended all 5 runs**, so START afterwards did nothing (the test
+    was over). Now STOP ends only the current run; the next START runs
+    the next one.
+  - Also seen: a "bump 2" at 596 mm on the flat (nose-down -42, noise), so
+    the run did not end by itself; STOP ends it.
 
 ## Stage 5: telemetry + MQTT (demo image)
 

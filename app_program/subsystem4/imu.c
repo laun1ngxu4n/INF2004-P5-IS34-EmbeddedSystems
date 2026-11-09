@@ -56,6 +56,11 @@
    sharp top, so the side tilt peaks briefly: a lighter filter than the
    pitch's (ROLL_LPF_K ~ 30 ms; 100 ms took about 15 % off the peak). */
 #define ROLL_LPF_K 0.3f
+/* "Back on the floor" uses a slower copy of the side tilt (as the pitch's
+   filter, about 100 ms): the fast one jitters +-30/1000 while driving (9 Nov
+   S4-R01: -34, -31 on the flat), which kept resetting the level distance,
+   so no hump was ever reported.  The hump itself reads about 140/1000. */
+#define ROLL_FLAT_K 0.1f
 
 LOCAL volatile bool gb_cal_request = true; /* calibrate once at boot too */
 LOCAL volatile bool gb_calibrated;
@@ -188,6 +193,7 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
     float32_t roll_f         = 0.0f;
     float32_t base_r         = 0.0f;
     float32_t roll           = 0.0f;
+    float32_t roll_slow      = 0.0f; /* roll, filtered more: level test */
     float32_t one_peak       = 0.0f;
     float32_t one_pitch_peak = 0.0f;
     float32_t roll_peak      = 0.0f;
@@ -271,7 +277,7 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
                     gb_calibrated                 = true;
                     height = peak = peak_sin = 0.0f;
                     sin_f = base = tilt = 0.0f;
-                    roll_f = base_r = roll = 0.0f;
+                    roll_f = base_r = roll = roll_slow = 0.0f;
                     one_peak = one_pitch_peak = roll_peak = 0.0f;
                 }
 
@@ -305,6 +311,7 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
                 }
 
                 roll = roll_f - base_r;
+                roll_slow += ROLL_FLAT_K * (roll - roll_slow);
                 /* |sin| <= 1: x 1000 fits int32_t */
                 g_out.roll_x1000 =
                     app_clamp((int32_t)(roll * 1000.0f), -1023, 1023);
@@ -376,7 +383,7 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
                 quiet_mm10 -= (int32_t)(app_absf(step_mm) * 10.0f);
             }
 
-            if ((app_absf(tilt) < FLAT_SIN) && (app_absf(roll) < FLAT_SIN))
+            if ((app_absf(tilt) < FLAT_SIN) && (app_absf(roll_slow) < FLAT_SIN))
             {
                 /* one period's mm, small: fits int32_t in 0.1 mm */
                 flat_mm10 += (int32_t)(app_absf(step_mm) * 10.0f);
@@ -450,4 +457,3 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
 }
 
 /*** end of file ***/
-

@@ -287,10 +287,13 @@ EXPORT void subsystem4_test_stage (void)
 
         if (app_test_stop_pressed())
         {
-            tm_printf(app_str("[S4-R01] STOP pressed: runs ended\n"));
-            break;
+            tm_printf(app_str("[S4-R01] STOP pressed: this run ended "
+                              "(START at the next prompt runs the next "
+                              "one)\n"));
         }
     }
+
+    tm_printf(app_str("[S4-R01] all runs done\n"));
 
     TEST_SUMMARY("subsystem4 stage 4");
 }
@@ -298,4 +301,3 @@ EXPORT void subsystem4_test_stage (void)
 #endif /* APP_TEST */
 
 /*** end of file ***/
-

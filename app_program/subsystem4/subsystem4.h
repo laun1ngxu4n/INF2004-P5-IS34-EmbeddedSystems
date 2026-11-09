@@ -30,6 +30,14 @@
  * stays the Stage 0 timing stub.
  */
 #define S4_L_MM 80 /* axle to front support, measured 6 Nov */
+/* One-wheel hump while driving: T x sin(side tilt) read about 1.6 times
+ * the real height (9 Nov S4-R01, 5 runs: 16.6 / 17.2 / 17.6 mm for humps of
+ * about 10 mm, 40.8 / 37.0 for about 25 mm), the same factor for both, while
+ * standing still on a block it read right.  The wheel climbing jolts the
+ * robot sideways, which the accelerometer adds to the tilt.  The reported
+ * height is scaled by this (least squares over the 5 runs: 0.63); the live
+ * one-wheel reading (tilt view) stays unscaled.  Re-check with S4-R01. */
+#define S4_ONE_WHEEL_GAIN_PCT 63
 
 /* Private to subsystem 4, shared between its own .c files */
 IMPORT ID      gh_tid_safety;
@@ -45,4 +53,3 @@ IMPORT int32_t g_tmg_imu;
 #endif /* SUBSYSTEM4_H */
 
 /*** end of file ***/
-

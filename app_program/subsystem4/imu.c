@@ -275,6 +275,12 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
                     ncal                          = 0;
                     gb_cal_request                = false;
                     gb_calibrated                 = true;
+                    /* a new run: the last run's level stretch and its
+                       quiet distance after a report do not carry over
+                       (9 Nov: runs 2 and 4 right after a reported run
+                       never reported) */
+                    flat_mm10  = 0;
+                    quiet_mm10 = 0;
                     height = peak = peak_sin = 0.0f;
                     sin_f = base = tilt = 0.0f;
                     roll_f = base_r = roll = roll_slow = 0.0f;
@@ -397,7 +403,10 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
             {
                 /* heights in mm, small: fit int32_t in 0.1 mm */
                 int32_t p10 = (int32_t)(peak * 10.0f);
-                int32_t o10 = (int32_t)(one_peak * 10.0f); /* the same */
+                /* the same, scaled for driving (S4_ONE_WHEEL_GAIN_PCT) */
+                int32_t o10 =
+                    (int32_t)(one_peak * 10.0f *
+                              (float32_t)S4_ONE_WHEEL_GAIN_PCT / 100.0f);
 
                 if ((o10 >= REPORT_MIN_MM10) && (o10 >= p10) &&
                     (quiet_mm10 <= 0))
@@ -414,11 +423,11 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
                     tm_sprintf(msg,
                                app_str("ramp peak height %d.%d mm (one "
                                        "wheel: side tilt "
-                                       "sin %d/1000; from the nose-down "
-                                       "tilt %d.%d mm)"),
+                                       "sin %d/1000 x T x 0.%d; from the "
+                                       "nose-down tilt %d.%d mm)"),
                                o10 / 10, o10 % 10,
-                               (int32_t)(roll_peak * 1000.0f), c10 / 10,
-                               c10 % 10);
+                               (int32_t)(roll_peak * 1000.0f),
+                               S4_ONE_WHEEL_GAIN_PCT, c10 / 10, c10 % 10);
                     telemetry_event(msg);
                     quiet_mm10 = QUIET_AFTER_MM * 10;
                 }

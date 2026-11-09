@@ -553,6 +553,20 @@ than the robot, so the robot tips over it instead of driving up a slope.
     the next one.
   - Also seen: a "bump 2" at 596 mm on the flat (nose-down -42, noise), so
     the run did not end by itself; STOP ends it.
+- **9 Nov, second Stage 4 run, 5 runs (`subsystem4/logs/2026-11-09_stage4_imu_robot_2.txt`).**
+  Humps (tester's estimates): about 10 mm for runs 1, 2 and 5, about 25 mm
+  for runs 3 and 4. Every hump was seen. Heights read **about 1.6 times
+  too high**: 16.6 / 17.2 / 40.8 / 37.0 / 17.6 mm (+5 to +16 mm, FAIL on
+  +-5 mm), the same factor for both sizes, while standing still on a
+  block the tilt view read a steady 23-24 mm. The IMU task reported runs
+  1, 3 and 5 only. **Fixed 9 Nov, not run yet:**
+  - The reported height is scaled by 0.63 (`S4_ONE_WHEEL_GAIN_PCT`, least
+    squares over these 5 runs): they would read 10.4 / 10.8 / 25.7 / 23.3
+    / 11.0 mm, all within +-2 mm. Fitted on these runs, so it must be
+    confirmed on new runs (measure the humps with a ruler).
+  - Runs 2 and 4 came right after a reported run: the "no second report
+    for 600 mm" distance carried over into the next run. Calibrating at
+    the start of a run now resets it.
 
 ## Stage 5: telemetry + MQTT (demo image)
 

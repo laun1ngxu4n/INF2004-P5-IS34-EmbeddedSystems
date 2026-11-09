@@ -153,6 +153,21 @@ LOCAL float32_t absf (float32_t value)
     return (value < 0.0f) ? -value : value;
 }
 
+/** The angle a spin of deg is driven to: a big spin stops S2_TURN_TRIM_DEG
+ * early (it turns that much more on the mat, 9 Nov), a small one does not. */
+LOCAL float32_t spin_target_deg (int32_t deg)
+{
+    float32_t angle = absf((float32_t)deg); /* |deg| < 2^13: exact */
+
+    /* small whole degrees: exact as floats */
+    if (angle >= (float32_t)S2_TURN_TRIM_MIN_DEG)
+    {
+        angle -= (float32_t)S2_TURN_TRIM_DEG; /* exact */
+    }
+
+    return angle;
+}
+
 typedef struct
 {
     float32_t integ;
@@ -298,7 +313,7 @@ EXPORT void motion_task (int32_t stacd, void * p_exinf)
                 /* degrees and mm/s: small, exact as floats; 2 x the expected
                    ms is positive and far below 2^32 (cmd_post refuses a
                    speed of 0) */
-                limit_ms = (uint32_t)(2000.0f * 3.14159f * S2_TRACK_MM *
+                limit_ms = (uint32_t)(2000.0f * 3.14159f * S2_TURN_TRACK_MM *
                                       absf((float32_t)cur.amount) / 360.0f /
                                       absf((float32_t)cur.speed)) +
                            1000;
@@ -414,8 +429,8 @@ EXPORT void motion_task (int32_t stacd, void * p_exinf)
             else
             {
                 /* spin: + = left = left wheel back, right forward */
-                target = 3.14159f * S2_TRACK_MM * absf((float32_t)cur.amount) /
-                         360.0f;
+                target     = 3.14159f * S2_TURN_TRACK_MM *
+                             spin_target_deg(cur.amount) / 360.0f;
                 done_left  = (cur.amount >= 0) ? -dl_mm : dl_mm;
                 done_right = (cur.amount >= 0) ? dr_mm : -dr_mm;
             }
@@ -536,4 +551,3 @@ EXPORT void motion_task (int32_t stacd, void * p_exinf)
 }
 
 /*** end of file ***/
-

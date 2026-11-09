@@ -56,6 +56,11 @@
    sharp top, so the side tilt peaks briefly: a lighter filter than the
    pitch's (ROLL_LPF_K ~ 30 ms; 100 ms took about 15 % off the peak). */
 #define ROLL_LPF_K 0.3f
+/* "Back on the floor" uses a slower copy of the side tilt (as the pitch's
+   filter, about 100 ms): the fast one jitters +-30/1000 while driving (9 Nov
+   S4-R01: -34, -31 on the flat), which kept resetting the level distance,
+   so no hump was ever reported.  The hump itself reads about 140/1000. */
+#define ROLL_FLAT_K 0.1f
 
 LOCAL volatile bool gb_cal_request = true; /* calibrate once at boot too */
 LOCAL volatile bool gb_calibrated;
@@ -188,6 +193,7 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
     float32_t roll_f         = 0.0f;
     float32_t base_r         = 0.0f;
     float32_t roll           = 0.0f;
+    float32_t roll_slow      = 0.0f; /* roll, filtered more: level test */
     float32_t one_peak       = 0.0f;
     float32_t one_pitch_peak = 0.0f;
     float32_t roll_peak      = 0.0f;
@@ -269,9 +275,15 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
                     ncal                          = 0;
                     gb_cal_request                = false;
                     gb_calibrated                 = true;
+                    /* a new run: the last run's level stretch and its
+                       quiet distance after a report do not carry over
+                       (9 Nov: runs 2 and 4 right after a reported run
+                       never reported) */
+                    flat_mm10  = 0;
+                    quiet_mm10 = 0;
                     height = peak = peak_sin = 0.0f;
                     sin_f = base = tilt = 0.0f;
-                    roll_f = base_r = roll = 0.0f;
+                    roll_f = base_r = roll = roll_slow = 0.0f;
                     one_peak = one_pitch_peak = roll_peak = 0.0f;
                 }
 
@@ -305,6 +317,7 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
                 }
 
                 roll = roll_f - base_r;
+                roll_slow += ROLL_FLAT_K * (roll - roll_slow);
                 /* |sin| <= 1: x 1000 fits int32_t */
                 g_out.roll_x1000 =
                     app_clamp((int32_t)(roll * 1000.0f), -1023, 1023);
@@ -376,7 +389,7 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
                 quiet_mm10 -= (int32_t)(app_absf(step_mm) * 10.0f);
             }
 
-            if ((app_absf(tilt) < FLAT_SIN) && (app_absf(roll) < FLAT_SIN))
+            if ((app_absf(tilt) < FLAT_SIN) && (app_absf(roll_slow) < FLAT_SIN))
             {
                 /* one period's mm, small: fits int32_t in 0.1 mm */
                 flat_mm10 += (int32_t)(app_absf(step_mm) * 10.0f);
@@ -390,7 +403,10 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
             {
                 /* heights in mm, small: fit int32_t in 0.1 mm */
                 int32_t p10 = (int32_t)(peak * 10.0f);
-                int32_t o10 = (int32_t)(one_peak * 10.0f); /* the same */
+                /* the same, scaled for driving (S4_ONE_WHEEL_GAIN_PCT) */
+                int32_t o10 =
+                    (int32_t)(one_peak * 10.0f *
+                              (float32_t)S4_ONE_WHEEL_GAIN_PCT / 100.0f);
 
                 if ((o10 >= REPORT_MIN_MM10) && (o10 >= p10) &&
                     (quiet_mm10 <= 0))
@@ -407,11 +423,11 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
                     tm_sprintf(msg,
                                app_str("ramp peak height %d.%d mm (one "
                                        "wheel: side tilt "
-                                       "sin %d/1000; from the nose-down "
-                                       "tilt %d.%d mm)"),
+                                       "sin %d/1000 x T x 0.%d; from the "
+                                       "nose-down tilt %d.%d mm)"),
                                o10 / 10, o10 % 10,
-                               (int32_t)(roll_peak * 1000.0f), c10 / 10,
-                               c10 % 10);
+                               (int32_t)(roll_peak * 1000.0f),
+                               S4_ONE_WHEEL_GAIN_PCT, c10 / 10, c10 % 10);
                     telemetry_event(msg);
                     quiet_mm10 = QUIET_AFTER_MM * 10;
                 }
@@ -450,4 +466,3 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
 }
 
 /*** end of file ***/
-

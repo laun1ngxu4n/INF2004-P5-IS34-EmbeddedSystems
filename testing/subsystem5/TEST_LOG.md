@@ -33,3 +33,6 @@ Add a new row for every run. Never edit or delete old rows.
 | 2026-10-26 | S5-U02 | `836d3fe` | B1 Ikhwan | PASS | `../integration/logs/2026-10-26_stage0_test.txt` | test image `stage0_test_v4.uf2`, laptop USB, 3 s start-up wait |
 | 2026-10-26 | S5-U03 | `836d3fe` | B1 Ikhwan | PASS | `../integration/logs/2026-10-26_stage0_test.txt` | test image `stage0_test_v4.uf2`, laptop USB, 3 s start-up wait |
 | 2026-10-26 | S5-U04 | `836d3fe` | B1 Ikhwan | PASS | `../integration/logs/2026-10-26_stage0_test.txt` | test image `stage0_test_v4.uf2`, laptop USB, 3 s start-up wait |
+| 2026-11-09 | S5-U01..U04 | `cc87b08` | B1 Ikhwan | PASS | `logs/2026-11-09_stage3_obstacle_robot.txt` | Stage 3 WiFi test image, CR1 packed build |
+| 2026-11-09 | S5-O01 | `cc87b08` | B1 Ikhwan | NOT JUDGED | `logs/2026-11-09_stage3_obstacle_robot.txt` | widths 175 +/- 30, 136 +/- 33, 210 +/- 36 mm, box fronts 271 / 304 / 304 mm, both edges seen every try; real widths not recorded |
+| 2026-11-09 | S5-O02 | `cc87b08` | B1 Ikhwan | PASS | `logs/2026-11-09_stage3_obstacle_robot.txt` | stopped at 241 mm, width 114, bypass LEFT out 254 past 785, line met behind the box 703 mm along, bypass done; no contact reported. Team: the 90 deg spins turn about 5 deg too much (fixed after: S2_TURN_TRIM_DEG) |

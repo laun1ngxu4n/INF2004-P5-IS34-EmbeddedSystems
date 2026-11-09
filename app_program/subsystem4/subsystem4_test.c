@@ -159,6 +159,8 @@ LOCAL void ramp_run (uint32_t reports_start)
             {
                 int32_t l10 = bump_up * S4_L_MM / 100; /* 0.1 mm */
                 int32_t c10 = bump_hmax - bump_h0;
+                /* 0.1 mm, a few hundred: x 63 fits int32_t */
+                int32_t scaled = bump_one * S4_ONE_WHEEL_GAIN_PCT / 100;
 
                 b_in_bump = false;
                 bumps++;
@@ -172,8 +174,10 @@ LOCAL void ramp_run (uint32_t reports_start)
                           l10 / 10, l10 % 10, c10 / 10, c10 % 10,
                           (int32_t)(imu_jolts() - jolts_bump));
                 tm_printf(app_str("[S4] bump %d one wheel: side tilt peak "
-                                  "sin %d/1000, height T x sin = %d.%d mm\n"),
-                          bumps, bump_roll, bump_one / 10, bump_one % 10);
+                                  "sin %d/1000, height T x sin = %d.%d mm, "
+                                  "x 0.%d for driving = %d.%d mm\n"),
+                          bumps, bump_roll, bump_one / 10, bump_one % 10,
+                          S4_ONE_WHEEL_GAIN_PCT, scaled / 10, scaled % 10);
             }
         }
 
@@ -287,10 +291,13 @@ EXPORT void subsystem4_test_stage (void)
 
         if (app_test_stop_pressed())
         {
-            tm_printf(app_str("[S4-R01] STOP pressed: runs ended\n"));
-            break;
+            tm_printf(app_str("[S4-R01] STOP pressed: this run ended "
+                              "(START at the next prompt runs the next "
+                              "one)\n"));
         }
     }
+
+    tm_printf(app_str("[S4-R01] all runs done\n"));
 
     TEST_SUMMARY("subsystem4 stage 4");
 }
@@ -298,4 +305,3 @@ EXPORT void subsystem4_test_stage (void)
 #endif /* APP_TEST */
 
 /*** end of file ***/
-

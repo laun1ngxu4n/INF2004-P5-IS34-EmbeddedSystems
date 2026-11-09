@@ -42,7 +42,20 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   5° over (limit ±15°)
 - [x] ✅ S2-M04 STOP on the floor
 
-Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
+**9 Nov re-run** (new code: Barr C + Change Requirement 1; rows in
+`testing/subsystem2/TEST_LOG.md`):
+- [x] ✅ Stage 0 automatic checks, S2-M05 directions, S2-M06 STOP lifted
+- [x] ✅ S2-M03 encoders 500 mm at 120 mm/s (mean 120); 🟡 the real distance not measured
+- [ ] 🟡 S2-M02: round 1 only. Encoders 90.6 / -90.2 / 180.6 deg; the real 180 about 5° over (photos).
+  **Changed after it:** spins use `S2_TURN_TRACK_MM` = 120 (was 123), about 4° less on a 180.
+  Then the Stage 3 bypass's 90s still turned about 5° too much (about +7 on the
+  wheels' 88), so the over-turn is a fixed few degrees, not a percentage.
+  **Changed again 9 Nov:** track back to 123, and every spin of 45° or more stops
+  6° early (`S2_TURN_TRIM_DEG`); expected about 91 for a 90 and 178 for a 180.
+  The S2-M02 encoder angle now reads about 6° under (84 / 174): judge by the
+  real angle. Re-run all 3 rounds and write down the real angles.
+- [ ] 🟡 S2-M04: try 1 stopped in 149 ms; tries 3-5 not run
+- [x] ✅ Held wheel (Change Requirement 1 Safety): motors off, event sent; START again after 2 s: to confirm
 
 ## Stage 2: line, junctions, barcodes (`TEST_STAGE=2`)
 
@@ -258,6 +271,14 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
   cm after a barcode used the letter at the NEXT junction (now it waits
   for the read); an obstacle met mid-barcode garbled the read (now
   dropped, reported).
+- **9 Nov, Change Requirement 1 packed build (`2026-11-09_stage2_line_robot.txt`
+  in `subsystem3/logs`): line following good, team happy.** S3-L01 1505
+  mm, **line lost 0 times**, through left and right curves like the ones
+  it used to lose (FAIL only on the 3 m: stopped by hand, small track).
+  13 corrections per metre, 1 sweep across the tape. The X crossing was
+  detected (`junction 1 at 1194 mm: crossing`), no false junctions. No
+  barcode on this track: barcodes (S3-B00, 2B, 2C) still to run. Stage 0
+  checks in the image all PASS; no unexpected faults.
 - [ ] 🟡 **S5-B01 / S5-B02** (2C): right move at each junction, U-turn, stop on
   an unmapped code
 
@@ -394,6 +415,27 @@ Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
   obstacle is 9 x 13 cm x 19-20 cm high, so at most 130 mm deep; bypasssim
   with it: no contact either way round, closest 35 mm, junctions 27/27).
 - **Stage 3 called done by the team, 8 Nov.**
+- **9 Nov, Change Requirement 1 packed build (`subsystem5/logs/2026-11-09_stage3_obstacle_robot.txt`):
+  bypass works as before.** Servo check run; sonar view steady 240-246 mm.
+  S5-O01: 175 / 136 / 210 mm, both edges found every time (real widths
+  not recorded). S5-O02: stopped at 241 mm, width 114 mm, went round
+  LEFT (out 254, past 785), `line met behind the box, 703 mm along`,
+  `bypass done`, then `line lost` further on. Team: works, but **the
+  90° turns turn about 5° too much**: fixed the same day (Stage 1
+  section, `S2_TURN_TRIM_DEG`), not run yet.
+  - **Mapping from the panel always REJECTED: a bug, fixed 9 Nov, not
+    run yet.** The MQTT glue (`lib/liblwip/sysdepend/pico_rp2040/mqtt_utk.c`)
+    turned every non-printable byte into '.' before the app saw it, so the
+    new binary map command (Change Requirement 1) arrived damaged and was
+    tried as text. Now the app gets the raw bytes; only the printed copy is
+    cleaned. START with the TEST mapping worked meanwhile.
+  - A false `ramp peak height 41.2 mm` came during the bypass (side tilt
+    0.335 g: the spin's start or stop, not a slope). Check in Stage 4
+    whether turning gives false ramps.
+  - Mission's `[tmg]` run time shows 35 s during the bypass: Mission runs
+    the whole bypass in one wake (it waits for each move), so this is the
+    bypass's length, not an overrun (overruns 0). Safety's Motion-hung
+    check watches Motion, which kept running every 10 ms.
 - [ ] 🟡 **S5-O01** width: works (both edges found every time since the
   geometry rule), but reads wide from further away: the 9 cm obstacle
   read 186 mm from 218 mm, 91 mm from 98 mm. Harmless for the bypass
@@ -493,6 +535,38 @@ than the robot, so the robot tips over it instead of driving up a slope.
   shows L x sin within +/- 5 mm.
 - [x] ✅ **L measured: 80 mm** (`S4_L_MM`), same as the guess
 - Note for B4: a hard STOP can give a false ramp report (braking tilt)
+- **9 Nov, first one-wheel run (`subsystem4/logs/2026-11-09_stage4_imu_robot.txt`,
+  Change Requirement 1 build): the hump was seen**, side tilt peak
+  0.143 at about 214 mm = **17.6 mm** (the test's own figure; the real
+  height was not written down, so not judged yet). Tilt view: front
+  lifted gives sin(pitch) up to 251; a block under the right wheel read
+  16.3 mm once. **Two bugs, fixed 9 Nov, not run yet:**
+  - **The IMU task never reported it** ("no ramp reported by the IMU
+    task"): it reports once tilt and side tilt are both under 0.030 for
+    100 mm, but the fast side-tilt reading jitters +-0.03 while driving
+    (-34, -31 on the flat), so the level stretch kept restarting (longest
+    43 mm in the trace). Now the level test uses a slower copy (about
+    100 ms, as the pitch): at most 0.006 on the same flat stretches; the
+    peak still comes from the fast one.
+  - **STOP ended all 5 runs**, so START afterwards did nothing (the test
+    was over). Now STOP ends only the current run; the next START runs
+    the next one.
+  - Also seen: a "bump 2" at 596 mm on the flat (nose-down -42, noise), so
+    the run did not end by itself; STOP ends it.
+- **9 Nov, second Stage 4 run, 5 runs (`subsystem4/logs/2026-11-09_stage4_imu_robot_2.txt`).**
+  Humps (tester's estimates): about 10 mm for runs 1, 2 and 5, about 25 mm
+  for runs 3 and 4. Every hump was seen. Heights read **about 1.6 times
+  too high**: 16.6 / 17.2 / 40.8 / 37.0 / 17.6 mm (+5 to +16 mm, FAIL on
+  +-5 mm), the same factor for both sizes, while standing still on a
+  block the tilt view read a steady 23-24 mm. The IMU task reported runs
+  1, 3 and 5 only. **Fixed 9 Nov, not run yet:**
+  - The reported height is scaled by 0.63 (`S4_ONE_WHEEL_GAIN_PCT`, least
+    squares over these 5 runs): they would read 10.4 / 10.8 / 25.7 / 23.3
+    / 11.0 mm, all within +-2 mm. Fitted on these runs, so it must be
+    confirmed on new runs (measure the humps with a ruler).
+  - Runs 2 and 4 came right after a reported run: the "no second report
+    for 600 mm" distance carried over into the next run. Calibrating at
+    the start of a run now resets it.
 
 ## Stage 5: telemetry + MQTT (demo image)
 

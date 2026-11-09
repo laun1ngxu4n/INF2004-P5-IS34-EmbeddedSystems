@@ -1,0 +1,252 @@
+P5-IS34 robot log, 9 Nov 2026, Stage 4 WiFi test image (is34_test_stage4_wifi.uf2),
+commit 490d07c (Change Requirement 1 packed build; mapping glue fix; spin trim).
+Saved from the panel (pasted by the tester). Hump real height: not recorded.
+The robot restarted once before this run (first boot's WiFi did not join);
+that first boot and repeated [tmg] tables are left out. Every [S4]/[S4T]/[S4-R01]
+line is kept as it was.
+
+P5-IS34 test image, hands-on TEST_STAGE=4. Kernel tick 10 ms
+all subsystems started
+[IMU] LSM303D found at 0x1D
+wifi: link up, ip=10.14.83.102
+mqtt: connected to 10.14.83.225
+[TEST] S1-U01 PASS  wake rate
+[TEST] S1-U02 PASS  no overrun, longest interval within limit
+[TEST] S2-U01 PASS  wake rate
+[TEST] S2-U02 PASS  no overrun, longest interval within limit
+[TEST] S3-U01 PASS  wake rate
+[TEST] S3-U02 PASS  no overrun, longest interval within limit
+[TEST] S3-U03 PASS  wake rate
+[TEST] S3-U04 PASS  no overrun, longest interval within limit
+[TEST] S4-U01 PASS  wake rate
+[TEST] S4-U02 PASS  no overrun, longest interval within limit
+[TEST] S4-U03 PASS  wake rate
+[TEST] S4-U04 PASS  no overrun, longest interval within limit
+[TEST] S5-U01 PASS  wake rate
+[TEST] S5-U02 PASS  no overrun, longest interval within limit
+[TEST] S5-U03 PASS  wake rate
+[TEST] S5-U04 PASS  no overrun, longest interval within limit
+[TEST] INT-01 PASS  IF-01 ping from Telemetry wakes Mission once a second
+[TEST] subsystem5 SUMMARY 5 passed, 0 failed
+[TEST] === test run end ===
+
+[DRIVE] === Stage 4: IMU ramp height ===
+[TEST] S4-I01 PASS  LSM303D found at 0x1D
+
+[DRIVE] Robot level and still: calibrating for 1 s.
+[MQTT] start
+[S4] tilt view for 15 s: lift the front a little, then put the RIGHT wheel on a 2-3 cm block (x1000; one-wheel height in mm)
+[S4] sin(pitch) 0  sin(side) 0  one-wheel 0.0 mm
+[S4] sin(pitch) 0  sin(side) 0  one-wheel 0.0 mm
+[S4] sin(pitch) 0  sin(side) 0  one-wheel 0.1 mm
+[S4] sin(pitch) 0  sin(side) 0  one-wheel 0.0 mm
+[S4] sin(pitch) 0  sin(side) 0  one-wheel 0.0 mm
+[S4] sin(pitch) 0  sin(side) 0  one-wheel 0.1 mm
+[S4] sin(pitch) 0  sin(side) 0  one-wheel 0.0 mm
+[S4] sin(pitch) 0  sin(side) 0  one-wheel 0.0 mm
+[S4] sin(pitch) 0  sin(side) 0  one-wheel 0.0 mm
+[S4] sin(pitch) 4  sin(side) 0  one-wheel 0.0 mm
+[S4] sin(pitch) 0  sin(side) -1  one-wheel 0.1 mm
+[S4] sin(pitch) 28  sin(side) 0  one-wheel 0.0 mm
+[S4] sin(pitch) 61  sin(side) 5  one-wheel 0.7 mm
+[S4] sin(pitch) 101  sin(side) 9  one-wheel 1.1 mm
+[S4] sin(pitch) 183  sin(side) 12  one-wheel 1.5 mm
+[S4] sin(pitch) 202  sin(side) 10  one-wheel 1.2 mm
+[S4] sin(pitch) 249  sin(side) 14  one-wheel 1.7 mm
+[S4] sin(pitch) 251  sin(side) 11  one-wheel 1.3 mm
+[S4] sin(pitch) 237  sin(side) 9  one-wheel 1.2 mm
+[S4] sin(pitch) 232  sin(side) 8  one-wheel 1.0 mm
+[S4] sin(pitch) 219  sin(side) 2  one-wheel 0.2 mm
+[S4] sin(pitch) 160  sin(side) 7  one-wheel 0.9 mm
+[S4] sin(pitch) 157  sin(side) 3  one-wheel 0.4 mm
+[S4] sin(pitch) 171  sin(side) 3  one-wheel 0.4 mm
+[S4] sin(pitch) 218  sin(side) -1  one-wheel 0.1 mm
+[S4] sin(pitch) 154  sin(side) 132  one-wheel 16.3 mm
+[S4] sin(pitch) 76  sin(side) 0  one-wheel 0.0 mm
+[S4] sin(pitch) -6  sin(side) -10  one-wheel 1.2 mm
+[S4] sin(pitch) -7  sin(side) -10  one-wheel 1.2 mm
+[S4] sin(pitch) 18  sin(side) 21  one-wheel 2.6 mm
+
+[DRIVE] S4-R01 run 1 of 5
+[MQTT] start
+[DRIVE] starting in 1 s, hands off
+[S4] bump 1 starts at 7 mm
+[S4T] 7 mm  sin 69  side -2  one-wheel 0.3  h 0.1
+[S4T] 9 mm  sin 62  side -1  one-wheel 0.1  h 0.2
+[S4T] 11 mm  sin 75  side 10  one-wheel 1.2  h 0.4
+[S4T] 13 mm  sin 49  side 17  one-wheel 2.1  h 0.5
+[S4T] 15 mm  sin 56  side -32  one-wheel 4.0  h 0.6
+[S4T] 17 mm  sin 54  side 21  one-wheel 2.5  h 0.7
+[S4T] 20 mm  sin 57  side -6  one-wheel 0.7  h 0.9
+[S4T] 23 mm  sin 37  side -2  one-wheel 0.3  h 1.0
+[S4T] 25 mm  sin 52  side -5  one-wheel 0.6  h 1.1
+[S4T] 28 mm  sin 36  side 0  one-wheel 0.0  h 1.2
+[S4T] 31 mm  sin 23  side 10  one-wheel 1.2  h 1.3
+[S4T] 34 mm  sin 23  side 16  one-wheel 2.0  h 1.4
+[S4T] 37 mm  sin 15  side -7  one-wheel 0.9  h 1.4
+[S4T] 39 mm  sin 10  side 4  one-wheel 0.5  h 1.5
+[S4T] 42 mm  sin 12  side 8  one-wheel 1.0  h 1.5
+[S4T] 45 mm  sin 2  side -5  one-wheel 0.6  h 1.5
+[S4T] 48 mm  sin 0  side 19  one-wheel 2.3  h 1.5
+[S4T] 50 mm  sin 5  side 0  one-wheel 0.0  h 1.5
+[S4T] 53 mm  sin -5  side -25  one-wheel 3.1  h 1.5
+[S4T] 56 mm  sin 0  side 0  one-wheel 0.0  h 1.5
+[S4T] 58 mm  sin 4  side 11  one-wheel 1.3  h 1.5
+[S4T] 61 mm  sin 0  side -15  one-wheel 1.9  h 1.5
+[S4T] 63 mm  sin -3  side 10  one-wheel 1.3  h 1.5
+[S4T] 66 mm  sin 11  side -21  one-wheel 2.6  h 1.5
+[S4T] 68 mm  sin 0  side 5  one-wheel 0.6  h 1.6
+[S4T] 71 mm  sin -4  side 11  one-wheel 1.4  h 1.5
+[S4T] 74 mm  sin 2  side -59  one-wheel 7.3  h 1.5
+[S4T] 76 mm  sin -13  side 18  one-wheel 2.2  h 1.5
+[S4T] 78 mm  sin 1  side 29  one-wheel 3.5  h 1.5
+[S4T] 81 mm  sin -21  side 49  one-wheel 6.0  h 1.5
+[S4T] 84 mm  sin -28  side 78  one-wheel 9.6  h 1.4
+[S4T] 86 mm  sin -14  side -11  one-wheel 1.3  h 1.3
+[S4T] 88 mm  sin -20  side -1  one-wheel 0.1  h 1.3
+[S4T] 91 mm  sin -23  side -22  one-wheel 2.8  h 1.2
+[S4T] 94 mm  sin -17  side 2  one-wheel 0.3  h 1.2
+[S4T] 96 mm  sin 2  side -7  one-wheel 0.8  h 1.2
+[S4T] 99 mm  sin -13  side -6  one-wheel 0.8  h 1.1
+[S4T] 101 mm  sin -15  side 9  one-wheel 1.1  h 1.1
+[S4T] 104 mm  sin -4  side -5  one-wheel 0.7  h 1.1
+[S4T] 106 mm  sin -11  side -15  one-wheel 1.9  h 1.1
+[S4T] 109 mm  sin 3  side -21  one-wheel 2.7  h 1.1
+[S4T] 111 mm  sin 2  side -25  one-wheel 3.1  h 1.1
+[S4T] 113 mm  sin 5  side 20  one-wheel 2.5  h 1.1
+[S4T] 116 mm  sin 6  side -6  one-wheel 0.7  h 1.1
+[S4T] 118 mm  sin -5  side 28  one-wheel 3.5  h 1.1
+[S4T] 120 mm  sin 8  side 1  one-wheel 0.1  h 1.1
+[S4T] 123 mm  sin 9  side -20  one-wheel 2.5  h 1.2
+[S4T] 125 mm  sin -8  side 47  one-wheel 5.8  h 1.2
+[S4T] 127 mm  sin 2  side -5  one-wheel 0.6  h 1.2
+[S4T] 130 mm  sin -6  side 44  one-wheel 5.4  h 1.1
+[S4T] 132 mm  sin -14  side 15  one-wheel 1.9  h 1.1
+[S4T] 135 mm  sin -11  side 29  one-wheel 3.5  h 1.1
+[S4T] 137 mm  sin -22  side 36  one-wheel 4.4  h 1.0
+[S4T] 139 mm  sin -18  side 26  one-wheel 3.2  h 1.0
+[S4T] 142 mm  sin -38  side 66  one-wheel 8.2  h 0.9
+[S4T] 144 mm  sin -19  side 35  one-wheel 4.4  h 0.9
+[S4T] 146 mm  sin -29  side 39  one-wheel 4.8  h 0.8
+[S4T] 149 mm  sin -37  side 42  one-wheel 5.2  h 0.7
+[S4T] 151 mm  sin -37  side 34  one-wheel 4.2  h 0.6
+[S4T] 154 mm  sin -29  side 48  one-wheel 5.9  h 0.5
+[S4T] 156 mm  sin -34  side 28  one-wheel 3.5  h 0.5
+[S4T] 158 mm  sin -37  side 54  one-wheel 6.6  h 0.4
+[S4T] 161 mm  sin -43  side 42  one-wheel 5.2  h 0.3
+[S4T] 163 mm  sin -47  side 66  one-wheel 8.1  h 0.2
+[S4T] 166 mm  sin -46  side 58  one-wheel 7.2  h 0.1
+[S4T] 168 mm  sin -41  side 67  one-wheel 8.2  h 0.0
+[S4T] 170 mm  sin -46  side 59  one-wheel 7.2  h -0.1
+[S4T] 173 mm  sin -55  side 58  one-wheel 7.2  h -0.2
+[S4T] 175 mm  sin -55  side 94  one-wheel 11.6  h -0.3
+[S4T] 178 mm  sin -55  side 42  one-wheel 5.1  h -0.5
+[S4T] 180 mm  sin -61  side 96  one-wheel 11.8  h -0.6
+[S4T] 182 mm  sin -66  side 74  one-wheel 9.1  h -0.7
+[S4T] 185 mm  sin -52  side 75  one-wheel 9.2  h -0.9
+[S4T] 187 mm  sin -67  side 88  one-wheel 10.8  h -1.0
+[S4T] 190 mm  sin -79  side 79  one-wheel 9.7  h -1.2
+[S4T] 192 mm  sin -52  side 103  one-wheel 12.7  h -1.3
+[S4T] 195 mm  sin -72  side 62  one-wheel 7.7  h -1.5
+[S4T] 197 mm  sin -72  side 101  one-wheel 12.5  h -1.7
+[S4T] 199 mm  sin -69  side 87  one-wheel 10.7  h -1.9
+[S4T] 202 mm  sin -69  side 95  one-wheel 11.7  h -2.0
+[S4T] 204 mm  sin -69  side 126  one-wheel 15.5  h -2.2
+[S4T] 207 mm  sin -75  side 126  one-wheel 15.5  h -2.4
+[S4T] 209 mm  sin -60  side 120  one-wheel 14.8  h -2.5
+[S4T] 212 mm  sin -67  side 130  one-wheel 16.0  h -2.7
+[S4T] 214 mm  sin -80  side 143  one-wheel 17.6  h -2.9
+[S4T] 217 mm  sin -57  side 138  one-wheel 17.0  h -3.1
+[S4T] 219 mm  sin -75  side 126  one-wheel 15.5  h -3.3
+[S4T] 222 mm  sin -66  side 133  one-wheel 16.3  h -3.4
+[S4T] 225 mm  sin -59  side 77  one-wheel 9.4  h -3.6
+[S4T] 227 mm  sin -75  side 101  one-wheel 12.5  h -3.8
+[S4T] 230 mm  sin -64  side 89  one-wheel 10.9  h -4.0
+[S4T] 233 mm  sin -71  side 89  one-wheel 11.0  h -4.1
+[S4T] 235 mm  sin -84  side 84  one-wheel 10.4  h -4.4
+[S4T] 238 mm  sin -69  side 59  one-wheel 7.3  h -4.5
+[S4T] 240 mm  sin -71  side 40  one-wheel 4.9  h -4.7
+[S4T] 243 mm  sin -76  side 67  one-wheel 8.2  h -4.9
+[S4T] 246 mm  sin -64  side 39  one-wheel 4.9  h -5.1
+[S4T] 248 mm  sin -81  side 97  one-wheel 11.9  h -5.3
+[S4T] 251 mm  sin -77  side 71  one-wheel 8.7  h -5.5
+[S4T] 253 mm  sin -72  side 40  one-wheel 4.9  h -5.7
+[S4T] 256 mm  sin -81  side 68  one-wheel 8.4  h -5.9
+[S4T] 258 mm  sin -73  side 64  one-wheel 7.8  h -6.1
+[S4T] 261 mm  sin -66  side 42  one-wheel 5.2  h -6.2
+[S4T] 263 mm  sin -62  side 70  one-wheel 8.6  h -6.4
+[S4T] 266 mm  sin -64  side 70  one-wheel 8.7  h -6.5
+[S4T] 268 mm  sin -60  side 56  one-wheel 6.9  h -6.7
+[S4T] 270 mm  sin -47  side 37  one-wheel 4.5  h -6.8
+[S4T] 273 mm  sin -56  side 60  one-wheel 7.4  h -7.0
+[S4T] 275 mm  sin -49  side 38  one-wheel 4.7  h -7.1
+[S4T] 278 mm  sin -53  side 70  one-wheel 8.7  h -7.2
+[S4T] 280 mm  sin -44  side 40  one-wheel 4.9  h -7.3
+[S4T] 282 mm  sin -43  side 24  one-wheel 3.0  h -7.4
+[S4T] 285 mm  sin -45  side 48  one-wheel 6.0  h -7.5
+[S4T] 287 mm  sin -41  side 22  one-wheel 2.7  h -7.6
+[S4T] 290 mm  sin -39  side 20  one-wheel 2.4  h -7.7
+[S4T] 292 mm  sin -30  side 32  one-wheel 4.0  h -7.8
+[S4T] 294 mm  sin -44  side 9  one-wheel 1.1  h -7.9
+[S4T] 297 mm  sin -28  side 11  one-wheel 1.4  h -8.0
+[S4T] 299 mm  sin -31  side 37  one-wheel 4.5  h -8.1
+[S4T] 302 mm  sin -40  side 27  one-wheel 3.4  h -8.2
+[S4T] 304 mm  sin -27  side 10  one-wheel 1.2  h -8.2
+[S4T] 306 mm  sin -31  side 19  one-wheel 2.4  h -8.3
+[S4T] 309 mm  sin -29  side 8  one-wheel 1.1  h -8.4
+[S4T] 311 mm  sin -23  side 30  one-wheel 3.6  h -8.4
+[S4T] 314 mm  sin -23  side 30  one-wheel 3.7  h -8.5
+[S4T] 316 mm  sin -21  side -11  one-wheel 1.3  h -8.5
+[S4T] 318 mm  sin -26  side -27  one-wheel 3.3  h -8.6
+[S4T] 321 mm  sin -20  side -21  one-wheel 2.6  h -8.7
+[S4T] 323 mm  sin -9  side 0  one-wheel 0.0  h -8.7
+[S4T] 325 mm  sin -7  side 5  one-wheel 0.6  h -8.7
+[S4T] 328 mm  sin -3  side 16  one-wheel 2.0  h -8.7
+[S4T] 330 mm  sin -1  side 13  one-wheel 1.6  h -8.7
+[S4T] 332 mm  sin -2  side -1  one-wheel 0.2  h -8.7
+[S4T] 335 mm  sin 5  side -10  one-wheel 1.2  h -8.7
+[S4T] 337 mm  sin -6  side 18  one-wheel 2.2  h -8.7
+[S4T] 339 mm  sin 2  side -27  one-wheel 3.4  h -8.7
+[S4T] 342 mm  sin 0  side 29  one-wheel 3.6  h -8.7
+[S4T] 344 mm  sin -5  side -12  one-wheel 1.5  h -8.7
+[S4T] 346 mm  sin -1  side -1  one-wheel 0.1  h -8.7
+[S4T] 349 mm  sin 1  side 0  one-wheel 0.0  h -8.7
+[S4T] 351 mm  sin -9  side 2  one-wheel 0.2  h -8.7
+[S4T] 353 mm  sin -1  side 5  one-wheel 0.6  h -8.7
+[S4T] 356 mm  sin 10  side -5  one-wheel 0.7  h -8.7
+[S4] bump 1: 7-294 mm, nose-up peak 75, nose-down peak -84, L x sin(up) 6.0 mm, climbed 1.5 mm, 5 readings skipped as jolts
+[S4] bump 1 one wheel: side tilt peak sin 143/1000, height T x sin = 17.6 mm
+[S4] bump 2 starts at 596 mm
+[S4T] 596 mm  sin -42  side -1  one-wheel 0.1  h -8.4
+[S4T] 598 mm  sin -19  side 0  one-wheel 0.0  h -8.5
+[S4T] 600 mm  sin -44  side 12  one-wheel 1.5  h -8.6
+[S4T] 603 mm  sin -18  side -2  one-wheel 0.3  h -8.6
+[S4T] 605 mm  sin 3  side 0  one-wheel 0.0  h -8.6
+[S4T] 608 mm  sin -9  side 5  one-wheel 0.7  h -8.7
+[S4T] 610 mm  sin -12  side -34  one-wheel 4.1  h -8.7
+[S4T] 612 mm  sin -18  side 33  one-wheel 4.0  h -8.7
+[S4T] 615 mm  sin 3  side -14  one-wheel 1.7  h -8.7
+[S4T] 617 mm  sin -9  side -3  one-wheel 0.3  h -8.7
+[S4T] 620 mm  sin -3  side -7  one-wheel 0.9  h -8.7
+[S4T] 622 mm  sin -3  side 19  one-wheel 2.3  h -8.7
+[S4T] 624 mm  sin -10  side -31  one-wheel 3.8  h -8.8
+[S4T] 627 mm  sin 7  side 8  one-wheel 1.0  h -8.8
+[S4T] 629 mm  sin 0  side 15  one-wheel 1.9  h -8.7
+[S4T] 632 mm  sin -12  side -22  one-wheel 2.8  h -8.8
+[S4T] 634 mm  sin 8  side 2  one-wheel 0.3  h -8.8
+[S4T] 636 mm  sin 1  side -2  one-wheel 0.2  h -8.8
+[S4T] 639 mm  sin -9  side -4  one-wheel 0.5  h -8.8
+[S4T] 641 mm  sin 9  side 14  one-wheel 1.7  h -8.8
+[S4T] 644 mm  sin -3  side -17  one-wheel 2.1  h -8.8
+[S4T] 646 mm  sin 0  side 17  one-wheel 2.1  h -8.8
+[MQTT] stop
+[S4-R01] 1 bump(s) in 648 mm, 7 readings skipped as jolts in all
+[S4-R01] no ramp reported by the IMU task this run
+[S4-R01] STOP pressed: runs ended
+[TEST] subsystem4 stage 4 SUMMARY 1 passed, 0 failed
+[MQTT] start      (x7 over the next 60 s: nothing left to run, the test had ended)
+mqtt: RX [is34/cmd/map] "..@."
+[MQTT] map: OK A=L,B=R,D=F,F=U
+[MQTT] start
+[MQTT] start
+(end of the saved log)

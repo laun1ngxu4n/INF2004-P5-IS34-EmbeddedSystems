@@ -97,10 +97,9 @@ static void incoming_data_cb(void *arg, const u8_t *data, u16_t len, u8_t flags)
 
 	for(i = 0; i < len; i++) {
 		if(rx_len < (MQTT_UTK_RX_DATA_MAX - 1)) {
-			/* The console is a terminal -- keep raw bytes from a
-			 * payload this demo did not publish from scrambling it. */
-			UB c = data[i];
-			rx_data[rx_len++] = (c >= 0x20 && c < 0x7f)? c: '.';
+			/* raw bytes: the binary commands (is34/cmd/map) need
+			 * them unchanged */
+			rx_data[rx_len++] = data[i];
 		} else {
 			rx_truncated = 1;
 		}
@@ -111,7 +110,15 @@ static void incoming_data_cb(void *arg, const u8_t *data, u16_t len, u8_t flags)
 		if(rx_topic[0] != MQTT_TOPIC[0] ||
 		   strcmp(rx_topic, MQTT_TOPIC) != 0 ||
 		   strcmp((const char *)rx_data, "hb 0") == 0) {
-			tm_printf((UB*)"mqtt: RX [%s] \"%s\"%s\n", rx_topic, rx_data,
+			/* The console is a terminal: print a copy with any
+			 * non-printable byte shown as '.' */
+			static UB shown[MQTT_UTK_RX_DATA_MAX];
+			for(i = 0; i < rx_len; i++) {
+				UB c = rx_data[i];
+				shown[i] = (c >= 0x20 && c < 0x7f)? c: '.';
+			}
+			shown[rx_len] = '\0';
+			tm_printf((UB*)"mqtt: RX [%s] \"%s\"%s\n", rx_topic, shown,
 				  rx_truncated? " (truncated)": "");
 		}
 		app_mqtt_rx(rx_topic, rx_data, rx_len);

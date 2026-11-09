@@ -27,6 +27,17 @@
  * turned about 95 / 190 deg for 90 / 180, so 130 x 90/95 = 123. Re-run
  * S2-M02 to confirm. */
 #define S2_TRACK_MM 123
+/* Spins: the track width a spin is worked out with, and how much earlier a
+ * big spin stops.  On the mat a spin turns a few degrees MORE than its
+ * wheels say, about the same amount for a 90 as for a 180 (9 Nov: with 123
+ * a 180 read 180.6 on the encoders and turned about 185; with 120 a 90
+ * turned about 95, i.e. about 7 over).  So the track stays the real 123 and
+ * every spin of S2_TURN_TRIM_MIN_DEG or more stops S2_TURN_TRIM_DEG early:
+ * expected about 91 for a 90 and 178 for a 180.  Small corrections (12, 30
+ * deg) are not trimmed.  Re-check with S2-M02 and the S5-O02 bypass. */
+#define S2_TURN_TRACK_MM     123
+#define S2_TURN_TRIM_DEG     6
+#define S2_TURN_TRIM_MIN_DEG 45
 
 /* Line following: the slow-down while correcting is set by the line task
    (line_speed_pct(); 0 rocked in place on 2 Nov, so it always creeps).
@@ -66,4 +77,3 @@ IMPORT int32_t g_tmg_motion;
 #endif /* SUBSYSTEM2_H */
 
 /*** end of file ***/
-

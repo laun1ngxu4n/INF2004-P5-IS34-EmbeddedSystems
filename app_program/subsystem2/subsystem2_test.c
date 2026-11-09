@@ -122,7 +122,7 @@ LOCAL bool test_turns (void)
                in 0.1 deg is a few thousand: fits int32_t */
             deg10 = (int32_t)((float32_t)((status.count_r - right_start) -
                                           (status.count_l - left_start)) *
-                              S2_UM_PER_COUNT / 1000.0f / S2_TRACK_MM *
+                              S2_UM_PER_COUNT / 1000.0f / S2_TURN_TRACK_MM *
                               1800.0f / PI_F);
             /* the turn took a few seconds: the ms fit %d */
             tm_printf(app_str("[S2-M02] round %d %s: %s in %d ms, "), round,
@@ -400,15 +400,19 @@ EXPORT void subsystem2_test_drive (void)
     TEST_INIT();
 
     tm_printf(
-        app_str("\n[DRIVE] === Stage 1 drive tests ===\n"
-                "[DRIVE] Laptop USB only (never USB and the power bank "
-                "together).\n"
-                "[DRIVE] Wheels LIFTED for S2-M05 and S2-M06, then on the "
-                "floor\n"
-                "[DRIVE] with about 1.5 m clear in front.\n"
-                "[DRIVE] STOP (GP21) stops the motors at any time.\n"
-                "[DRIVE] Track width used for turns: %d mm (S2_TRACK_MM)\n"),
-        S2_TRACK_MM);
+        app_str(
+            "\n[DRIVE] === Stage 1 drive tests ===\n"
+            "[DRIVE] Laptop USB only (never USB and the power bank "
+            "together).\n"
+            "[DRIVE] Wheels LIFTED for S2-M05 and S2-M06, then on the "
+            "floor\n"
+            "[DRIVE] with about 1.5 m clear in front.\n"
+            "[DRIVE] STOP (GP21) stops the motors at any time.\n"
+            "[DRIVE] Turns: track %d mm (S2_TURN_TRACK_MM); spins of %d deg "
+            "or more stop %d deg early\n"
+            "[DRIVE] (S2_TURN_TRIM_DEG), so their encoder angle reads that "
+            "much under: judge by the real angle.\n"),
+        S2_TURN_TRACK_MM, S2_TURN_TRIM_MIN_DEG, S2_TURN_TRIM_DEG);
 
     /* Order (review 1 Nov): directions and STOP with the wheels lifted,
        then speed/distance on the floor, then turns, then the STOP tries. */
@@ -447,4 +451,3 @@ EXPORT void subsystem2_test_drive (void)
 #endif /* APP_TEST */
 
 /*** end of file ***/
-

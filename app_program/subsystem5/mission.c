@@ -773,7 +773,7 @@ LOCAL int32_t spin_line (int32_t deg, int32_t ignore)
 
         /* counts -> mm of wheel difference -> degrees over the track */
         turned = (int32_t)((wheel_diff * S2_UM_PER_COUNT / 1000) * 573 /
-                           (S2_TRACK_MM * 10));
+                           (S2_TURN_TRACK_MM * 10));
 
         if ((turned >= ignore) && (line_any_black()))
         {

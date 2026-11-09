@@ -1,0 +1,109 @@
+P5-IS34 robot log, 9 Nov 2026, Stage 4 WiFi test image (is34_test_stage4_wifi.uf2),
+commit e6e7fed (smoothed level check; STOP ends one run).
+Saved from the panel (pasted by the tester). Every result line ([S4], [EVT],
+[S4-R01], [TEST]) and the tilt view are kept as they were; the [S4T] traces
+(one line per 20 ms while on a bump) and the [tmg] tables are left out
+(no overruns after start-up).
+
+Humps (tester, estimated): three humps.
+  runs 1 and 5: the course's black hump, peak about 10 mm
+  run 2:        another hump found nearby, peak also about 10 mm
+  runs 3 and 4: a bigger hump, peak about 25 mm
+
+[TEST] S1-U01 .. S5-U04, INT-01: all PASS (17 checks)
+[TEST] subsystem5 SUMMARY 5 passed, 0 failed
+[TEST] === test run end ===
+
+[DRIVE] === Stage 4: IMU ramp height ===
+[TEST] S4-I01 PASS  LSM303D found at 0x1D
+[S4] tilt view for 15 s: lift the front a little, then put the RIGHT wheel on a 2-3 cm block (x1000; one-wheel height in mm)
+[S4] sin(pitch) 2  sin(side) 0  one-wheel 0.0 mm
+[S4] sin(pitch) 0  sin(side) -1  one-wheel 0.1 mm
+[S4] sin(pitch) 0  sin(side) 0  one-wheel 0.0 mm
+[S4] sin(pitch) 0  sin(side) 0  one-wheel 0.0 mm
+[S4] sin(pitch) 0  sin(side) -1  one-wheel 0.1 mm
+[S4] sin(pitch) 0  sin(side) 0  one-wheel 0.0 mm
+[S4] sin(pitch) 0  sin(side) 0  one-wheel 0.0 mm
+[S4] sin(pitch) 0  sin(side) 0  one-wheel 0.0 mm
+[S4] sin(pitch) 9  sin(side) 1  one-wheel 0.1 mm
+[S4] sin(pitch) 72  sin(side) 7  one-wheel 0.9 mm
+[S4] sin(pitch) 141  sin(side) 8  one-wheel 0.9 mm
+[S4] sin(pitch) 157  sin(side) 9  one-wheel 1.1 mm
+[S4] sin(pitch) 164  sin(side) 7  one-wheel 0.9 mm
+[S4] sin(pitch) 159  sin(side) 6  one-wheel 0.8 mm
+[S4] sin(pitch) -14  sin(side) -13  one-wheel 1.7 mm
+[S4] sin(pitch) -1  sin(side) -2  one-wheel 0.3 mm
+[S4] sin(pitch) -2  sin(side) -5  one-wheel 0.6 mm
+[S4] sin(pitch) -1  sin(side) -3  one-wheel 0.3 mm
+[S4] sin(pitch) -2  sin(side) -2  one-wheel 0.2 mm
+[S4] sin(pitch) 0  sin(side) -2  one-wheel 0.3 mm
+[S4] sin(pitch) -11  sin(side) -34  one-wheel 4.2 mm
+[S4] sin(pitch) 4  sin(side) -4  one-wheel 0.4 mm
+[S4] sin(pitch) -14  sin(side) -8  one-wheel 1.0 mm
+[S4] sin(pitch) -11  sin(side) 110  one-wheel 13.5 mm
+[S4] sin(pitch) 8  sin(side) 211  one-wheel 26.0 mm
+[S4] sin(pitch) -20  sin(side) 194  one-wheel 23.9 mm
+[S4] sin(pitch) -40  sin(side) 193  one-wheel 23.7 mm
+[S4] sin(pitch) -17  sin(side) 188  one-wheel 23.1 mm
+[S4] sin(pitch) -91  sin(side) 187  one-wheel 23.0 mm
+[S4] sin(pitch) -86  sin(side) 185  one-wheel 22.8 mm
+
+[DRIVE] S4-R01 run 1 of 5
+[S4] bump 1 starts at 2 mm
+[S4] bump 1: 2-3 mm, nose-up peak 44, nose-down peak -27, L x sin(up) 3.5 mm, climbed 0.4 mm, 4 readings skipped as jolts
+[S4] bump 1 one wheel: side tilt peak sin 19/1000, height T x sin = 2.3 mm
+[S4] bump 2 starts at 184 mm
+[S4] bump 2: 184-340 mm, nose-up peak 14, nose-down peak -83, L x sin(up) 1.1 mm, climbed 0.0 mm, 1 readings skipped as jolts
+[S4] bump 2 one wheel: side tilt peak sin 135/1000, height T x sin = 16.6 mm
+[EVT] ramp peak height 16.6 mm (one wheel: side tilt sin 135/1000; from the nose-down tilt 13.2 mm)
+[S4] IMU task reported a ramp: 16.6 mm
+[MQTT] stop
+[S4-R01] 2 bump(s) in 590 mm, 6 readings skipped as jolts in all
+[S4-R01] 1 ramp(s) reported by the IMU task, the last 16.6 mm (write down the measured ramp heights)
+[S4-R01] STOP pressed: this run ended (START at the next prompt runs the next one)
+
+[DRIVE] S4-R01 run 2 of 5
+[S4] bump 1 starts at 4 mm
+[S4] bump 1: 4-49 mm, nose-up peak 52, nose-down peak -66, L x sin(up) 4.1 mm, climbed 1.1 mm, 6 readings skipped as jolts
+[S4] bump 1 one wheel: side tilt peak sin 38/1000, height T x sin = 4.7 mm
+[S4] bump 2 starts at 139 mm
+[S4] bump 2: 139-278 mm, nose-up peak 8, nose-down peak -94, L x sin(up) 0.6 mm, climbed 0.0 mm, 2 readings skipped as jolts
+[S4] bump 2 one wheel: side tilt peak sin 140/1000, height T x sin = 17.2 mm
+[MQTT] stop
+[S4-R01] 2 bump(s) in 428 mm, 8 readings skipped as jolts in all
+[S4-R01] no ramp reported by the IMU task this run
+[S4-R01] STOP pressed: this run ended (START at the next prompt runs the next one)
+
+[DRIVE] S4-R01 run 3 of 5
+[S4] bump 1 starts at 9 mm
+[EVT] ramp peak height 40.8 mm (one wheel: side tilt sin 332/1000; from the nose-down tilt 21.4 mm)
+[S4] IMU task reported a ramp: 40.8 mm
+[S4] bump 1: 9-373 mm, nose-up peak 124, nose-down peak -131, L x sin(up) 9.9 mm, climbed 7.1 mm, 10 readings skipped as jolts
+[S4] bump 1 one wheel: side tilt peak sin 332/1000, height T x sin = 40.8 mm
+[MQTT] stop
+[S4-R01] 1 bump(s) in 483 mm, 10 readings skipped as jolts in all
+[S4-R01] 1 ramp(s) reported by the IMU task, the last 40.8 mm (write down the measured ramp heights)
+[S4-R01] STOP pressed: this run ended (START at the next prompt runs the next one)
+
+[DRIVE] S4-R01 run 4 of 5
+[S4] bump 1 starts at 3 mm
+[S4] bump 1: 3-282 mm, nose-up peak 125, nose-down peak -133, L x sin(up) 10.0 mm, climbed 3.6 mm, 8 readings skipped as jolts
+[S4] bump 1 one wheel: side tilt peak sin 300/1000, height T x sin = 37.0 mm
+[MQTT] stop
+[S4-R01] 1 bump(s) in 423 mm, 8 readings skipped as jolts in all
+[S4-R01] no ramp reported by the IMU task this run
+[S4-R01] STOP pressed: this run ended (START at the next prompt runs the next one)
+
+[DRIVE] S4-R01 run 5 of 5
+[S4] bump 1 starts at 5 mm
+[S4] bump 1: 5-227 mm, nose-up peak 50, nose-down peak -126, L x sin(up) 4.0 mm, climbed 1.3 mm, 7 readings skipped as jolts
+[S4] bump 1 one wheel: side tilt peak sin 121/1000, height T x sin = 14.9 mm
+[EVT] ramp peak height 17.6 mm (one wheel: side tilt sin 143/1000; from the nose-down tilt 21.8 mm)
+[S4] IMU task reported a ramp: 17.6 mm
+[MQTT] stop
+[S4-R01] 1 bump(s) in 373 mm, 7 readings skipped as jolts in all
+[S4-R01] 1 ramp(s) reported by the IMU task, the last 17.6 mm (write down the measured ramp heights)
+[S4-R01] STOP pressed: this run ended (START at the next prompt runs the next one)
+[S4-R01] all runs done
+[TEST] subsystem4 stage 4 SUMMARY 1 passed, 0 failed
+(end of the saved log)

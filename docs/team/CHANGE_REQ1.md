@@ -250,7 +250,18 @@ The longest interrupts-off section is still to be measured on the robot (section
 - **Barr C:** `python tools/barr/check.py` shows only the documented deviations. `APP_FIELD` is added to deviation D4 (a declaration macro cannot be a function).
 - **Barcode widths from 16-bit edges.** `odo_from16()` gives back exactly the 32-bit count while an edge is less than 32,768 counts (2.6 m) behind the odometer. The ring is emptied every 10 ms, so the bar widths are the same numbers as before by construction. The S3-B00 runs in 7.2 confirm it on the robot.
 
-### 7.2 To do on the robot (the full retest)
+### 7.2 On the robot
+
+Results so far (9 Nov, rows in `testing/subsystem2/TEST_LOG.md`, logs in
+`testing/subsystem2/logs/2026-11-09_*`):
+
+| Test | Result |
+|---|---|
+| Stage 0 automatic checks on the new code | PASS, all |
+| Held wheel (Safety stall) | PASS: "Safety: a wheel driven hard is not turning, motors off", motors off. START again after 2 s: to confirm |
+| Timing, packed build (Stage 1 WiFi image, 31 tables over 5 min, driving and idle) | Intervals within about ±1.7 ms of each period; longest run times telemetry 2.6 ms, IMU 1.0 ms, Motion 0.37 ms, Safety 0.3 ms (when it sent its event). No overrun after start-up: the 11 since boot are all from the WiFi start pause at 0.6 s, as before. The unpacked image's table is still to record. |
+
+Still to do:
 
 Flash the new images, use the **updated panel** (the old one cannot read the binary messages), and run:
 

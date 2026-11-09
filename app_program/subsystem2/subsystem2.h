@@ -27,6 +27,12 @@
  * turned about 95 / 190 deg for 90 / 180, so 130 x 90/95 = 123. Re-run
  * S2-M02 to confirm. */
 #define S2_TRACK_MM 123
+/* Spins only: the track width a spin turns about on the mat.  With 123 the
+ * encoders read 180.6 deg for a 180 while the robot turned about 5 deg more
+ * (9 Nov photos; 1 Nov: about 5 over too), so the wheels slip a little:
+ * 123 x 180 / 185 = 120.  About 4 deg less on a 180, 2 deg less on a 90.
+ * S2_TRACK_MM stays the real wheel spacing (the IMU's one-wheel height). */
+#define S2_TURN_TRACK_MM 120
 
 /* Line following: the slow-down while correcting is set by the line task
    (line_speed_pct(); 0 rocked in place on 2 Nov, so it always creeps).

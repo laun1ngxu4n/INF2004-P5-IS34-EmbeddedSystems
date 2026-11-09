@@ -42,7 +42,15 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   5° over (limit ±15°)
 - [x] ✅ S2-M04 STOP on the floor
 
-Still to do: write the Stage 1 rows into `testing/subsystem2/TEST_LOG.md`.
+**9 Nov re-run** (new code: Barr C + Change Requirement 1; rows in
+`testing/subsystem2/TEST_LOG.md`):
+- [x] ✅ Stage 0 automatic checks, S2-M05 directions, S2-M06 STOP lifted
+- [x] ✅ S2-M03 encoders 500 mm at 120 mm/s (mean 120); 🟡 the real distance not measured
+- [ ] 🟡 S2-M02: round 1 only. Encoders 90.6 / -90.2 / 180.6 deg; the real 180 about 5° over (photos).
+  **Changed after it:** spins use `S2_TURN_TRACK_MM` = 120 (was 123), about 4° less on a 180.
+  Re-run all 3 rounds and write down the real angles.
+- [ ] 🟡 S2-M04: try 1 stopped in 149 ms; tries 3-5 not run
+- [x] ✅ Held wheel (Change Requirement 1 Safety): motors off, event sent; START again after 2 s: to confirm
 
 ## Stage 2: line, junctions, barcodes (`TEST_STAGE=2`)
 

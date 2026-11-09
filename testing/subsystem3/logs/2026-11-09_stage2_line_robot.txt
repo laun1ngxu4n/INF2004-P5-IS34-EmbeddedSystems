@@ -1,0 +1,209 @@
+P5-IS34 robot log, 9 Nov 2026, Stage 2 WiFi test image (is34_test_stage2_wifi.uf2),
+commit cc87b08 (Change Requirement 1 packed build, spins S2_TURN_TRACK_MM 120).
+Saved from the panel (pasted by the tester). Tester: line following and the
+junction crossing only; no barcode on this track. Stopped by hand at about 1.5 m
+(small track). Repeated [tmg] tables and live-view seconds are shortened (marked ...).
+
+[panel: the robot restarted]
+
+microT-Kernel Version 3.00
+
+=== micro T-Kernel on Raspberry Pi Pico W (spec 0x6300, product 0x0003) ===
+single-core build
+P5-IS34 test image, hands-on TEST_STAGE=2. Kernel tick 10 ms
+all subsystems started
+
+[TEST] waiting 3000 ms for start-up to finish
+wifi: cyw43_utk_task starting (proc 1)
+wifi: cyw43_init() ...
+wifi: cyw43_init() returned, bringing interface up ...
+[IMU] LSM303D found at 0x1D
+wifi: joining "<hotspot>" ...
+wifi: link status -> joined AP, waiting for IP (1)
+[TEST] === test run start ===
+wifi: link status -> FAILED (association failure) (-1)
+[TEST] telemetry: 21 wakes in 2000 ms (expected 20), longest interval 100181 us (limit 115 ms), overruns 0
+[TEST] S1-U01 PASS  wake rate
+[TEST] S1-U02 PASS  no overrun, longest interval within limit
+[TEST] subsystem1 SUMMARY 2 passed, 0 failed
+[TEST] motion: 201 wakes in 2000 ms (expected 200), longest interval 10743 us (limit 25 ms), overruns 0
+[TEST] S2-U01 PASS  wake rate
+[TEST] S2-U02 PASS  no overrun, longest interval within limit
+[TEST] subsystem2 SUMMARY 2 passed, 0 failed
+[TEST] line: 101 wakes in 2000 ms (expected 100), longest interval 20775 us (limit 35 ms), overruns 0
+[TEST] S3-U01 PASS  wake rate
+[TEST] S3-U02 PASS  no overrun, longest interval within limit
+wifi: joining "<hotspot>" ...
+[tmg] t=10136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |    100   0 | 52.23-147.83 (147.83 @ 0.6) | 192 (192)
+[tmg] motion     6  10 |    989  11 | 2.57-127.50 (127.50 @ 0.6) | 109 (109)
+[tmg] line       8  20 |    495   5 | 12.60-127.64 (127.64 @ 0.6) | 70 (70)
+[tmg] barcode   10  10 |    495   0 | 12.48-137.63 (137.63 @ 0.6) | 16 (16)
+[tmg] safety     5  20 |    495   5 | 12.76-127.43 (127.43 @ 0.6) | 50 (50)
+[tmg] imu        9  10 |    989  11 | 2.38-127.67 (127.67 @ 0.6) | 636 (636)
+[tmg] mission    7 100 |     99   0 | 10.70-227.60 (227.60 @ 0.6) | 8 (8)
+[tmg] obstacle  11  60 |    165   1 | 52.24-127.82 (127.82 @ 0.6) | 13 (13)
+wifi: link status -> joined AP, waiting for IP (1)
+[TEST] barcode: 100 wakes in 2000 ms (expected about 100), longest interval 20503 us (limit 35 ms), overruns 0
+[TEST] S3-U03 PASS  wake rate
+[TEST] S3-U04 PASS  no overrun, longest interval within limit
+[TEST] subsystem3 SUMMARY 4 passed, 0 failed
+wifi: link status -> joined AP, no IP yet (2)
+[TEST] safety: 101 wakes in 2000 ms (expected 100), longest interval 21239 us (limit 35 ms), overruns 0
+[TEST] S4-U01 PASS  wake rate
+[TEST] S4-U02 PASS  no overrun, longest interval within limit
+wifi: link up, ip=10.14.83.102
+mqtt: connected to 10.14.83.225
+mqtt: subscribed to mtk3smp-pico/heartbeat
+[TEST] imu: 201 wakes in 2000 ms (expected 200), longest interval 11877 us (limit 25 ms), overruns 0
+[TEST] S4-U03 PASS  wake rate
+[TEST] S4-U04 PASS  no overrun, longest interval within limit
+[TEST] subsystem4 SUMMARY 4 passed, 0 failed
+mqtt: subscribed to mtk3smp-pico/heartbeat
+[TEST] mission: 20 wakes in 2000 ms (expected about 18), longest interval 110675 us (limit 125 ms), overruns 0
+[TEST] S5-U01 PASS  wake rate
+[TEST] S5-U02 PASS  no overrun, longest interval within limit
+[TEST] obstacle: 33 wakes in 2000 ms (expected 33), longest interval 61206 us (limit 75 ms), overruns 0
+[TEST] S5-U03 PASS  wake rate
+[TEST] S5-U04 PASS  no overrun, longest interval within limit
+mqtt: TX [mtk3smp-pico/heartbeat] "hb 0" (heartbeat every 5 s, not printed)
+mqtt: RX [mtk3smp-pico/heartbeat] "hb 0"
+[tmg] t=20136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |    200   0 | 98.95-101.03 (147.83 @ 0.6) | 2417 (2417)
+[tmg] motion     6  10 |   1989  11 | 8.31-11.72 (127.50 @ 0.6) | 89 (109)
+[tmg] line       8  20 |    995   5 | 18.25-21.75 (127.64 @ 0.6) | 65 (70)
+[tmg] barcode   10  10 |    995   0 | 18.10-21.93 (137.63 @ 0.6) | 17 (17)
+[tmg] safety     5  20 |    995   5 | 18.34-21.62 (127.43 @ 0.6) | 48 (50)
+[tmg] imu        9  10 |   1989  11 | 8.18-11.87 (127.67 @ 0.6) | 659 (659)
+[tmg] mission    7 100 |    199   0 | 10.69-111.76 (227.60 @ 0.6) | 10 (10)
+[tmg] obstacle  11  60 |    332   1 | 58.14-61.25 (127.82 @ 0.6) | 20 (20)
+[TEST] mission: 3 pings in 3000 ms (expected 3)
+[TEST] INT-01 PASS  IF-01 ping from Telemetry wakes Mission once a second
+[TEST] subsystem5 SUMMARY 5 passed, 0 failed
+[TEST] === test run end ===
+
+[DRIVE] === Stage 2: line, junctions, barcodes ===
+[DRIVE] Speed 120 mm/s. STOP (GP21) stops at any time.
+
+[S3] IR live view for 30 s: ...
+[S3] L 0  R 0  B 0
+[S3] B edges/s 0 (B now 0)
+[S3] B analogue now 317, this second 299..326 (learned white 281, black 339; they must differ by 400 or more)
+... (one line a second, B 297..342 throughout, no tape under B)
+mqtt: RX [is34/cmd/stop] ""
+[MQTT] stop
+...
+mqtt: RX [is34/cmd/start] ""
+[MQTT] start
+...
+[tmg] t=80136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |    800   0 | 98.95-101.08 (147.83 @ 0.6) | 2454 (2492)
+[tmg] motion     6  10 |   7989  11 | 8.75-11.30 (127.50 @ 0.6) | 65 (109)
+[tmg] line       8  20 |   3995   5 | 18.70-21.34 (127.64 @ 0.6) | 68 (70)
+[tmg] barcode   10  10 |   3995   0 | 18.53-21.51 (137.63 @ 0.6) | 20 (20)
+[tmg] safety     5  20 |   3995   5 | 18.77-21.26 (127.43 @ 0.6) | 37 (50)
+[tmg] imu        9  10 |   7989  11 | 8.64-11.42 (127.67 @ 0.6) | 651 (659)
+[tmg] mission    7 100 |    800   0 | 10.68-110.66 (227.60 @ 0.6) | 9 (10)
+[tmg] obstacle  11  60 |   1332   1 | 58.72-61.25 (127.82 @ 0.6) | 16 (20)
+[S3] B edges/s 0 (B now 0)
+[S3] B analogue now 326, this second 307..337 (learned white 281, black 351; they must differ by 400 or more)
+[S3] B: whitest 281, darkest 351 seen (it never saw black: pass it over tape)
+
+[DRIVE] --- Stage 2A: line + junctions (S3-L01..L10) ---
+[DRIVE] START (GP20) = run it, STOP (GP21) = skip it (or START / STOP on the panel)
+mqtt: RX [is34/cmd/start] ""
+[MQTT] start
+
+[DRIVE] S3-L01 / S3-L02: robot on the line. It follows for up to 60 s (let it run; STOP only if it goes wrong); count the junctions you see.
+[DRIVE] press START (GP20, or START on the panel) to go
+mqtt: RX [is34/cmd/start] ""
+[MQTT] start
+[DRIVE] starting in 1 s, hands off
+[S3] at start: L 0  R 0 (want L 0, R 0: the tape centred between them)
+[S3T] 0 mm  L 0  R 0  steer 0
+[S3T] 184 mm  L 1  R 0  steer 0
+[S3T] 226 mm  L 0  R 0  steer 30
+[S3T] 230 mm  L 1  R 0  steer 4
+[S3T] 309 mm  L 0  R 0  steer 30
+[S3] 319 mm: B patch 6.7 mm (not tape width: grout or a barcode bar, not a junction)
+[tmg] t=100136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |   1000   0 | 98.78-101.22 (147.83 @ 0.6) | 2478 (2492)
+[tmg] motion     6  10 |   9989  11 | 8.66-11.50 (127.50 @ 0.6) | 260 (260)
+[tmg] line       8  20 |   4995   5 | 18.44-21.59 (127.64 @ 0.6) | 133 (133)
+[tmg] barcode   10  10 |   4995   0 | 18.29-21.77 (137.63 @ 0.6) | 36 (36)
+[tmg] safety     5  20 |   4995   5 | 18.57-21.46 (127.43 @ 0.6) | 51 (51)
+[tmg] imu        9  10 |   9989  11 | 8.51-11.67 (127.67 @ 0.6) | 651 (659)
+[tmg] mission    7 100 |   1002   0 | 0.02-111.55 (227.60 @ 0.6) | 18 (18)
+[tmg] obstacle  11  60 |   1665   1 | 58.24-61.73 (127.82 @ 0.6) | 15 (20)
+[S3T] 374 mm  L 0  R 1  steer 30
+[S3T] 388 mm  L 0  R 0  steer -30
+[S3T] 418 mm  L 0  R 1  steer 2
+[S3T] 440 mm  L 0  R 0  steer -30
+[S3T] 458 mm  L 0  R 1  steer 0
+[S3T] 502 mm  L 0  R 0  steer -30
+[S3T] 527 mm  L 0  R 1  steer -4
+[S3T] 622 mm  L 0  R 0  steer -8
+[S3T] 630 mm  L 0  R 1  steer -7
+[S3T] 686 mm  L 0  R 0  steer -30
+[S3T] 753 mm  L 0  R 1  steer -30
+[S3T] 772 mm  L 0  R 0  steer -30
+[S3T] 775 mm  L 1  R 0  steer -6
+[S3T] 795 mm  L 0  R 0  steer 30
+[S3T] 803 mm  L 1  R 0  steer -3
+[S3T] 825 mm  L 0  R 0  steer 30
+[S3T] 832 mm  L 1  R 0  steer 0
+[S3T] 882 mm  L 0  R 0  steer 30
+[S3T] 890 mm  L 1  R 0  steer 5
+[S3T] 965 mm  L 0  R 0  steer 30
+[S3T] 973 mm  L 1  R 0  steer 18
+[S3T] 1025 mm  L 0  R 0  steer 30
+[tmg] t=110136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |   1100   0 | 98.79-101.14 (147.83 @ 0.6) | 2565 (2565)
+[tmg] motion     6  10 |  10989  11 | 8.42-11.60 (127.50 @ 0.6) | 267 (267)
+[tmg] line       8  20 |   5495   5 | 18.31-21.73 (127.64 @ 0.6) | 135 (135)
+[tmg] barcode   10  10 |   5495   0 | 18.19-21.85 (137.63 @ 0.6) | 38 (38)
+[tmg] safety     5  20 |   5495   5 | 18.52-21.51 (127.43 @ 0.6) | 71 (71)
+[tmg] imu        9  10 |  10989  11 | 8.14-11.93 (127.67 @ 0.6) | 611 (659)
+[tmg] mission    7 100 |   1102   0 | 10.79-111.74 (227.60 @ 0.6) | 22 (22)
+[tmg] obstacle  11  60 |   1832   1 | 58.47-61.49 (127.82 @ 0.6) | 18 (20)
+[S3T] 1116 mm  L 1  R 0  steer 30
+[S3T] 1137 mm  L 0  R 0  steer 30
+[S3T] 1175 mm  L 1  R 0  steer 5
+[S3T] 1179 mm  L 1  R 1  steer 25
+[S3T] 1192 mm  L 0  R 1  steer 4
+[S3] junction 1 at 1194 mm: crossing (both line sensors black)
+[S3T] 1207 mm  L 0  R 0  steer -30
+[S3T] 1211 mm  L 1  R 0  steer 2
+[S3T] 1219 mm  L 0  R 0  steer 30
+[S3] 1238 mm: B patch 15.3 mm (tape width: a left arm, if the robot drove straight there)
+[S3T] 1258 mm  L 1  R 0  steer 2
+[S3T] 1264 mm  L 0  R 0  steer 30
+[S3T] 1332 mm  L 0  R 1  steer 30
+[S3T] 1352 mm  L 0  R 0  steer -30
+[S3T] 1403 mm  L 0  R 1  steer 0
+[S3T] 1448 mm  L 0  R 0  steer -30
+[S3T] 1458 mm  L 0  R 1  steer -4
+mqtt: RX [is34/cmd/stop] ""
+[MQTT] stop
+[S3] barcode sensor B: 4 edges this run (0 = it never saw black)
+[S3] junctions this run: crossings 1, left branches 0
+[S3] wobble this run: 20 corrections (13 per metre), 1 sweeps right across the tape (a zigzag; want 0)
+[S3-L01] followed 1505 mm, line lost 0 times; [S3-L02] junctions counted 1 (write down the real number)
+[TEST] S3-L01 FAIL  followed at least 3 m without LINE_LOST   (../app_program/subsystem3/subsystem3_test.c:825)
+
+[DRIVE] --- Stage 2A: one place at a time ---
+
+[DRIVE] S3-L10: robot on the line about 20 cm before the X CROSSING (track 3), square to it. It drives at most 450 mm. Pass: exactly 1 junction, a crossing.
+
+[DRIVE] Robot placed as above (no such place: START, then STOP at once).
+[DRIVE] press START (GP20, or START on the panel) to go
+[tmg] t=120137 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |   1200   0 | 99.07-101.18 (147.83 @ 0.6) | 2468 (2565)
+[tmg] motion     6  10 |  11989  11 | 7.84-12.14 (127.50 @ 0.6) | 281 (281)
+[tmg] line       8  20 |   5995   5 | 17.84-21.61 (127.64 @ 0.6) | 240 (240)
+[tmg] barcode   10  10 |   5995   0 | 17.77-21.75 (137.63 @ 0.6) | 38 (38)
+[tmg] safety     5  20 |   5995   5 | 17.87-21.45 (127.43 @ 0.6) | 57 (71)
+[tmg] imu        9  10 |  11989  11 | 7.75-12.23 (127.67 @ 0.6) | 628 (659)
+[tmg] mission    7 100 |   1204   0 | 0.03-111.06 (227.60 @ 0.6) | 14 (22)
+[tmg] obstacle  11  60 |   1999   1 | 58.18-61.79 (127.82 @ 0.6) | 15 (20)
+(end of the saved log: the tester stopped here)

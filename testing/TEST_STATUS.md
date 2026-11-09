@@ -266,6 +266,14 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   cm after a barcode used the letter at the NEXT junction (now it waits
   for the read); an obstacle met mid-barcode garbled the read (now
   dropped, reported).
+- **9 Nov, Change Requirement 1 packed build (`2026-11-09_stage2_line_robot.txt`
+  in `subsystem3/logs`): line following good, team happy.** S3-L01 1505
+  mm, **line lost 0 times**, through left and right curves like the ones
+  it used to lose (FAIL only on the 3 m: stopped by hand, small track).
+  13 corrections per metre, 1 sweep across the tape. The X crossing was
+  detected (`junction 1 at 1194 mm: crossing`), no false junctions. No
+  barcode on this track: barcodes (S3-B00, 2B, 2C) still to run. Stage 0
+  checks in the image all PASS; no unexpected faults.
 - [ ] 🟡 **S5-B01 / S5-B02** (2C): right move at each junction, U-turn, stop on
   an unmapped code
 

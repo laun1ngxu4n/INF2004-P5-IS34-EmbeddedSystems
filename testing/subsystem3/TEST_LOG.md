@@ -43,3 +43,6 @@ Add a new row for every run. Never edit or delete old rows.
 | 2026-10-26 | S3-U02 | `836d3fe` | B1 Ikhwan | PASS | `../integration/logs/2026-10-26_stage0_test.txt` | test image `stage0_test_v4.uf2`, laptop USB, 3 s start-up wait |
 | 2026-10-26 | S3-U03 | `836d3fe` | B1 Ikhwan | PASS | `../integration/logs/2026-10-26_stage0_test.txt` | test image `stage0_test_v4.uf2`, laptop USB, 3 s start-up wait |
 | 2026-10-26 | S3-U04 | `836d3fe` | B1 Ikhwan | PASS | `../integration/logs/2026-10-26_stage0_test.txt` | test image `stage0_test_v4.uf2`, laptop USB, 3 s start-up wait |
+| 2026-11-09 | S3-U01..U04 | `cc87b08` | B1 Ikhwan | PASS | `logs/2026-11-09_stage2_line_robot.txt` | Stage 2 WiFi test image, CR1 packed build |
+| 2026-11-09 | S3-L01 | `cc87b08` | B1 Ikhwan | FAIL (length only) | `logs/2026-11-09_stage2_line_robot.txt` | 1505 mm, line lost 0 times, left and right curves; stopped by hand (small track, needs 3 m). 13 corrections/m, 1 sweep. Team: follows well |
+| 2026-11-09 | S3-L02 | `cc87b08` | B1 Ikhwan | PASS (seen) | `logs/2026-11-09_stage2_line_robot.txt` | 1 crossing counted at 1194 mm, no false junctions; tester saw the crossing handled (real count not written down) |

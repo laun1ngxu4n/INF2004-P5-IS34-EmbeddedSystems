@@ -259,6 +259,7 @@ Results so far (9 Nov, rows in `testing/subsystem2/TEST_LOG.md`, logs in
 |---|---|
 | Stage 0 automatic checks on the new code | PASS, all |
 | Held wheel (Safety stall) | PASS: "Safety: a wheel driven hard is not turning, motors off", motors off. START again after 2 s: to confirm |
+| Stage 2 line following + X crossing (`testing/subsystem3/logs/2026-11-09_stage2_line_robot.txt`) | As before the change: 1505 mm with no line lost, 1 crossing detected, no false junctions, no unexpected fault. Barcodes not run (no barcode on the track) |
 | Timing, packed build (Stage 1 WiFi image, 31 tables over 5 min, driving and idle) | Intervals within about ±1.7 ms of each period; longest run times telemetry 2.6 ms, IMU 1.0 ms, Motion 0.37 ms, Safety 0.3 ms (when it sent its event). No overrun after start-up: the 11 since boot are all from the WiFi start pause at 0.6 s, as before. The unpacked image's table is still to record. |
 
 Still to do:

@@ -408,8 +408,11 @@ EXPORT void subsystem2_test_drive (void)
             "floor\n"
             "[DRIVE] with about 1.5 m clear in front.\n"
             "[DRIVE] STOP (GP21) stops the motors at any time.\n"
-            "[DRIVE] Track width used for turns: %d mm (S2_TURN_TRACK_MM)\n"),
-        S2_TURN_TRACK_MM);
+            "[DRIVE] Turns: track %d mm (S2_TURN_TRACK_MM); spins of %d deg "
+            "or more stop %d deg early\n"
+            "[DRIVE] (S2_TURN_TRIM_DEG), so their encoder angle reads that "
+            "much under: judge by the real angle.\n"),
+        S2_TURN_TRACK_MM, S2_TURN_TRIM_MIN_DEG, S2_TURN_TRIM_DEG);
 
     /* Order (review 1 Nov): directions and STOP with the wheels lifted,
        then speed/distance on the floor, then turns, then the STOP tries. */
@@ -448,4 +451,3 @@ EXPORT void subsystem2_test_drive (void)
 #endif /* APP_TEST */
 
 /*** end of file ***/
-

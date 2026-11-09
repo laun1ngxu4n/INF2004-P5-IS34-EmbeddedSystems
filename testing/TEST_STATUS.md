@@ -48,7 +48,12 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
 - [x] ✅ S2-M03 encoders 500 mm at 120 mm/s (mean 120); 🟡 the real distance not measured
 - [ ] 🟡 S2-M02: round 1 only. Encoders 90.6 / -90.2 / 180.6 deg; the real 180 about 5° over (photos).
   **Changed after it:** spins use `S2_TURN_TRACK_MM` = 120 (was 123), about 4° less on a 180.
-  Re-run all 3 rounds and write down the real angles.
+  Then the Stage 3 bypass's 90s still turned about 5° too much (about +7 on the
+  wheels' 88), so the over-turn is a fixed few degrees, not a percentage.
+  **Changed again 9 Nov:** track back to 123, and every spin of 45° or more stops
+  6° early (`S2_TURN_TRIM_DEG`); expected about 91 for a 90 and 178 for a 180.
+  The S2-M02 encoder angle now reads about 6° under (84 / 174): judge by the
+  real angle. Re-run all 3 rounds and write down the real angles.
 - [ ] 🟡 S2-M04: try 1 stopped in 149 ms; tries 3-5 not run
 - [x] ✅ Held wheel (Change Requirement 1 Safety): motors off, event sent; START again after 2 s: to confirm
 
@@ -410,6 +415,27 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   obstacle is 9 x 13 cm x 19-20 cm high, so at most 130 mm deep; bypasssim
   with it: no contact either way round, closest 35 mm, junctions 27/27).
 - **Stage 3 called done by the team, 8 Nov.**
+- **9 Nov, Change Requirement 1 packed build (`subsystem5/logs/2026-11-09_stage3_obstacle_robot.txt`):
+  bypass works as before.** Servo check run; sonar view steady 240-246 mm.
+  S5-O01: 175 / 136 / 210 mm, both edges found every time (real widths
+  not recorded). S5-O02: stopped at 241 mm, width 114 mm, went round
+  LEFT (out 254, past 785), `line met behind the box, 703 mm along`,
+  `bypass done`, then `line lost` further on. Team: works, but **the
+  90° turns turn about 5° too much**: fixed the same day (Stage 1
+  section, `S2_TURN_TRIM_DEG`), not run yet.
+  - **Mapping from the panel always REJECTED: a bug, fixed 9 Nov, not
+    run yet.** The MQTT glue (`lib/liblwip/sysdepend/pico_rp2040/mqtt_utk.c`)
+    turned every non-printable byte into '.' before the app saw it, so the
+    new binary map command (Change Requirement 1) arrived damaged and was
+    tried as text. Now the app gets the raw bytes; only the printed copy is
+    cleaned. START with the TEST mapping worked meanwhile.
+  - A false `ramp peak height 41.2 mm` came during the bypass (side tilt
+    0.335 g: the spin's start or stop, not a slope). Check in Stage 4
+    whether turning gives false ramps.
+  - Mission's `[tmg]` run time shows 35 s during the bypass: Mission runs
+    the whole bypass in one wake (it waits for each move), so this is the
+    bypass's length, not an overrun (overruns 0). Safety's Motion-hung
+    check watches Motion, which kept running every 10 ms.
 - [ ] 🟡 **S5-O01** width: works (both edges found every time since the
   geometry rule), but reads wide from further away: the 9 cm obstacle
   read 186 mm from 218 mm, 91 mm from 98 mm. Harmless for the bypass

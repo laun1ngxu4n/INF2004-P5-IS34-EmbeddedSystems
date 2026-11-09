@@ -1,0 +1,136 @@
+P5-IS34 robot log, 9 Nov 2026, Stage 3 WiFi test image (is34_test_stage3_wifi.uf2),
+commit cc87b08 (Change Requirement 1 packed build, spins S2_TURN_TRACK_MM 120).
+Saved from the panel (pasted by the tester; file name "it rejects unique mapping
+and the 90 degrees is too much"). Tester: the bypass works; the 90 deg turns are
+about 5 deg too much; the panel's mapping was always rejected. Real box widths
+not recorded. Repeated [tmg] tables are shortened (marked ...); every result
+line is kept as it was.
+
+P5-IS34 test image, hands-on TEST_STAGE=3. Kernel tick 10 ms
+all subsystems started
+[IMU] LSM303D found at 0x1D
+wifi: link status -> FAILED (association failure) (-1)
+wifi: link status -> FAILED: SSID not found (out of range, wrong name, or 5GHz-only network -- this chip is 2.4GHz only) (-2)
+wifi: link up, ip=10.14.83.102
+mqtt: connected to 10.14.83.225
+[TEST] S1-U01 PASS  wake rate
+[TEST] S1-U02 PASS  no overrun, longest interval within limit
+[TEST] S2-U01 PASS  wake rate
+[TEST] S2-U02 PASS  no overrun, longest interval within limit
+[TEST] S3-U01 PASS  wake rate
+[TEST] S3-U02 PASS  no overrun, longest interval within limit
+[TEST] S3-U03 PASS  wake rate
+[TEST] S3-U04 PASS  no overrun, longest interval within limit
+[TEST] S4-U01 PASS  wake rate
+[TEST] S4-U02 PASS  no overrun, longest interval within limit
+[TEST] S4-U03 PASS  wake rate
+[TEST] S4-U04 PASS  no overrun, longest interval within limit
+[TEST] S5-U01 PASS  wake rate
+[TEST] S5-U02 PASS  no overrun, longest interval within limit
+[TEST] S5-U03 PASS  wake rate
+[TEST] S5-U04 PASS  no overrun, longest interval within limit
+[TEST] INT-01 PASS  IF-01 ping from Telemetry wakes Mission once a second
+[TEST] subsystem5 SUMMARY 5 passed, 0 failed
+[TEST] === test run end ===
+[tmg] t=20136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |    200   0 | 98.00-101.91 (147.98 @ 0.6) | 2484 (2484)
+[tmg] motion     6  10 |   1989  11 | 8.26-11.76 (127.60 @ 0.6) | 85 (111)
+[tmg] line       8  20 |    995   5 | 18.19-21.15 (127.76 @ 0.6) | 52 (69)
+[tmg] barcode   10  10 |    995   0 | 18.06-21.29 (137.84 @ 0.6) | 11 (14)
+[tmg] safety     5  20 |    995   5 | 18.30-21.08 (127.53 @ 0.6) | 44 (44)
+[tmg] imu        9  10 |   1989  11 | 8.19-11.89 (127.82 @ 0.6) | 567 (637)
+[tmg] mission    7 100 |    199   0 | 10.47-111.01 (227.71 @ 0.6) | 7 (7)
+[tmg] obstacle  11  60 |    332   1 | 59.23-60.77 (127.98 @ 0.6) | 12 (13)
+
+[DRIVE] === Stage 3: obstacle ===
+[DRIVE] Servo check: the ultrasonic should point STRAIGHT AHEAD (if not, refit the horn while it is powered).
+[MQTT] start
+[DRIVE] Servo check: it should now point LEFT. If it points RIGHT, set S5_SERVO_LEFT_HIGH to 0 and rebuild. Do the wires at the back still have slack?
+[MQTT] start
+[DRIVE] Servo check: now it should point RIGHT. Wires still slack?
+[MQTT] start
+[S5] forward distance for 10 s: move your hand in front
+[S5] front 240 mm
+[S5] front 241 mm   (30 readings 240-246 mm, mostly 241)
+[S5] front 246 mm
+[S5] front 241 mm
+
+[DRIVE] S5-O01 width, try 1 of 3
+[SCAN] rays (deg:mm, -1 = open, -2 = no ECHO): -40:-1 -35:-1 -30:192 -25:175 -20:171 -15:172 -10:169 -5:168 0:164 5:164 10:168 15:172 20:177 25:186 30:203 35:-1 40:-1
+[SCAN] rays (deg:mm, -1 = open, -2 = no ECHO): -40:-1 -35:300 -30:286 -25:278 -20:273 -15:275 -10:267 -5:267 0:271 5:271 10:270 15:275 20:276 25:288 30:284 35:298 40:-1
+[S5-O01] try 1: width 175 +/- 30 mm (scan 1 175 +/- 19, scan 2 232 +/- 32), edges L 90 R -85, front 271, clear L 1 R 1, edge seen by scan 1 L 1 R 1, scan 2 L 1 R 1
+
+[DRIVE] S5-O01 width, try 2 of 3
+[SCAN] rays (deg:mm, -1 = open, -2 = no ECHO): -40:-1 -35:-1 -30:454 -25:210 -20:205 -15:202 -10:198 -5:195 0:194 5:199 10:204 15:204 20:212 25:-1 30:-1 35:-1 40:-1
+[SCAN] rays (deg:mm, -1 = open, -2 = no ECHO): -40:345 -35:316 -30:314 -25:302 -20:302 -15:299 -10:299 -5:300 0:304 5:304 10:308 15:309 20:317 25:387 30:640 35:-1 40:-1
+[S5-O01] try 2: width 136 +/- 33 mm (scan 1 136 +/- 23, scan 2 175 +/- 36), edges L 60 R -76, front 304, clear L 1 R 1, edge seen by scan 1 L 1 R 1, scan 2 L 1 R 1
+
+[DRIVE] S5-O01 width, try 3 of 3
+[MQTT] start
+[MQTT] stop
+[MQTT] stop
+[MQTT] stop
+[SCAN] rays (deg:mm, -1 = open, -2 = no ECHO): -40:-1 -35:-1 -30:636 -25:311 -20:310 -15:299 -10:304 -5:303 0:303 5:309 10:308 15:330 20:343 25:659 30:648 35:-1 40:-1
+[SCAN] rays (deg:mm, -1 = open, -2 = no ECHO): -40:-1 -35:-1 -30:622 -25:315 -20:303 -15:299 -10:304 -5:304 0:304 5:308 10:309 15:324 20:338 25:669 30:652 35:-1 40:-1
+[S5-O01] try 3: width 210 +/- 36 mm (scan 1 210 +/- 36, scan 2 210 +/- 36), edges L 97 R -113, front 304, clear L 1 R 1, edge seen by scan 1 L 1 R 1, scan 2 L 1 R 1
+[TEST] subsystem5 stage 3 SUMMARY 0 passed, 0 failed
+
+[DRIVE] S5-O02 bypass: Mission takes over. Put an obstacle on the line ahead of the robot.
+[DRIVE] === Mission run: obstacle watch ON, IMU OFF ===
+[DRIVE] send the mapping from the PC (panel: Barcode mapping box), or press START to use the TEST mapping A=L,B=R,C=F,D=U
+mqtt: RX [is34/cmd/map] "..0."
+[EVT] mapping REJECTED: expected 4 pairs like K=L,Q=R,X=F,M=U (old mapping kept)
+mqtt: RX [is34/cmd/map] "..0."
+[EVT] mapping REJECTED: expected 4 pairs like K=L,Q=R,X=F,M=U (old mapping kept)
+mqtt: RX [is34/cmd/map] "..0."
+[EVT] mapping REJECTED: expected 4 pairs like K=L,Q=R,X=F,M=U (old mapping kept)
+mqtt: RX [is34/cmd/map] "..@."
+[EVT] mapping REJECTED: expected 4 pairs like K=L,Q=R,X=F,M=U (old mapping kept)
+[panel: 2 log messages lost on the WiFi]
+mqtt: RX [is34/cmd/map] "..@."
+[EVT] mapping REJECTED: expected 4 pairs like K=L,Q=R,X=F,M=U (old mapping kept)
+mqtt: RX [is34/cmd/map] "..@."
+[EVT] mapping REJECTED: expected 4 pairs like K=L,Q=R,X=F,M=U (old mapping kept)
+  (cause, found 9 Nov: the MQTT glue lib/liblwip/sysdepend/pico_rp2040/mqtt_utk.c
+   replaced every non-printable byte with '.' before handing the message to
+   the app, so the binary map command arrived damaged: version byte 0x01 -> '.'.
+   The robot then tried it as text. Fixed: the app gets the raw bytes, only
+   the printed copy is cleaned.)
+[MQTT] start
+[DRIVE] TEST mapping A=L, B=R, C=F, D=U (test image only; the demo mapping comes over MQTT)
+[DRIVE] mapping A=L,B=R,C=F,D=U in use
+[DRIVE] Mission armed: press START to run, STOP to stop.
+[MQTT] start
+[EVT] start
+[EVT] obstacle while reading a barcode: that read is dropped
+[EVT] obstacle ahead at 241 mm: scanning
+[tmg] mission    7 100 |   2509   0 | 19.54-149.00 (227.71 @ 0.6) | 39438 (39438)
+[SCAN] rays (deg:mm, -1 = open, -2 = no ECHO): -40:-1 -35:-1 -30:485 -25:242 -20:237 -15:233 -10:230 -5:231 0:230 5:235 10:235 15:273 20:-1 25:-1 30:-1 35:-1 40:-1
+[tmg] mission    7 100 |   2509   0 | no wake this window | 0 (39438)
+[SCAN] rays (deg:mm, -1 = open, -2 = no ECHO): -40:381 -35:360 -30:350 -25:337 -20:333 -15:334 -10:334 -5:330 0:335 5:335 10:335 15:339 20:348 25:370 30:396 35:762 40:-1
+[EVT] obstacle width 114 +/- 37 mm (scan 1: 114 +/- 27, scan 2: 270 +/- 39); edges L 26 R -88 mm; front 335 mm
+[EVT] bypass LEFT: planned width 200 mm, out 254 mm, past 785 mm
+[EVT] ramp peak height 41.2 mm (one wheel: side tilt sin 335/1000; from the nose-down tilt 36.8 mm)
+[tmg] t=280136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |   2800   0 | 99.02-101.00 (147.98 @ 0.6) | 2441 (2548)
+[tmg] motion     6  10 |  27989  11 | 8.75-11.29 (127.60 @ 0.6) | 326 (326)
+[tmg] line       8  20 |  13995   5 | 18.62-21.40 (127.76 @ 0.6) | 95 (97)
+[tmg] barcode   10  10 |  13995   0 | 18.55-21.49 (137.84 @ 0.6) | 20 (29)
+[tmg] safety     5  20 |  13995   5 | 18.80-21.20 (127.53 @ 0.6) | 62 (81)
+[tmg] imu        9  10 |  27989  11 | 8.09-12.15 (127.82 @ 0.6) | 921 (921)
+[tmg] mission    7 100 |   2509   0 | no wake this window | 0 (39438)
+[tmg] obstacle  11  60 |   4665   1 | 58.73-61.20 (127.98 @ 0.6) | 19 (89)
+[EVT] line met behind the box, 703 mm along
+[EVT] bypass done, following the line
+[tmg] mission    7 100 |   2546   0 | 10.65-35429.62 (35429.62 @ 286.4) | 35429587 (35429587)
+[EVT] stopped: line lost (press START to go again)
+[tmg] t=350136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |   3500   0 | 99.32-100.67 (147.98 @ 0.6) | 2570 (2622)
+[tmg] motion     6  10 |  34989  11 | 8.84-11.20 (127.60 @ 0.6) | 80 (326)
+[tmg] line       8  20 |  17495   5 | 18.79-21.22 (127.76 @ 0.6) | 61 (397)
+[tmg] barcode   10  10 |  17495   0 | 18.69-21.36 (137.84 @ 0.6) | 7 (29)
+[tmg] safety     5  20 |  17495   5 | 18.88-21.13 (127.53 @ 0.6) | 38 (81)
+[tmg] imu        9  10 |  34989  11 | 8.72-11.33 (127.82 @ 0.6) | 546 (921)
+[tmg] mission    7 100 |   3146   0 | 10.60-110.64 (35429.62 @ 286.4) | 10 (35429587)
+[tmg] obstacle  11  60 |   5832   1 | 58.68-61.36 (127.98 @ 0.6) | 17 (89)
+(end of the saved log)

@@ -279,7 +279,16 @@ The panel remembers the last mapping you picked
    numbers), a `[S4T]` line every 10 ms while on it, and the IMU task's
    report `ramp peak height H mm (one wheel: ...; from the nose-down tilt
    P mm)`. Pass: H within +/- 5 mm of the measured height, 5 runs. Send
-   the log and the measured height.
+   the log and the measured height. The reported height is the side tilt
+   x T x 0.63 (`S4_ONE_WHEEL_GAIN_PCT`, fitted 9 Nov); the test also
+   prints it per bump (`x 0.63 for driving = ... mm`).
+3. **S4-L01 lift stop** (lecturer, 13 Nov: lifting the robot ends the demo
+   run). 3 tries: robot on the floor, 1 m clear; START: it drives slowly;
+   pick it up as you will at the end of the demo (tilted, as usual). Pass:
+   the wheels stop at once and the panel shows `robot lifted or tipped
+   over ...: motors off`, all 3 tries (`[TEST] S4-L01 PASS`). A lift kept
+   within 35 deg of level all the way is not seen (by design). In the
+   Mission, lifting at the end of every run tests it again.
 
 ### Stage 5: telemetry + MQTT (demo image), owner B1
 

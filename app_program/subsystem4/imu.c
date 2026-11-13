@@ -5,11 +5,17 @@
  *  Reads the LSM303D accelerometer (+/-4 g, 100 Hz) and tracks the ramp
  *  height: see subsystem4.h.  Register values are the ones bring-up
  *  verified (bringup/tests/imu/imu_test.c).
+ *
+ *  Lifted or tipped over (lecturer, 13 Nov: replaces IMU collision
+ *  detection): when gravity points more than LIFT_DEG away from where it
+ *  pointed at the last level calibration, for LIFT_TICKS, the motors go
+ *  off as if STOP were pressed.  Lifting the robot ends the demo run.
  */
 
 #include "subsystem4.h"
 #include "../subsystem1/subsystem1.h"
 #include "../subsystem2/subsystem2.h"
+#include "../subsystem5/subsystem5.h" /* gh_flg_mission, MSN_FLG_STOP */
 #include "../app_math.h"
 #include "imu_i2c.h"
 #include "imu.h"
@@ -61,6 +67,27 @@
    S4-R01: -34, -31 on the flat), which kept resetting the level distance,
    so no hump was ever reported.  The hump itself reads about 140/1000. */
 #define ROLL_FLAT_K 0.1f
+/* Lifted or tipped over: the angle between gravity now and gravity at the
+   last calibration.  The largest tilt while driving was about 19 deg (the
+   25 mm hump, 9 Nov: side tilt sin 0.33), so 35 deg leaves a margin; a
+   robot picked up by hand tilts more.  Upside down is 180 deg (pitch and
+   side tilt alone read about 0 there).  The direction is filtered like
+   the side tilt (about 30 ms), and must stay past 35 deg for 100 ms. */
+#define LIFT_COS       0.819f /* cos(35 deg) */
+#define LIFT_CLEAR_COS 0.940f /* cos(20 deg): level again, re-armed */
+#define LIFT_TICKS     10     /* 100 ms at 10 ms */
+#define LIFT_LPF_K     0.3f
+#define LIFT_AXES      3 /* x, y, z */
+
+/* The lift check's state: written only by the IMU task */
+typedef struct
+{
+    float32_t level[LIFT_AXES]; /* gravity direction at calibration (unit) */
+    float32_t now[LIFT_AXES];   /* gravity direction now, filtered */
+    int32_t   ticks;            /* 10 ms periods past LIFT_COS, 0..LIFT_TICKS */
+    bool      b_known;          /* level[] set by a calibration */
+    bool      b_lifted;         /* reported; cleared when level again */
+} lift_state_t;
 
 LOCAL volatile bool gb_cal_request = true; /* calibrate once at boot too */
 LOCAL volatile bool gb_calibrated;
@@ -83,12 +110,19 @@ typedef struct
 LOCAL volatile imu_out_t g_out = {0, 0, 0, 0u, 0u};
 LOCAL volatile uint32_t  g_ramp_reports;
 LOCAL volatile uint32_t  g_jolts;
+LOCAL volatile uint32_t  g_lifts; /* lifts seen since boot */
 
 /** true once the IMU answered and was configured. */
 EXPORT bool imu_ok (void)
 {
     return 0u == (app_stop_faults() & FAULT_IMU);
 }
+/** Lifts (or tip-overs) that stopped the motors since boot. */
+EXPORT uint32_t imu_lifts (void)
+{
+    return g_lifts;
+}
+
 /** Starts a 1 s level calibration (robot level and still). */
 EXPORT void imu_calibrate (void)
 {
@@ -176,36 +210,137 @@ LOCAL void chip_retry (int32_t * p_retry)
     }
 }
 
+/** The level gravity direction from the calibration sums (unit vector). */
+LOCAL void lift_level (lift_state_t * p_lift, float32_t sum_x, float32_t sum_y,
+                       float32_t sum_z)
+{
+    float32_t len =
+        app_sqrtf((sum_x * sum_x) + (sum_y * sum_y) + (sum_z * sum_z));
+    int32_t idx;
+
+    if (len > 0.0f)
+    {
+        p_lift->level[0] = sum_x / len;
+        p_lift->level[1] = sum_y / len;
+        p_lift->level[2] = sum_z / len;
+
+        for (idx = 0; idx < LIFT_AXES; idx++)
+        {
+            p_lift->now[idx] = p_lift->level[idx];
+        }
+
+        p_lift->ticks   = 0;
+        p_lift->b_known = true;
+    }
+}
+
+/** Motors off as STOP does, and tell Mission. */
+LOCAL void lift_stop (void)
+{
+    app_stop_request(STOP_BUTTON); /* START clears it, as a STOP */
+    tk_set_flg(gh_flg_mission, MSN_FLG_STOP);
+}
+
+/** One 10 ms lift check: unit gravity (x, y, z) from this sample. */
+LOCAL void lift_check (lift_state_t * p_lift, float32_t unit_x,
+                       float32_t unit_y, float32_t unit_z)
+{
+    float32_t len;
+    float32_t cos_now;
+    int32_t   duty_l;
+    int32_t   duty_r;
+
+    p_lift->now[0] += LIFT_LPF_K * (unit_x - p_lift->now[0]);
+    p_lift->now[1] += LIFT_LPF_K * (unit_y - p_lift->now[1]);
+    p_lift->now[2] += LIFT_LPF_K * (unit_z - p_lift->now[2]);
+
+    len = app_sqrtf((p_lift->now[0] * p_lift->now[0]) +
+                    (p_lift->now[1] * p_lift->now[1]) +
+                    (p_lift->now[2] * p_lift->now[2]));
+
+    if ((!p_lift->b_known) || (len < 0.1f))
+    {
+        return;
+    }
+
+    cos_now = ((p_lift->now[0] * p_lift->level[0]) +
+               (p_lift->now[1] * p_lift->level[1]) +
+               (p_lift->now[2] * p_lift->level[2])) /
+              len;
+
+    if (cos_now < LIFT_COS)
+    {
+        p_lift->ticks =
+            (p_lift->ticks < LIFT_TICKS) ? p_lift->ticks + 1 : LIFT_TICKS;
+    }
+    else
+    {
+        p_lift->ticks = 0;
+
+        if (cos_now > LIFT_CLEAR_COS)
+        {
+            p_lift->b_lifted = false; /* level again: re-armed */
+        }
+    }
+
+    if (p_lift->ticks < LIFT_TICKS)
+    {
+        return;
+    }
+
+    if (!p_lift->b_lifted)
+    {
+        p_lift->b_lifted = true;
+        g_lifts++;
+        lift_stop();
+        telemetry_event(app_str("robot lifted or tipped over (tilt over 35 "
+                                "deg): motors off, START to go again"));
+    }
+    else
+    {
+        /* still lifted: keep the motors off if START was pressed */
+        motor_duties(&duty_l, &duty_r);
+
+        if ((duty_l != 0) || (duty_r != 0))
+        {
+            lift_stop();
+        }
+    }
+}
+
 /** The IMU task: reads the accelerometer, tracks tilt and ramp height,
  * reports ramps. */
 EXPORT void imu_task (int32_t stacd, void * p_exinf)
 {
-    int32_t   retry          = 0;
-    int32_t   ncal           = 0;
-    float32_t cal_s          = 0.0f;
-    float32_t cal_c          = 0.0f;
-    float32_t sin_level      = 0.0f;
-    float32_t cos_level      = 1.0f;
-    float32_t cal_m          = 0.0f;
-    float32_t mag_level      = 0.0f; /* |a| when level and still */
-    float32_t cal_y          = 0.0f;
-    float32_t side_level     = 0.0f; /* sideways share when level */
-    float32_t roll_f         = 0.0f;
-    float32_t base_r         = 0.0f;
-    float32_t roll           = 0.0f;
-    float32_t roll_slow      = 0.0f; /* roll, filtered more: level test */
-    float32_t one_peak       = 0.0f;
-    float32_t one_pitch_peak = 0.0f;
-    float32_t roll_peak      = 0.0f;
-    float32_t sin_f          = 0.0f;
-    float32_t height         = 0.0f;
-    float32_t peak           = 0.0f;
-    float32_t peak_sin       = 0.0f;
-    float32_t base           = 0.0f;
-    float32_t tilt           = 0.0f; /* driving level; sin_f - base */
-    int32_t   odo_prev;
-    int32_t   flat_mm10  = 0;
-    int32_t   quiet_mm10 = 0; /* distance left before another report */
+    int32_t      retry          = 0;
+    int32_t      ncal           = 0;
+    float32_t    cal_s          = 0.0f;
+    float32_t    cal_c          = 0.0f;
+    float32_t    sin_level      = 0.0f;
+    float32_t    cos_level      = 1.0f;
+    float32_t    cal_m          = 0.0f;
+    float32_t    mag_level      = 0.0f; /* |a| when level and still */
+    float32_t    cal_y          = 0.0f;
+    float32_t    cal_z          = 0.0f; /* gravity's z share, summed */
+    float32_t    side_level     = 0.0f; /* sideways share when level */
+    float32_t    roll_f         = 0.0f;
+    float32_t    base_r         = 0.0f;
+    float32_t    roll           = 0.0f;
+    float32_t    roll_slow      = 0.0f; /* roll, filtered more: level test */
+    float32_t    one_peak       = 0.0f;
+    float32_t    one_pitch_peak = 0.0f;
+    float32_t    roll_peak      = 0.0f;
+    float32_t    sin_f          = 0.0f;
+    float32_t    height         = 0.0f;
+    float32_t    peak           = 0.0f;
+    float32_t    peak_sin       = 0.0f;
+    float32_t    base           = 0.0f;
+    float32_t    tilt           = 0.0f; /* driving level; sin_f - base */
+    int32_t      odo_prev;
+    int32_t      flat_mm10  = 0;
+    int32_t      quiet_mm10 = 0; /* distance left before another report */
+    lift_state_t lift       = {
+        {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, 0, false, false};
 
     (void)stacd;
     (void)p_exinf;
@@ -262,6 +397,7 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
                 cal_c += cos_pitch;
                 cal_m += mag;
                 cal_y += acc_y / mag;
+                cal_z += acc_z / mag;
 
                 ncal++;
 
@@ -271,10 +407,11 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
                     cos_level  = cal_c / CAL_SAMPLES;
                     mag_level  = cal_m / CAL_SAMPLES;
                     side_level = cal_y / CAL_SAMPLES;
-                    cal_s = cal_c = cal_m = cal_y = 0.0f;
-                    ncal                          = 0;
-                    gb_cal_request                = false;
-                    gb_calibrated                 = true;
+                    lift_level(&lift, cal_s, cal_y, cal_z);
+                    cal_s = cal_c = cal_m = cal_y = cal_z = 0.0f;
+                    ncal                                  = 0;
+                    gb_cal_request                        = false;
+                    gb_calibrated                         = true;
                     /* a new run: the last run's level stretch and its
                        quiet distance after a report do not carry over
                        (9 Nov: runs 2 and 4 right after a reported run
@@ -289,6 +426,8 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
 
                 goto done;
             }
+
+            lift_check(&lift, sin_pitch, acc_y / mag, acc_z / mag);
 
             /* sin(pitch - level pitch), low-pass filtered; jolts
                skipped (the pitch from before them is kept) */

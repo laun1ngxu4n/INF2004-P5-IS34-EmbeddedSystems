@@ -50,6 +50,7 @@ EXPORT void subsystem4_test (void)
 #define IMU_WAIT     30   /* 3 s at 100 ms for the IMU to answer */
 #define TILT_LINES   30   /* 15 s at 0.5 s */
 #define RAMP_RUNS    5    /* the prompts say 5 */
+#define LIFT_TRIES   3    /* S4-L01 */
 
 /** One S4-R01 run: drives over the hump and prints each bump. */
 LOCAL void ramp_run (uint32_t reports_start)
@@ -206,6 +207,60 @@ LOCAL void ramp_run (uint32_t reports_start)
         (int32_t)(imu_jolts() - jolts_start));
 }
 
+/** S4-L01, one try: it drives slowly up to 1 m; the tester picks it up.
+   true = the lift stopped the motors before the drive ended. */
+LOCAL bool lift_try (int32_t try_no)
+{
+    motion_status_t status;
+    uint32_t        lifts_start;
+    int32_t         odo0;
+    bool            b_lifted;
+
+    tm_printf(app_str("\n[DRIVE] S4-L01 lift stop, try %d of %d\n"), try_no,
+              LIFT_TRIES);
+    app_test_wait_start(
+        "Robot on the floor, 1 m clear ahead. It drives slowly (up to "
+        "1 m): pick it up as you will at the end of the demo run. Pass: "
+        "the wheels stop as soon as it tilts.");
+    imu_calibrate(); /* level here = the reference */
+
+    while (!imu_calibrated())
+    {
+        tk_dly_tsk(10);
+    }
+
+    lifts_start = imu_lifts();
+    odo0        = motor_odometer();
+    (void)motion_drive(S2_SPEED_BARCODE, 1000);
+
+    do
+    {
+        tk_dly_tsk(10);
+        motion_get_status(&status);
+    } while (MOT_RES_BUSY == status.result);
+
+    b_lifted = (imu_lifts() != lifts_start);
+    tm_printf(app_str("[S4-L01] try %d: %s after %d mm\n"), try_no,
+              b_lifted ? "lift seen, motors off" : "NO lift seen, drive ended",
+              motion_counts_to_mm(motor_odometer() - odo0));
+
+    return b_lifted;
+}
+
+/** S4-L01: LIFT_TRIES tries; returns how many lifts stopped the motors. */
+LOCAL int32_t lift_tries (void)
+{
+    int32_t seen = 0;
+    int32_t kdx;
+
+    for (kdx = 1; kdx <= LIFT_TRIES; kdx++)
+    {
+        seen += lift_try(kdx) ? 1 : 0;
+    }
+
+    return seen;
+}
+
 /** Stage 4 hands-on tests: IMU found, tilt view, ramp height runs. */
 EXPORT void subsystem4_test_stage (void)
 {
@@ -298,6 +353,10 @@ EXPORT void subsystem4_test_stage (void)
     }
 
     tm_printf(app_str("[S4-R01] all runs done\n"));
+
+    /* S4-L01 (lecturer, 13 Nov): lifting stops the motors */
+    TEST_CHECK("S4-L01", LIFT_TRIES == lift_tries(),
+               "every lift stopped the motors");
 
     TEST_SUMMARY("subsystem4 stage 4");
 }

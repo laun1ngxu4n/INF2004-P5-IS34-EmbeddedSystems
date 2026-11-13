@@ -11,6 +11,9 @@ code in `app_program/`. Read before doing anything:
    Week 13 evidence, the retest list in section 7.2), the binary MQTT format
    [`docs/team/MQTT_WIRE_FORMAT.md`](docs/team/MQTT_WIRE_FORMAT.md), and the course
    documents in [`docs/team/course/`](docs/team/course/).
+   IMU requirement change (lecturer, 13 Nov: collision detection removed,
+   lifting the robot must stop the motors; built 13 Nov):
+   [`docs/team/course/IMU_REQUIREMENT_CHANGE.md`](docs/team/course/IMU_REQUIREMENT_CHANGE.md).
 4. How to run the tests: [`testing/TESTING_GUIDE.md`](testing/TESTING_GUIDE.md).
    Coding standard: [`docs/team/BARR_C_DEVIATIONS.md`](docs/team/BARR_C_DEVIATIONS.md).
 

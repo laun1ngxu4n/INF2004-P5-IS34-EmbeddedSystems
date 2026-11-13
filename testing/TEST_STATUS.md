@@ -567,6 +567,12 @@ than the robot, so the robot tips over it instead of driving up a slope.
   - Runs 2 and 4 came right after a reported run: the "no second report
     for 600 mm" distance carried over into the next run. Calibrating at
     the start of a run now resets it.
+- [ ] ⬜ **S4-L01 lift stop (lecturer, 13 Nov; replaces IMU collision
+  detection): built 13 Nov, not run yet.** Gravity more than 35 deg from
+  the calibrated level for 100 ms = motors off as STOP, Mission told,
+  event `robot lifted or tipped over ...`. Stage 4 image, 3 tries; in the
+  Mission, lift at the end of every run. See
+  `docs/team/course/IMU_REQUIREMENT_CHANGE.md`.
 
 ## Stage 5: telemetry + MQTT (demo image)
 

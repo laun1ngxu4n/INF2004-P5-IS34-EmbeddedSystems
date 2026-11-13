@@ -32,7 +32,7 @@ describe; **Drop** = remove, or report as "not done / not tested".
 | FR9 | FAULT on collision, stall, **critically low battery**, line loss, no bypass, timeout, missed heartbeat | Remove **low battery** (GP28 removed). Built today: STOP (button/MQTT) stops at once; line lost, no clear side, blocked leg, sonar fault, manoeuvre timeout stop and report. **Collision, stall, task heartbeats and fault latching: not built** | TEAM.md 7; safety task not in essentials |
 | FR10 | MQTT heartbeat while connected | The template's heartbeat runs every **5 s** on its own topic; NFR5b's 1 s is **not met**. Either change it to 1 s or say telemetry (1 s) serves as the heartbeat | Not changed yet |
 | FR12 | ... report **mission complete** | START/STOP (GP20/GP21 or MQTT) built. **Mission complete: not built** (no end marker; Z decoding was disabled anyway) | Course end convention unknown |
-| FR13 | motion classes, collisions, turn rate | **Not built** (drop or "not implemented") | Essentials only |
+| FR13 | motion classes, collisions, turn rate | **Not built** (drop or "not implemented"). **13 Nov (lecturer): IMU collision detection removed; replaced by "lifted or overturned: motors stop at once"** (built, `docs/team/course/IMU_REQUIREMENT_CHANGE.md`) | Essentials only; lecturer 13 Nov |
 | FR14, FR15 | pending safety events, epoch/command-ID rejection, ordered processing | Simplified: one event flag for Mission + command ids from Motion (`motion_get_status`); STOP is a shared "reason" word that always wins. No epochs, no safety queue | Simpler design for single core |
 | FR16 | blocked bypass stops; **retrace** to the stop pose | Blocked bypass stops and reports. **Retrace: not built** | Essentials only |
 

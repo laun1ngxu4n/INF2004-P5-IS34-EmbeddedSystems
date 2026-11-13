@@ -19,10 +19,10 @@ IMPORT int32_t imu_one_wheel_mm10 (void); /* one wheel up: T x sin(side tilt) */
 IMPORT int32_t imu_ramp_peak_mm10 (void); /* last reported ramp peak, 0.1 mm */
 IMPORT uint32_t imu_ramp_reports (void);  /* ramps reported since boot */
 IMPORT uint32_t imu_jolts (void); /* samples skipped as jolts since boot */
+IMPORT uint32_t imu_lifts (void); /* lifts that stopped the motors */
 
 IMPORT void imu_task (int32_t stacd, void * exinf);
 
 #endif /* IMU_H */
 
 /*** end of file ***/
-

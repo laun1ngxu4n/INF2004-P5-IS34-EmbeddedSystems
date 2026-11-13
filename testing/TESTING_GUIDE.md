@@ -335,6 +335,9 @@ line found after every manoeuvre.
 4. `cd build_make && make NET=lwip MQTT=1` and flash
    `mtk3pico_smp0_usb_cdc_wifi_lwip_mqtt.uf2`.
 5. On the laptop: `pip install paho-mqtt`, then `python tools/panel/is34_panel.py`.
+   Or, with no Python (any laptop): `tools/panel/exe/is34_panel.exe`, see
+   `tools/panel/exe/README.txt` (Mosquitto still needed; the robot's image
+   has the broker laptop's IP built in).
    The panel shows the status line and events, and has START, STOP
    (Space) and mapping buttons; it logs everything to `logs/panel/` (the robot's own console to `logs/robot/`).
    "Start broker" runs Mosquitto on port 1884

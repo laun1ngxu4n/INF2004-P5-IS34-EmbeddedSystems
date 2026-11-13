@@ -39,6 +39,7 @@ import os
 import queue
 import random
 import subprocess
+import sys
 import time
 import tkinter as tk
 from tkinter import filedialog, ttk
@@ -47,10 +48,20 @@ import paho.mqtt.client as mqtt
 
 import is34_wire as wire
 
-HERE = os.path.dirname(os.path.abspath(__file__))
-REPO = os.path.dirname(os.path.dirname(HERE))       # tools/panel -> the repo
-LOG_DIR = os.path.join(REPO, "logs", "panel")        # what the panel showed
-ROBOT_DIR = os.path.join(REPO, "logs", "robot")      # the robot's console
+if getattr(sys, "frozen", False):
+    # The packaged is34_panel.exe (tools/panel/build_exe.bat): its files are
+    # unpacked to a temporary folder, so the broker conf comes from there and
+    # everything written (logs, last mapping) goes next to the .exe.
+    HERE = sys._MEIPASS                                  # bundled files
+    WRITE = os.path.dirname(os.path.abspath(sys.executable))
+    LOG_DIR = os.path.join(WRITE, "logs", "panel")
+    ROBOT_DIR = os.path.join(WRITE, "logs", "robot")
+else:
+    HERE = os.path.dirname(os.path.abspath(__file__))
+    WRITE = HERE
+    REPO = os.path.dirname(os.path.dirname(HERE))   # tools/panel -> the repo
+    LOG_DIR = os.path.join(REPO, "logs", "panel")    # what the panel showed
+    ROBOT_DIR = os.path.join(REPO, "logs", "robot")  # the robot's console
 MOSQUITTO = r"C:\Program Files\mosquitto\mosquitto.exe"
 OFFLINE_S = 3.0                 # no status line for this long = offline
 LOG_VIEW_LINES = 4000           # lines kept in the Robot log view (the file keeps all)
@@ -69,7 +80,7 @@ STATE_COLOURS = {"IDLE": "#888888", "CAL": "#d9a400", "RUN": "#2a9d3a"}
 MOVES = [("L", "↰ Turn LEFT"), ("R", "↱ Turn RIGHT"), ("F", "↑ Go STRAIGHT"),
          ("U", "↶ U-TURN")]
 CODE_CHARS = [chr(c) for c in range(ord("A"), ord("Z") + 1)] + [str(d) for d in range(10)]
-MAP_FILE = os.path.join(HERE, "is34_panel_mapping.txt")   # the last one picked
+MAP_FILE = os.path.join(WRITE, "is34_panel_mapping.txt")   # the last one picked
 MOVE_WORDS = {"L": "L", "LEFT": "L", "R": "R", "RIGHT": "R", "F": "F", "S": "F",
               "STRAIGHT": "F", "FORWARD": "F", "U": "U", "UTURN": "U", "U-TURN": "U",
               "UTURNS": "U", "BACK": "U"}

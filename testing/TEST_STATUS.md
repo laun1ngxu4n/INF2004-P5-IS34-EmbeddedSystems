@@ -312,6 +312,14 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   1500 / 700. **Put back to 1500 / 700 the same day**; the cut-start
   decode and the straight hold stay. The hand live view does not show
   what driving over the code gives.
+- **15 Nov, course run 5 (`..._course_mission_5_robot.txt`): ✅ barcode F read cleanly**
+  (`narrow 3.4 mm, wide 9.3 mm -> LEFT at next junction`), then `junction 3
+  (crossing): LEFT (barcode F)`. STOP was pressed during the planned
+  115 mm drive past the junction centre (it looked like a miss), so the
+  left spin did not run: let it go next time. Runs 13:52-14:04 saw only
+  four 7 mm marks (`7 7 7 20 7 7 7`) with both threshold settings:
+  something other than the bars was under the sensor until the barcode
+  was changed by the tester.
 - [ ] 🟡 **S5-B01 / S5-B02** (2C): right move at each junction, U-turn, stop on
   an unmapped code
 

@@ -341,10 +341,11 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   going 100 mm further along it`, else `obstacle longer than expected`).
   Turning on the spot beside the box is safe: centre at least 185 mm from
   its side, corners swing about 155 mm. Tests: TESTING_GUIDE Stage 3 step 4.
-- **Changed 15 Nov, not run yet:** obstacle stop distance 250 -> 200 mm
+- **Changed 15 Nov, not run yet:** obstacle stop distance 250 -> 185 mm
   (`S5_TRIP_MM`; team: it stopped too far away), scan back-up only if
-  nearer than 170 mm (`SCAN_NEAR_MM`, was 220). Expect "obstacle ahead at
-  about 180-195 mm". Tribunal 1 minimum: 150 mm.
+  nearer than 155 mm (`SCAN_NEAR_MM`, was 220). Expect "obstacle ahead at
+  about 165-175 mm". Tribunal 1 minimum: 150 mm (little margin: re-check if
+  the speed is raised).
 - [ ] 🟡 **S5-B01 / S5-B02** (2C): right move at each junction, U-turn, stop on
   an unmapped code
 

@@ -341,9 +341,15 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   going 100 mm further along it`, else `obstacle longer than expected`).
   Turning on the spot beside the box is safe: centre at least 185 mm from
   its side, corners swing about 155 mm. Tests: TESTING_GUIDE Stage 3 step 4.
-- **Changed 15 Nov, not run yet:** obstacle stop distance 250 -> 185 mm
+- **15 Nov, course run 7 (`..._course_mission_7_robot.txt`, stop at 185, 120 mm/s): ✅
+  whole sequence.** Barcode F -> LEFT at junction 2; obstacle stopped at
+  168 mm, width 116 mm (the course box, about 13 cm), bypass LEFT, `line
+  met behind the box, 503 mm along` (the track curving behind it: the
+  right line, tester), `bypass done`; hump `ramp peak height 18.5 mm`;
+  lifted at the end: motors off.
+- **Changed 15 Nov, not run yet:** obstacle stop distance 250 -> 190 mm
   (`S5_TRIP_MM`; team: it stopped too far away), scan back-up only if
-  nearer than 155 mm (`SCAN_NEAR_MM`, was 220). Expect "obstacle ahead at
+  nearer than 160 mm (`SCAN_NEAR_MM`, was 220). **Mission speed 120 -> 135 mm/s** (`S5_FOLLOW_SPEED`; stage tests stay at 120): re-check the tightest left and right curves and one bypass. Expect "obstacle ahead at
   about 165-175 mm". Tribunal 1 minimum: 150 mm (little margin: re-check if
   the speed is raised).
 - [ ] 🟡 **S5-B01 / S5-B02** (2C): right move at each junction, U-turn, stop on

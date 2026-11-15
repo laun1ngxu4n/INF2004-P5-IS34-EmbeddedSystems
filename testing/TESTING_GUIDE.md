@@ -244,9 +244,20 @@ The panel remembers the last mapping you picked
    is inside W +/- U. If every width is too big (or too small) by about
    the same amount, raise (or lower) `S5_BEAM_HALF_DEG`.
 4. **S5-O02 bypass**: obstacle on the line, START. It stops, scans
-   twice, reports the width, drives round on the clear side and finds the
+   (a second time, 100 mm further back, only if the first scan missed an
+   edge: 15 Nov), reports the width, drives round on the clear side and finds the
    line again (`[EVT] bypass done`). Pass: no contact, stays within 300 mm
    of the line, back on the line within 500 mm after the obstacle.
+   **Added 15 Nov (two checks):**
+   - **Long box** (30-40 cm front to back, or two boxes end to end along
+     the line): before driving back to the line it looks toward it; with
+     the box still beside it says `box still beside: going 100 mm further
+     along it` and tries again (up to 4 times, then `obstacle longer than
+     expected`). Pass: no contact, back on the line behind the box.
+   - **Something in a leg's way** (a second box where the robot will drive
+     sideways or past the first): the sonar watches ahead on every leg and
+     stops with `something in the way during the bypass` when it is
+     closer than 150 mm. Pass: it stops before touching it.
    Over WiFi (`images/wifi/is34_test_stage3_wifi.uf2`) this part first
    waits for a mapping: send one from the panel, or press START once to
    use the TEST mapping `A=L,B=R,C=F,D=U` (it reminds you every 10 s);

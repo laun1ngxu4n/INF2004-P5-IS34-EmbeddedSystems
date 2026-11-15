@@ -331,6 +331,16 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   turned about 12 deg while backing up. **Changed 15 Nov, not run yet:**
   when scan 1 sees both edges it is the profile; the back-up and scan 2
   only when scan 1 missed an edge.
+- **Added 15 Nov, not run yet (bypass safety, team request):** (1) the
+  sonar watches ahead on the sideways leg, the leg past the box and the
+  leg back to the line: 2 pings nearer than 150 mm (or no ECHO) stop the
+  robot, `something in the way during the bypass`; (2) after turning back
+  toward the line it pings first: an echo nearer than the line means the
+  box is longer than the assumed 150 mm, so it turns back, drives 100 mm
+  further along it and looks again, up to 4 times (`box still beside:
+  going 100 mm further along it`, else `obstacle longer than expected`).
+  Turning on the spot beside the box is safe: centre at least 185 mm from
+  its side, corners swing about 155 mm. Tests: TESTING_GUIDE Stage 3 step 4.
 - [ ] 🟡 **S5-B01 / S5-B02** (2C): right move at each junction, U-turn, stop on
   an unmapped code
 

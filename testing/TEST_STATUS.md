@@ -279,6 +279,21 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   detected (`junction 1 at 1194 mm: crossing`), no false junctions. No
   barcode on this track: barcodes (S3-B00, 2B, 2C) still to run. Stage 0
   checks in the image all PASS; no unexpected faults.
+- **15 Nov course runs, Mission image (`subsystem5/logs/2026-11-15_course_mission_1/2_robot.txt`):
+  barcode F (mapped LEFT) before a junction every run; the robot never
+  turned left.** Two reads reached the decoder, both `READ_FAIL`: 23
+  elements (a narrow bar lost in the letter, a 19.2 mm merged space) and
+  25 elements, where the F and the closing `*` read cleanly but the first
+  4 elements of the opening `*` were never seen. The other runs broke the
+  code into short pieces (`inbar` on and off, under 20 elements: dropped
+  as noise). Narrow bars read only 1.5-2.3 mm against 4.3-5.8 mm narrow
+  spaces: the sensor counts only the darkest middle of each bar, so thin
+  bars are at its limit. **Added 15 Nov, not run yet:** `decode_cut_star`,
+  a code whose first 3-4 elements were lost (the 25-element read now
+  decodes as F; the real C on the PC: 3870 synthetic cut codes read, 0
+  wrong; 2 false in 50 000 random patterns). **Still to do: the B
+  thresholds** (`S3_BAR_DELTA` 700, `S3_BAR_BLACK_MIN` 1500) from a
+  Stage 2 live view of the course barcode (white and thin-bar readings).
 - [ ] 🟡 **S5-B01 / S5-B02** (2C): right move at each junction, U-turn, stop on
   an unmapped code
 

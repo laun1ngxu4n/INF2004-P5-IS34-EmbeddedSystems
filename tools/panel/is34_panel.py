@@ -12,7 +12,7 @@ written to logs/panel/is34_<date>_<time>.log (git-ignored).
 
 Robot log tab: images built with MQTT send a copy of the whole console
 (the same text as the USB console) on is34/log.  The tab shows it live;
-"Save log..." writes everything since the last "Clear" to a text file
+"Save log" writes everything since the last "Clear" to a new text file in logs/robot
 (send that file instead of a copied USB console).  It is also written
 as it comes to logs/robot/is34_<date>_<time>_robot.txt (git-ignored).
 START and STOP here also answer the stage tests' "press START" prompts.
@@ -42,7 +42,7 @@ import subprocess
 import sys
 import time
 import tkinter as tk
-from tkinter import filedialog, ttk
+from tkinter import ttk
 
 import paho.mqtt.client as mqtt
 
@@ -317,7 +317,7 @@ class Panel:
         nb.add(rl, text="Robot log")
         bar = ttk.Frame(rl)
         bar.pack(fill="x", pady=(0, 4))
-        ttk.Button(bar, text="Save log...", command=self.save_robot_log).pack(side="left")
+        ttk.Button(bar, text="Save log", command=self.save_robot_log).pack(side="left")
         ttk.Button(bar, text="Clear", command=self.clear_robot_log).pack(side="left", padx=4)
         self.follow_var = tk.BooleanVar(value=True)
         ttk.Checkbutton(bar, text="follow", variable=self.follow_var).pack(side="left", padx=4)
@@ -452,14 +452,16 @@ class Panel:
         if not self.robot_text:
             self.add_event("panel", "robot log is empty, nothing saved")
             return
-        path = filedialog.asksaveasfilename(
-            parent=self.root, title="Save robot log", defaultextension=".txt",
-            initialdir=ROBOT_DIR, initialfile=time.strftime("robot_log_%Y%m%d_%H%M.txt"),
-            filetypes=[("Text", "*.txt"), ("All files", "*.*")])
-        if not path:
+        # Saved straight away, no file dialog (15 Nov: the dialog did not
+        # appear and nothing was saved). One file per press, in logs/robot.
+        try:
+            os.makedirs(ROBOT_DIR, exist_ok=True)
+            path = os.path.join(ROBOT_DIR, time.strftime("robot_log_%Y%m%d_%H%M%S.txt"))
+            with open(path, "w", encoding="utf-8") as f:
+                f.write("".join(self.robot_text))
+        except OSError as err:
+            self.add_event("panel", f"robot log NOT saved: {err}")
             return
-        with open(path, "w", encoding="utf-8") as f:
-            f.write("".join(self.robot_text))
         self.add_event("panel", f"robot log saved: {path}")
 
     def clear_robot_log(self):

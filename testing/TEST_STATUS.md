@@ -301,6 +301,11 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   thin bar plus an 11 mm wide space), so B swung across the bars and the
   code broke into pieces. **Changed 15 Nov, not run yet:** the steering is
   held straight for the whole code (until 40 mm without an edge).
+- **15 Nov, Stage 2 live view of the course barcode (`subsystem3/logs/2026-11-15_stage2_liveview_course_barcode.txt`):
+  the cause.** White 160-220, wide bars 2000-3600, thin bars only
+  929-1535: most thin bars never passed `S3_BAR_BLACK_MIN` 1500.
+  **Changed 15 Nov, not run yet:** `S3_BAR_BLACK_MIN` 1500 -> 700,
+  `S3_BAR_DELTA` 700 -> 300 (noise +-20).
 - [ ] 🟡 **S5-B01 / S5-B02** (2C): right move at each junction, U-turn, stop on
   an unmapped code
 

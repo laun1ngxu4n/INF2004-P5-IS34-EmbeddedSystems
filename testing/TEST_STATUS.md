@@ -318,8 +318,11 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   115 mm drive past the junction centre (it looked like a miss), so the
   left spin did not run: let it go next time. Runs 13:52-14:04 saw only
   four 7 mm marks (`7 7 7 20 7 7 7`) with both threshold settings:
-  something other than the bars was under the sensor until the barcode
-  was changed by the tester.
+  something other than the bars was under the sensor. **The fix was
+  only the barcode's position and tilt** (tester, 15 Nov; same print, not
+  reprinted): square to the line, B over the middle of the bars. So the
+  thin-bar readings of the day (929-1535, 1.5-2.3 mm) came from B crossing
+  the bars at an angle or near their ends, not from the print.
 - [ ] 🟡 **S5-B01 / S5-B02** (2C): right move at each junction, U-turn, stop on
   an unmapped code
 

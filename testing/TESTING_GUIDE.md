@@ -308,6 +308,15 @@ mosquitto_sub -h <broker IP> -t 'is34/#' -v
 
 ### Stage 6: whole course (demo image or `_test_s6`), whole team
 
+**Barcode placement (15 Nov: the whole day's failed reads were this).**
+Lay each barcode square to the line (bars at 90 deg to the tape), flat,
+taped only on its white margins, and placed so the barcode sensor (about
+7 cm left of the line sensors) passes over the **middle** of the bars. A
+barcode at a slight angle or off to the side gave thin bars that read
+faint and narrow, codes in pieces, or no read at all; the same print laid
+square read cleanly (`narrow 3.4 mm, wide 9.3 mm`). Check with the robot
+on the line just before it: where will the sensor cross?
+
 **SYS-01**, 3 full runs: send the 4-character mapping, START, course with
 barcodes, junctions, an obstacle and the ramp. Pass: every move at its
 junction, obstacle passed with its width reported, ramp height reported,

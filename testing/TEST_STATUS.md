@@ -306,6 +306,12 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   929-1535: most thin bars never passed `S3_BAR_BLACK_MIN` 1500.
   **Changed 15 Nov, not run yet:** `S3_BAR_BLACK_MIN` 1500 -> 700,
   `S3_BAR_DELTA` 700 -> 300 (noise +-20).
+- **15 Nov, course run 4 with 700 / 300 (`..._course_mission_4_robot.txt`): worse.**
+  Only 7-element pieces of even 6-7 mm blobs (neighbouring thin bars and
+  spaces run together while driving), against 23-25 of 29 elements with
+  1500 / 700. **Put back to 1500 / 700 the same day**; the cut-start
+  decode and the straight hold stay. The hand live view does not show
+  what driving over the code gives.
 - [ ] 🟡 **S5-B01 / S5-B02** (2C): right move at each junction, U-turn, stop on
   an unmapped code
 

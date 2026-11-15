@@ -61,8 +61,11 @@
    wide bars 2000-3600, but thin bars only 929-1535, and the gap between
    two thin bars does not fall back to white, so a 700 step (and the 1500
    floor below) missed thin bars: the 15 Nov course reads lost bars, broke
-   into pieces or merged.  Noise is +-20, so 300 keeps a wide margin. */
-#define S3_BAR_DELTA    300 /* white noise is +-20 */
+   into pieces or merged.  Noise is +-20, so 300 keeps a wide margin.
+   BACK to 700 the same day: driving over the code with 700 / 300 gave
+   only 7-element pieces of even 6-7 mm blobs (neighbouring thin bars and
+   spaces run together), against 23-25 of 29 elements with 1500 / 700. */
+#define S3_BAR_DELTA    700 /* white noise is +-20 */
 /* never black below this (white up to 570). Raised from 500 / 900 on 7 Nov
  * at the team's request (fewer faint marks seen as bars); simulated "A
  * small" still 54/54, 800 / 1800 began to lose reads */
@@ -70,7 +73,8 @@
  * 700 is above every white seen (220 here, 570 on 7 Nov's worst surface).
  * A faint mark (grout) seen as a bar makes a short run the decoder drops,
  * or a stray mark beside a code, which it skips. */
-#define S3_BAR_BLACK_MIN 700
+/* BACK to 1500 the same day (see S3_BAR_DELTA). */
+#define S3_BAR_BLACK_MIN 1500
 /* learned: black-white gap needed before anything counts as black */
 #define S3_BAR_MIN_SPAN 400
 

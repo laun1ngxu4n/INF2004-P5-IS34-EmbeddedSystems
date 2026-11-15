@@ -31,6 +31,7 @@
  * bar: 3.5 mm small codes = 44 counts */
 #define MERGE_COUNTS    15
 #define MIN_ELEM_REPORT 20 /* fewer elements = noise, not reported */
+#define SHORT_RUN_PRINT 5  /* ... but printed from this many (15 Nov) */
 
 /* Code 39 */
 #define C39_CHAR_ELEMS 9  /* bars and spaces in a character */
@@ -1363,6 +1364,28 @@ LOCAL uint32_t code_ended (bar_read_t * p_read, uint32_t seq)
         APP_UNLOCK(irq_state);
         g_seq_now = seq_now;
         tk_set_flg(gh_flg_mission, MSN_FLG_BARCODE);
+    }
+    else if (p_read->count >= SHORT_RUN_PRINT)
+    {
+        /* 15 Nov: a barcode broken into pieces left no trace; a piece of
+           several elements is printed (a grout line is 1-2) */
+        tm_printf(app_str("[S3] short run dropped (%d elements), widths "
+                          "(mm):"),
+                  p_read->count);
+
+        for (idx = 0; idx < p_read->count; idx++)
+        {
+            /* counts x 0.08 mm, a few hundred at most: 0.1 mm fits */
+            int32_t mm10 = p_read->elem[idx] * S2_UM_PER_COUNT / 100;
+
+            tm_printf(app_str(" %d.%d"), mm10 / 10, mm10 % 10);
+        }
+
+        tm_printf(app_str("\n"));
+    }
+    else
+    {
+        /* 1-4 elements: a grout line or a tile join, nothing to report */
     }
 
     return seq_now;

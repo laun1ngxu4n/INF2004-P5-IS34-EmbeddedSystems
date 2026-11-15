@@ -232,6 +232,9 @@ LOCAL void start_run (void)
     int32_t tick;
 
     say(app_str("start"));
+    /* which barcode thresholds this image has (15 Nov: changed in the day) */
+    tm_printf(app_str("[S3] barcode: black from %d, step %d\n"),
+              S3_BAR_BLACK_MIN, S3_BAR_DELTA);
     set_state(M_CAL);
     motion_halt();
 
@@ -1181,4 +1184,3 @@ EXPORT void mission_task (int32_t stacd, void * p_exinf)
 }
 
 /*** end of file ***/
-

@@ -26,8 +26,9 @@
  * low-pass filter and only count while the robot moves.  When the robot is
  * level again after a climb, the peak is reported (telemetry_event) and kept
  * for telemetry.  L x sin(peak pitch) (L = S4_L_MM) is reported beside it.
- * Safety (collision, stall) is not in the essentials plan: safety_task
- * stays the Stage 0 timing stub.
+ * Collision detection was removed from the requirements (lecturer, 13 Nov);
+ * instead imu.c stops the motors when the robot is lifted or tipped over.
+ * Safety (safety.c) watches stalls and the Motion task.
  */
 #define S4_L_MM 80 /* axle to front support, measured 6 Nov */
 /* One-wheel hump while driving: T x sin(side tilt) read about 1.6 times

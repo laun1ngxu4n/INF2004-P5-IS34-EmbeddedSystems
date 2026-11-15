@@ -1,0 +1,42 @@
+# Builds the robot simulator (tools/websim) with YOUR current app_program/ code
+# and publishes it as a web page on GitHub Pages.
+# One-time setup: repo Settings > Pages > Source = "GitHub Actions".
+name: websim
+# Manual only (15 Nov): it ran and failed on every firmware push, sending a
+# notification each time. Run it from Actions > websim > "Run workflow"
+# once GitHub Pages is set up (Settings > Pages > Source = GitHub Actions).
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install clang and the wasm linker
+        run: sudo apt-get update && sudo apt-get install -y clang lld
+      - name: Build firmware.wasm from app_program/
+        run: sh tools/websim/build.sh
+      - name: Check the firmware on the test courses
+        run: node tools/websim/test/check.mjs
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: tools/websim/web
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -23,7 +23,7 @@ subsystem, ask its owner or open a pull request for them to review.
 | 1 | B1 Muhammad Ikhwan: WiFi/MQTT telemetry, remote commands, NeoPixel + buzzer | | mhdikhwan | `app_program/subsystem1/` | `testing/subsystem1/` |
 | 2 | B2 Ng Chern Loong Branson: motors, encoders, PID, distance moves, spin turns | | | `app_program/subsystem2/` | `testing/subsystem2/` |
 | 3 | B3 Lau Ning Xuan: IR line following, Code 39 barcode, junctions | | | `app_program/subsystem3/` | `testing/subsystem3/` |
-| 4 | B4 Muhammad Haziq: IMU (humps, collisions), Safety / Fault Monitor | | | `app_program/subsystem4/` | `testing/subsystem4/` |
+| 4 | B4 Muhammad Haziq: IMU (humps, lift stop; collisions removed 13 Nov), Safety / Fault Monitor | | | `app_program/subsystem4/` | `testing/subsystem4/` |
 | 5 | B5 Muhammad Irfan: ultrasonic + servo, obstacle bypass, Mission Controller, integration | | | `app_program/subsystem5/` | `testing/subsystem5/` |
 
 Shared files (`app_program/app_main.c`, `app_program/app.h`, this file)

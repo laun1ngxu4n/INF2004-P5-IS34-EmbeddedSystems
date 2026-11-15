@@ -116,7 +116,7 @@ speed 0 is now refused (it was undefined behaviour; nothing passes 0).
 
 | Task | Pri | Period | Does |
 |---|---|---|---|
-| safety_task (S4) | 5 | 20 ms | timing stub only (collision/stall not in the essentials plan) |
+| safety_task (S4) | 5 | 20 ms | stall and Motion-hung stop (Change Requirement 1); IMU collision removed 13 Nov |
 | motion_task (S2) | 6 | 10 ms | encoders -> speed -> PI per wheel -> PWM; drive / turn / follow commands |
 | mission_task (S5) | 7 | event, 100 ms | the course state machine |
 | line_task (S3) | 8 | 20 ms | IR -> steering (IF-03), junction / line-lost events |
@@ -156,7 +156,7 @@ speed 0 is now refused (it was undefined behaviour; nothing passes 0).
   end of code after 40 mm quiet, Code 39 table (A-Z, 0-9, symbols),
   3 widest of 9 = wide, `*` start check, reversed if needed. Mapping
   parser: exactly 4 pairs `K=L,Q=R,X=F,M=U`, each char and move once.
-- **Stage 3 (S5)**: forward watch trips at 250 mm (2 readings).
+- **Stage 3 (S5)**: forward watch trips at 190 mm (Mission speed 135 mm/s since 15 Nov) (2 readings; 250 until 15 Nov).
   Scan 40-140 deg in 5 deg steps, servo settle 3 ms/deg (>= 60 ms),
   5 pings per ray, median; open space = no echo or farther than front +
   250 mm; on the obstacle while within 150 mm of the front distance; edge
@@ -207,6 +207,9 @@ Week 6 document section by section: what to change, add or drop.
   rejoin the line.
 - Ramp (instructor): only the lower practice ramp height matters.
 - IMU part is the LSM303D, not the LSM303DLHC the design names.
+- **IMU (lecturer, 13 Nov): collision detection removed; lifting or
+  tipping the robot over must stop the motors** (lifting ends the demo
+  run). Built 13 Nov: `docs/team/course/IMU_REQUIREMENT_CHANGE.md`.
 - Test plan "essentials only" (`testing/PLAN.md`): dropped tests are
   listed there and must be reported as "not tested".
 
@@ -242,8 +245,10 @@ Week 6 document section by section: what to change, add or drop.
 
 ## 9. Not built / open
 
-- Safety task: collision (2 g), stall, fault latching (FR9 minus battery)
-  are not in the essentials plan; `safety_task` is the Stage 0 stub.
+- Safety task: collision (2 g) is **removed** from the requirements
+  (lecturer, 13 Nov; the IMU stops the motors when the robot is lifted
+  instead). Stall and fault latching (FR9 minus battery) were not in the
+  essentials plan; `safety_task` is the Stage 0 stub.
   Change Requirement 1 and the tribunal (Safety cuts the motors if
   Motion hangs) need it: `CHANGE_REQ1.md` section 8 (stall and Motion-hung are now built).
 - Notification (NeoPixel / buzzer) not built.

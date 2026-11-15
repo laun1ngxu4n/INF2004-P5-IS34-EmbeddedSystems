@@ -1,0 +1,330 @@
+P5-IS34 robot log, 15 Nov 2026, Stage 2 WiFi test image (commit 8c3a778): IR live view with the course barcode F slid under B by hand. Hotspot name blanked.
+
+(128.07 @ 0.6) | 12 (12)
+wifi: link status -> joined AP, waiting for IP (1)
+[TEST] barcode: 100 wakes in 2000 ms (expected about 100), longest interval 20487 us (limit 35 ms), overruns 0
+[TEST] S3-U03 PASS  wake rate
+[TEST] S3-U04 PASS  no overrun, longest interval within limit
+[TEST] subsystem3 SUMMARY 4 passed, 0 failed
+wifi: link status -> joined AP, no IP yet (2)
+wifi: link up, ip=10.253.76.102
+[TEST] safety: 101 wakes in 2000 ms (expected 100), longest interval 21297 us (limit 35 ms), overruns 0
+[TEST] S4-U01 PASS  wake rate
+[TEST] S4-U02 PASS  no overrun, longest interval within limit
+mqtt: connected to 10.253.76.225
+mqtt: subscribed to mtk3smp-pico/heartbeat
+mqtt: subscribed to mtk3smp-pico/heartbeat
+mqtt: connection status 256, retrying in 3s
+[TEST] imu: 201 wakes in 2000 ms (expected 200), longest interval 11481 us (limit 25 ms), overruns 0
+[TEST] S4-U03 PASS  wake rate
+[TEST] S4-U04 PASS  no overrun, longest interval within limit
+[TEST] subsystem4 SUMMARY 4 passed, 0 failed
+mqtt: connected to 10.253.76.225
+mqtt: subscribed to mtk3smp-pico/heartbeat
+mqtt: subscribed to mtk3smp-pico/heartbeat
+[TEST] mission: 20 wakes in 2000 ms (expected about 18), longest interval 110984 us (limit 125 ms), overruns 0
+[TEST] S5-U01 PASS  wake rate
+[TEST] S5-U02 PASS  no overrun, longest interval within limit
+[TEST] obstacle: 33 wakes in 2000 ms (expected 33), longest interval 61258 us (limit 75 ms), overruns 0
+[TEST] S5-U03 PASS  wake rate
+[TEST] S5-U04 PASS  no overrun, longest interval within limit
+[tmg] t=20136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |    200   0 | 98.84-101.09 (148.09 @ 0.6) | 2531 (2531)
+[tmg] motion     6  10 |   1989  11 | 8.23-11.78 (127.72 @ 0.6) | 76 (109)
+[tmg] line       8  20 |    995   5 | 18.50-21.55 (127.88 @ 0.6) | 57 (78)
+[tmg] barcode   10  10 |    995   0 | 18.42-21.66 (137.90 @ 0.6) | 18 (18)
+[tmg] safety     5  20 |    995   5 | 18.54-21.50 (127.66 @ 0.6) | 43 (45)
+[tmg] imu        9  10 |   1989  11 | 8.11-11.90 (127.94 @ 0.6) | 699 (699)
+[tmg] mission    7 100 |    199   0 | 10.70-110.98 (227.84 @ 0.6) | 6 (7)
+[tmg] obstacle  11  60 |    332   1 | 58.33-61.65 (128.07 @ 0.6) | 26 (26)
+mqtt: TX [mtk3smp-pico/heartbeat] "hb 0" (heartbeat every 5 s, not printed)
+mqtt: RX [mtk3smp-pico/heartbeat] "hb 0"
+[TEST] mission: 3 pings in 3000 ms (expected 3)
+[TEST] INT-01 PASS  IF-01 ping from Telemetry wakes Mission once a second
+[TEST] subsystem5 SUMMARY 5 passed, 0 failed
+[TEST] === test run end ===
+
+[DRIVE] === Stage 2: line, junctions, barcodes ===
+[DRIVE] Speed 120 mm/s. STOP (GP21) stops at any time.
+
+[S3] IR live view for 30 s: slide black tape under each sensor. L R B = line sensor left of the tape, right of the tape, barcode (1 = black). Centred on the tape: L 0 and R 0
+[S3] B on its ANALOGUE output (GP28, module on 3V3): its pot does nothing here. Pass B over white, over black tape (it reads 0 until it has seen black once), and over a grout line or tile join. Each second: the lowest and highest reading. At the end: thresholds to copy into subsystem3.h. B reads 1 over WHITE = this module's output is lower over black: set S3_BAR_BLACK_HIGH 0
+[S3] B uses RELATIVE edges: black once the reading rises 700 above the lowest since the last bar (and is at least 1500), white once it falls 700 below the highest. White must stay under 1500 everywhere
+[S3] L 0  R 0  B 0
+[S3] B edges/s 0 (B now 0)
+[S3] B analogue now 184, this second 175..201 (learned white 160, black 223; they must differ by 400 or more)
+[S3] B edges/s 0 (B now 0)
+[S3] B analogue now 192, this second 174..202 (learned white 160, black 223; they must differ by 400 or more)
+[S3] B edges/s 0 (B now 0)
+[S3] B analogue now 1499, this second 179..1499 (learned white 160, black 1483; they must differ by 400 or more)
+[S3] L 0  R 0  B 1
+[S3] L 0  R 0  B 0
+[tmg] t=30136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |    300   0 | 98.55-101.44 (148.09 @ 0.6) | 2597 (2597)
+[tmg] motion     6  10 |   2989  11 | 7.17-12.25 (127.72 @ 0.6) | 60 (109)
+[tmg] line       8  20 |   1495   5 | 18.68-21.23 (127.88 @ 0.6) | 49 (78)
+[tmg] barcode   10  10 |   1495   0 | 18.57-21.36 (137.90 @ 0.6) | 22 (22)
+[tmg] safety     5  20 |   1495   5 | 18.77-21.14 (127.66 @ 0.6) | 32 (45)
+[tmg] imu        9  10 |   2989  11 | 7.17-12.21 (127.94 @ 0.6) | 673 (699)
+[tmg] mission    7 100 |    299   0 | 10.69-110.66 (227.84 @ 0.6) | 6 (7)
+[tmg] obstacle  11  60 |    499   1 | 58.53-61.45 (128.07 @ 0.6) | 14 (26)
+[S3] B edges/s 2 (B now 0)
+[S3] B analogue now 330, this second 177..1535 (learned white 160, black 1539; they must differ by 400 or more)
+[S3] B edges/s 0 (B now 0)
+[S3] B analogue now 1235, this second 187..1235 (learned white 160, black 1539; they must differ by 400 or more)
+[S3] B edges/s 0 (B now 0)
+[S3] B analogue now 1465, this second 176..1465 (learned white 160, black 1539; they must differ by 400 or more)
+[S3] L 0  R 0  B 1
+[S3] L 0  R 0  B 0
+[S3] L 0  R 0  B 1
+[S3] L 0  R 0  B 0
+[S3] B edges/s 4 (B now 0)
+[S3] B analogue now 219, this second 201..2720 (learned white 160, black 2729; they must differ by 400 or more)
+[S3] L 0  R 0  B 1
+[S3] L 0  R 0  B 0
+[S3] B edges/s 2 (B now 0)
+[S3] B analogue now 1096, this second 189..2443 (learned white 160, black 2729; they must differ by 400 or more)
+[S3] L 0  R 0  B 1
+[S3] L 0  R 0  B 0
+[S3] L 0  R 0  B 1
+[S3] L 0  R 0  B 0
+[S3] L 0  R 0  B 1
+[S3] L 0  R 0  B 0
+[S3] L 0  R 0  B 1
+[S3] L 0  R 0  B 0
+[tmg] t=40136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |    400   0 | 98.71-101.03 (148.09 @ 0.6) | 2566 (2597)
+[tmg] motion     6  10 |   3989  11 | 8.56-11.49 (127.72 @ 0.6) | 66 (109)
+[tmg] line       8  20 |   1995   5 | 18.49-21.54 (127.88 @ 0.6) | 60 (78)
+[tmg] barcode   10  10 |   1995   0 | 18.36-21.67 (137.90 @ 0.6) | 25 (25)
+[tmg] safety     5  20 |   1995   5 | 18.58-21.44 (127.66 @ 0.6) | 38 (45)
+[tmg] imu        9  10 |   3989  11 | 8.46-11.60 (127.94 @ 0.6) | 697 (699)
+[tmg] mission    7 100 |    399   0 | 10.69-110.90 (227.84 @ 0.6) | 6 (7)
+[tmg] obstacle  11  60 |    665   1 | 58.71-61.28 (128.07 @ 0.6) | 9 (26)
+[S3] B edges/s 10 (B now 0)
+[S3] B analogue now 197, this second 181..2479 (learned white 160, black 2729; they must differ by 400 or more)
+[S3] L 1  R 0  B 0
+[S3] L 0  R 0  B 0
+[S3] L 1  R 0  B 0
+[S3] L 0  R 0  B 0
+[S3] L 0  R 1  B 0
+[S3] L 0  R 0  B 0
+[S3] B edges/s 0 (B now 0)
+[S3] B analogue now 204, this second 187..212 (learned white 160, black 2729; they must differ by 400 or more)
+[S3] L 0  R 1  B 0
+[S3] L 1  R 0  B 0
+[S3] L 0  R 0  B 0
+[S3] L 1  R 0  B 0
+[S3] B edges/s 0 (B now 0)
+[S3] B analogue now 193, this second 185..213 (learned white 160, black 2729; they must differ by 400 or more)
+[S3] L 0  R 0  B 0
+[S3] L 1  R 0  B 0
+[S3] L 0  R 0  B 0
+[S3] L 0  R 0  B 1
+[S3] L 0  R 0  B 0
+[S3] B edges/s 2 (B now 0)
+[S3] B analogue now 195, this second 187..1389 (learned white 160, black 2729; they must differ by 400 or more)
+[S3] B edges/s 0 (B now 0)
+[S3] B analogue now 494, this second 185..929 (learned white 160, black 2729; they must differ by 400 or more)
+[S3] L 0  R 0  B 1
+[S3] L 0  R 0  B 0
+[S3] L 0  R 0  B 1
+[S3] L 0  R 0  B 0
+[S3] L 0  R 0  B 1
+[S3] L 0  R 0  B 0
+[S3] L 0  R 0  B 1
+[S3] L 0  R 0  B 0
+[S3] L 0  R 0  B 1
+[S3] L 0  R 0  B 0
+[tmg] t=50136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |    500   0 | 98.87-101.14 (148.09 @ 0.6) | 2581 (2597)
+[tmg] motion     6  10 |   4989  11 | 8.82-11.08 (127.72 @ 0.6) | 66 (109)
+[tmg] line       8  20 |   2495   5 | 18.75-21.28 (127.88 @ 0.6) | 54 (78)
+[tmg] barcode   10  10 |   2495   0 | 18.62-21.43 (137.90 @ 0.6) | 14 (25)
+[tmg] safety     5  20 |   2495   5 | 18.83-21.19 (127.66 @ 0.6) | 35 (45)
+[tmg] imu        9  10 |   4989  11 | 8.72-11.18 (127.94 @ 0.6) | 680 (699)
+[tmg] mission    7 100 |    499   0 | 10.70-110.68 (227.84 @ 0.6) | 6 (7)
+[tmg] obstacle  11  60 |    832   1 | 58.84-61.16 (128.07 @ 0.6) | 23 (26)
+[S3] B edges/s 10 (B now 0)
+[S3] B analogue now 197, this second 181..2314 (learned white 160, black 2729; they must differ by 400 or more)
+[S3] L 0  R 0  B 1
+[S3] L 0  R 0  B 0
+[S3] L 0  R 0  B 1
+[S3] L 0  R 0  B 0
+[S3] L 0  R 0  B 1
+[S3] L 0  R 0  B 0
+[S3] L 0  R 0  B 1
+[S3] L 0  R 0  B 0
+[S3] B edges/s 8 (B now 0)
+[S3] B analogue now 207, this second 187..3438 (learned white 160, black 3446; they must differ by 400 or more)
+[S3] L 0  R 0  B 1
+[S3] L 0  R 0  B 0
+[S3] L 0  R 0  B 1
+[S3] L 0  R 0  B 0
+[S3] L 0  R 0  B 1
+[S3] L 0  R 0  B 0
+[S3] B edges/s 6 (B now 0)
+[S3] B analogue now 204, this second 192..2478 (learned white 160, black 3446; they must differ by 400 or more)
+[S3] L 0  R 0  B 1
+[S3] L 0  R 0  B 0
+[S3] L 0  R 0  B 1
+[S3] L 0  R 0  B 0
+[S3] B edges/s 4 (B now 0)
+[S3] B analogue now 213, this second 187..2484 (learned white 160, black 3446; they must differ by 400 or more)
+[S3] L 0  R 0  B 1
+[S3] L 0  R 0  B 0
+[S3] B edges/s 2 (B now 0)
+[S3] B analogue now 210, this second 193..2433 (learned white 160, black 3446; they must differ by 400 or more)
+[tmg] t=60136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |    600   0 | 98.75-101.22 (148.09 @ 0.6) | 2566 (2597)
+[tmg] motion     6  10 |   5989  11 | 8.94-11.09 (127.72 @ 0.6) | 61 (109)
+[tmg] line       8  20 |   2995   5 | 18.87-21.13 (127.88 @ 0.6) | 55 (78)
+[tmg] barcode   10  10 |   2995   0 | 18.78-21.22 (137.90 @ 0.6) | 16 (25)
+[tmg] safety     5  20 |   2995   5 | 18.96-21.04 (127.66 @ 0.6) | 30 (45)
+[tmg] imu        9  10 |   5989  11 | 8.86-11.16 (127.94 @ 0.6) | 671 (699)
+[tmg] mission    7 100 |    599   0 | 10.68-110.77 (227.84 @ 0.6) | 6 (7)
+[tmg] obstacle  11  60 |    999   1 | 58.93-61.05 (128.07 @ 0.6) | 20 (26)
+[S3] B edges/s 0 (B now 0)
+[S3] B analogue now 214, this second 192..218 (learned white 160, black 3446; they must differ by 400 or more)
+[S3] L 0  R 0  B 1
+[S3] B edges/s 1 (B now 1)
+[S3] B analogue now 2033, this second 197..2033 (learned white 160, black 3446; they must differ by 400 or more)
+[S3] L 0  R 0  B 0
+[S3] L 0  R 0  B 1
+[S3] L 0  R 0  B 0
+[S3] L 0  R 0  B 1
+[S3] L 0  R 0  B 0
+[S3] L 0  R 0  B 1
+[S3] L 0  R 0  B 0
+[S3] L 0  R 0  B 1
+[S3] L 0  R 0  B 0
+[S3] L 0  R 0  B 1
+[S3] L 0  R 0  B 0
+[S3] B edges/s 11 (B now 0)
+[S3] B analogue now 2304, this second 190..3494 (learned white 160, black 3521; they must differ by 400 or more)
+[S3] L 0  R 0  B 1
+[S3] L 0  R 0  B 0
+[S3] L 0  R 0  B 1
+[S3] L 0  R 0  B 0
+[S3] L 0  R 0  B 1
+[S3] L 0  R 0  B 0
+[S3] L 0  R 0  B 1
+[S3] L 0  R 0  B 0
+[S3] L 0  R 0  B 1
+[S3] L 0  R 0  B 0
+[S3] L 0  R 0  B 1
+[S3] B edges/s 11 (B now 1)
+[S3] B analogue now 2021, this second 207..3473 (learned white 160, black 3521; they must differ by 400 or more)
+[S3] L 0  R 0  B 0
+[S3] L 0  R 0  B 1
+[S3] L 0  R 0  B 0
+[S3] B edges/s 3 (B now 0)
+[S3] B analogue now 198, this second 177..2968 (learned white 160, black 3521; they must differ by 400 or more)
+[tmg] t=70136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |    700   0 | 99.01-100.98 (148.09 @ 0.6) | 2563 (2597)
+[tmg] motion     6  10 |   6989  11 | 8.78-11.28 (127.72 @ 0.6) | 66 (109)
+[tmg] line       8  20 |   3495   5 | 18.66-21.35 (127.88 @ 0.6) | 56 (78)
+[tmg] barcode   10  10 |   3495   0 | 18.51-21.49 (137.90 @ 0.6) | 20 (25)
+[tmg] safety     5  20 |   3495   5 | 18.78-21.23 (127.66 @ 0.6) | 33 (45)
+[tmg] imu        9  10 |   6989  11 | 8.65-11.43 (127.94 @ 0.6) | 686 (699)
+[tmg] mission    7 100 |    699   0 | 10.68-111.31 (227.84 @ 0.6) | 6 (7)
+[tmg] obstacle  11  60 |   1165   1 | 59.15-60.85 (128.07 @ 0.6) | 16 (26)
+[S3] B edges/s 0 (B now 0)
+[S3] B analogue now 209, this second 180..1401 (learned white 160, black 3521; they must differ by 400 or more)
+[S3] L 0  R 0  B 1
+[S3] L 0  R 0  B 0
+[S3] B edges/s 2 (B now 0)
+[S3] B analogue now 198, this second 186..3600 (learned white 160, black 3605; they must differ by 400 or more)
+[S3] L 0  R 0  B 1
+[S3] L 0  R 0  B 0
+[S3] L 0  R 0  B 1
+[S3] L 0  R 0  B 0
+[S3] B edges/s 4 (B now 0)
+[S3] B analogue now 195, this second 187..2240 (learned white 160, black 3605; they must differ by 400 or more)
+[S3] L 0  R 0  B 1
+[S3] L 0  R 0  B 0
+[S3] L 0  R 0  B 1
+[S3] B edges/s 3 (B now 1)
+[S3] B analogue now 2277, this second 186..2400 (learned white 160, black 3605; they must differ by 400 or more)
+[S3] L 0  R 0  B 0
+[S3] B edges/s 1 (B now 0)
+[S3] B analogue now 186, this second 179..2460 (learned white 160, black 3605; they must differ by 400 or more)
+[S3] L 0  R 0  B 1
+[S3] L 0  R 0  B 0
+[tmg] t=80136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |    800   0 | 98.79-101.18 (148.09 @ 0.6) | 2571 (2597)
+[tmg] motion     6  10 |   7989  11 | 8.97-11.03 (127.72 @ 0.6) | 60 (109)
+[tmg] line       8  20 |   3995   5 | 18.89-21.00 (127.88 @ 0.6) | 58 (78)
+[tmg] barcode   10  10 |   3995   0 | 18.81-21.10 (137.90 @ 0.6) | 19 (25)
+[tmg] safety     5  20 |   3995   5 | 18.98-20.91 (127.66 @ 0.6) | 35 (45)
+[tmg] imu        9  10 |   7989  11 | 8.89-11.11 (127.94 @ 0.6) | 671 (699)
+[tmg] mission    7 100 |    799   0 | 10.68-110.97 (227.84 @ 0.6) | 6 (7)
+[tmg] obstacle  11  60 |   1332   1 | 58.91-61.02 (128.07 @ 0.6) | 21 (26)
+[S3] L 0  R 0  B 1
+[S3] B edges/s 3 (B now 1)
+[S3] B analogue now 1887, this second 185..2024 (learned white 160, black 3605; they must differ by 400 or more)
+[S3] L 0  R 0  B 0
+[S3] L 0  R 0  B 1
+[S3] L 0  R 0  B 0
+[S3] L 0  R 0  B 1
+[S3] L 0  R 0  B 0
+[S3] B edges/s 5 (B now 0)
+[S3] B analogue now 211, this second 185..2158 (learned white 160, black 3605; they must differ by 400 or more)
+[S3] B: whitest 160, darkest 3605 seen
+
+[DRIVE] --- Stage 2A: line + junctions (S3-L01..L10) ---
+[DRIVE] START (GP20) = run it, STOP (GP21) = skip it (or START / STOP on the panel)
+[tmg] t=90136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |    900   0 | 98.72-101.26 (148.09 @ 0.6) | 2566 (2597)
+[tmg] motion     6  10 |   8989  11 | 8.97-10.91 (127.72 @ 0.6) | 60 (109)
+[tmg] line       8  20 |   4495   5 | 18.88-21.00 (127.88 @ 0.6) | 46 (78)
+[tmg] barcode   10  10 |   4495   0 | 18.74-21.09 (137.90 @ 0.6) | 14 (25)
+[tmg] safety     5  20 |   4495   5 | 18.98-20.96 (127.66 @ 0.6) | 40 (45)
+[tmg] imu        9  10 |   8989  11 | 8.88-10.98 (127.94 @ 0.6) | 680 (699)
+[tmg] mission    7 100 |    899   0 | 10.70-110.65 (227.84 @ 0.6) | 6 (7)
+[tmg] obstacle  11  60 |   1499   1 | 58.94-60.99 (128.07 @ 0.6) | 8 (26)
+[tmg] t=100136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |   1000   0 | 99.06-100.92 (148.09 @ 0.6) | 2587 (2597)
+[tmg] motion     6  10 |   9989  11 | 8.88-11.16 (127.72 @ 0.6) | 61 (109)
+[tmg] line       8  20 |   4995   5 | 18.96-21.15 (127.88 @ 0.6) | 48 (78)
+[tmg] barcode   10  10 |   4995   0 | 18.87-21.27 (137.90 @ 0.6) | 10 (25)
+[tmg] safety     5  20 |   4995   5 | 19.01-21.07 (127.66 @ 0.6) | 29 (45)
+[tmg] imu        9  10 |   9989  11 | 8.78-11.26 (127.94 @ 0.6) | 670 (699)
+[tmg] mission    7 100 |    999   0 | 10.69-110.63 (227.84 @ 0.6) | 6 (7)
+[tmg] obstacle  11  60 |   1665   1 | 59.07-60.77 (128.07 @ 0.6) | 9 (26)
+[tmg] t=110136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |   1100   0 | 99.07-100.88 (148.09 @ 0.6) | 2570 (2597)
+[tmg] motion     6  10 |  10989  11 | 9.01-11.02 (127.72 @ 0.6) | 58 (109)
+[tmg] line       8  20 |   5495   5 | 18.98-21.00 (127.88 @ 0.6) | 42 (78)
+[tmg] barcode   10  10 |   5495   0 | 18.88-21.11 (137.90 @ 0.6) | 12 (25)
+[tmg] safety     5  20 |   5495   5 | 19.03-20.96 (127.66 @ 0.6) | 30 (45)
+[tmg] imu        9  10 |  10989  11 | 8.94-11.09 (127.94 @ 0.6) | 670 (699)
+[tmg] mission    7 100 |   1099   0 | 10.70-110.63 (227.84 @ 0.6) | 6 (7)
+[tmg] obstacle  11  60 |   1832   1 | 58.86-61.08 (128.07 @ 0.6) | 9 (26)
+[tmg] t=120136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |   1200   0 | 99.09-100.88 (148.09 @ 0.6) | 2579 (2597)
+[tmg] motion     6  10 |  11989  11 | 9.04-10.99 (127.72 @ 0.6) | 54 (109)
+[tmg] line       8  20 |   5995   5 | 19.06-20.99 (127.88 @ 0.6) | 41 (78)
+[tmg] barcode   10  10 |   5995   0 | 18.97-21.08 (137.90 @ 0.6) | 22 (25)
+[tmg] safety     5  20 |   5995   5 | 19.10-20.94 (127.66 @ 0.6) | 27 (45)
+[tmg] imu        9  10 |  11989  11 | 8.97-11.06 (127.94 @ 0.6) | 667 (699)
+[tmg] mission    7 100 |   1199   0 | 10.70-110.66 (227.84 @ 0.6) | 6 (7)
+[tmg] obstacle  11  60 |   1999   1 | 58.98-60.97 (128.07 @ 0.6) | 10 (26)
+[tmg] t=130136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |   1300   0 | 98.78-101.21 (148.09 @ 0.6) | 2581 (2597)
+[tmg] motion     6  10 |  12989  11 | 8.93-11.11 (127.72 @ 0.6) | 64 (109)
+[tmg] line       8  20 |   6495   5 | 18.96-21.14 (127.88 @ 0.6) | 43 (78)
+[tmg] barcode   10  10 |   6495   0 | 18.85-21.27 (137.90 @ 0.6) | 12 (25)
+[tmg] safety     5  20 |   6495   5 | 19.02-21.05 (127.66 @ 0.6) | 31 (45)
+[tmg] imu        9  10 |  12989  11 | 8.84-11.21 (127.94 @ 0.6) | 672 (699)
+[tmg] mission    7 100 |   1299   0 | 10.70-110.64 (227.84 @ 0.6) | 6 (7)
+[tmg] obstacle  11  60 |   2165   1 | 59.06-61.14 (128.07 @ 0.6) | 18 (26)
+[tmg] t=140136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |   1400   0 | 98.92-101.05 (148.09 @ 0.6) | 2586 (2597)
+[tmg] motion     6  10 |  13989  11 | 9.03-10.99 (127.72 @ 0.6) | 63 (109)
+[tmg] line       8  20 |   6995   5 | 19.00-20.99 (127.88 @ 0.6) | 43 (78)
+[tmg] barcode   10  10 |   6995   0 | 18.92-21.08 (137.90 @ 0.6) | 21 (25)
+[tmg] safety     5  20 |   6995   5 | 19.05-20.94 (127.66 @ 0.6) | 35 (45)
+[tmg] imu        9  10 |  13989  11 | 8.97-11.07 (127.94 @ 0.6) | 673 (699)
+[tmg] mission    7 100 |   1399   0 | 10.69-110.62 (227.84 @ 0.6) | 6 (7)
+[tmg] obstacle  11  60 |   2332   1 | 58.91-61.04 (128.07 @ 0.6) | 21 (26)

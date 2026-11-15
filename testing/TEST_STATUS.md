@@ -279,6 +279,79 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   detected (`junction 1 at 1194 mm: crossing`), no false junctions. No
   barcode on this track: barcodes (S3-B00, 2B, 2C) still to run. Stage 0
   checks in the image all PASS; no unexpected faults.
+- **15 Nov course runs, Mission image (`subsystem5/logs/2026-11-15_course_mission_1/2_robot.txt`):
+  barcode F (mapped LEFT) before a junction every run; the robot never
+  turned left.** Two reads reached the decoder, both `READ_FAIL`: 23
+  elements (a narrow bar lost in the letter, a 19.2 mm merged space) and
+  25 elements, where the F and the closing `*` read cleanly but the first
+  4 elements of the opening `*` were never seen. The other runs broke the
+  code into short pieces (`inbar` on and off, under 20 elements: dropped
+  as noise). Narrow bars read only 1.5-2.3 mm against 4.3-5.8 mm narrow
+  spaces: the sensor counts only the darkest middle of each bar, so thin
+  bars are at its limit. **Added 15 Nov, not run yet:** `decode_cut_star`,
+  a code whose first 3-4 elements were lost (the 25-element read now
+  decodes as F; the real C on the PC: 3870 synthetic cut codes read, 0
+  wrong; 2 false in 50 000 random patterns). **Still to do: the B
+  thresholds** (`S3_BAR_DELTA` 700, `S3_BAR_BLACK_MIN` 1500) from a
+  Stage 2 live view of the course barcode (white and thin-bar readings).
+- **15 Nov, third course run (`..._course_mission_3_robot.txt`, with the cut-start
+  decode): F again not read, no READ_FAIL at all.** The panel trace shows
+  the robot steering +-30 over the bars and the over-the-bars hold
+  switching on and off (it let go after 15 mm without an edge: one missed
+  thin bar plus an 11 mm wide space), so B swung across the bars and the
+  code broke into pieces. **Changed 15 Nov, not run yet:** the steering is
+  held straight for the whole code (until 40 mm without an edge).
+- **15 Nov, Stage 2 live view of the course barcode (`subsystem3/logs/2026-11-15_stage2_liveview_course_barcode.txt`):
+  the cause.** White 160-220, wide bars 2000-3600, thin bars only
+  929-1535: most thin bars never passed `S3_BAR_BLACK_MIN` 1500.
+  **Changed 15 Nov, not run yet:** `S3_BAR_BLACK_MIN` 1500 -> 700,
+  `S3_BAR_DELTA` 700 -> 300 (noise +-20).
+- **15 Nov, course run 4 with 700 / 300 (`..._course_mission_4_robot.txt`): worse.**
+  Only 7-element pieces of even 6-7 mm blobs (neighbouring thin bars and
+  spaces run together while driving), against 23-25 of 29 elements with
+  1500 / 700. **Put back to 1500 / 700 the same day**; the cut-start
+  decode and the straight hold stay. The hand live view does not show
+  what driving over the code gives.
+- **15 Nov, course run 5 (`..._course_mission_5_robot.txt`): ✅ barcode F read cleanly**
+  (`narrow 3.4 mm, wide 9.3 mm -> LEFT at next junction`), then `junction 3
+  (crossing): LEFT (barcode F)`. STOP was pressed during the planned
+  115 mm drive past the junction centre (it looked like a miss), so the
+  left spin did not run: let it go next time. Runs 13:52-14:04 saw only
+  four 7 mm marks (`7 7 7 20 7 7 7`) with both threshold settings:
+  something other than the bars was under the sensor. **The fix was
+  only the barcode's position and tilt** (tester, 15 Nov; same print, not
+  reprinted): square to the line, B over the middle of the bars. So the
+  thin-bar readings of the day (929-1535, 1.5-2.3 mm) came from B crossing
+  the bars at an angle or near their ends, not from the print.
+- **15 Nov, course run 6 (`..._course_mission_6_robot.txt`): barcodes and junctions
+  ✅** (F read twice, A after the mapping changed, every junction LEFT as
+  mapped; one READ_FAIL). **Obstacle: `obstacle lost between scans`.** Scan
+  1 at 216 mm saw the box with both edges (211 mm); scan 2, 100 mm back,
+  read 650 straight ahead and the box only at +5..+30 deg: the robot
+  turned about 12 deg while backing up. **Changed 15 Nov, not run yet:**
+  when scan 1 sees both edges it is the profile; the back-up and scan 2
+  only when scan 1 missed an edge.
+- **Added 15 Nov, not run yet (bypass safety, team request):** (1) the
+  sonar watches ahead on the sideways leg, the leg past the box and the
+  leg back to the line: 2 pings nearer than 150 mm (or no ECHO) stop the
+  robot, `something in the way during the bypass`; (2) after turning back
+  toward the line it pings first: an echo nearer than the line means the
+  box is longer than the assumed 150 mm, so it turns back, drives 100 mm
+  further along it and looks again, up to 4 times (`box still beside:
+  going 100 mm further along it`, else `obstacle longer than expected`).
+  Turning on the spot beside the box is safe: centre at least 185 mm from
+  its side, corners swing about 155 mm. Tests: TESTING_GUIDE Stage 3 step 4.
+- **15 Nov, course run 7 (`..._course_mission_7_robot.txt`, stop at 185, 120 mm/s): ✅
+  whole sequence.** Barcode F -> LEFT at junction 2; obstacle stopped at
+  168 mm, width 116 mm (the course box, about 13 cm), bypass LEFT, `line
+  met behind the box, 503 mm along` (the track curving behind it: the
+  right line, tester), `bypass done`; hump `ramp peak height 18.5 mm`;
+  lifted at the end: motors off.
+- **Changed 15 Nov, not run yet:** obstacle stop distance 250 -> 190 mm
+  (`S5_TRIP_MM`; team: it stopped too far away), scan back-up only if
+  nearer than 160 mm (`SCAN_NEAR_MM`, was 220). **Mission speed 120 -> 135 mm/s** (`S5_FOLLOW_SPEED`; stage tests stay at 120): re-check the tightest left and right curves and one bypass. Expect "obstacle ahead at
+  about 165-175 mm". Tribunal 1 minimum: 150 mm (little margin: re-check if
+  the speed is raised).
 - [ ] 🟡 **S5-B01 / S5-B02** (2C): right move at each junction, U-turn, stop on
   an unmapped code
 
@@ -567,6 +640,12 @@ than the robot, so the robot tips over it instead of driving up a slope.
   - Runs 2 and 4 came right after a reported run: the "no second report
     for 600 mm" distance carried over into the next run. Calibrating at
     the start of a run now resets it.
+- [ ] ⬜ **S4-L01 lift stop (lecturer, 13 Nov; replaces IMU collision
+  detection): built 13 Nov, not run yet.** Gravity more than 35 deg from
+  the calibrated level for 100 ms = motors off as STOP, Mission told,
+  event `robot lifted or tipped over ...`. Stage 4 image, 3 tries; in the
+  Mission, lift at the end of every run. See
+  `docs/team/course/IMU_REQUIREMENT_CHANGE.md`.
 
 ## Stage 5: telemetry + MQTT (demo image)
 

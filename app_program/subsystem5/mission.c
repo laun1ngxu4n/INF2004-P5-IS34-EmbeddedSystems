@@ -26,20 +26,27 @@
 #include "../subsystem4/subsystem4.h"
 #include "mission.h"
 
-#define S5_FOLLOW_SPEED S2_SPEED_BARCODE /* B4: slow everywhere */
+/* Mission's speed: line following and the bypass legs (mm/s).  Was
+   S2_SPEED_BARCODE (120, "slow everywhere"); 15 Nov 135 (team: a bit
+   faster; 150 lost tight left curves on 7 Nov before the steering was
+   retuned).  The stage tests stay at 120.  Over bars it still slows to
+   S2_SPEED_IN_BARCODE, after a barcode to S5_APPROACH_SPEED. */
+#define S5_FOLLOW_SPEED 135
 /* barcode read, its junction not yet: slower, so weaving is less likely and
  * the junction is not overrun */
 #define S5_APPROACH_SPEED 100
-/* Scan positions (O5).  First scan where the forward watch stopped (20-25
-   cm from the obstacle; backs up only if nearer than SCAN_NEAR_MM), then
-   back REVERSE_MM and scan again.  Until 8 Nov it first backed up to 350
+/* Scan positions (O5).  First scan where the forward watch stopped (about
+   16.5-17.5 cm from the obstacle since 15 Nov, S5_TRIP_MM 190; backs up only
+   if nearer than SCAN_NEAR_MM), then,
+   only if that scan missed an edge (15 Nov), back REVERSE_MM and scan
+   again.  Until 8 Nov it first backed up to 350
    mm, because from 20-25 cm the old width rule saw the box across the
    whole sweep.  With the geometry rule (obstacle.c) the near scans
    are the better ones: on the 29 real scans of 7 Nov, 200-280 mm away
    read 138-240 mm for 14.5-23 cm boxes, 340-380 mm away 206-293, 450+
    away 225-346; every pair of scans read narrower from nearer.  And it
    backs up 100 mm instead of about 210. */
-#define SCAN_NEAR_MM 220
+#define SCAN_NEAR_MM 160 /* 15 Nov: 220 -> 160 with S5_TRIP_MM 190 */
 #define REVERSE_MM   100 /* second scan position */
 #define D_MAX_MM     150 /* deepest expected obstacle (A9) */
 /* 50 until 7 Nov, then 70: tools/sim/bypasssim.py with +-5 % spin error
@@ -232,6 +239,9 @@ LOCAL void start_run (void)
     int32_t tick;
 
     say(app_str("start"));
+    /* which barcode thresholds this image has (15 Nov: changed in the day) */
+    tm_printf(app_str("[S3] barcode: black from %d, step %d\n"),
+              S3_BAR_BLACK_MIN, S3_BAR_DELTA);
     set_state(M_CAL);
     motion_halt();
 
@@ -466,16 +476,73 @@ LOCAL bool ahead_clear (int32_t dist_mm)
             (dist > (dist_mm + MARGIN_MM))); /* fault = not clear */
 }
 
-/** Drive dist_mm straight; stop as soon as a line sensor sees black, but
-   only after from_mm.  1 = line found, 0 = drove it all, -1 = failed */
+/* The bypass legs' forward watch (15 Nov): the scan sees only +-40 deg,
+   so something beside the box, or that the scan could not hear, may be in
+   a leg's way.  While a leg drives, the sonar pings ahead every 60 ms;
+   WATCH_CLOSE_PINGS in a row nearer than WATCH_STOP_MM (or no ECHO: the
+   sensor is not working) stop the robot.  The box itself is beside the
+   robot on these legs, outside the beam. */
+#define WATCH_STOP_MM     150
+#define WATCH_CLOSE_PINGS 2
+#define WATCH_PERIOD_US   60000u /* one ping's echo time */
+#define DRIVE_BLOCKED     (-2)   /* drive_until_line: the watch stopped it */
+
+/* one leg's forward watch: written only by the Mission task */
+typedef struct
+{
+    uint32_t t_ping; /* when the ping now out was started */
+    int32_t  close;  /* pings in a row nearer than WATCH_STOP_MM */
+} leg_watch_t;
+
+/** Starts a leg's forward watch (the servo points ahead). */
+LOCAL void leg_watch_start (leg_watch_t * p_watch)
+{
+    obstacle_ping_start();
+    p_watch->t_ping = app_timing_now_us();
+    p_watch->close  = 0;
+}
+
+/** Called often while a leg drives: true = something is in the way. */
+LOCAL bool leg_watch_blocked (leg_watch_t * p_watch)
+{
+    int32_t dist;
+
+    if ((app_timing_now_us() - p_watch->t_ping) < WATCH_PERIOD_US)
+    {
+        return false;
+    }
+
+    dist = obstacle_ping_result();
+    obstacle_ping_start();
+    p_watch->t_ping = app_timing_now_us();
+
+    if ((SONAR_FAULT == dist) || ((dist >= 0) && (dist < WATCH_STOP_MM)))
+    {
+        p_watch->close++;
+    }
+    else
+    {
+        p_watch->close = 0;
+    }
+
+    return p_watch->close >= WATCH_CLOSE_PINGS;
+}
+
+/** Drive dist_mm straight with the forward watch on; stop as soon as a
+   line sensor sees black, but only after from_mm (more than dist_mm: never).
+   1 = line found, 0 = drove it all, -1 = failed, DRIVE_BLOCKED = the watch
+   stopped it (halted, reason given) */
 LOCAL int32_t drive_until_line (int32_t dist_mm, int32_t from_mm)
 {
-    int32_t odo0 = motor_odometer();
+    int32_t     odo0 = motor_odometer();
+    leg_watch_t watch;
 
     if (motion_drive(S5_FOLLOW_SPEED, dist_mm) < E_OK)
     {
         return -1;
     }
+
+    leg_watch_start(&watch);
 
     for (;;)
     {
@@ -484,6 +551,12 @@ LOCAL int32_t drive_until_line (int32_t dist_mm, int32_t from_mm)
         if (app_stop_reasons() != 0u)
         {
             return -1;
+        }
+
+        if (leg_watch_blocked(&watch))
+        {
+            halt("something in the way during the bypass");
+            return DRIVE_BLOCKED;
         }
 
         if ((line_any_black()) &&
@@ -616,6 +689,7 @@ LOCAL int32_t pass_box (int32_t sgn, int32_t front, int32_t lat_exp,
     uint32_t        t_ping;
     int32_t         odo0;
     motion_status_t status;
+    leg_watch_t     watch;
 
     /* how far it may go: the way ahead must be clear */
     dist     = x_pass + (b_side ? SIDE_EXTRA_MM : 0);
@@ -645,8 +719,8 @@ LOCAL int32_t pass_box (int32_t sgn, int32_t front, int32_t lat_exp,
         goto out;
     }
 
-    obstacle_ping_start();
-    t_ping = app_timing_now_us();
+    leg_watch_start(&watch); /* the side look uses the same pings */
+    t_ping = watch.t_ping;
 
     for (;;)
     {
@@ -657,13 +731,24 @@ LOCAL int32_t pass_box (int32_t sgn, int32_t front, int32_t lat_exp,
 
         done = motion_counts_to_mm(motor_odometer() - odo0);
 
-        if (b_side && ((app_timing_now_us() - t_ping) >= 60000u))
+        if (b_side && ((app_timing_now_us() - t_ping) >= WATCH_PERIOD_US))
         {
             sonar_mm = obstacle_ping_result();
             obstacle_ping_start();
             t_ping = app_timing_now_us();
             side_ping(&look, sonar_mm, lat_exp, done);
             side_report(&look, done, x_pass);
+        }
+        else if ((!b_side) && (leg_watch_blocked(&watch)))
+        {
+            /* the sonar points ahead: the forward watch (15 Nov) */
+            motion_halt();
+            halt("something in the way during the bypass");
+            return -1;
+        }
+        else
+        {
+            /* nothing to do for any other case */
         }
 
         if ((done >= line_from) && (look.miss >= SIDE_MISS_PINGS) &&
@@ -797,6 +882,78 @@ LOCAL int32_t spin_until_line (int32_t deg)
     return spin_line(deg, SPIN_IGNORE_DEG);
 }
 
+/* Before the leg back to the line (15 Nov): the box is assumed at most
+   D_MAX_MM deep.  Once turned toward the line, the sonar faces the box's
+   side square-on if the box is longer (a strong echo); then it turns
+   back, goes EXTEND_MM further along the box and looks again, at most
+   EXTEND_TRIES times.  Turning on the spot beside the box is safe: the
+   robot's centre is y_off - edge >= half its width + MARGIN_MM (185 mm)
+   from the box's side, its corners swing at most about 155 mm. */
+#define EXTEND_MM    100
+#define EXTEND_TRIES 4
+
+/** Facing the line, y_off away: true = nothing nearer than the line
+   (a sensor fault counts as something). */
+LOCAL bool line_side_clear (int32_t y_off)
+{
+    int32_t dist = obstacle_ping_mm();
+
+    return (SONAR_OPEN == dist) ||
+           ((dist >= 0) && (dist >= (y_off - S5_SONAR_TO_AXLE_MM)));
+}
+
+/** Turns toward the line (-sgn) and makes sure the box is not still
+   beside; goes further along it if it is.  true = facing the line, the way
+   clear; false = halted, reason given. */
+LOCAL bool turn_back_clear (int32_t sgn, int32_t y_off)
+{
+    int32_t tries;
+    int32_t result;
+
+    for (tries = 0;; tries++)
+    {
+        if (!mv(motion_turn(-sgn * 90)))
+        {
+            halt("bypass step did not finish");
+            return false;
+        }
+
+        wait_still();
+
+        if (line_side_clear(y_off))
+        {
+            return true;
+        }
+
+        if (tries >= EXTEND_TRIES)
+        {
+            halt("obstacle longer than expected (still beside it 400 mm "
+                 "on)");
+            return false;
+        }
+
+        say(app_str("box still beside: going 100 mm further along it"));
+
+        if (!mv(motion_turn(sgn * 90)))
+        {
+            halt("bypass step did not finish");
+            return false;
+        }
+
+        result = drive_until_line(EXTEND_MM, EXTEND_MM + 1);
+
+        if (result != 0)
+        {
+            if (result != DRIVE_BLOCKED)
+            {
+                halt("bypass step did not finish");
+            }
+
+            return false; /* DRIVE_BLOCKED: halted, reason given */
+        }
+    }
+}
+
 /** Handles an obstacle ahead: scans its width, drives round it, finds the
  * line. */
 LOCAL void on_obstacle (void)
@@ -881,16 +1038,32 @@ LOCAL void on_obstacle (void)
         return;
     }
 
-    if (!mv(motion_drive(-S5_FOLLOW_SPEED, REVERSE_MM)))
+    /* Both edges seen from here: this scan is the profile.  The 2nd scan
+       is for a box that fills this one (an edge not seen); where both see
+       an edge the nearer is taken anyway.  15 Nov course run: the robot
+       turned about 12 deg while backing up for the 2nd scan, the box left
+       the centre ray and the run stopped "obstacle lost between scans",
+       though scan 1 had both edges (211 mm). */
+
+    if ((scan_near.b_left_seen) && (scan_near.b_right_seen))
     {
-        /* O5 */
-        halt("reverse for 2nd scan did not finish");
-        return;
+        scan_far = scan_near;
+        profile  = scan_near;
+    }
+    else
+    {
+        if (!mv(motion_drive(-S5_FOLLOW_SPEED, REVERSE_MM)))
+        {
+            /* O5 */
+            halt("reverse for 2nd scan did not finish");
+            return;
+        }
+
+        wait_still();
+        obstacle_scan(&scan_far);
+        obstacle_combine(&scan_near, &scan_far, &profile);
     }
 
-    wait_still();
-    obstacle_scan(&scan_far);
-    obstacle_combine(&scan_near, &scan_far, &profile);
     tm_sprintf(msg,
                app_str("obstacle width %d +/- %d mm (scan 1: %d +/- %d, "
                        "scan 2: %d +/- %d); edges L %d R %d mm; front %d mm"),
@@ -979,7 +1152,15 @@ LOCAL void on_obstacle (void)
         return;
     }
 
-    if (!mv(motion_drive(S5_FOLLOW_SPEED, y_off)))
+    /* leg 2 with the forward watch (15 Nov) */
+    found = drive_until_line(y_off, y_off + 1);
+
+    if (DRIVE_BLOCKED == found)
+    {
+        return; /* halted, reason given */
+    }
+
+    if (found != 0)
     {
         goto fail;
     }
@@ -1010,15 +1191,21 @@ LOCAL void on_obstacle (void)
     else
     {
         /* leg 5-6: back toward the line, any black counts (it may
-           have curved either way behind the box) */
+           have curved either way behind the box); first make sure the
+           box is not still beside (15 Nov: longer than D_MAX_MM) */
 
-        if (!mv(motion_turn(-sgn * 90)))
+        if (!turn_back_clear(sgn, y_off))
         {
-            goto fail;
+            return; /* halted, reason given */
         }
 
         odo0  = motor_odometer();
         found = drive_until_line(y_off + REJOIN_FAR_MM, 20);
+
+        if (DRIVE_BLOCKED == found)
+        {
+            return; /* halted, reason given */
+        }
 
         if (found < 0)
         {
@@ -1181,4 +1368,3 @@ EXPORT void mission_task (int32_t stacd, void * p_exinf)
 }
 
 /*** end of file ***/
-

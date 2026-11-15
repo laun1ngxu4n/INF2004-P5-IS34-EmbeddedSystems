@@ -57,10 +57,23 @@
    both.  Simulated (spot sigma 1.2-1.6 mm, ink 65-100 %): fixed 2500/1700
    decoded 24/54, 1300/800 6/54, relative 54/54. */
 #define S3_BAR_RELATIVE 1
+/* 15 Nov: 700 -> 300.  The course barcode in the live view: white 160-220,
+   wide bars 2000-3600, but thin bars only 929-1535, and the gap between
+   two thin bars does not fall back to white, so a 700 step (and the 1500
+   floor below) missed thin bars: the 15 Nov course reads lost bars, broke
+   into pieces or merged.  Noise is +-20, so 300 keeps a wide margin.
+   BACK to 700 the same day: driving over the code with 700 / 300 gave
+   only 7-element pieces of even 6-7 mm blobs (neighbouring thin bars and
+   spaces run together), against 23-25 of 29 elements with 1500 / 700. */
 #define S3_BAR_DELTA    700 /* white noise is +-20 */
 /* never black below this (white up to 570). Raised from 500 / 900 on 7 Nov
  * at the team's request (fewer faint marks seen as bars); simulated "A
  * small" still 54/54, 800 / 1800 began to lose reads */
+/* 15 Nov: 1500 -> 700: thin bars peaked at 929-1535 (most below 1500);
+ * 700 is above every white seen (220 here, 570 on 7 Nov's worst surface).
+ * A faint mark (grout) seen as a bar makes a short run the decoder drops,
+ * or a stray mark beside a code, which it skips. */
+/* BACK to 1500 the same day (see S3_BAR_DELTA). */
 #define S3_BAR_BLACK_MIN 1500
 /* learned: black-white gap needed before anything counts as black */
 #define S3_BAR_MIN_SPAN 400

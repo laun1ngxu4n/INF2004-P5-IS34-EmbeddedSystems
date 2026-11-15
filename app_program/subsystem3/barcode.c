@@ -31,6 +31,7 @@
  * bar: 3.5 mm small codes = 44 counts */
 #define MERGE_COUNTS    15
 #define MIN_ELEM_REPORT 20 /* fewer elements = noise, not reported */
+#define SHORT_RUN_PRINT 5  /* ... but printed from this many (15 Nov) */
 
 /* Code 39 */
 #define C39_CHAR_ELEMS 9  /* bars and spaces in a character */
@@ -42,7 +43,15 @@
 #define WIDTH_OPTS     2  /* narrow or wide */
 #define CUT_MAX        2  /* elements cut off at most */
 #define CUT_SIDES      2  /* at the start or at the end */
-#define BAR_MOVES      4  /* L, R, F, U: one letter each */
+/* decode_cut_star (15 Nov): the first elements of a read lost, more than
+   decode_truncated puts back.  At most 4 lost, so at least 5 of the cut
+   '*' are left to check (5 lost: 1 false read in 10 000 random patterns,
+   4: 1 in 100 000). */
+#define CUT_STAR_MIN 3
+#define CUT_STAR_MAX 4
+#define STAR_PAT     0x094u /* '*' in g_c39 */
+#define ELEM_KINDS   2      /* bar (even index), space (odd) */
+#define BAR_MOVES    4      /* L, R, F, U: one letter each */
 /* the 3 widest of 9 at least 1.3 x the rest. Was 1.5: blur widens a narrow
  * element beside a wide one (4.6 mm against 7.0 wide, simulated "A small"),
  * and 1.5 lost 4 reads in 18 at spot sigma 1.6 mm; 1.3 none. Random widths:
@@ -68,7 +77,12 @@ LOCAL volatile bool     gb_paused;  /* barcode_reset(): ignore edges */
 LOCAL volatile uint32_t g_seq_now;  /* results published so far */
 LOCAL volatile int32_t  g_edge_pub; /* odometer at the last clean edge */
 
-#define S3_IN_BARS_MM 15 /* edge this recent = B over bars */
+/* Edge this recent = B over bars: Motion holds the steering straight.
+   Was 15 mm; 15 Nov course runs: one missed thin bar (they read 1.5-2.3
+   mm) plus an 11 mm wide space passed 15 mm, the hold let go inside the
+   code, the robot steered +-30 over the bars and swung B across them, and
+   the code broke into pieces.  Now the whole code: until it ends. */
+#define S3_IN_BARS_MM S3_QUIET_MM
 
 /* One pair of the mapping: a letter (7-bit ASCII) and its move as an
    index into MOVE_CODES (2 bits) */
@@ -434,9 +448,9 @@ EXPORT uint32_t barcode_edges (void)
     return g_ring_w;
 }
 
-/** B is over bars now: an edge in the last S3_IN_BARS_MM (widest element
-   10.5 mm).  Motion holds the steering straight then: B sits 85 mm left
-   of the robot's centre, so any turn changes B's own speed over the bars
+/** B is over bars now: an edge in the last S3_IN_BARS_MM (the code's
+   end gap, S3_QUIET_MM).  Motion holds the steering straight then: B sits 85 mm
+   left of the robot's centre, so any turn changes B's own speed over the bars
    by +-50 % or more against the odometer, and the widths come out wrong. */
 EXPORT bool barcode_in_bars (void)
 {
@@ -1050,6 +1064,190 @@ LOCAL bool decode_truncated (const int32_t * p_elem, int32_t count,
     return true;
 }
 
+/* ---- Cut-short start (15 Nov) -------------------------------------------
+   15 Nov course run: "READ_FAIL (25 elements)" of an F where the F and the
+   closing '*' read cleanly but the first 4 elements of the opening '*'
+   were never seen (its narrow bars read 1.6-2.3 mm, at the sensor's
+   limit).  Accepted only if the letter and the full '*' decode, both gaps
+   are narrow, and every element left of the cut '*' is narrow or wide as
+   in '*', judged against the two clean characters' bars and spaces
+   separately (bars read about 3 mm thinner than spaces that day).
+   Prototype: 15 Nov read -> F; 4000 synthetic cut codes 97 % read, 0
+   wrong; random patterns 1 in 100 000. */
+
+/** Sums of one decoded character's widths: [bar/space][narrow/wide]. */
+LOCAL void kind_sums (const int32_t * p_elem, uint16_t pat,
+                      int32_t p_sum[ELEM_KINDS][WIDTH_OPTS],
+                      int32_t p_n[ELEM_KINDS][WIDTH_OPTS])
+{
+    int32_t idx;
+
+    for (idx = 0; idx < C39_CHAR_ELEMS; idx++)
+    {
+        int32_t kind = idx % ELEM_KINDS;
+        /* idx 0..8: shift 8..0 */
+        int32_t wide = (int32_t)((pat >> (uint32_t)(8 - idx)) & 1u);
+
+        p_sum[kind][wide] += p_elem[idx];
+        p_n[kind][wide]++;
+    }
+}
+
+/** The 9-bit pattern of a letter (0 = not in the table). */
+LOCAL uint16_t c39_pat (uint8_t letter)
+{
+    int32_t idx;
+
+    /* 44 characters: the count fits int32_t */
+    for (idx = 0; idx < (int32_t)(sizeof(g_c39) / sizeof(g_c39[0])); idx++)
+    {
+        if (g_c39[idx].letter == letter)
+        {
+            return g_c39[idx].pat;
+        }
+    }
+
+    return 0u;
+}
+
+/** true = width is wide for its kind: above the middle of that kind's
+   narrow and wide averages (widths and counts small: no overflow). */
+LOCAL bool cut_is_wide (int32_t width, int32_t kind,
+                        int32_t p_sum[ELEM_KINDS][WIDTH_OPTS],
+                        int32_t p_n[ELEM_KINDS][WIDTH_OPTS])
+{
+    int32_t n_nar = p_n[kind][0];
+    int32_t n_wid = p_n[kind][1];
+
+    return (width * 2 * n_nar * n_wid) >
+           ((p_sum[kind][0] * n_wid) + (p_sum[kind][1] * n_nar));
+}
+
+/** One trial: 29 slots, -1 where cut.  b_front: the partial '*' is the
+   first character.  Returns the letter, 0 = no. */
+LOCAL uint8_t cut_try (const int32_t * p_full, bool b_front)
+{
+    const int32_t * p_part = b_front ? &p_full[0] : &p_full[2 * C39_CHAR_PITCH];
+    const int32_t * p_star = b_front ? &p_full[2 * C39_CHAR_PITCH] : &p_full[0];
+    int32_t         sum[ELEM_KINDS][WIDTH_OPTS] = {{0, 0}, {0, 0}};
+    int32_t         num[ELEM_KINDS][WIDTH_OPTS] = {{0, 0}, {0, 0}};
+    int32_t         nar_sum                     = 0;
+    int32_t         wid_sum                     = 0;
+    int32_t         idx;
+    uint8_t         letter;
+
+    if (decode_char(p_star, &nar_sum, &wid_sum) != '*')
+    {
+        return 0;
+    }
+
+    letter = decode_char(&p_full[C39_CHAR_PITCH], &nar_sum, &wid_sum);
+
+    if ((0 == letter) || ('*' == letter))
+    {
+        return 0;
+    }
+
+    kind_sums(p_star, STAR_PAT, sum, num);
+    kind_sums(&p_full[C39_CHAR_PITCH], c39_pat(letter), sum, num);
+
+    for (idx = 0; idx < ELEM_KINDS; idx++)
+    {
+        if ((0 == num[idx][0]) || (0 == num[idx][1]))
+        {
+            return 0;
+        }
+    }
+
+    /* the two gaps between characters are narrow spaces */
+    if ((cut_is_wide(p_full[C39_CHAR_PITCH - 1], 1, sum, num)) ||
+        (cut_is_wide(p_full[(2 * C39_CHAR_PITCH) - 1], 1, sum, num)))
+    {
+        return 0;
+    }
+
+    for (idx = 0; idx < C39_CHAR_ELEMS; idx++)
+    {
+        /* idx 0..8: shift 8..0 */
+        bool b_star_wide = ((STAR_PAT >> (uint32_t)(8 - idx)) & 1u) != 0u;
+
+        if ((p_part[idx] >= 0) && (cut_is_wide(p_part[idx], idx % ELEM_KINDS,
+                                               sum, num) != b_star_wide))
+        {
+            return 0;
+        }
+    }
+
+    return letter;
+}
+
+/** Forgiving decode: the first CUT_STAR_MIN..CUT_STAR_MAX elements of the
+   read lost (either reading direction); one answer only. */
+LOCAL bool decode_cut_star (const int32_t * p_elem, int32_t count,
+                            barcode_result_t * p_result)
+{
+    int32_t full[C39_MIN_ELEMS];
+    int32_t cut = C39_MIN_ELEMS - count;
+    int32_t pass;
+    int32_t side;
+    int32_t idx;
+    int32_t nar;
+    int32_t wid;
+    uint8_t found = 0;
+    bool    b_rev = false;
+
+    if ((cut < CUT_STAR_MIN) || (cut > CUT_STAR_MAX))
+    {
+        return false;
+    }
+
+    for (pass = 0; pass < DECODE_PASSES; pass++)
+    {
+        for (side = 0; side < CUT_SIDES; side++)
+        {
+            uint8_t letter;
+
+            for (idx = 0; idx < C39_MIN_ELEMS; idx++)
+            {
+                full[idx] = -1;
+            }
+
+            for (idx = 0; idx < count; idx++)
+            {
+                full[(0 == side) ? (idx + cut) : idx] =
+                    p_elem[(0 == pass) ? idx : (count - 1 - idx)];
+            }
+
+            letter = cut_try(full, 0 == side);
+
+            if ((letter != 0) && (found != 0) && (letter != found))
+            {
+                return false; /* two answers */
+            }
+
+            if (letter != 0)
+            {
+                found = letter;
+                b_rev = (1 == pass);
+            }
+        }
+    }
+
+    if (0 == found)
+    {
+        return false;
+    }
+
+    nar_wid(p_elem, count, &nar, &wid);
+    p_result->b_ok        = true;
+    p_result->letter      = found;
+    p_result->b_reversed  = b_rev;
+    p_result->fixed       = BAR_FIX_CUT;
+    p_result->narrow_mm10 = width_field(nar * S2_UM_PER_COUNT / 100);
+    p_result->wide_mm10   = width_field(wid * S2_UM_PER_COUNT / 100);
+    return true;
+}
+
 /* the code being read: the decoder's state from one edge to the next */
 typedef struct
 {
@@ -1152,9 +1350,10 @@ LOCAL uint32_t code_ended (bar_read_t * p_read, uint32_t seq)
         if ((!p_read->b_too_long) &&
             (!decode(p_read->elem, p_read->count, &result)) &&
             (!decode_one_star(p_read->elem, p_read->count, &result)) &&
-            (!decode_merged(p_read->elem, p_read->count, &result)))
+            (!decode_merged(p_read->elem, p_read->count, &result)) &&
+            (!decode_truncated(p_read->elem, p_read->count, &result)))
         {
-            (void)decode_truncated(p_read->elem, p_read->count, &result);
+            (void)decode_cut_star(p_read->elem, p_read->count, &result);
         }
 
         seq_now++;
@@ -1165,6 +1364,28 @@ LOCAL uint32_t code_ended (bar_read_t * p_read, uint32_t seq)
         APP_UNLOCK(irq_state);
         g_seq_now = seq_now;
         tk_set_flg(gh_flg_mission, MSN_FLG_BARCODE);
+    }
+    else if (p_read->count >= SHORT_RUN_PRINT)
+    {
+        /* 15 Nov: a barcode broken into pieces left no trace; a piece of
+           several elements is printed (a grout line is 1-2) */
+        tm_printf(app_str("[S3] short run dropped (%d elements), widths "
+                          "(mm):"),
+                  p_read->count);
+
+        for (idx = 0; idx < p_read->count; idx++)
+        {
+            /* counts x 0.08 mm, a few hundred at most: 0.1 mm fits */
+            int32_t mm10 = p_read->elem[idx] * S2_UM_PER_COUNT / 100;
+
+            tm_printf(app_str(" %d.%d"), mm10 / 10, mm10 % 10);
+        }
+
+        tm_printf(app_str("\n"));
+    }
+    else
+    {
+        /* 1-4 elements: a grout line or a tile join, nothing to report */
     }
 
     return seq_now;
@@ -1491,4 +1712,3 @@ EXPORT int32_t barcode_mapping_text (uint8_t * p_out, int32_t max)
 }
 
 /*** end of file ***/
-

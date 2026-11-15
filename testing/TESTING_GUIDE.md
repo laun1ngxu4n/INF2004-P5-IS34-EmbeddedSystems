@@ -233,7 +233,7 @@ The panel remembers the last mapping you picked
    behind it. Tell me what it reads: this is what the side look relies
    on (if it never reads about 200, the side look hears nothing and the
    bypass simply uses the fixed 150 mm depth).
-3. **S5-O01 width**: 3 tries, obstacle about **250 mm** straight ahead
+3. **S5-O01 width**: 3 tries, obstacle about **190 mm** straight ahead
    (where the forward watch stops and the bypass scans first, since 8
    Nov). Use 3 flat boxes of
    different widths (about 100-200 mm), one try each. Each try also
@@ -244,9 +244,20 @@ The panel remembers the last mapping you picked
    is inside W +/- U. If every width is too big (or too small) by about
    the same amount, raise (or lower) `S5_BEAM_HALF_DEG`.
 4. **S5-O02 bypass**: obstacle on the line, START. It stops, scans
-   twice, reports the width, drives round on the clear side and finds the
+   (a second time, 100 mm further back, only if the first scan missed an
+   edge: 15 Nov), reports the width, drives round on the clear side and finds the
    line again (`[EVT] bypass done`). Pass: no contact, stays within 300 mm
    of the line, back on the line within 500 mm after the obstacle.
+   **Added 15 Nov (two checks):**
+   - **Long box** (30-40 cm front to back, or two boxes end to end along
+     the line): before driving back to the line it looks toward it; with
+     the box still beside it says `box still beside: going 100 mm further
+     along it` and tries again (up to 4 times, then `obstacle longer than
+     expected`). Pass: no contact, back on the line behind the box.
+   - **Something in a leg's way** (a second box where the robot will drive
+     sideways or past the first): the sonar watches ahead on every leg and
+     stops with `something in the way during the bypass` when it is
+     closer than 150 mm. Pass: it stops before touching it.
    Over WiFi (`images/wifi/is34_test_stage3_wifi.uf2`) this part first
    waits for a mapping: send one from the panel, or press START once to
    use the TEST mapping `A=L,B=R,C=F,D=U` (it reminds you every 10 s);
@@ -279,7 +290,16 @@ The panel remembers the last mapping you picked
    numbers), a `[S4T]` line every 10 ms while on it, and the IMU task's
    report `ramp peak height H mm (one wheel: ...; from the nose-down tilt
    P mm)`. Pass: H within +/- 5 mm of the measured height, 5 runs. Send
-   the log and the measured height.
+   the log and the measured height. The reported height is the side tilt
+   x T x 0.63 (`S4_ONE_WHEEL_GAIN_PCT`, fitted 9 Nov); the test also
+   prints it per bump (`x 0.63 for driving = ... mm`).
+3. **S4-L01 lift stop** (lecturer, 13 Nov: lifting the robot ends the demo
+   run). 3 tries: robot on the floor, 1 m clear; START: it drives slowly;
+   pick it up as you will at the end of the demo (tilted, as usual). Pass:
+   the wheels stop at once and the panel shows `robot lifted or tipped
+   over ...: motors off`, all 3 tries (`[TEST] S4-L01 PASS`). A lift kept
+   within 35 deg of level all the way is not seen (by design). In the
+   Mission, lifting at the end of every run tests it again.
 
 ### Stage 5: telemetry + MQTT (demo image), owner B1
 
@@ -299,6 +319,15 @@ mosquitto_sub -h <broker IP> -t 'is34/#' -v
 
 ### Stage 6: whole course (demo image or `_test_s6`), whole team
 
+**Barcode placement (15 Nov: the whole day's failed reads were this).**
+Lay each barcode square to the line (bars at 90 deg to the tape), flat,
+taped only on its white margins, and placed so the barcode sensor (about
+7 cm left of the line sensors) passes over the **middle** of the bars. A
+barcode at a slight angle or off to the side gave thin bars that read
+faint and narrow, codes in pieces, or no read at all; the same print laid
+square read cleanly (`narrow 3.4 mm, wide 9.3 mm`). Check with the robot
+on the line just before it: where will the sensor cross?
+
 **SYS-01**, 3 full runs: send the 4-character mapping, START, course with
 barcodes, junctions, an obstacle and the ramp. Pass: every move at its
 junction, obstacle passed with its width reported, ramp height reported,
@@ -307,11 +336,12 @@ line found after every manoeuvre.
 ## 5. What the robot does (demo image)
 
 `IDLE` -> START (GP20 or `is34/cmd/start`) -> `CAL` (IMU level, 1 s) ->
-`RUN`: follows the line at 150 mm/s.
+`RUN`: follows the line at 135 mm/s (`S5_FOLLOW_SPEED`, 15 Nov; 50 mm/s over bars).
 - Barcode -> stores the character, reports it and the planned move.
 - Junction -> stored character's move (L / R / F / U-turn); none stored
   = straight; stored but not in the mapping = stop "no mapping".
-- Obstacle closer than 250 mm -> stop, scan, reverse 80 mm, scan,
+- Obstacle closer than 190 mm -> stop, scan (again 100 mm further back
+  only if an edge was not seen),
   report width +/-, bypass on the clear side, find the line, carry on.
 - Ramp -> when level again, reports the peak height.
 - Line lost / blocked bypass -> stops and reports. STOP -> `IDLE`.
@@ -326,6 +356,9 @@ line found after every manoeuvre.
 4. `cd build_make && make NET=lwip MQTT=1` and flash
    `mtk3pico_smp0_usb_cdc_wifi_lwip_mqtt.uf2`.
 5. On the laptop: `pip install paho-mqtt`, then `python tools/panel/is34_panel.py`.
+   Or, with no Python (any laptop): `tools/panel/exe/is34_panel.exe`, see
+   `tools/panel/exe/README.txt` (Mosquitto still needed; the robot's image
+   has the broker laptop's IP built in).
    The panel shows the status line and events, and has START, STOP
    (Space) and mapping buttons; it logs everything to `logs/panel/` (the robot's own console to `logs/robot/`).
    "Start broker" runs Mosquitto on port 1884

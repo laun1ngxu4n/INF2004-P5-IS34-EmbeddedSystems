@@ -47,7 +47,15 @@ Inline bool button_is_down (uint32_t pin)
 
 /* ---- Obstacle Scanner ---------------------------------------------- */
 
-#define S5_TRIP_MM 250 /* stop for an obstacle closer than this */
+/* Stop for an obstacle closer than this.  15 Nov: 250 -> 185 -> 190 (team:
+   it stopped too far away; 175 was asked first but would stop too close to
+   the 150 mm minimum below).  At 120 mm/s it stopped at 168 with 185; with
+   the Mission at 135 mm/s (15 Nov) it carries on a little further: 190
+   keeps about the same 165-175 mm.
+   Tribunal 1: stop at least 150 mm away at up to 250 mm/s; the scan still sees
+   both edges of the course box (about 13 cm) from here, and a wider box that
+   fills the sweep gets the second scan from 100 mm further back. */
+#define S5_TRIP_MM 190
 /* largest expected obstacle (O7): the bypass always plans for at least this */
 #define S5_MAX_WIDTH_MM 200
 /* ... and never for more: a scan that says 500 mm is wrong (instructor:
@@ -99,4 +107,3 @@ IMPORT int32_t  g_tmg_obstacle;
 #endif /* SUBSYSTEM5_H */
 
 /*** end of file ***/
-

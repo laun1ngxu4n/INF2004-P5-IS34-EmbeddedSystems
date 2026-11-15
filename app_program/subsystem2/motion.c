@@ -347,9 +347,9 @@ EXPORT void motion_task (int32_t stacd, void * p_exinf)
                 cap = (float32_t)g_follow_limit; /* exact */
             }
 
-            /* Straight while B is over the bars (an edge in the last
-               15 mm): B is 85 mm off centre, so a turn changes its
-               speed over the bars against the odometer by 50 % or
+            /* Straight while B is over the bars (until the code ends,
+               15 Nov; was the last 15 mm): B is 85 mm off centre, so a turn
+               changes its speed over the bars against the odometer by 50 % or
                more and the widths come out wrong (2 Nov the steering
                broke a read into pieces).  The code is read in one
                pass; the back-up-and-reread (2-7 Nov) was removed on

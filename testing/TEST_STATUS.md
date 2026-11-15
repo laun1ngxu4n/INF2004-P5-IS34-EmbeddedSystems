@@ -294,6 +294,13 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   wrong; 2 false in 50 000 random patterns). **Still to do: the B
   thresholds** (`S3_BAR_DELTA` 700, `S3_BAR_BLACK_MIN` 1500) from a
   Stage 2 live view of the course barcode (white and thin-bar readings).
+- **15 Nov, third course run (`..._course_mission_3_robot.txt`, with the cut-start
+  decode): F again not read, no READ_FAIL at all.** The panel trace shows
+  the robot steering +-30 over the bars and the over-the-bars hold
+  switching on and off (it let go after 15 mm without an edge: one missed
+  thin bar plus an 11 mm wide space), so B swung across the bars and the
+  code broke into pieces. **Changed 15 Nov, not run yet:** the steering is
+  held straight for the whole code (until 40 mm without an edge).
 - [ ] 🟡 **S5-B01 / S5-B02** (2C): right move at each junction, U-turn, stop on
   an unmapped code
 

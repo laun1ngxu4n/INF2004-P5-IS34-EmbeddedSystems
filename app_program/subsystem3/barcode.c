@@ -76,7 +76,12 @@ LOCAL volatile bool     gb_paused;  /* barcode_reset(): ignore edges */
 LOCAL volatile uint32_t g_seq_now;  /* results published so far */
 LOCAL volatile int32_t  g_edge_pub; /* odometer at the last clean edge */
 
-#define S3_IN_BARS_MM 15 /* edge this recent = B over bars */
+/* Edge this recent = B over bars: Motion holds the steering straight.
+   Was 15 mm; 15 Nov course runs: one missed thin bar (they read 1.5-2.3
+   mm) plus an 11 mm wide space passed 15 mm, the hold let go inside the
+   code, the robot steered +-30 over the bars and swung B across them, and
+   the code broke into pieces.  Now the whole code: until it ends. */
+#define S3_IN_BARS_MM S3_QUIET_MM
 
 /* One pair of the mapping: a letter (7-bit ASCII) and its move as an
    index into MOVE_CODES (2 bits) */
@@ -442,9 +447,9 @@ EXPORT uint32_t barcode_edges (void)
     return g_ring_w;
 }
 
-/** B is over bars now: an edge in the last S3_IN_BARS_MM (widest element
-   10.5 mm).  Motion holds the steering straight then: B sits 85 mm left
-   of the robot's centre, so any turn changes B's own speed over the bars
+/** B is over bars now: an edge in the last S3_IN_BARS_MM (the code's
+   end gap, S3_QUIET_MM).  Motion holds the steering straight then: B sits 85 mm
+   left of the robot's centre, so any turn changes B's own speed over the bars
    by +-50 % or more against the odometer, and the widths come out wrong. */
 EXPORT bool barcode_in_bars (void)
 {

@@ -233,7 +233,7 @@ The panel remembers the last mapping you picked
    behind it. Tell me what it reads: this is what the side look relies
    on (if it never reads about 200, the side look hears nothing and the
    bypass simply uses the fixed 150 mm depth).
-3. **S5-O01 width**: 3 tries, obstacle about **250 mm** straight ahead
+3. **S5-O01 width**: 3 tries, obstacle about **200 mm** straight ahead
    (where the forward watch stops and the bypass scans first, since 8
    Nov). Use 3 flat boxes of
    different widths (about 100-200 mm), one try each. Each try also
@@ -340,7 +340,8 @@ line found after every manoeuvre.
 - Barcode -> stores the character, reports it and the planned move.
 - Junction -> stored character's move (L / R / F / U-turn); none stored
   = straight; stored but not in the mapping = stop "no mapping".
-- Obstacle closer than 250 mm -> stop, scan, reverse 80 mm, scan,
+- Obstacle closer than 200 mm -> stop, scan (again 100 mm further back
+  only if an edge was not seen),
   report width +/-, bypass on the clear side, find the line, carry on.
 - Ramp -> when level again, reports the peak height.
 - Line lost / blocked bypass -> stops and reports. STOP -> `IDLE`.

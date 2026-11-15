@@ -44,7 +44,7 @@ describe; **Drop** = remove, or report as "not done / not tested".
 | NFR3 | Coarse 1.2 s / fine 2.0 s no longer applies: one scan of 21 rays (40-140 deg, 5 deg steps), settle wait, **5 pings per ray**, done **twice** from two positions. Re-set the limit from the measured scan time (S5-O01 notes) |
 | NFR4 | Not measured (drop or "not tested") |
 | NFR5 / NFR5a / NFR5b | Reconnect trials, snapshot and 1 s heartbeat: **not tested / not built** (`testing/PLAN.md` dropped list) |
-| NFR6 | Week 6 says trip distance **at least 300 mm**; the code uses **250 mm** (`S5_TRIP_MM`). Pick one: raise the code to 300, or change NFR6 with the reason (150 mm/s, measured stop distance from S2-M04) |
+| NFR6 | Week 6 says trip distance **at least 300 mm**. **Decided 15 Nov: change NFR6 to 200 mm** (`S5_TRIP_MM`; was 250 until then): the team found the robot stopped too far away; Tribunal 1 set "stop at least 150 mm away at up to 250 mm/s", and it actually stops at about 180-195 mm at 120 mm/s, from where the scan still sees both edges of the course box | Team, 15 Nov; Tribunal 1 |
 | NFR8 | Turns: **tested** (Stage 1, 1 Nov: 90 deg about right, 180 about 5 deg over, track width tuned to 123 mm). Straight 1 m: **dropped**. Barcode at 150 mm/s and ramp +/- 5 mm: to be tested (S3-B, S4-R01) |
 | NFR9 | RAM: images about 80 KB static (bss) with MQTT; stack/CPU measurements **not done** |
 | NFR10 | STOP calls `motor_safe_off()` inside the button interrupt (no task involved). A separate Safety path for a hung Motion: **not built** |
@@ -163,7 +163,7 @@ and mark each requirement built / tested / not built / not tested.
   and `bringup/docs/logs`.
 
 ## Still to decide (team / instructor)
-- NFR6 trip distance: 250 mm in the code vs at least 300 mm in Week 6.
+- NFR6 trip distance: 200 mm in the code since 15 Nov (was 250) vs at least 300 mm in Week 6: change NFR6 to 200 mm (Tribunal 1 minimum: 150 mm).
 - FR10 / NFR5b heartbeat: change to 1 s, or count the 1 s telemetry.
 - Whether changing the template's `mqtt_utk.c` / `lwipopts.h` is allowed.
 - The mapping message format and "all moves at the junction" (instructor).

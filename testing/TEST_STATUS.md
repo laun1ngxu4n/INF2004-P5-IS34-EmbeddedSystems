@@ -323,6 +323,14 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   reprinted): square to the line, B over the middle of the bars. So the
   thin-bar readings of the day (929-1535, 1.5-2.3 mm) came from B crossing
   the bars at an angle or near their ends, not from the print.
+- **15 Nov, course run 6 (`..._course_mission_6_robot.txt`): barcodes and junctions
+  ✅** (F read twice, A after the mapping changed, every junction LEFT as
+  mapped; one READ_FAIL). **Obstacle: `obstacle lost between scans`.** Scan
+  1 at 216 mm saw the box with both edges (211 mm); scan 2, 100 mm back,
+  read 650 straight ahead and the box only at +5..+30 deg: the robot
+  turned about 12 deg while backing up. **Changed 15 Nov, not run yet:**
+  when scan 1 sees both edges it is the profile; the back-up and scan 2
+  only when scan 1 missed an edge.
 - [ ] 🟡 **S5-B01 / S5-B02** (2C): right move at each junction, U-turn, stop on
   an unmapped code
 

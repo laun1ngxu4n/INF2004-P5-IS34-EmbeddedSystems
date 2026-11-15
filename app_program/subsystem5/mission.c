@@ -31,8 +31,9 @@
  * the junction is not overrun */
 #define S5_APPROACH_SPEED 100
 /* Scan positions (O5).  First scan where the forward watch stopped (20-25
-   cm from the obstacle; backs up only if nearer than SCAN_NEAR_MM), then
-   back REVERSE_MM and scan again.  Until 8 Nov it first backed up to 350
+   cm from the obstacle; backs up only if nearer than SCAN_NEAR_MM), then,
+   only if that scan missed an edge (15 Nov), back REVERSE_MM and scan
+   again.  Until 8 Nov it first backed up to 350
    mm, because from 20-25 cm the old width rule saw the box across the
    whole sweep.  With the geometry rule (obstacle.c) the near scans
    are the better ones: on the 29 real scans of 7 Nov, 200-280 mm away
@@ -884,16 +885,32 @@ LOCAL void on_obstacle (void)
         return;
     }
 
-    if (!mv(motion_drive(-S5_FOLLOW_SPEED, REVERSE_MM)))
+    /* Both edges seen from here: this scan is the profile.  The 2nd scan
+       is for a box that fills this one (an edge not seen); where both see
+       an edge the nearer is taken anyway.  15 Nov course run: the robot
+       turned about 12 deg while backing up for the 2nd scan, the box left
+       the centre ray and the run stopped "obstacle lost between scans",
+       though scan 1 had both edges (211 mm). */
+
+    if ((scan_near.b_left_seen) && (scan_near.b_right_seen))
     {
-        /* O5 */
-        halt("reverse for 2nd scan did not finish");
-        return;
+        scan_far = scan_near;
+        profile  = scan_near;
+    }
+    else
+    {
+        if (!mv(motion_drive(-S5_FOLLOW_SPEED, REVERSE_MM)))
+        {
+            /* O5 */
+            halt("reverse for 2nd scan did not finish");
+            return;
+        }
+
+        wait_still();
+        obstacle_scan(&scan_far);
+        obstacle_combine(&scan_near, &scan_far, &profile);
     }
 
-    wait_still();
-    obstacle_scan(&scan_far);
-    obstacle_combine(&scan_near, &scan_far, &profile);
     tm_sprintf(msg,
                app_str("obstacle width %d +/- %d mm (scan 1: %d +/- %d, "
                        "scan 2: %d +/- %d); edges L %d R %d mm; front %d mm"),

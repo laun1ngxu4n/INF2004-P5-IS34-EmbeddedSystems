@@ -263,8 +263,9 @@ The panel remembers the last mapping you picked
    use the TEST mapping `A=L,B=R,C=F,D=U` (it reminds you every 10 s);
    then START again to run (**mapping: see "Barcode mapping" below**). Start on a straight stretch; since 8
    Nov the line behind the box may also curve (the robot spins until a
-   line sensor finds it). New lines: `line met behind the box` (it
-   curved toward the robot) or `line found N mm after the last turn`.
+   line sensor finds it). It always goes all the way round (15 Nov: it no
+   longer takes a line on the leg past the box, where it once followed a
+   different piece of track), then `line found N mm after the last turn`.
    Try a box standing on a T or X junction too (the 8 Nov fix): it must
    come back to the line it came along, not the side line. On the leg
    past the box the sonar looks 40 deg toward the box: expect `side look:

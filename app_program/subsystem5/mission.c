@@ -674,14 +674,17 @@ LOCAL void side_report (side_look_t * p_look, int32_t done, int32_t x_pass)
    echo.  tools/sim/bypasssim.py S: box depths 60-350 mm all 36/36, closest 56
    mm (fixed distance: 250 mm deep 16 of 36 hit, 350 mm all hit); with
    half the side echoes missed still 53/54.
-   1 = line met, 0 = past the box (turn back to the line), -1 = halted */
-LOCAL int32_t pass_box (int32_t sgn, int32_t front, int32_t lat_exp,
-                        int32_t x_pass)
+   No line is taken on this leg (15 Nov): on the course a different piece
+   of track ran beside the box's far side and the robot followed it
+   ("line met behind the box, 503 mm along") instead of going round and
+   back to its own line.  The robot always drives the full leg, turns
+   back and finds its own line (leg 5-6).
+   0 = past the box (turn back to the line), -1 = halted */
+LOCAL int32_t pass_box (int32_t sgn, int32_t lat_exp, int32_t x_pass)
 {
     uint8_t         msg[TELE_TEXT_MAX];
-    bool            b_side    = (S5_SERVO_SIDE_DEG > 0);
-    side_look_t     look      = {false, false, 0, 0, SIDE_MISS_PINGS, x_pass};
-    int32_t         line_from = front + D_MAX_MM + 30;
+    bool            b_side = (S5_SERVO_SIDE_DEG > 0);
+    side_look_t     look   = {false, false, 0, 0, SIDE_MISS_PINGS, x_pass};
     int32_t         dist;
     int32_t         done;
     int32_t         sonar_mm;
@@ -749,13 +752,6 @@ LOCAL int32_t pass_box (int32_t sgn, int32_t front, int32_t lat_exp,
         else
         {
             /* nothing to do for any other case */
-        }
-
-        if ((done >= line_from) && (look.miss >= SIDE_MISS_PINGS) &&
-            (line_any_black()))
-        {
-            outcome = 1;
-            break;
         }
 
         if (done >= look.stop_at)
@@ -1133,13 +1129,11 @@ LOCAL void on_obstacle (void)
                (sgn > 0) ? "LEFT" : "RIGHT", w_plan, y_off, x_pass);
     say(msg);
 
-    /* legs 1-4.  The leg past the box (pass_box) watches the line
-       sensors once the robot is past the box's back: a line that curves
-       toward this side behind the box is met there.  Not before: 8 Nov
-       the box stood on a junction and this leg met the junction's side
-       line beside the box ("line met beside the box, 599 mm along" = 14
-       cm past its front) and followed it away (tools/sim/bypasssim.py, boxes
-       on a junction).  Until 8 Nov it watched from the box's front. */
+    /* legs 1-4.  The leg past the box (pass_box) takes no line: the robot
+       always goes round and back to its own line (15 Nov: a different
+       piece of track beside the box's far side was followed instead).
+       Before, it took a line once past the box's back (8 Nov: from the
+       box's front, a junction's side line beside the box was followed). */
 
     if (!mv(motion_turn(sgn * 90)))
     {
@@ -1170,11 +1164,9 @@ LOCAL void on_obstacle (void)
         goto fail;
     }
 
-    odo0 = motor_odometer();
     /* sideways from the robot to the box's side face, as the scan saw it */
     found = pass_box(
-        sgn, profile.front_mm,
-        y_off - (sgn * ((sgn > 0) ? profile.left_mm : profile.right_mm)),
+        sgn, y_off - (sgn * ((sgn > 0) ? profile.left_mm : profile.right_mm)),
         x_pass);
 
     if (found < 0)
@@ -1182,46 +1174,37 @@ LOCAL void on_obstacle (void)
         return; /* halted, reason given */
     }
 
-    if (found)
+    /* leg 5-6: back toward its own line, any black counts (it may have
+       curved either way behind the box); first make sure the box is not
+       still beside (15 Nov: longer than D_MAX_MM) */
+
+    if (!turn_back_clear(sgn, y_off))
     {
-        tm_sprintf(msg, app_str("line met behind the box, %d mm along"),
-                   motion_counts_to_mm(motor_odometer() - odo0));
-        say(msg);
+        return; /* halted, reason given */
     }
-    else
+
+    odo0  = motor_odometer();
+    found = drive_until_line(y_off + REJOIN_FAR_MM, 20);
+
+    if (DRIVE_BLOCKED == found)
     {
-        /* leg 5-6: back toward the line, any black counts (it may
-           have curved either way behind the box); first make sure the
-           box is not still beside (15 Nov: longer than D_MAX_MM) */
-
-        if (!turn_back_clear(sgn, y_off))
-        {
-            return; /* halted, reason given */
-        }
-
-        odo0  = motor_odometer();
-        found = drive_until_line(y_off + REJOIN_FAR_MM, 20);
-
-        if (DRIVE_BLOCKED == found)
-        {
-            return; /* halted, reason given */
-        }
-
-        if (found < 0)
-        {
-            goto fail;
-        }
-
-        if (!found)
-        {
-            halt("line not found after the bypass");
-            return;
-        }
-
-        tm_sprintf(msg, app_str("line found %d mm after the last turn"),
-                   motion_counts_to_mm(motor_odometer() - odo0));
-        say(msg);
+        return; /* halted, reason given */
     }
+
+    if (found < 0)
+    {
+        goto fail;
+    }
+
+    if (!found)
+    {
+        halt("line not found after the bypass");
+        return;
+    }
+
+    tm_sprintf(msg, app_str("line found %d mm after the last turn"),
+               motion_counts_to_mm(motor_odometer() - odo0));
+    say(msg);
 
     /* leg 7: wheels onto the line, then spin toward the old direction
        until a line sensor finds the tape (whatever way the line runs

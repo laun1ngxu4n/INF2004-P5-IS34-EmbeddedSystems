@@ -1,7 +1,7 @@
 """Barr C 2.2h: put the brief description of each undocumented function
-(tools/barr/doc_briefs.txt) above its definition as a Doxygen comment.
+(tools/barr/oneoff/doc_briefs.txt) above its definition as a Doxygen comment.
 
-    python tools/barr/add_briefs.py
+    python tools/barr/oneoff/add_briefs.py
 
 Only functions that have no comment directly above them get one.  Comments
 only: the program does not change.

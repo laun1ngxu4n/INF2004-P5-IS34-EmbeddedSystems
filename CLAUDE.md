@@ -23,7 +23,9 @@ code in `app_program/`. Read before doing anything:
   (the WiFi images contain the WiFi password in plain text). Both are
   git-ignored; do not `git add -f` them.
 - Do not commit `.vscode/`, `desktop.ini`, the Barr standard PDF, or the
-  course `.docx` files (they hold names and student IDs). What matters
+  course `.docx` files (they hold names and student IDs). They live in
+  `private/` (git-ignored, with the Tribunal 2 template and the filled
+  submission); `.vscode/` and `desktop.ini` are git-ignored too. What matters
   in them is in `docs/team/course/`: the change requirement word for
   word, and a summary of the tribunal decisions with buddies by role
   (B1-B5) only.

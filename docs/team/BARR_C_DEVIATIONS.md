@@ -20,10 +20,13 @@ where we deliberately deviate, and why.
   rule it checks is at 0 except the deviations below.
 - `app_program/.clang-format`: the layout rules (indent, braces, spacing,
   80 columns, no tabs).
-- `tools/barr/transform.py`, `fix_layout.py`, `names.py`, `doxygen.py`,
-  `add_briefs.py`: the scripts that made the clean-up (constants on the
-  left of `==`, brackets, one variable per declaration, `for (;;)`,
-  blank lines around blocks, Barr names, Doxygen comments).
+- `tools/barr/transform.py`, `fix_layout.py`, `names.py`: the scripts
+  that made the clean-up (constants on the left of `==`, brackets, one
+  variable per declaration, `for (;;)`, blank lines around blocks, Barr
+  names); `check.py` uses `transform.py` and `names.py`. The one-off
+  scripts, run once and kept for the record, are in `tools/barr/oneoff/`
+  (`doxygen.py` and `add_briefs.py`: Doxygen comments; `final_else.py`;
+  `make_renames.py` with `renames_6.1i.txt`).
 - `tools/barr/compare.sh`: builds all 12 images and compares them byte
   for byte with the images from before a clean-up. A clean-up that changes
   no byte cannot change what the robot does. Where the bytes had to change

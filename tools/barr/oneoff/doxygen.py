@@ -1,6 +1,6 @@
 """Barr C 2.2h: comments Doxygen can read.
 
-    python tools/barr/doxygen.py app_program/<file>.c [...]
+    python tools/barr/oneoff/doxygen.py app_program/<file>.c [...]
 
 - a /* comment directly above a function definition or prototype (no blank
   line between) becomes /** ... */, so Doxygen documents the function with it

@@ -56,6 +56,7 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   real angle. Re-run all 3 rounds and write down the real angles.
 - [ ] 🟡 S2-M04: try 1 stopped in 149 ms; tries 3-5 not run
 - [x] ✅ Held wheel (Change Requirement 1 Safety): motors off, event sent; START again after 2 s: to confirm
+- [ ] ⬜ **S4-S01 Motion hung (NFR10), added 17 Nov, not run yet:** Stage 1, wheels lifted: the test freezes the Motion task for 1 s (test images only); Safety must turn the motors off within about 220 ms of Motion's last run and clear the fault 2 s later
 
 ## Stage 2: line, junctions, barcodes (`TEST_STAGE=2`)
 
@@ -341,11 +342,19 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   going 100 mm further along it`, else `obstacle longer than expected`).
   Turning on the spot beside the box is safe: centre at least 185 mm from
   its side, corners swing about 155 mm. Tests: TESTING_GUIDE Stage 3 step 4.
+- **Changed 17 Nov, not run yet:** the leg past the box takes no line. In
+  course run 7 the `line met behind the box, 503 mm along` was **a
+  different piece of track** beside the box's far side (tester), so the
+  robot followed the wrong line. Now it always drives the full leg, turns
+  back (checking the box is not still beside), finds its own line and
+  spins onto it in the old direction. A different track between its path
+  and its own line would still be taken: keep other track away from the
+  box's sides.
 - **15 Nov, course run 7 (`..._course_mission_7_robot.txt`, stop at 185, 120 mm/s): ✅
   whole sequence.** Barcode F -> LEFT at junction 2; obstacle stopped at
   168 mm, width 116 mm (the course box, about 13 cm), bypass LEFT, `line
-  met behind the box, 503 mm along` (the track curving behind it: the
-  right line, tester), `bypass done`; hump `ramp peak height 18.5 mm`;
+  met behind the box, 503 mm along` (later, 17 Nov: a different piece of
+  track, see above), `bypass done`; hump `ramp peak height 18.5 mm`;
   lifted at the end: motors off.
 - **Changed 15 Nov, not run yet:** obstacle stop distance 250 -> 190 mm
   (`S5_TRIP_MM`; team: it stopped too far away), scan back-up only if

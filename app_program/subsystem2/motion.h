@@ -49,9 +49,15 @@ IMPORT void motion_halt (void);               /* stop, no STOP reason */
 IMPORT void motion_follow_limit (int32_t speed_mm_s);
 IMPORT void motion_get_status (motion_status_t * st);
 
+#if APP_TEST
+/** Test images only (S4-S01): at its next wake the Motion task stops
+   running for ms, as if hung, so the test can show Safety turning the
+   motors off without it. */
+IMPORT void motion_test_hang (uint32_t ms);
+#endif
+
 IMPORT void motion_task (int32_t stacd, void * exinf);
 
 #endif /* MOTION_H */
 
 /*** end of file ***/
-

@@ -100,6 +100,12 @@ Order (review, 1 Nov): wheels lifted first, then the floor.
    line, and what you saw matches.
 2. **S2-M06 STOP, wheels lifted**: press STOP after a second. Pass: wheels
    stop at once.
+2a. **S4-S01 Motion hung, wheels still lifted** (added 17 Nov; keep the
+   robot level, on a box, so the lift stop does not trip): press START,
+   the wheels turn, then the test freezes the Motion task for 1 s on
+   purpose. Pass: PASS line: `motors OFF, Motion-hung fault set`, off
+   within about 220 ms of Motion's last run, and `fault cleared ... START
+   works again` about 2 s later.
 3. Robot on the floor from here. **S2-M03**: mark the front, it drives
    500 mm at 150 mm/s; **measure the real distance**. Pass: PASS line
    (speed) and the real distance 475-525 mm. Otherwise the mm/count scale
@@ -439,8 +445,8 @@ log after **every** run, and write down what you measured.
 
 **Checked without the robot driving:** message sizes and format
 (FR15) by `python tools/panel/test_wire.py` (PASS 17 Nov, 15 golden
-vectors); the Motion-hung stop (NFR10, `FAULT_MOTION_HUNG` in
-`subsystem4/safety.c`) by code review: no normal run can hang Motion.
+vectors). The Motion-hung stop (NFR10) is Stage 1 step 2a, S4-S01 (wheels
+lifted): run it in session 4.
 
 ## 7. Send back
 

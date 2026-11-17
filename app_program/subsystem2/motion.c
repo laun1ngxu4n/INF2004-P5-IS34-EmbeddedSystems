@@ -141,6 +141,18 @@ EXPORT void motion_get_status (motion_status_t * p_status)
     APP_UNLOCK(irq_state);
 }
 
+#if APP_TEST
+/* S4-S01: ms the motion task stays away at its next wake, 0 = none; one
+   word: the test task writes it, the motion task reads and clears it */
+LOCAL volatile uint32_t g_test_hang_ms;
+
+/** Test images only: the motion task stops running for ms (S4-S01). */
+EXPORT void motion_test_hang (uint32_t ms)
+{
+    g_test_hang_ms = ms;
+}
+#endif
+
 /** value limited to low..high. */
 LOCAL float32_t clampf (float32_t value, float32_t low, float32_t high)
 {
@@ -237,6 +249,17 @@ EXPORT void motion_task (int32_t stacd, void * p_exinf)
 
         tk_slp_tsk(TMO_FEVR); /* woken every 10 ms */
         app_timing_wake(g_tmg_motion, tk_can_wup(TSK_SELF));
+
+#if APP_TEST
+        if (g_test_hang_ms != 0u)
+        {
+            /* a few hundred ms: fits TMO */
+            const TMO hang_ms = (TMO)g_test_hang_ms;
+
+            g_test_hang_ms = 0u;
+            tk_dly_tsk(hang_ms); /* "hung": the motors keep their duty */
+        }
+#endif
 
         /* 1. Encoders and speed */
         motor_encoders(&count_left, &count_right, &invalid);

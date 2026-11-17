@@ -337,6 +337,85 @@ LOCAL bool test_stop_once (int32_t run, bool b_lifted)
     return (MOT_RES_STOPPED == res) && ((t_last_move - t_press) < 500000u);
 }
 
+#define HANG_MS           1000    /* Motion frozen this long in S4-S01 */
+#define HUNG_LIMIT_US     225000u /* Safety's 200 ms + one 20 ms period + 5 */
+#define HANG_TICKS        100     /* HANG_MS at 10 ms */
+#define FAULT_CLEAR_TICKS 400     /* 4 s at 10 ms: the 2 s hold, + margin */
+
+/** S4-S01 (NFR10): wheels lifted, the Motion task frozen while the wheels
+   turn; Safety alone must turn the motors off, then clear the fault. */
+LOCAL bool test_motion_hung (void)
+{
+    app_timing_t motion_tmg;
+    int32_t      duty_l;
+    int32_t      duty_r;
+    int32_t      tick;
+    uint32_t     off_us  = 0u;
+    bool         b_off   = false;
+    bool         b_fault = false;
+    bool         b_freed = false;
+    ID           h_cmd;
+
+    app_test_wait_start(
+        "S4-S01 Motion hung: WHEELS LIFTED. The wheels turn, then the "
+        "Motion task is frozen for 1 s; Safety must turn the motors off "
+        "on its own.");
+    h_cmd = motion_drive(S2_SPEED_BARCODE, 2000);
+
+    if (h_cmd < E_OK)
+    {
+        return false;
+    }
+
+    tk_dly_tsk(1000);
+    motion_test_hang(HANG_MS);
+
+    for (tick = 0; tick < HANG_TICKS; tick++)
+    {
+        tk_dly_tsk(10);
+
+        if (app_stop_reasons() != 0u)
+        {
+            break;
+        }
+    }
+
+    motor_duties(&duty_l, &duty_r);
+    b_off   = (0 == duty_l) && (0 == duty_r);
+    b_fault = (0u != (app_stop_faults() & FAULT_MOTION_HUNG));
+
+    if (b_fault && (E_OK == app_timing_get(g_tmg_motion, &motion_tmg)))
+    {
+        /* the motors went off in app_stop_request(): its time stamp */
+        off_us = app_stop_time_us() - motion_tmg.last_us;
+    }
+
+    /* under a second: the ms fit %d */
+    tm_printf(app_str("[S4-S01] motors %s, Motion-hung fault %s; motors off "
+                      "%d ms after the Motion task last ran (limit 220)\n"),
+              b_off ? "OFF" : "STILL ON", b_fault ? "set" : "NOT set",
+              (int32_t)(off_us / 1000u));
+
+    for (tick = 0; tick < FAULT_CLEAR_TICKS; tick++)
+    {
+        tk_dly_tsk(10);
+
+        if ((0u == app_stop_reasons()) &&
+            (0u == (app_stop_faults() & FAULT_MOTION_HUNG)))
+        {
+            b_freed = true;
+            break;
+        }
+    }
+
+    tm_printf(app_str("[S4-S01] fault %s by Safety (motors off 2 s): START "
+                      "%s\n"),
+              b_freed ? "cleared" : "NOT cleared",
+              b_freed ? "works again" : "stays blocked");
+    return b_off && b_fault && (off_us > 0u) && (off_us <= HUNG_LIMIT_US) &&
+           b_freed;
+}
+
 /** S2-M05: wheels lifted, both wheels forward then back; check both signs */
 LOCAL bool test_directions (void)
 {
@@ -421,6 +500,9 @@ EXPORT void subsystem2_test_drive (void)
                "within 25 % of each other");
     TEST_CHECK("S2-M06", test_stop_once(0, true),
                "wheels lifted: STOP stopped the wheels within 500 ms");
+    TEST_CHECK("S4-S01", test_motion_hung(),
+               "wheels lifted: Motion frozen, Safety turned the motors off "
+               "within about 220 ms and cleared the fault 2 s later");
     tm_printf(app_str("\n[DRIVE] From here: robot ON THE FLOOR.\n"));
     TEST_CHECK("S2-M03", test_slow_speed(),
                "barcode speed: mean within 10 % (encoders); "

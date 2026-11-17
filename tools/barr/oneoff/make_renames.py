@@ -1,7 +1,7 @@
 """Build the Barr C 7.1 rename list for app_program/ from the inventory.
 
     python tools/barr/names.py list > vars.tsv
-    python tools/barr/make_renames.py vars.tsv > renames.txt
+    python tools/barr/oneoff/make_renames.py vars.tsv > renames.txt
     python tools/barr/names.py apply renames.txt
 
 Prefixes (7.1j, k, m, n, o): g_ file-scope, p_ / pp_ pointer, b_ Boolean,

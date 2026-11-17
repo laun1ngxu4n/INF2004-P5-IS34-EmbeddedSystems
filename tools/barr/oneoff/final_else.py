@@ -1,6 +1,6 @@
 """Barr C 8.2d: end every if ... else if ... chain with an else.
 
-    python tools/barr/final_else.py app_program/<file>.c [...]
+    python tools/barr/oneoff/final_else.py app_program/<file>.c [...]
 
 Run on clang-formatted code (braces on their own lines).  The added else is
 empty, with a comment, so the program does not change.

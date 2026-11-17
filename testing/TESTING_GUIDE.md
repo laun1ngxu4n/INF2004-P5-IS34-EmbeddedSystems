@@ -396,6 +396,52 @@ print PASS. Then on the robot, the extra tests in
   START works again 2 s later);
 - a good and a refused mapping.
 
+## 6b. Tribunal 2 round: everything still owed (17 Nov)
+
+Every requirement in the Tribunal 2 A1 table that has no robot log yet,
+in four sessions. Bring a ruler and a phone stopwatch. Save the panel
+log after **every** run, and write down what you measured.
+
+**Session 1: Mission image on the course (about 1 hour).** 3 full runs
+(SYS-01) at 135 mm/s, stop at 190 mm. In them:
+- barcodes for Left, Right, Straight and U-turn (or change the mapping
+  between runs) so every move is seen once; one run with a barcode
+  that has no mapping: the robot must stop (FR3, FR9);
+- measure each barcode-to-junction distance (NFR4);
+- obstacle: ruler the stop distance (NFR6), the real box width (FR5),
+  stopwatch the scan from stop to sensor centred again (NFR3);
+- bypass: the furthest it gets from the line (a phone video is fine),
+  no contact, back on its own line (FR6, NFR6a);
+- at least one run with 3 m of following and no `line lost` (NFR1a);
+- lift the robot at the end of every run: motors off (FR13);
+- robot idle on the hotspot: hotspot off 10 s, on again, stopwatch
+  until the panel shows it online (NFR5);
+- quick START/STOP clicks on the panel, ending on STOP: it stays
+  stopped (NFR11).
+
+**Session 2: Stage 3 image, bypass extras (15 min).**
+- a hand in front of the robot on a bypass leg: `something in the way
+  during the bypass` (FR6, NFR12);
+- a long box: `box still beside: going 100 mm further along it` (FR6);
+- sonar unplugged **with the power off**, then run:
+  `ultrasonic not answering` stop (FR9).
+
+**Session 3: Stage 4 image, IMU (15 min).**
+- 3 humps, each height measured with a ruler first (FR4, NFR8);
+- S4-L01: 3 lifts (FR13).
+
+**Session 4: Stage 1 and Stage 2 images (30 min).**
+- S2-M02: 3 rounds, write down the real angles (NFR8);
+- S2-M04: tries 3-5;
+- a wheel held while driving, then START after 2 s (FR9, FR14);
+- one barcode, 20 passes, count the reads, a few in the reverse
+  direction (FR2, NFR8).
+
+**Checked without the robot driving:** message sizes and format
+(FR15) by `python tools/panel/test_wire.py` (PASS 17 Nov, 15 golden
+vectors); the Motion-hung stop (NFR10, `FAULT_MOTION_HUNG` in
+`subsystem4/safety.c`) by code review: no normal run can hang Motion.
+
 ## 7. Send back
 
 For each test: the whole log, plus what you wrote down (real angles, real

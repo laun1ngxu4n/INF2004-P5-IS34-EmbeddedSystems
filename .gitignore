@@ -47,3 +47,7 @@ tools/panel/is34_panel_mapping.txt
 # what it writes next to itself stays local
 tools/panel/exe/logs/
 tools/panel/exe/is34_panel_mapping.txt
+
+# Course submission documents (they carry student IDs): kept local
+docs/team/Tribunal_2_*.docx
+docs/team/Tribunal_2_*.pdf

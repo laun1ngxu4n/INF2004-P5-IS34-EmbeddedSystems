@@ -343,7 +343,7 @@ line found after every manoeuvre.
 ## 5. What the robot does (demo image)
 
 `IDLE` -> START (GP20 or `is34/cmd/start`) -> `CAL` (IMU level, 1 s) ->
-`RUN`: follows the line at 135 mm/s (`S5_FOLLOW_SPEED`, 15 Nov; 50 mm/s over bars).
+`RUN`: follows the line at 120 mm/s (`S5_FOLLOW_SPEED`; 135 from 15 to 18 Nov, never run; 50 mm/s over bars).
 - Barcode -> stores the character, reports it and the planned move.
 - Junction -> stored character's move (L / R / F / U-turn); none stored
   = straight; stored but not in the mapping = stop "no mapping".
@@ -409,7 +409,7 @@ in four sessions. Bring a ruler and a phone stopwatch. Save the panel
 log after **every** run, and write down what you measured.
 
 **Session 1: Mission image on the course (about 1 hour).** 3 full runs
-(SYS-01) at 135 mm/s, stop at 190 mm. In them:
+(SYS-01) at 120 mm/s, stop at 190 mm. In them:
 - barcodes for Left, Right, Straight and U-turn (or change the mapping
   between runs) so every move is seen once; one run with a barcode
   that has no mapping: the robot must stop (FR3, FR9);

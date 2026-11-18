@@ -156,7 +156,7 @@ speed 0 is now refused (it was undefined behaviour; nothing passes 0).
   end of code after 40 mm quiet, Code 39 table (A-Z, 0-9, symbols),
   3 widest of 9 = wide, `*` start check, reversed if needed. Mapping
   parser: exactly 4 pairs `K=L,Q=R,X=F,M=U`, each char and move once.
-- **Stage 3 (S5)**: forward watch trips at 190 mm (Mission speed 135 mm/s since 15 Nov) (2 readings; 250 until 15 Nov).
+- **Stage 3 (S5)**: forward watch trips at 190 mm (Mission speed 120 mm/s; 135 from 15 to 18 Nov, never run) (2 readings; 250 until 15 Nov).
   Scan 40-140 deg in 5 deg steps, servo settle 3 ms/deg (>= 60 ms),
   5 pings per ray, median; open space = no echo or farther than front +
   250 mm; on the obstacle while within 150 mm of the front distance; edge

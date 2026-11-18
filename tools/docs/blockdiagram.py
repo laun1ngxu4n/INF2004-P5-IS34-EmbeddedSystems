@@ -151,7 +151,7 @@ arrow((33.5, 50.5), (33.5, 48), both=True)
 task(2, 33, 15.5, 15, "Line", "B3", "pri 8, 20 ms",
      "2 IR sensors ->\nsteering (IF-03);\njunction X / T;\nline lost", bsize=4.7)
 task(21.5, 33, 24, 15, "Motion", "B2", "pri 6, 10 ms",
-     "encoders -> speed,\nPI per wheel -> PWM;\nfollow 135 mm/s, spins;\nrefuses while STOP set", bsize=4.7)
+     "encoders -> speed,\nPI per wheel -> PWM;\nfollow 120 mm/s, spins;\nrefuses while STOP set", bsize=4.7)
 task(49, 33, 13, 15, "IMU", "B4", "pri 9, 10 ms",
      "LSM303D\n100 Hz: hump\nheight; lift /\ntip > 35 deg", bsize=4.6)
 task(66, 33, 15, 15, "Safety", "B4", "pri 5, 20 ms",

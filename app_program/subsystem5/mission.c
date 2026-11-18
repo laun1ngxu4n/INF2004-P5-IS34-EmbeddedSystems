@@ -27,11 +27,13 @@
 #include "mission.h"
 
 /* Mission's speed: line following and the bypass legs (mm/s).  Was
-   S2_SPEED_BARCODE (120, "slow everywhere"); 15 Nov 135 (team: a bit
-   faster; 150 lost tight left curves on 7 Nov before the steering was
-   retuned).  The stage tests stay at 120.  Over bars it still slows to
+   S2_SPEED_BARCODE (120, "slow everywhere").  15 Nov raised to 135
+   (team: a bit faster), 18 Nov back to 120 before the demo: 120 is the
+   only speed with course runs behind it (7 runs, no line lost; run 7 the
+   whole sequence), 135 never ran, and 150 lost tight left curves on 7 Nov
+   (before the steering was retuned).  Over bars it still slows to
    S2_SPEED_IN_BARCODE, after a barcode to S5_APPROACH_SPEED. */
-#define S5_FOLLOW_SPEED 135
+#define S5_FOLLOW_SPEED 120
 /* barcode read, its junction not yet: slower, so weaving is less likely and
  * the junction is not overrun */
 #define S5_APPROACH_SPEED 100

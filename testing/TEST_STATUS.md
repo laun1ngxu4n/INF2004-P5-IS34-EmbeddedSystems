@@ -361,6 +361,10 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   nearer than 160 mm (`SCAN_NEAR_MM`, was 220). **Mission speed 120 -> 135 mm/s** (`S5_FOLLOW_SPEED`; stage tests stay at 120): re-check the tightest left and right curves and one bypass. Expect "obstacle ahead at
   about 165-175 mm". Tribunal 1 minimum: 150 mm (little margin: re-check if
   the speed is raised).
+- **Changed 18 Nov, not run yet:** Mission speed **back to 120 mm/s**
+  (team: 135 never ran on the course; 120 is the speed of the 7 course
+  runs without a line lost and of run 7's whole sequence). With the 190
+  mm trip expect "obstacle ahead at about 170-175 mm".
 - [ ] 🟡 **S5-B01 / S5-B02** (2C): right move at each junction, U-turn, stop on
   an unmapped code
 

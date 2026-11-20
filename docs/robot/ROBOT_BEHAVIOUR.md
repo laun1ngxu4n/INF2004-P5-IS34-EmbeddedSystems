@@ -84,7 +84,14 @@ How to run the tests: [TESTING_GUIDE.md](../../testing/TESTING_GUIDE.md).
   ran it off its line twice; `HOLD_OVER_BARS` in motion.c puts it back.
   In a simulation of the robot weaving +-6 to 12 deg over a code (scratchpad
   `steer_sim.py`, the robot's own decoder), B's travel read 279 of 300
-  passes and no wrong letter; the centre's 46, and 9 wrong letters. A code
+  passes and no wrong letter; the centre's 46, and 9 wrong letters.
+  **Thin bars (20 Nov):** through B's blurred spot every bar reads narrower
+  and every space wider by about the same (track 4: narrow bars 1.5-3 mm
+  against 9-10 mm spaces, both 6 mm on the print). When every decode fails,
+  the bars are widened and the spaces narrowed by half the difference of
+  their medians and the decodes tried again (`decode_thin`, "bars read
+  thin, widened"): all 21 distinct failed reads in the logs give 2 letters
+  (both right), 20 000 random patterns none. A code
   it misses is not read again: `READ_FAIL`, and Mission goes on as if
   there was no barcode.
 - A stray mark within 40 mm before or after a code (a tile join) does not
@@ -156,8 +163,8 @@ How to run the tests: [TESTING_GUIDE.md](../../testing/TESTING_GUIDE.md).
   back to the planned angle, "junction turn: no tape found".
 - Letter not in the mapping: reported (`barcode E ... -> NO MAPPING, ignored`) and ignored; the robot carries on, and a mapped letter already waiting for its junction is kept (20 Nov; until then it stopped at the junction).
 - **Barcode close before a junction (8 Nov):** a code's letter only comes
-  about 80 mm after the line sensors passed its last bar (B is 40 mm
-  behind them, and a code ends after 40 mm with no bar). A junction
+  about 100 mm after the line sensors passed its last bar (B is 40 mm
+  behind them, and a code ends after 60 mm with no bar, 40 until 20 Nov). A junction
   nearer than that used to come first (straight on) and the letter went
   to the NEXT junction. Now a junction waits while B is still in a code
   (the robot keeps following, at most 150 mm past the centre), takes the

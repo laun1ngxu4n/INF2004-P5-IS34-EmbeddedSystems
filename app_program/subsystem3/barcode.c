@@ -23,9 +23,13 @@
 #include "../app_math.h" /* app_clamp() */
 #include "barcode.h"
 
-#define RING        128 /* edges kept, a power of 2 */
-#define MAX_ELEM    99  /* up to 10 characters */
-#define S3_QUIET_MM 40  /* no edge for this far = end of barcode */
+#define RING     128 /* edges kept, a power of 2 */
+#define MAX_ELEM 99  /* up to 10 characters */
+/* no edge for this far = end of barcode.  20 Nov 40 -> 60: on track 4 two
+   lost thin bars side by side left over 40 mm of white inside a code, which
+   ended it mid-way (the robot sped up and slowed down again over it).  60
+   is Code 39's quiet zone (10 narrow) for the course's 6 mm print. */
+#define S3_QUIET_MM 60
 /* < 1.2 mm apart = sensor chatter. The sensor flickers at its threshold
  * (thousands of edges, Stage 2 2 Nov); must stay under half the narrowest
  * bar: 3.5 mm small codes = 44 counts */
@@ -1386,6 +1390,83 @@ LOCAL void commit_level (bar_read_t * p_read, uint8_t lvl, int32_t pos)
     }
 }
 
+/** Every decode, in turn: clean, one damaged '*', a lost narrow element, cut
+   short, the start cut off.  true = a letter. */
+LOCAL bool decode_chain (int32_t * p_elem, int32_t count,
+                         barcode_result_t * p_result)
+{
+    return (decode(p_elem, count, p_result)) ||
+           (decode_one_star(p_elem, count, p_result)) ||
+           (decode_merged(p_elem, count, p_result)) ||
+           (decode_truncated(p_elem, count, p_result)) ||
+           (decode_cut_star(p_elem, count, p_result));
+}
+
+/* Thin bars (20 Nov).  Through B's blurred spot every black bar reads
+   narrower and every white space wider by about the same amount: on track
+   4 narrow bars read 1.5-3 mm against 9-10 mm narrow spaces (both 6 mm on
+   the print).  When every decode fails, the bars are widened and the
+   spaces narrowed by half the difference of their medians (most elements
+   are narrow, so the medians are narrow ones) and the decodes tried again.
+   Every distinct READ_FAIL in the logs (21): 2 read (F on 15 Nov, Z on 20
+   Nov, both matching their codes element by element), 0 wrong; 20 000
+   random patterns: 0 letters. */
+#define THIN_MIN_COUNTS 12               /* 1 mm: less is no shrink */
+LOCAL int32_t g_thin_elem[MAX_ELEM];     /* the barcode task only */
+LOCAL int32_t g_thin_kind[MAX_ELEM / 2]; /* one kind, for its median */
+
+/** The median width of one kind: bars (first 0) or spaces (first 1). */
+LOCAL int32_t kind_median (const int32_t * p_elem, int32_t count, int32_t first)
+{
+    int32_t idx;
+    int32_t kinds = 0;
+
+    for (idx = first; (idx < count) && (kinds < (MAX_ELEM / 2)); idx += 2)
+    {
+        g_thin_kind[kinds] = p_elem[idx];
+        kinds++;
+    }
+
+    sort_w(g_thin_kind, kinds);
+    return g_thin_kind[kinds / 2];
+}
+
+/** Bars read thin: widened, spaces narrowed, decoded again.  true = a
+   letter (BAR_FIX_THIN). */
+LOCAL bool decode_thin (const int32_t * p_elem, int32_t count,
+                        barcode_result_t * p_result)
+{
+    int32_t half;
+    int32_t idx;
+
+    if ((count < 4) || (count > MAX_ELEM))
+    {
+        return false;
+    }
+
+    half = (kind_median(p_elem, count, 1) - kind_median(p_elem, count, 0)) / 2;
+
+    if (half < THIN_MIN_COUNTS)
+    {
+        return false;
+    }
+
+    for (idx = 0; idx < count; idx++)
+    {
+        g_thin_elem[idx] = (0 == (idx % 2))
+                               ? (p_elem[idx] + half)
+                               : app_clamp(p_elem[idx] - half, 1, p_elem[idx]);
+    }
+
+    if (!decode_chain(g_thin_elem, count, p_result))
+    {
+        return false;
+    }
+
+    p_result->fixed = BAR_FIX_THIN;
+    return true;
+}
+
 /** The end of a code (quiet for S3_QUIET_MM): its element widths are kept
    for the tests (barcode_debug); a code long enough is decoded (the
    forgiving decodes if the clean one fails) and published, and Mission is
@@ -1414,12 +1495,9 @@ LOCAL uint32_t code_ended (bar_read_t * p_read, uint32_t seq)
         barcode_result_t result = {0};
 
         if ((!p_read->b_too_long) &&
-            (!decode(p_read->elem, p_read->count, &result)) &&
-            (!decode_one_star(p_read->elem, p_read->count, &result)) &&
-            (!decode_merged(p_read->elem, p_read->count, &result)) &&
-            (!decode_truncated(p_read->elem, p_read->count, &result)))
+            (!decode_chain(p_read->elem, p_read->count, &result)))
         {
-            (void)decode_cut_star(p_read->elem, p_read->count, &result);
+            (void)decode_thin(p_read->elem, p_read->count, &result);
         }
 
         seq_now++;

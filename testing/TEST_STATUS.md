@@ -399,6 +399,21 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   and no READ_FAIL**: the pieces were under 5 elements; junction 1 went
   FORWARD with no barcode. WiFi-loss warning flickered (faults=64) about a
   dozen times for under 1 s; the robot kept running.
+- **Changed 20 Nov (after the first threshold test, team: "it speeds up
+  and slows down on the barcode"), not run yet:** (1) the code ends after
+  60 mm with no bar (`S3_QUIET_MM`, was 40): two lost thin bars side by
+  side left over 40 mm of white, ending a code mid-way, so the robot sped
+  up and slowed again over it; 60 is Code 39's quiet zone for a 6 mm
+  print. (2) **Thin-bar decode** (`decode_thin`): every bar reads narrower
+  and every space wider by about the same through B's spot (track 4:
+  narrow bars 1.5-3 mm against 9-10 mm spaces); when every decode fails,
+  bars are widened and spaces narrowed by half the difference of their
+  medians and decoded again. The robot's own C code on the PC
+  (scratchpad `decode_harness.py`) over every logged failed read: today's
+  25-element read at 1000 / 450 decodes Z (it matches `*Z*` element by
+  element, last 4 cut off), the old F reads stay F, 0 wrong; 20 000
+  random patterns: 0 letters. First threshold test (1000 / 450, one log):
+  Z read only with this fix; A not yet compared.
 - **20 Nov, track 4, Mission run 9 (`subsystem5/logs/2026-11-20_track4_mission_9_robot.txt`, steering free over bars):**
   ✅ Z read (narrow 5.8, wide 17.0 mm). ❌ **The A barcode never read**:
   5 READ_FAILs, its narrow bars 1.5-3.5 mm (Z's 5.8) with bars lost; one

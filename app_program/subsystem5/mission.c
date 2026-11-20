@@ -345,7 +345,8 @@ LOCAL void on_barcode (void)
                (BAR_FIX_STAR == result.fixed)     ? " (one * damaged)"
                : (BAR_FIX_MERGED == result.fixed) ? " (a lost bar put back)"
                : (BAR_FIX_CUT == result.fixed) ? " (a missing end bar put back)"
-                                               : "",
+               : (BAR_FIX_THIN == result.fixed) ? " (bars read thin, widened)"
+                                                : "",
                result.narrow_mm10 / 10, result.narrow_mm10 % 10,
                result.wide_mm10 / 10, result.wide_mm10 % 10,
                (MOVE_LEFT == move)      ? "LEFT at next junction"
@@ -412,9 +413,9 @@ LOCAL void on_junction (void)
     int32_t junc_odo = line_junction_odo();
 
     /* A barcode just before the junction may still be being read: B is
-       40 mm behind the line sensors, and a code only ends after 40 mm
-       with no bar, so its letter comes about 80 mm after the line sensors
-       passed its last bar.  A junction closer than that came first: no
+       40 mm behind the line sensors, and a code only ends after 60 mm
+       with no bar (40 until 20 Nov), so its letter comes about 100 mm after
+       the line sensors passed its last bar.  A junction closer than that came first: no
        letter yet, straight on, and the letter was used at the NEXT
        junction.  Wait for the read (the robot keeps following), at most
        JUNC_WAIT_MM past the centre; the move below measures from the

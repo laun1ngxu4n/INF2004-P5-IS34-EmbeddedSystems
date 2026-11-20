@@ -24,15 +24,17 @@ typedef struct
     uint32_t narrow_mm10 APP_FIELD(9); /* mean narrow element, 0.1 mm,
                                           saturates at 51.1 mm */
     uint32_t wide_mm10 APP_FIELD(9);   /* mean wide element, the same */
-    uint32_t fixed     APP_FIELD(2);   /* 0 clean read; BAR_FIX_STAR one '*'
+    uint32_t fixed     APP_FIELD(3);   /* 0 clean read; BAR_FIX_STAR one '*'
                                           damaged; BAR_FIX_MERGED a lost
                                           narrow element put back;
                                           BAR_FIX_CUT a missing end bar
-                                          put back */
+                                          put back; BAR_FIX_THIN bars read
+                                          thin, widened */
 } barcode_result_t;
 #define BAR_FIX_STAR   1
 #define BAR_FIX_MERGED 2
 #define BAR_FIX_CUT    3 /* a weak narrow bar at an end not seen */
+#define BAR_FIX_THIN   4 /* every bar read thin: widened (20 Nov) */
 IMPORT void     barcode_last (barcode_result_t * r);
 IMPORT bool     barcode_busy (void);  /* inside a barcode now (Motion slows) */
 IMPORT uint32_t barcode_edges (void); /* barcode sensor edges since boot */

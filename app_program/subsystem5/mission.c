@@ -39,7 +39,7 @@
  * the junction is not overrun */
 #define S5_APPROACH_SPEED 100
 /* Scan positions (O5).  First scan where the forward watch stopped (about
-   16 cm from the obstacle since 20 Nov, S5_TRIP_MM 175; backs up only
+   16 cm from the obstacle since 20 Nov, S5_TRIP_MM 180; backs up only
    if nearer than SCAN_NEAR_MM), then,
    only if that scan missed an edge (15 Nov), back REVERSE_MM and scan
    again.  Until 8 Nov it first backed up to 350
@@ -127,6 +127,12 @@ EXPORT void mission_arm (bool b_on)
 EXPORT uint32_t mission_state (void)
 {
     return g_mw.state;
+}
+
+/** true in M_MANOEUVRE: a junction turn or an obstacle bypass. */
+EXPORT bool mission_manoeuvring (void)
+{
+    return M_MANOEUVRE == g_mw.state;
 }
 
 EXPORT const char * mission_state_name (void)

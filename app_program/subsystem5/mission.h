@@ -14,6 +14,9 @@ IMPORT const char * mission_state_name (void);
 /** The mission state as a number: 0 IDLE, 1 CAL, 2 RUN, 3 MANOEUVRE
    (2 bits; the binary status message carries it). */
 IMPORT uint32_t mission_state (void);
+/** true while Mission turns at a junction or goes round an obstacle (the
+   IMU measures no hump then, 20 Nov). */
+IMPORT bool mission_manoeuvring (void);
 /** Mission reacts to START only when armed: always in the normal image;
    in a test image only after the test arms it (so tests can use START). */
 IMPORT void mission_arm (bool on);
@@ -27,4 +30,3 @@ IMPORT void mission_task (int32_t stacd, void * exinf);
 #endif /* MISSION_H */
 
 /*** end of file ***/
-

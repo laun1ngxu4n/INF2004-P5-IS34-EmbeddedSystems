@@ -399,6 +399,13 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   and no READ_FAIL**: the pieces were under 5 elements; junction 1 went
   FORWARD with no barcode. WiFi-loss warning flickered (faults=64) about a
   dozen times for under 1 s; the robot kept running.
+- **Changed 20 Nov (after run 6), not run yet (team):** (1) the hump: a
+  junction turn or an obstacle stop reports the hump being measured at
+  once (the tester's hump is just before the box: it was reported halfway
+  round), and the IMU measures nothing while Mission manoeuvres (no false
+  humps from the bypass or spins; `mission_manoeuvring()`); humps while
+  following are unchanged. (2) Stop trip 175 -> 180 mm (stops were 150-162:
+  no margin): expect about 155-167 mm.
 - **20 Nov, track 4, Mission run 6 (`subsystem5/logs/2026-11-20_track4_mission_6_robot.txt`, beeps):**
   ✅ 4 m of following from junction 1 to the box, box front 162 mm, width
   **125 +/- 19** (real 100), bypass LEFT, back on the line (heading 3 deg),

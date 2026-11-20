@@ -48,14 +48,15 @@ Inline bool button_is_down (uint32_t pin)
 /* ---- Obstacle Scanner ---------------------------------------------- */
 
 /* Stop for an obstacle closer than this.  15 Nov: 250 -> 185 -> 190 (team:
-   it stopped too far away); 20 Nov 190 -> 175 (team: a little closer).  At
-   120 mm/s the scan front read 168 with 185 (15 Nov) and 175 with 190 (20
-   Nov): the robot stops about 15 mm inside the trip, so 175 should stop at
-   about 160 mm.
+   it stopped too far away); 20 Nov 190 -> 175 (team: a little closer),
+   then 180 (the stops were 150-162 mm: no margin over the 150 mm minimum).
+   At 120 mm/s the scan front read 168 with 185 (15 Nov), 175 with 190 and
+   150-162 with 175 (20 Nov): the robot stops about 13-25 mm inside the
+   trip, so 180 should stop at about 155-167 mm.
    Tribunal 1: stop at least 150 mm away at up to 250 mm/s; the scan still sees
    both edges of the course box (10 cm) from here, and a wider box that
    fills the sweep gets the second scan from 100 mm further back. */
-#define S5_TRIP_MM 175
+#define S5_TRIP_MM 180
 /* the bypass always plans for at least this wide an obstacle (O7).  20 Nov
    200 -> 150 (team: go round a little tighter): for the 10 cm course box
    the robot passes 25 mm closer; a box measured wider is planned from its

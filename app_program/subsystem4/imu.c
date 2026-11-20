@@ -338,7 +338,8 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
     float32_t    tilt           = 0.0f; /* driving level; sin_f - base */
     int32_t      odo_prev;
     int32_t      flat_mm10  = 0;
-    int32_t      quiet_mm10 = 0; /* distance left before another report */
+    int32_t      quiet_mm10 = 0;     /* distance left before another report */
+    bool         b_manoeuv  = false; /* Mission manoeuvring last period */
     lift_state_t lift       = {
         {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, 0, false, false};
 
@@ -473,8 +474,16 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
             /* counts in one 10 ms period, a few: exact */
             float32_t step_mm =
                 (float32_t)(odo - odo_prev) * S2_UM_PER_COUNT / 1000.0f;
+            /* 20 Nov, track 4: a hump just before the box was reported
+               halfway round it (the stop leaves no level distance), and the
+               bypass (off the track, spins) can look like a hump.  So a
+               junction turn or an obstacle reports the hump being measured
+               at once, and nothing is measured while it lasts. */
+            bool b_now   = mission_manoeuvring();
+            bool b_flush = b_now && (!b_manoeuv);
 
-            odo_prev = odo;
+            b_manoeuv = b_now;
+            odo_prev  = odo;
             height += step_mm * tilt;
             /* metres at most: fits int32_t in 0.1 mm */
             g_out.height_mm10 =
@@ -538,7 +547,7 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
                 flat_mm10 = 0;
             }
 
-            if (flat_mm10 > (FLAT_MM * 10))
+            if ((flat_mm10 > (FLAT_MM * 10)) || b_flush)
             {
                 /* heights in mm, small: fit int32_t in 0.1 mm */
                 int32_t p10 = (int32_t)(peak * 10.0f);
@@ -595,6 +604,14 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
                 }
 
                 height = peak = peak_sin = 0.0f; /* back on the floor */
+                one_peak = one_pitch_peak = roll_peak = 0.0f;
+                flat_mm10                             = 0;
+            }
+
+            if (b_now)
+            {
+                /* manoeuvring: nothing measured, a fresh start after */
+                height = peak = peak_sin = 0.0f;
                 one_peak = one_pitch_peak = roll_peak = 0.0f;
                 flat_mm10                             = 0;
             }

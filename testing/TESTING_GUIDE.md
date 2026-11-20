@@ -351,7 +351,7 @@ line found after every manoeuvre.
 - Barcode -> stores the character, reports it and the planned move.
 - Junction -> stored character's move (L / R / F / U-turn); none stored
   = straight; a letter not in the mapping is reported and ignored (carries on, since 20 Nov).
-- Obstacle closer than 175 mm -> stop (about 160 mm away), scan (again 100 mm further back
+- Obstacle closer than 180 mm -> stop (about 155-167 mm away), scan (again 100 mm further back
   only if an edge was not seen),
   report width +/-, bypass on the clear side, find the line, carry on.
 - Ramp -> when level again, reports the peak height.
@@ -418,7 +418,7 @@ in four sessions. Bring a ruler and a phone stopwatch. Save the panel
 log after **every** run, and write down what you measured.
 
 **Session 1: Mission image on the course (about 1 hour).** 3 full runs
-(SYS-01) at 120 mm/s, trip at 175 mm (stops about 160 mm away). In them:
+(SYS-01) at 120 mm/s, trip at 180 mm (stops about 155-167 mm away). In them:
 - barcodes for Left, Right, Straight and U-turn (or change the mapping
   between runs) so every move is seen once; one run with a barcode
   that has no mapping: the robot reports it (`NO MAPPING, ignored`) and carries on straight (FR3; a stop until 20 Nov);

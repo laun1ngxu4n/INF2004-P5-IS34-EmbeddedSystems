@@ -38,6 +38,7 @@ typedef struct
 #define BAR_FIX_THIN      4 /* every bar read thin: widened (20 Nov) */
 #define BAR_FIX_HALF      5 /* a letter and one '*' only: reported, not used */
 #define BAR_FIX_HALF_USED 6 /* the same, mapped and clean: used (20 Nov) */
+#define BAR_FIX_KINDS     7 /* bars and spaces judged apart (20 Nov) */
 IMPORT void     barcode_last (barcode_result_t * r);
 IMPORT bool     barcode_busy (void);  /* inside a barcode now (Motion slows) */
 IMPORT uint32_t barcode_edges (void); /* barcode sensor edges since boot */

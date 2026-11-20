@@ -642,6 +642,55 @@ EXPORT void barcode_last (barcode_result_t * p_result)
     APP_UNLOCK(irq_state);
 }
 
+/* Bars and spaces judged apart (20 Nov).  Through B's blurred spot white
+   spreads into black: on the course print narrow spaces read up to 9.7 mm
+   next to a 7.8 mm wide bar, so "the 3 widest of 9" can pick a space that
+   is narrow.  With gb_by_kind set (decode_kinds), decode_char calls a bar
+   wide above g_kind_cut[0] and a space wide above g_kind_cut[1], each cut
+   halfway between that kind's narrow and wide widths in the read. */
+LOCAL bool    gb_by_kind;             /* the barcode task only */
+LOCAL int32_t g_kind_cut[ELEM_KINDS]; /* bar, space: wide above */
+
+/** One character from 9 widths, bars and spaces judged apart; 0 = no
+   match or not exactly 3 wide. */
+LOCAL uint8_t decode_char_kinds (const int32_t * p_elem, int32_t * p_narrow_sum,
+                                 int32_t * p_wide_sum)
+{
+    int32_t  idx;
+    int32_t  wides = 0;
+    uint16_t pat   = 0;
+
+    for (idx = 0; idx < C39_CHAR_ELEMS; idx++)
+    {
+        if (p_elem[idx] > g_kind_cut[idx % ELEM_KINDS])
+        {
+            pat |= (uint16_t)(1u << (8 - idx)); /* idx 0..8: bits 0..8 */
+            *p_wide_sum += p_elem[idx];
+            wides++;
+        }
+        else
+        {
+            *p_narrow_sum += p_elem[idx];
+        }
+    }
+
+    if (wides != C39_WIDE_ELEMS)
+    {
+        return 0;
+    }
+
+    /* 44 characters: the count fits int32_t */
+    for (idx = 0; idx < (int32_t)(sizeof(g_c39) / sizeof(g_c39[0])); idx++)
+    {
+        if (g_c39[idx].pat == pat)
+        {
+            return g_c39[idx].letter;
+        }
+    }
+
+    return 0;
+}
+
 /** One character from 9 widths; 0 = no match */
 LOCAL uint8_t decode_char (const int32_t * p_elem, int32_t * p_narrow_sum,
                            int32_t * p_wide_sum)
@@ -652,6 +701,11 @@ LOCAL uint8_t decode_char (const int32_t * p_elem, int32_t * p_narrow_sum,
     uint16_t pat                  = 0;
     int32_t  min_wide;
     int32_t  max_narrow = 0;
+
+    if (gb_by_kind)
+    {
+        return decode_char_kinds(p_elem, p_narrow_sum, p_wide_sum);
+    }
 
     for (jdx = 0; jdx < C39_WIDE_ELEMS; jdx++)
     {
@@ -1474,6 +1528,62 @@ LOCAL bool decode_thin (const int32_t * p_elem, int32_t count,
     return true;
 }
 
+/** The cut between narrow and wide for one kind (first 0 bars, 1
+   spaces): halfway between the narrow (a third of the way up the sorted
+   widths) and the wide (a sixth from the top); 0 = they do not separate. */
+LOCAL int32_t kind_cut (const int32_t * p_elem, int32_t count, int32_t first)
+{
+    int32_t idx;
+    int32_t kinds = 0;
+    int32_t nar;
+    int32_t wid;
+
+    for (idx = first; (idx < count) && (kinds < (MAX_ELEM / 2)); idx += 2)
+    {
+        g_thin_kind[kinds] = p_elem[idx];
+        kinds++;
+    }
+
+    if (kinds < C39_CHAR_ELEMS)
+    {
+        return 0;
+    }
+
+    sort_w(g_thin_kind, kinds);
+    nar = g_thin_kind[kinds / 3];
+    wid = g_thin_kind[kinds - 1 - (kinds / 6)];
+
+    /* wide at least 1.5 x narrow, else no cut */
+    return ((wid * 2) >= (nar * 3)) ? ((nar + wid) / 2) : 0;
+}
+
+/** Every decode again with bars and spaces judged apart (gb_by_kind).
+   true = a letter (BAR_FIX_KINDS unless a half code). */
+LOCAL bool decode_kinds (int32_t * p_elem, int32_t count,
+                         barcode_result_t * p_result)
+{
+    bool b_found;
+
+    g_kind_cut[0] = kind_cut(p_elem, count, 0);
+    g_kind_cut[1] = kind_cut(p_elem, count, 1);
+
+    if ((0 == g_kind_cut[0]) || (0 == g_kind_cut[1]))
+    {
+        return false;
+    }
+
+    gb_by_kind = true;
+    b_found    = decode_chain(p_elem, count, p_result);
+    gb_by_kind = false;
+
+    if (b_found)
+    {
+        p_result->fixed = BAR_FIX_KINDS;
+    }
+
+    return b_found;
+}
+
 /* Half a code (20 Nov, team): a letter and one '*' next to it, the other
    '*' never seen (track 4: B clipped the start of A pass after pass and
    read a clean "A*", 19 elements); only when exactly one letter fits.
@@ -1644,7 +1754,8 @@ LOCAL uint32_t code_ended (bar_read_t * p_read, uint32_t seq)
 
         if ((!p_read->b_too_long) &&
             (!decode_chain(p_read->elem, p_read->count, &result)) &&
-            (!decode_thin(p_read->elem, p_read->count, &result)))
+            (!decode_thin(p_read->elem, p_read->count, &result)) &&
+            (!decode_kinds(p_read->elem, p_read->count, &result)))
         {
             (void)decode_half(p_read->elem, p_read->count, &result);
         }

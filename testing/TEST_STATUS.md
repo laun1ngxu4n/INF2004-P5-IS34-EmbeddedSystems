@@ -399,6 +399,15 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   and no READ_FAIL**: the pieces were under 5 elements; junction 1 went
   FORWARD with no barcode. WiFi-loss warning flickered (faults=64) about a
   dozen times for under 1 s; the robot kept running.
+- **20 Nov, 18:40 (`logs/robot/is34_20261120_183938_robot.txt`, mapping A F D C):**
+  ❌ A gave `READ_FAIL (27 elements)`: by hand it is `*A*` with a thin bar
+  lost inside the A AND one narrow space reading 9.7 mm (the others about
+  5): two faults in one letter, not recoverable without guessing.
+  **Added, not run yet:** a last whole-code decode with bars and spaces
+  judged apart (`decode_kinds`: each kind's own narrow/wide cut, since
+  white spreads into black and narrow spaces can read wider than wide
+  bars); over every logged piece it adds one F (17:12 run), random 21-31
+  element patterns: 1 letter in 100 000.
 - **Changed 20 Nov (team: A was read as a half code and ignored; "option
   3"), not run yet:** a half code is **acted on** when its letter is in the
   mapping and both characters are clean (every wide at least 1.6 x the

@@ -353,24 +353,25 @@ LOCAL void on_barcode (void)
         ((MOVE_LEFT == move) || (MOVE_RIGHT == move) || (MOVE_UTURN == move))
             ? S5_APPROACH_SPEED
             : 0);
-    tm_sprintf(msg,
-               app_str("barcode %c%s%s (narrow %d.%d mm, wide %d.%d "
-                       "mm) -> %s"),
-               result.letter, result.b_reversed ? " read backwards" : "",
-               (BAR_FIX_STAR == result.fixed)     ? " (one * damaged)"
-               : (BAR_FIX_MERGED == result.fixed) ? " (a lost bar put back)"
-               : (BAR_FIX_CUT == result.fixed) ? " (a missing end bar put back)"
-               : (BAR_FIX_HALF_USED == result.fixed)
-                   ? " (half code: one * missing)"
-               : (BAR_FIX_THIN == result.fixed) ? " (bars read thin, widened)"
-                                                : "",
-               result.narrow_mm10 / 10, result.narrow_mm10 % 10,
-               result.wide_mm10 / 10, result.wide_mm10 % 10,
-               (MOVE_LEFT == move)      ? "LEFT at next junction"
-               : (MOVE_RIGHT == move)   ? "RIGHT at next junction"
-               : (MOVE_FORWARD == move) ? "FORWARD at next junction"
-               : (MOVE_UTURN == move)   ? "U-TURN at next junction"
-                                        : "NO MAPPING, ignored");
+    tm_sprintf(
+        msg,
+        app_str("barcode %c%s%s (narrow %d.%d mm, wide %d.%d "
+                "mm) -> %s"),
+        result.letter, result.b_reversed ? " read backwards" : "",
+        (BAR_FIX_STAR == result.fixed)        ? " (one * damaged)"
+        : (BAR_FIX_MERGED == result.fixed)    ? " (a lost bar put back)"
+        : (BAR_FIX_CUT == result.fixed)       ? " (a missing end bar put back)"
+        : (BAR_FIX_HALF_USED == result.fixed) ? " (half code: one * missing)"
+        : (BAR_FIX_KINDS == result.fixed) ? " (bars and spaces judged apart)"
+        : (BAR_FIX_THIN == result.fixed)  ? " (bars read thin, widened)"
+                                          : "",
+        result.narrow_mm10 / 10, result.narrow_mm10 % 10, result.wide_mm10 / 10,
+        result.wide_mm10 % 10,
+        (MOVE_LEFT == move)      ? "LEFT at next junction"
+        : (MOVE_RIGHT == move)   ? "RIGHT at next junction"
+        : (MOVE_FORWARD == move) ? "FORWARD at next junction"
+        : (MOVE_UTURN == move)   ? "U-TURN at next junction"
+                                 : "NO MAPPING, ignored");
     say(msg);
 }
 

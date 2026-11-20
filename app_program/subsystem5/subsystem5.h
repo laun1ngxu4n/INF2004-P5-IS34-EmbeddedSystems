@@ -56,8 +56,12 @@ Inline bool button_is_down (uint32_t pin)
    both edges of the course box (10 cm) from here, and a wider box that
    fills the sweep gets the second scan from 100 mm further back. */
 #define S5_TRIP_MM 175
-/* largest expected obstacle (O7): the bypass always plans for at least this */
-#define S5_MAX_WIDTH_MM 200
+/* the bypass always plans for at least this wide an obstacle (O7).  20 Nov
+   200 -> 150 (team: go round a little tighter): for the 10 cm course box
+   the robot passes 25 mm closer; a box measured wider is planned from its
+   measurement (+ its +/-) as before, and turning beside it still keeps the
+   robot's centre half its width + MARGIN_MM from the planned edge. */
+#define S5_MAX_WIDTH_MM 150
 /* ... and never for more: a scan that says 500 mm is wrong (instructor:
  * 10-20 cm), and the detour it asked for ran into the room (7 Nov, "leg 4
  * blocked") */
@@ -95,7 +99,7 @@ Inline bool button_is_down (uint32_t pin)
    same box) read 116 (15 Nov, run 7) and 156 (20 Nov, track 4) from
    150-175 mm; the same two scans give 83 and 118 with 12, inside their
    +/- 17 and +/- 20 (fitted on two scans: confirm with S5-O01).
-   The bypass is unchanged: it plans for at least S5_MAX_WIDTH_MM. */
+   The bypass plans for at least S5_MAX_WIDTH_MM whatever the reading. */
 #define S5_BEAM_HALF_DEG 12
 
 /* Private to subsystem 5, shared between its own .c files */

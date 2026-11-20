@@ -26,7 +26,7 @@ import sys
 STEP = 5
 IN_MM = 150
 BG_MM = 250
-BEAM_HALF = 6
+BEAM_HALF = 12           # S5_BEAM_HALF_DEG (6 until 20 Nov)
 GEO_TOL_MM = 15
 GEO_TOL_FRAC = 0.04
 CENTRE_DEG = 10          # within this, any echo near front is the box
@@ -51,7 +51,7 @@ def parse(paths):
     return scans
 
 
-def edges(rays, rule):
+def edges(rays, rule, end_edge=True):
     phi = [a for a, _ in rays]
     d = [b for _, b in rays]
     c = phi.index(0)
@@ -89,7 +89,11 @@ def edges(rays, rule):
                 if out_run >= 2 and k == 'other':
                     other = True
             i += step
-        if out_run < 2 or first_out is None:
+        # since 20 Nov: the sweep's last ray alone counts as past the edge
+        # when it is open space (there is no second ray to wait for)
+        end_open = (end_edge and out_run == 1 and first_out == i - step
+                    and kind(first_out) in ('open', 'bg') and d[first_out] != -2)
+        if (out_run < 2 and not end_open) or first_out is None:
             res[side] = (None, False)    # filled to the end: unknown
             continue
         a_edge = 0.5 * (phi[last_in] + phi[first_out]) - step * BEAM_HALF
@@ -129,8 +133,8 @@ def main():
     print(f'{len(scans)} scans')
     for n, rays in enumerate(scans, 1):
         out = []
-        for rule in ('robot', 'geometry'):      # 'robot' = the old rule
-            r = edges(rays, rule)
+        for rule, end in (('geometry', False), ('geometry', True)):
+            r = edges(rays, rule, end)
             if r is None:
                 out.append('no front')
                 continue
@@ -144,7 +148,7 @@ def main():
             else:
                 txt = f'{l - rr:4.0f} mm'
             out.append(txt)
-        print(f'scan {n:2d} front {rays[len(rays)//2][1]:5d}:  old rule {out[0]:28s} geometry {out[1]}')
+        print(f'scan {n:2d} front {rays[len(rays)//2][1]:5d}:  before 20 Nov {out[0]:28s} with the end ray {out[1]}')
     pairs(scans)
 
 

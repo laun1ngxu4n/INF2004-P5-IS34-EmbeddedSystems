@@ -162,8 +162,8 @@ How to run the tests: [TESTING_GUIDE.md](../../testing/TESTING_GUIDE.md).
 - No echo 5 times in a row (0.3 s): stops, "ultrasonic not answering".
 - **Scan 1 from where it stopped** (200-250 mm; it backs up only if
   nearer than 220 mm): servo **40 deg left to 40 deg right in 5 deg
-  steps** (17 rays), turning slowly (2 deg per 20 ms), 5 pings per ray,
-  median. About 6 s.
+  steps** (17 rays), turning slowly (2 deg per 20 ms), 3 pings per ray
+  (5 until 20 Nov), median. About 4.5 s (was about 6 s).
 - **Reverses 100 mm**, scan 2 (from about 350 mm).
 - Why from so near (8 Nov): with the width rule below the near scans are
   the better ones. On the 29 real scans of 7 Nov every pair read narrower

@@ -52,7 +52,7 @@ typedef struct
 } obstacle_profile_t;
 
 /** Blocking: called by Mission (or a test) while the robot stands still.
-   Turns the servo, settles, 5 pings per ray, median.  About 7 s. */
+   Turns the servo, settles, 3 pings per ray, median.  About 4.5 s. */
 IMPORT void obstacle_scan (obstacle_profile_t * p);
 /** Combine two scans (O5): mean width, uncertainty includes their spread */
 IMPORT void obstacle_combine (const obstacle_profile_t * a,
@@ -77,4 +77,3 @@ IMPORT ER   obstacle_hw_init (void);
 #endif /* OBSTACLE_H */
 
 /*** end of file ***/
-

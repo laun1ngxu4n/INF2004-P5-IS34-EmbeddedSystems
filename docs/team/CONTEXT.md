@@ -158,9 +158,9 @@ speed 0 is now refused (it was undefined behaviour; nothing passes 0).
   parser: exactly 4 pairs `K=L,Q=R,X=F,M=U`, each char and move once.
 - **Stage 3 (S5)**: forward watch trips at 175 mm, stops about 160 mm away (190 from 15 to 20 Nov; Mission speed 120 mm/s; 135 from 15 to 18 Nov, never run) (2 readings; 250 until 15 Nov).
   Scan 40-140 deg in 5 deg steps, servo settle 3 ms/deg (>= 60 ms),
-  5 pings per ray, median; open space = no echo or farther than front +
+  3 pings per ray (5 until 20 Nov), median; open space = no echo or farther than front +
   250 mm; on the obstacle while within 150 mm of the front distance; edge
-  after 2 rays off it; edge angle pulled in by `S5_BEAM_HALF_DEG` for the
+  after 2 rays off it, or the sweep's last ray alone when it is open (20 Nov); edge angle pulled in by `S5_BEAM_HALF_DEG` for the
   sonar cone; +/- from the angle step and a 3 deg beam allowance. Two
   scans (second after reversing 80 mm) are averaged, +/- at least half
   their difference. Bypass plans for max(width + unc, 200 mm) and goes

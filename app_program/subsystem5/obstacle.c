@@ -8,10 +8,12 @@
  *
  *  Profiling scan (TEAM.md 7.2), robot standing still:
  *    O1  servo settle wait after every move (3 ms per degree, >= 60 ms)
- *    O2  5 pings per ray (60 ms apart), median; >= 3 missing = open space
+ *    O2  3 pings per ray (60 ms apart), median; >= 2 missing = open space
+ *        (5 until 20 Nov: a scan took about 9 s; now about 5.5 s)
  *    O3  background: a ray farther than front + BG_MM is open space
  *    O4  an edge needs 2 rays in a row off the obstacle (hysteresis:
- *        on the obstacle while within IN_MM of its front distance)
+ *        on the obstacle while within IN_MM of its front distance); the
+ *        sweep's last ray alone will do when it is open space (20 Nov)
  *    O6  width = left edge - right edge, with a +/- from the angle step,
  *        the beam and (O5, obstacle_combine) the spread of two scans.
  */
@@ -30,7 +32,7 @@
 #define SCAN_TO       (90 + S5_SERVO_HALF_DEG)
 #define SCAN_STEP     5
 #define NRAYS         ((SCAN_TO - SCAN_FROM) / SCAN_STEP + 1)
-#define PINGS         5
+#define PINGS         3
 #define SETTLE_MS_DEG 3
 #define SETTLE_MIN_MS 60
 #define IN_MM         150 /* on the obstacle while |d - front| <= this */
@@ -270,7 +272,7 @@ EXPORT ER obstacle_hw_init (void)
 /* ---- maths without libm -------------------------------------------- */
 
 /** Median of up to 5 readings (sorts them in place). */
-LOCAL int32_t median5 (int32_t * p_values, int32_t count)
+LOCAL int32_t ping_median (int32_t * p_values, int32_t count)
 {
     int32_t idx;
     int32_t jdx;
@@ -286,10 +288,24 @@ LOCAL int32_t median5 (int32_t * p_values, int32_t count)
         }
     }
 
-    return p_values[count / 2];
+    return p_values[(count - 1) / 2]; /* 2 values: the nearer */
 }
 
 /* ---- the profiling scan --------------------------------------------- */
+
+/** The sweep's last ray alone counts as past the edge when it is open
+   space (no echo, or past front + BG_MM): there is no second ray to wait
+   for.  20 Nov, track 4: an angled box read 143 +/- 52 with only the last
+   ray open, and cost a second scan from further back that read wider;
+   with this 119 for the 10 cm box.  ray: the first ray off the obstacle,
+   last: the sweep's last ray, out_run: rays off it at the end. */
+LOCAL bool end_ray_open (const int32_t * p_dist, int32_t ray, int32_t last,
+                         int32_t out_run, int32_t front)
+{
+    /* out_run 1: ray >= 0 */
+    return (1 == out_run) && (ray == last) &&
+           ((FAR == p_dist[ray]) || (p_dist[ray] >= (front + BG_MM)));
+}
 
 /** One side: walk outward from straight ahead.  dir = +1 / -1 is the
    direction in the ray array (which side that is depends on the servo).
@@ -354,7 +370,9 @@ LOCAL void side_edge (const int32_t * p_dist, const int32_t * p_phi,
         }
     }
 
-    if ((out_run < 2) || (first_out < 0))
+    if (((out_run < 2) &&
+         (!end_ray_open(p_dist, first_out, idx - dir, out_run, front))) ||
+        (first_out < 0))
     {
         /* obstacle wider than the scan on this side */
         *p_edge_mm = (int32_t)((float32_t)p_dist[last_in] *
@@ -447,9 +465,9 @@ EXPORT void obstacle_scan (obstacle_profile_t * p_profile)
             }
         }
 
-        /* >= 3 good = median; >= 3 no ECHO = fault (unknown, never open) */
-        dist[kdx] = (valid >= 3)    ? median5(value, valid)
-                    : (nfault >= 3) ? SONAR_FAULT
+        /* >= 2 good = median; >= 2 no ECHO = fault (unknown, never open) */
+        dist[kdx] = (valid >= 2)    ? ping_median(value, valid)
+                    : (nfault >= 2) ? SONAR_FAULT
                                     : FAR;
         /* + = left of the robot */
         phi[kdx] = (ang - 90) * (S5_SERVO_LEFT_HIGH ? 1 : -1);
@@ -730,4 +748,3 @@ EXPORT void obstacle_task (int32_t stacd, void * p_exinf)
 }
 
 /*** end of file ***/
-

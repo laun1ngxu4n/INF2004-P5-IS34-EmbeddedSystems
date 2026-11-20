@@ -399,7 +399,16 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   and no READ_FAIL**: the pieces were under 5 elements; junction 1 went
   FORWARD with no barcode. WiFi-loss warning flickered (faults=64) about a
   dozen times for under 1 s; the robot kept running.
-- **Changed 20 Nov, not run yet:** stop distance `S5_TRIP_MM` 190 -> 175
+- **Changed 20 Nov (after run 2), not run yet (team: scan faster, go
+  round a little tighter):** 3 pings per ray instead of 5 (a scan about
+  4.5 s instead of about 6.5, so about 5.5 s from the stop to the width
+  instead of 9); the sweep's last ray alone counts as past an edge when it
+  is open (run 2's second box: 117 mm from the first scan, no back-up and
+  second scan; 4 of the 52 saved scans change, `tools/logcheck/sonarcheck.py`,
+  and the robot's own edge code compiled on the PC gives the same);
+  the bypass plans for at least 150 mm instead of 200 (`S5_MAX_WIDTH_MM`):
+  out about 255 instead of 280 for the 10 cm box.
+- **Changed 20 Nov, run in run 2:** stop distance `S5_TRIP_MM` 190 -> 175
   (team: a little closer; the robot stops about 15 mm inside the trip, so
   about 160 mm, minimum 150); sonar beam correction `S5_BEAM_HALF_DEG` 6 ->
   12 (the two course-box scans read 116 and 156 for 10 cm; the same scans

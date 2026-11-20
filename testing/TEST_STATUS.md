@@ -399,6 +399,19 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   and no READ_FAIL**: the pieces were under 5 elements; junction 1 went
   FORWARD with no barcode. WiFi-loss warning flickered (faults=64) about a
   dozen times for under 1 s; the robot kept running.
+- **20 Nov, track 4, Mission run 7, six runs (`subsystem5/logs/2026-11-20_track4_mission_7_robot.txt`):**
+  ✅ letters read with no mapping and carried on: **Q, Z, F** (read
+  backwards, narrow about 6 mm, wide about 16 mm); ✅ **run 5: `F -> LEFT`,
+  then `junction 2 (crossing): LEFT (barcode F)`**: the barcode's move done
+  on track 4. Mapping changed between runs, acknowledged each time. ❌
+  Runs 4 and 6 ended `line lost` a few seconds after a crossing: B saw tape
+  for seconds (`inbar=1`), so the steering was held straight (`hold=1`)
+  while the line task asked for full steering (`steer=30`), and the robot
+  ran straight off its line. **Changed 20 Nov, not run yet:** the straight
+  hold over a barcode ends when the line task is in a long correction (one
+  sensor on the tape over 50 mm) or searching (`HOLD_MIN_PCT`, motion.c);
+  short corrections over a barcode stay held (the 15 Nov reads). The
+  panel's "steering held" now shows the real hold (`motion_steer_held`).
 - **Changed 20 Nov (after run 6), not run yet (team):** (1) the hump: a
   junction turn or an obstacle stop reports the hump being measured at
   once (the tester's hump is just before the box: it was reported halfway

@@ -145,7 +145,8 @@ class Summary:
             out.append(f"{head}{clock(run['t'])}   mapping: {run['mapping']}")
             out.append("  Barcodes:")
             for b in run["barcodes"]:
-                extra = b["extra"].strip(" ()")
+                # " read backwards (a lost bar put back)" -> "read backwards, a lost bar put back"
+                extra = re.sub(r"\s*\(([^)]*)\)", r", \1", b["extra"]).strip(" ,")
                 extra = f"{extra}, " if extra else ""
                 out.append(f"    {clock(b['t'])}  {b['letter']} -> {b['move']}"
                            f"   ({extra}narrow {b['narrow']} mm, wide {b['wide']} mm)")

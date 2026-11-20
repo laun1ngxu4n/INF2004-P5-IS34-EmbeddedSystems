@@ -1,0 +1,287 @@
+P5-IS34 robot log, 20 Nov 2026, Mission WiFi image (commit 662568f), sample track 4, six runs. Letters read with no mapping: Q, Z, F (all read backwards, narrow about 6 mm, wide about 16 mm), ignored and carried on. Mapping sent between runs; run 5: F -> LEFT at junction 2 (crossing), a barcode instruction done on track 4. Runs 4 and 6 ended 'line lost' a few seconds after a crossing: panel trace shows B seeing tape for seconds (inbar=1), the steering held straight (hold=1) while the line task asked for full steering (steer=30), so the robot ran straight off its line. Panel run summary and the traces appended. Hotspot name blanked.
+
+
+microT-Kernel Version 3.00
+
+
+=== micro T-Kernel on Raspberry Pi Pico W (spec 0x6300, product 0x0003) ===
+single-core build
+P5-IS34 mission image. Kernel tick 10 ms
+all subsystems started
+
+wifi: cyw43_utk_task starting (proc 1)
+wifi: cyw43_init() ...
+wifi: cyw43_init() returned, bringing interface up ...
+[IMU] LSM303D found at 0x1D
+wifi: joining "(hotspot)" ...
+wifi: link status -> joined AP, waiting for IP (1)
+wifi: link status -> joined AP, no IP yet (2)
+wifi: link up, ip=10.67.161.102
+mqtt: connected to 10.67.161.225
+mqtt: subscribed to mtk3smp-pico/heartbeat
+mqtt: subscribed to mtk3smp-pico/heartbeat
+mqtt: TX [mtk3smp-pico/heartbeat] "hb 0" (heartbeat every 5 s, not printed)
+mqtt: RX [mtk3smp-pico/heartbeat] "hb 0"
+[tmg] t=60136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |    600   0 | 51.82-148.27 (148.27 @ 0.6) | 248 (248)
+[tmg] motion     6  10 |   5989  11 | 2.20-127.87 (127.87 @ 0.6) | 111 (111)
+[tmg] line       8  20 |   2995   5 | 12.15-128.02 (128.02 @ 0.6) | 92 (92)
+[tmg] barcode   10  10 |   2995   0 | 11.98-138.12 (138.12 @ 0.6) | 26 (26)
+[tmg] safety     5  20 |   2995   5 | 12.34-127.81 (127.81 @ 0.6) | 60 (60)
+[tmg] imu        9  10 |   5989  11 | 1.98-128.08 (128.08 @ 0.6) | 694 (694)
+[tmg] mission    7 100 |    599   0 | 10.60-227.98 (227.98 @ 0.6) | 15 (15)
+[tmg] obstacle  11  60 |    999   1 | 51.83-128.24 (128.24 @ 0.6) | 53 (53)
+mqtt: RX [is34/cmd/start] ""
+[MQTT] start
+[EVT] start
+[S3] barcode: black from 1500, step 700
+[EVT] barcode READ_FAIL (27 elements)
+[S3] READ_FAIL widths (mm): 2.1 6.7 16.4 8.2 15.3 8.4 3.3 19.9 3.2 9.3 2.5 22.8 11.0 15.6 7.7 19.6 4.0 7.4 4.1 7.9 15.3 7.2 15.4 8.8 3.1 21.4 1.6
+mqtt: RX [is34/cmd/stop] ""
+[MQTT] stop
+[EVT] STOP
+[EVT] robot lifted or tipped over (tilt over 35 deg): motors off, START to go again
+[tmg] t=120136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |   1200   0 | 98.64-101.33 (148.27 @ 0.6) | 2622 (2622)
+[tmg] motion     6  10 |  11989  11 | 8.33-11.70 (127.87 @ 0.6) | 235 (235)
+[tmg] line       8  20 |   5995   5 | 18.18-21.85 (128.02 @ 0.6) | 98 (98)
+[tmg] barcode   10  10 |   5995   0 | 18.05-21.99 (138.12 @ 0.6) | 1474 (1474)
+[tmg] safety     5  20 |   5995   5 | 18.38-21.63 (127.81 @ 0.6) | 76 (76)
+[tmg] imu        9  10 |  11989  11 | 8.10-11.97 (128.08 @ 0.6) | 984 (984)
+[tmg] mission    7 100 |   1188   0 | 10.61-1148.91 (1148.91 @ 102.6) | 1038874 (1038874)
+[tmg] obstacle  11  60 |   1999   1 | 58.45-61.85 (128.24 @ 0.6) | 50 (53)
+mqtt: RX [is34/cmd/start] ""
+[MQTT] start
+[EVT] start
+[S3] barcode: black from 1500, step 700
+[EVT] barcode Q read backwards (narrow 6.0 mm, wide 16.8 mm) -> NO MAPPING, ignored
+mqtt: RX [is34/cmd/stop] ""
+[MQTT] stop
+[EVT] STOP
+mqtt: RX [is34/cmd/start] ""
+[MQTT] start
+[EVT] start
+[S3] barcode: black from 1500, step 700
+[EVT] barcode Z read backwards (narrow 5.9 mm, wide 16.7 mm) -> NO MAPPING, ignored
+mqtt: RX [is34/cmd/stop] ""
+[MQTT] stop
+[EVT] STOP
+[tmg] t=180136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |   1800   0 | 98.80-101.37 (148.27 @ 0.6) | 2696 (2696)
+[tmg] motion     6  10 |  17989  11 | 8.36-11.66 (127.87 @ 0.6) | 228 (235)
+[tmg] line       8  20 |   8995   5 | 18.18-21.63 (128.02 @ 0.6) | 117 (117)
+[tmg] barcode   10  10 |   8995   0 | 18.02-21.80 (138.12 @ 0.6) | 756 (1474)
+[tmg] safety     5  20 |   8995   5 | 18.42-21.54 (127.81 @ 0.6) | 82 (82)
+[tmg] imu        9  10 |  17989  11 | 8.09-11.95 (128.08 @ 0.6) | 655 (984)
+[tmg] mission    7 100 |   1769   0 | 0.63-1139.52 (1148.91 @ 102.6) | 1038872 (1038874)
+[tmg] obstacle  11  60 |   2999   1 | 58.28-62.00 (128.24 @ 0.6) | 52 (53)
+[tmg] t=240136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |   2400   0 | 98.94-101.21 (148.27 @ 0.6) | 2694 (2696)
+[tmg] motion     6  10 |  23989  11 | 8.69-11.34 (127.87 @ 0.6) | 73 (235)
+[tmg] line       8  20 |  11995   5 | 18.69-21.38 (128.02 @ 0.6) | 74 (117)
+[tmg] barcode   10  10 |  11995   0 | 18.56-21.53 (138.12 @ 0.6) | 27 (1474)
+[tmg] safety     5  20 |  11995   5 | 18.77-21.28 (127.81 @ 0.6) | 53 (82)
+[tmg] imu        9  10 |  23989  11 | 8.57-11.46 (128.08 @ 0.6) | 660 (984)
+[tmg] mission    7 100 |   2369   0 | 10.61-111.03 (1148.91 @ 102.6) | 10 (1038874)
+[tmg] obstacle  11  60 |   3999   1 | 58.56-61.42 (128.24 @ 0.6) | 53 (53)
+mqtt: RX [is34/cmd/start] ""
+[MQTT] start
+[EVT] start
+[S3] barcode: black from 1500, step 700
+[tmg] t=300136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |   3000   0 | 98.84-101.15 (148.27 @ 0.6) | 2623 (2696)
+[tmg] motion     6  10 |  29989  11 | 8.62-11.43 (127.87 @ 0.6) | 71 (235)
+[tmg] line       8  20 |  14995   5 | 18.56-21.73 (128.02 @ 0.6) | 74 (117)
+[tmg] barcode   10  10 |  14995   0 | 18.44-21.71 (138.12 @ 0.6) | 14 (1474)
+[tmg] safety     5  20 |  14995   5 | 18.66-21.36 (127.81 @ 0.6) | 60 (82)
+[tmg] imu        9  10 |  29989  11 | 8.25-11.82 (128.08 @ 0.6) | 650 (984)
+[tmg] mission    7 100 |   2965   0 | 10.59-111.02 (1148.91 @ 102.6) | 10 (1038874)
+[tmg] obstacle  11  60 |   4999   1 | 58.58-61.52 (128.24 @ 0.6) | 51 (53)
+[EVT] barcode F read backwards (a lost bar put back) (narrow 6.2 mm, wide 15.6 mm) -> NO MAPPING, ignored
+[EVT] junction 1 (crossing): FORWARD (barcode -)
+[EVT] stopped: line lost (press START to go again)
+mqtt: RX [is34/cmd/map] "..@."
+[MQTT] map: OK Z=L,B=R,D=F,C=U
+[tmg] t=360136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |   3600   0 | 98.37-101.47 (148.27 @ 0.6) | 2584 (2696)
+[tmg] motion     6  10 |  35989  11 | 8.47-11.57 (127.87 @ 0.6) | 223 (235)
+[tmg] line       8  20 |  17995   5 | 18.40-21.60 (128.02 @ 0.6) | 414 (414)
+[tmg] barcode   10  10 |  17995   0 | 18.26-21.75 (138.12 @ 0.6) | 1017 (1474)
+[tmg] safety     5  20 |  17995   5 | 18.50-21.51 (127.81 @ 0.6) | 78 (82)
+[tmg] imu        9  10 |  35989  11 | 8.30-11.74 (128.08 @ 0.6) | 663 (984)
+[tmg] mission    7 100 |   3552   0 | 0.69-1148.60 (1148.91 @ 102.6) | 1038624 (1038874)
+[tmg] obstacle  11  60 |   5999   1 | 58.43-61.56 (128.24 @ 0.6) | 51 (53)
+mqtt: RX [is34/cmd/map] "..@."
+[MQTT] map: OK F=L,B=R,D=F,C=U
+mqtt: RX [is34/cmd/start] ""
+[MQTT] start
+[EVT] start
+[S3] barcode: black from 1500, step 700
+[EVT] barcode F read backwards (narrow 6.1 mm, wide 16.2 mm) -> LEFT at next junction
+[EVT] junction 2 (crossing): LEFT (barcode F)
+[S3] short run dropped (15 elements), widths (mm): 2.2 2.6 7.0 4.9 7.1 4.6 1.4 32.5 5.8 5.3 5.6 16.0 5.7 5.5 5.8
+[S3] short run dropped (5 elements), widths (mm): 9.2 33.7 10.0 7.0 10.2
+[tmg] t=420138 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |   4200   0 | 98.39-101.70 (148.27 @ 0.6) | 2651 (2696)
+[tmg] motion     6  10 |  41989  11 | 8.21-11.84 (127.87 @ 0.6) | 303 (303)
+[tmg] line       8  20 |  20995   5 | 18.17-21.86 (128.02 @ 0.6) | 557 (557)
+[tmg] barcode   10  10 |  20995   0 | 18.00-22.02 (138.12 @ 0.6) | 772 (1474)
+[tmg] safety     5  20 |  20995   5 | 18.26-21.75 (127.81 @ 0.6) | 81 (82)
+[tmg] imu        9  10 |  41989  11 | 8.08-11.97 (128.08 @ 0.6) | 658 (984)
+[tmg] mission    7 100 |   4107   0 | 0.69-3639.93 (3639.93 @ 384.4) | 3639901 (3639901)
+[tmg] obstacle  11  60 |   6999   1 | 58.28-61.70 (128.24 @ 0.6) | 51 (53)
+[EVT] junction 3 (crossing): FORWARD (barcode -)
+[EVT] barcode READ_FAIL (23 elements)
+[S3] READ_FAIL widths (mm): 1.5 6.6 15.3 8.0 14.8 8.2 3.1 31.3 3.1 22.8 11.9 17.4 5.5 32.0 3.0 12.1 11.8 8.2 15.5 7.9 3.6 21.2 2.0
+mqtt: RX [is34/cmd/stop] ""
+[MQTT] stop
+[EVT] STOP
+mqtt: RX [is34/cmd/map] ".FD."
+[MQTT] map: OK F=L,Q=R,D=F,C=U
+[tmg] t=480136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |   4800   0 | 98.26-101.34 (148.27 @ 0.6) | 2728 (2728)
+[tmg] motion     6  10 |  47989  11 | 8.68-11.36 (127.87 @ 0.6) | 214 (303)
+[tmg] line       8  20 |  23995   5 | 18.59-21.43 (128.02 @ 0.6) | 134 (557)
+[tmg] barcode   10  10 |  23995   0 | 18.44-21.58 (138.12 @ 0.6) | 923 (1474)
+[tmg] safety     5  20 |  23995   5 | 18.71-21.29 (127.81 @ 0.6) | 72 (82)
+[tmg] imu        9  10 |  47989  11 | 8.51-11.53 (128.08 @ 0.6) | 679 (984)
+[tmg] mission    7 100 |   4700   0 | 0.12-821.10 (3639.93 @ 384.4) | 821069 (3639901)
+[tmg] obstacle  11  60 |   7999   1 | 58.41-61.43 (128.24 @ 0.6) | 51 (53)
+mqtt: RX [is34/cmd/start] ""
+[MQTT] start
+[EVT] start
+[S3] barcode: black from 1500, step 700
+[EVT] junction 4 (crossing): FORWARD (barcode -)
+[EVT] stopped: line lost (press START to go again)
+[EVT] robot lifted or tipped over (tilt over 35 deg): motors off, START to go again
+[EVT] robot lifted or tipped over (tilt over 35 deg): motors off, START to go again
+[EVT] robot lifted or tipped over (tilt over 35 deg): motors off, START to go again
+[tmg] t=540136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |   5400   0 | 98.71-101.20 (148.27 @ 0.6) | 2597 (2728)
+[tmg] motion     6  10 |  53989  11 | 8.66-11.38 (127.87 @ 0.6) | 202 (303)
+[tmg] line       8  20 |  26995   5 | 18.55-21.44 (128.02 @ 0.6) | 370 (557)
+[tmg] barcode   10  10 |  26995   0 | 18.44-21.55 (138.12 @ 0.6) | 34 (1474)
+[tmg] safety     5  20 |  26995   5 | 18.69-21.32 (127.81 @ 0.6) | 85 (85)
+[tmg] imu        9  10 |  53989  11 | 8.52-11.56 (128.08 @ 0.6) | 876 (984)
+[tmg] mission    7 100 |   5282   0 | 10.58-1148.89 (3639.93 @ 384.4) | 1038904 (3639901)
+[tmg] obstacle  11  60 |   8999   1 | 58.42-61.60 (128.24 @ 0.6) | 48 (53)
+[tmg] t=600136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |   6000   0 | 98.92-101.14 (148.27 @ 0.6) | 2677 (2728)
+[tmg] motion     6  10 |  59989  11 | 8.75-11.28 (127.87 @ 0.6) | 62 (303)
+[tmg] line       8  20 |  29995   5 | 18.73-21.31 (128.02 @ 0.6) | 50 (557)
+[tmg] barcode   10  10 |  29995   0 | 18.58-21.46 (138.12 @ 0.6) | 19 (1474)
+[tmg] safety     5  20 |  29995   5 | 18.80-21.22 (127.81 @ 0.6) | 50 (85)
+[tmg] imu        9  10 |  59989  11 | 8.67-11.38 (128.08 @ 0.6) | 657 (984)
+[tmg] mission    7 100 |   5882   0 | 10.61-111.20 (3639.93 @ 384.4) | 10 (3639901)
+[tmg] obstacle  11  60 |   9999   1 | 58.52-61.48 (128.24 @ 0.6) | 47 (53)
+[tmg] t=660136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |   6600   0 | 98.90-101.16 (148.27 @ 0.6) | 2658 (2728)
+[tmg] motion     6  10 |  65989  11 | 8.70-11.33 (127.87 @ 0.6) | 70 (303)
+[tmg] line       8  20 |  32995   5 | 18.64-21.36 (128.02 @ 0.6) | 50 (557)
+[tmg] barcode   10  10 |  32995   0 | 18.50-21.51 (138.12 @ 0.6) | 19 (1474)
+[tmg] safety     5  20 |  32995   5 | 18.73-21.26 (127.81 @ 0.6) | 54 (85)
+[tmg] imu        9  10 |  65989  11 | 8.58-11.45 (128.08 @ 0.6) | 656 (984)
+[tmg] mission    7 100 |   6482   0 | 10.60-111.34 (3639.93 @ 384.4) | 10 (3639901)
+[tmg] obstacle  11  60 |  10999   1 | 58.52-61.54 (128.24 @ 0.6) | 48 (53)
+
+---- panel run summary ----
+Run 1, started 16:01:37   mapping: none
+  Barcodes:
+    1 failed read(s) (READ_FAIL)
+  Junctions:
+    none
+  Obstacles:
+    none
+  Hump: none reported
+  Stops:
+    16:01:47  STOP
+    16:01:53  robot lifted or tipped over (tilt over 35 deg): motors off, START to go again
+
+Run 2, started 16:02:08   mapping: none
+  Barcodes:
+    16:02:16  Q -> no mapping (ignored, carried on)   (read backwards, narrow 6.0 mm, wide 16.8 mm)
+  Junctions:
+    none
+  Obstacles:
+    none
+  Hump: none reported
+  Stops:
+    16:02:19  STOP
+
+Run 3, started 16:02:36   mapping: none
+  Barcodes:
+    16:02:40  Z -> no mapping (ignored, carried on)   (read backwards, narrow 5.9 mm, wide 16.7 mm)
+  Junctions:
+    none
+  Obstacles:
+    none
+  Hump: none reported
+  Stops:
+    16:02:42  STOP
+
+Run 4, started 16:04:55   mapping: none -> Z=L,B=R,D=F,C=U (at 16:05:43) -> F=L,B=R,D=F,C=U (at 16:06:02)
+  Barcodes:
+    16:05:03  F -> no mapping (ignored, carried on)   (read backwards, a lost bar put back, narrow 6.2 mm, wide 15.6 mm)
+  Junctions:
+    16:05:10  1 (crossing): FORWARD  (barcode -)
+  Obstacles:
+    none
+  Hump: none reported
+  Stops:
+    16:05:16  stopped: line lost
+
+Run 5, started 16:06:05   mapping: F=L,B=R,D=F,C=U -> F=L,Q=R,D=F,C=U (at 16:07:45)
+  Barcodes:
+    16:06:13  F -> LEFT   (read backwards, narrow 6.1 mm, wide 16.2 mm)
+    1 failed read(s) (READ_FAIL)
+  Junctions:
+    16:06:16  2 (crossing): LEFT  (barcode F)
+    16:06:57  3 (crossing): FORWARD  (barcode -)
+  Obstacles:
+    none
+  Hump: none reported
+  Stops:
+    16:07:16  STOP
+
+Run 6, started 16:07:58   mapping: F=L,Q=R,D=F,C=U
+  Barcodes:
+    none read
+  Junctions:
+    16:08:02  4 (crossing): FORWARD  (barcode -)
+  Obstacles:
+    none
+  Hump: none reported
+  Stops:
+    16:08:25  robot lifted or tipped over (tilt over 35 deg): motors off, START to go again  (x3)
+
+---- panel sensor trace before each line lost ----
+16:05:10 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=-1 tilt=-35 h10=17 imu=1
+16:05:10 is34/sensors ir=100 steer=30 hold=1 inbar=1 front=1656 tilt=0 h10=11 imu=1
+16:05:10 is34/sensors ir=100 steer=30 hold=1 inbar=1 front=1646 tilt=11 h10=13 imu=1
+16:05:11 is34/sensors ir=000 steer=1 hold=0 inbar=0 front=1602 tilt=30 h10=25 imu=1
+16:05:11 is34/sensors ir=010 steer=-30 hold=0 inbar=0 front=1312 tilt=-4 h10=27 imu=1
+16:05:11 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=1304 tilt=0 h10=39 imu=1
+16:05:11 is34/sensors ir=010 steer=-10 hold=0 inbar=0 front=1477 tilt=-14 h10=47 imu=1
+16:05:11 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=1230 tilt=14 h10=63 imu=1
+16:05:12 is34/sensors ir=001 steer=0 hold=1 inbar=1 front=1206 tilt=-56 h10=65 imu=1
+16:05:12 is34/sensors ir=001 steer=30 hold=1 inbar=1 front=1408 tilt=3 h10=64 imu=1
+16:05:13 is34/sensors ir=001 steer=30 hold=1 inbar=1 front=1500 tilt=-5 h10=64 imu=1
+16:05:13 is34/sensors ir=001 steer=30 hold=1 inbar=1 front=-2 tilt=6 h10=63 imu=1
+16:05:14 is34/sensors ir=000 steer=30 hold=1 inbar=1 front=-1 tilt=-4 h10=62 imu=1
+16:05:14 is34/sensors ir=001 steer=30 hold=1 inbar=1 front=-1 tilt=-5 h10=0 imu=1
+16:05:15 is34/sensors ir=000 steer=30 hold=1 inbar=1 front=1651 tilt=-10 h10=-1 imu=1
+16:05:15 is34/sensors ir=000 steer=30 hold=1 inbar=1 front=-1 tilt=-7 h10=-4 imu=1
+16:05:16 is34/sensors ir=001 steer=30 hold=1 inbar=1 front=1557 tilt=3 h10=-5 imu=1
+16:05:17 is34/sensors ir=000 steer=30 hold=1 inbar=1 front=-1 tilt=-2 h10=-6 imu=1
+16:05:17 is34/sensors ir=000 steer=30 hold=1 inbar=1 front=1586 tilt=-1 h10=-6 imu=1
+16:05:17 is34/sensors ir=000 steer=30 hold=1 inbar=1 front=758 tilt=-1 h10=-6 imu=1
+16:08:04 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=-1 tilt=34 h10=30 imu=1
+16:08:04 is34/sensors ir=010 steer=-30 hold=0 inbar=0 front=-1 tilt=-2 h10=40 imu=1
+16:08:05 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=-1 tilt=42 h10=47 imu=1
+16:08:12 is34/sensors ir=001 steer=0 hold=1 inbar=1 front=-1 tilt=-2 h10=43 imu=1
+16:08:12 is34/sensors ir=000 steer=30 hold=1 inbar=1 front=-1 tilt=-4 h10=43 imu=1
+16:08:13 is34/sensors ir=000 steer=30 hold=1 inbar=1 front=-1 tilt=-1 h10=-6 imu=1
+16:08:13 is34/sensors ir=000 steer=30 hold=1 inbar=1 front=-1 tilt=-1 h10=-6 imu=1
+16:08:13 is34/sensors ir=000 steer=30 hold=1 inbar=1 front=-1 tilt=0 h10=-6 imu=1
+16:08:13 is34/sensors ir=000 steer=30 hold=1 inbar=1 front=-1 tilt=-1 h10=-6 imu=1
+16:08:14 is34/sensors ir=000 steer=30 hold=1 inbar=1 front=-1 tilt=-1 h10=-6 imu=1

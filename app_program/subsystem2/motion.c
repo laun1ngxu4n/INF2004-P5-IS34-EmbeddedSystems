@@ -32,6 +32,10 @@
 #define ACCEL_MM_S2 400.0f /* ramp up and down */
 #define V_MIN_MM_S  50.0f  /* slowest speed near the end */
 #define KEEP_EQUAL  3.0f   /* mm/s per mm the wheels differ */
+/* The straight hold over a barcode lets go below this line speed: the line
+   task's S3_CORR_PCT (line.c).  A short correction (one sensor on the tape,
+   60 %) keeps it; a long one (40 % after 50 mm) or a search (20 %) ends it */
+#define HOLD_MIN_PCT 60
 
 /* Per wheel speed controller, duty in per mille.  Feed-forward from the
    bring-up runs (wheels lifted: about 1.25 per mille per mm/s, through 0)
@@ -118,6 +122,15 @@ EXPORT ID motion_follow (int32_t speed_mm_s)
 /* mm/s, 0 = none; +-1023 (11 bits), its own halfword: Mission writes it,
    the motion task reads it (Change Requirement 1) */
 LOCAL volatile int16_t g_follow_limit;
+/* the steering is held straight over a barcode now (the panel's "held");
+   written only by the motion task */
+LOCAL volatile bool gb_held;
+
+/** true while the steering is held straight over a barcode. */
+EXPORT bool motion_steer_held (void)
+{
+    return gb_held;
+}
 
 EXPORT void motion_follow_limit (int32_t speed_mm_s)
 {
@@ -354,6 +367,8 @@ EXPORT void motion_task (int32_t stacd, void * p_exinf)
         }
 
         /* 3. Run the command */
+        gb_held = false; /* set again below while following */
+
         if (CMD_FOLLOW == cur.type)
         {
             float32_t steer = (float32_t)line_steer_mm_s(); /* + = steer left */
@@ -376,9 +391,15 @@ EXPORT void motion_task (int32_t stacd, void * p_exinf)
                more and the widths come out wrong (2 Nov the steering
                broke a read into pieces).  The code is read in one
                pass; the back-up-and-reread (2-7 Nov) was removed on
-               7 Nov. */
+               7 Nov.  But not while the robot is leaving its line (20 Nov,
+               track 4: after a crossing B kept seeing tape, the hold kept
+               the robot straight while the line task asked for full
+               steering, and it ran off the line twice): a long correction
+               or a search ends the hold, staying on the line comes first. */
 
-            if (barcode_in_bars())
+            gb_held = (barcode_in_bars()) && (pct >= HOLD_MIN_PCT);
+
+            if (gb_held)
             {
                 steer = 0.0f;
                 b_off = false;

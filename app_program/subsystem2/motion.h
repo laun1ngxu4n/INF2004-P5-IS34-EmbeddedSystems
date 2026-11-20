@@ -48,6 +48,8 @@ IMPORT void motion_halt (void);               /* stop, no STOP reason */
    would start again from standstill). */
 IMPORT void motion_follow_limit (int32_t speed_mm_s);
 IMPORT void motion_get_status (motion_status_t * st);
+/** true while the steering is held straight over a barcode (the panel). */
+IMPORT bool motion_steer_held (void);
 
 #if APP_TEST
 /** Test images only (S4-S01): at its next wake the Motion task stops

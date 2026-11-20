@@ -488,7 +488,7 @@ LOCAL void sensor_line (void)
     values.b_ir_left   = IR_BLACK == app_gpio_get(PIN_IR_LINE_L);
     values.b_ir_right  = IR_BLACK == app_gpio_get(PIN_IR_LINE_R);
     values.b_ir_bar    = barcode_black();
-    values.b_hold      = barcode_in_bars();
+    values.b_hold      = motion_steer_held();
     values.b_inbar     = barcode_busy();
     values.b_imu_ok    = imu_ok();
     values.steer       = line_steer_mm_s();

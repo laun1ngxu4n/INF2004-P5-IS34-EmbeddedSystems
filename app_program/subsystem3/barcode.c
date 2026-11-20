@@ -1652,8 +1652,8 @@ LOCAL uint8_t half_at (const int32_t * p_elem, int32_t * p_narrow_sum,
 }
 
 /** Half a code anywhere in the run, either way round.  true = exactly one
-   letter fits (BAR_FIX_HALF). */
-LOCAL bool decode_half (const int32_t * p_elem, int32_t count,
+   letter fits (BAR_FIX_HALF or BAR_FIX_HALF_USED). */
+LOCAL bool half_search (const int32_t * p_elem, int32_t count,
                         barcode_result_t * p_result)
 {
     int32_t pass;
@@ -1721,6 +1721,49 @@ LOCAL bool decode_half (const int32_t * p_elem, int32_t count,
         width_field(narrow_sum * S2_UM_PER_COUNT / 100 / 12);
     p_result->wide_mm10 = width_field(wide_sum * S2_UM_PER_COUNT / 100 / 6);
     return true;
+}
+
+/* A half code whose star is cut short too (20 Nov, track 4: "*A*" with
+   the opening star garbled and the last 2 elements of the closing one
+   never seen): HALF_PAD narrow elements put back at each end, the way
+   decode_truncated does for a whole code, and searched again. */
+#define HALF_PAD 2
+LOCAL int32_t g_half_pad[MAX_ELEM]; /* the barcode task only */
+
+/** Half a code anywhere in the run, either way round, as read or with its
+   ends cut short.  true = exactly one letter fits (BAR_FIX_HALF or
+   BAR_FIX_HALF_USED). */
+LOCAL bool decode_half (const int32_t * p_elem, int32_t count,
+                        barcode_result_t * p_result)
+{
+    int32_t nar;
+    int32_t wid;
+    int32_t idx;
+
+    if (half_search(p_elem, count, p_result))
+    {
+        return true;
+    }
+
+    if ((count < HALF_ELEMS) || (count > (MAX_ELEM - (2 * HALF_PAD))))
+    {
+        return false;
+    }
+
+    nar_wid(p_elem, count, &nar, &wid);
+
+    for (idx = 0; idx < HALF_PAD; idx++)
+    {
+        g_half_pad[idx]                    = nar;
+        g_half_pad[count + HALF_PAD + idx] = nar;
+    }
+
+    for (idx = 0; idx < count; idx++)
+    {
+        g_half_pad[HALF_PAD + idx] = p_elem[idx];
+    }
+
+    return half_search(g_half_pad, count + (2 * HALF_PAD), p_result);
 }
 
 /** The end of a code (quiet for S3_QUIET_MM): its element widths are kept

@@ -399,6 +399,16 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   and no READ_FAIL**: the pieces were under 5 elements; junction 1 went
   FORWARD with no barcode. WiFi-loss warning flickered (faults=64) about a
   dozen times for under 1 s; the robot kept running.
+- **20 Nov, 19:02 (`logs/robot/is34_20261120_190046_robot.txt`, mapping A F D C):**
+  ❌ A and Z both READ_FAIL. A by hand: `*A*` with the opening star
+  garbled and the last 2 elements of the closing star never seen (the code
+  ended early), the A itself clean. Z: a 45.8 mm gap (a lost stretch).
+  **Changed, not run yet:** a half code may also have its star cut short:
+  2 narrow elements put back at each end and searched again (as
+  decode_truncated does for whole codes). The robot's C code on the PC:
+  this A now reads and is acted on (mapped); every logged piece (43): A
+  acted on twice, the rest as before; random 19-29 element patterns acted
+  on 0.005-0.045 % (was 0-0.02 %).
 - **20 Nov, 18:40 (`logs/robot/is34_20261120_183938_robot.txt`, mapping A F D C):**
   ❌ A gave `READ_FAIL (27 elements)`: by hand it is `*A*` with a thin bar
   lost inside the A AND one narrow space reading 9.7 mm (the others about

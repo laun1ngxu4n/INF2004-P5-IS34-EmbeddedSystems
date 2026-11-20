@@ -399,6 +399,19 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   and no READ_FAIL**: the pieces were under 5 elements; junction 1 went
   FORWARD with no barcode. WiFi-loss warning flickered (faults=64) about a
   dozen times for under 1 s; the robot kept running.
+- **20 Nov, track 4, Mission run 8 (`subsystem5/logs/2026-11-20_track4_mission_8_robot.txt`):**
+  ✅ Q read (-> RIGHT) and F read (-> LEFT), both backwards; obstacle width
+  **95 +/- 19** (real 100). ❌ 7 READ_FAILs (21-29 elements). Replayed on
+  the PC through the robot's whole decode chain (scratchpad
+  `decode_harness.py`): none decodes, and a bar-shrink correction rescues
+  none (0 false letters on 20 000 random patterns either way). The
+  29-element one reads backwards as `*` ? `*` with **four** wide-looking
+  elements in the letter (15.2 14.1 20.8 14.2 mm), so it could be G or Q:
+  the decoder rightly refuses to guess. Thin bars read 2-3 mm against 6-8
+  mm narrow spaces (blurred by the sensor's spot); the barcodes with
+  narrow bars of about 6 mm (the F and Q prints) read, smaller ones do
+  not. Junction 5 (after F -> LEFT) fell in a WiFi drop: its event was
+  lost, so the turn is not in the log.
 - **20 Nov, track 4, Mission run 7, six runs (`subsystem5/logs/2026-11-20_track4_mission_7_robot.txt`):**
   ✅ letters read with no mapping and carried on: **Q, Z, F** (read
   backwards, narrow about 6 mm, wide about 16 mm); ✅ **run 5: `F -> LEFT`,

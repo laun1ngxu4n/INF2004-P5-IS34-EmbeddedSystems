@@ -1,0 +1,331 @@
+P5-IS34 robot log, 20 Nov 2026, Mission WiFi image, sample track 4, several runs. Q read (-> RIGHT) and F read (-> LEFT), both backwards with a missing end bar put back; 7 READ_FAILs (21-29 elements). Junction 5 (after F -> LEFT) happened during a WiFi drop: its event and log lines were lost (the status distance jumps 563 mm), so whether it turned left is not in the log. One obstacle: width 95 +/- 19 (real 100), front 165, bypass stopped by STOP. Panel run summary appended. Hotspot name blanked.
+mqtt: connection status 256, retrying in 3s
+mqtt: connected to 10.67.161.225
+mqtt: subscribed to mtk3smp-pico/heartbeat
+mqtt: subscribed to mtk3smp-pico/heartbeat
+
+[panel: the robot restarted]
+
+
+microT-Kernel Version 3.00
+
+
+=== micro T-Kernel on Raspberry Pi Pico W (spec 0x6300, product 0x0003) ===
+single-core build
+P5-IS34 mission image. Kernel tick 10 ms
+all subsystems started
+
+wifi: cyw43_utk_task starting (proc 1)
+wifi: cyw43_init() ...
+wifi: cyw43_init() returned, bringing interface up ...
+[IMU] LSM303D found at 0x1D
+wifi: joining "(hotspot)" ...
+wifi: link status -> joined AP, waiting for IP (1)
+wifi: link status -> FAILED (association failure) (-1)
+wifi: joining "(hotspot)" ...
+wifi: link status -> joined AP, waiting for IP (1)
+wifi: link status -> joined AP, no IP yet (2)
+wifi: link up, ip=10.67.161.102
+mqtt: connected to 10.67.161.225
+mqtt: subscribed to mtk3smp-pico/heartbeat
+mqtt: subscribed to mtk3smp-pico/heartbeat
+[EVT] ramp peak height 35.6 mm (one wheel: side tilt sin 459/1000 x T x 0.63; from the nose-down tilt 48.6 mm)
+mqtt: TX [mtk3smp-pico/heartbeat] "hb 0" (heartbeat every 5 s, not printed)
+mqtt: RX [mtk3smp-pico/heartbeat] "hb 0"
+[S3] short run dropped (14 elements), widths (mm): 2.4 6.0 11.4 6.0 10.7 5.9 2.8 4.8 10.4 5.0 3.0 6.4 2.4 5244.0
+mqtt: RX [is34/cmd/start] ""
+[MQTT] start
+[EVT] start
+[S3] barcode: black from 1500, step 700
+[S3] short run dropped (19 elements), widths (mm): 2.6 4.6 5.0 14.0 9.6 16.4 9.7 31.9 2.4 5.8 11.0 23.9 2.4 6.4 10.5 6.2 10.8 6.8 2.0
+[EVT] junction 1 (crossing): FORWARD (barcode -)
+mqtt: RX [is34/cmd/stop] ""
+[MQTT] stop
+[EVT] STOP
+mqtt: RX [is34/cmd/start] ""
+[MQTT] start
+[EVT] start
+[S3] barcode: black from 1500, step 700
+[tmg] t=60136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |    600   0 | 52.23-147.86 (147.86 @ 0.6) | 231 (231)
+[tmg] motion     6  10 |   5989  11 | 2.62-127.45 (127.45 @ 0.6) | 184 (184)
+[tmg] line       8  20 |   2995   5 | 12.58-127.59 (127.59 @ 0.6) | 146 (146)
+[tmg] barcode   10  10 |   2995   0 | 12.41-137.68 (137.68 @ 0.6) | 628 (628)
+[tmg] safety     5  20 |   2995   5 | 12.78-127.38 (127.38 @ 0.6) | 75 (75)
+[tmg] imu        9  10 |   5989  11 | 2.40-127.65 (127.65 @ 0.6) | 1053 (1053)
+[tmg] mission    7 100 |    572   0 | 0.13-1148.98 (1148.98 @ 58.9) | 1039876 (1039876)
+[tmg] obstacle  11  60 |    999   1 | 52.24-127.81 (127.81 @ 0.6) | 51 (51)
+[EVT] barcode READ_FAIL (21 elements)
+[S3] READ_FAIL widths (mm): 2.6 4.7 10.2 8.4 10.4 16.0 9.8 6.5 2.0 6.0 2.6 20.1 2.0 6.2 11.2 31.9 17.1 5.8 12.2 5.6 3.3
+[EVT] junction 2 (crossing): FORWARD (barcode -)
+mqtt: RX [is34/cmd/stop] ""
+[MQTT] stop
+[EVT] STOP
+[EVT] ramp peak height 11.6 mm (one wheel: side tilt sin 150/1000 x T x 0.63; from the nose-down tilt 22.6 mm)
+[S3] short run dropped (18 elements), widths (mm): 14.7 19.5 2.8 14.2 3.0 4.8 10.4 6.8 9.0 15.6 9.7 6.4 1.9 21.1 2.3 6.1 11.4 5238.0
+mqtt: RX [is34/cmd/start] ""
+[MQTT] start
+[EVT] start
+[S3] barcode: black from 1500, step 700
+[EVT] barcode READ_FAIL (25 elements)
+[S3] READ_FAIL widths (mm): 2.0 13.8 3.0 5.5 10.9 7.0 10.5 16.4 9.5 7.1 1.7 11.6 1.6 14.8 2.3 6.4 10.8 29.1 2.0 6.2 11.2 5.4 12.0 5.6 2.3
+mqtt: RX [is34/cmd/stop] ""
+[MQTT] stop
+[EVT] STOP
+[tmg] t=120136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |   1200   0 | 97.28-102.57 (147.86 @ 0.6) | 2637 (2637)
+[tmg] motion     6  10 |  11989  11 | 7.85-12.19 (127.45 @ 0.6) | 222 (222)
+[tmg] line       8  20 |   5995   5 | 17.61-22.36 (127.59 @ 0.6) | 532 (532)
+[tmg] barcode   10  10 |   5995   0 | 17.41-22.57 (137.68 @ 0.6) | 1059 (1059)
+[tmg] safety     5  20 |   5995   5 | 17.89-22.12 (127.38 @ 0.6) | 77 (77)
+[tmg] imu        9  10 |  11989  11 | 7.51-12.51 (127.65 @ 0.6) | 1030 (1053)
+[tmg] mission    7 100 |   1162   0 | 10.63-1148.06 (1148.98 @ 58.9) | 1038759 (1039876)
+[tmg] obstacle  11  60 |   1999   1 | 57.43-62.56 (127.81 @ 0.6) | 48 (51)
+[EVT] robot lifted or tipped over (tilt over 35 deg): motors off, START to go again
+mqtt: RX [is34/cmd/map] ".FD."
+[MQTT] map: OK F=L,Q=R,D=F,C=U
+[EVT] robot lifted or tipped over (tilt over 35 deg): motors off, START to go again
+[tmg] t=180136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |   1800   0 | 98.64-101.20 (147.86 @ 0.6) | 2594 (2637)
+[tmg] motion     6  10 |  17989  11 | 8.46-11.58 (127.45 @ 0.6) | 73 (222)
+[tmg] line       8  20 |   8995   5 | 18.42-21.59 (127.59 @ 0.6) | 73 (532)
+[tmg] barcode   10  10 |   8995   0 | 18.26-21.76 (137.68 @ 0.6) | 28 (1059)
+[tmg] safety     5  20 |   8995   5 | 18.49-21.51 (127.38 @ 0.6) | 47 (77)
+[tmg] imu        9  10 |  17989  11 | 8.40-11.68 (127.65 @ 0.6) | 898 (1053)
+[tmg] mission    7 100 |   1763   0 | 0.61-111.29 (1148.98 @ 58.9) | 11 (1039876)
+[tmg] obstacle  11  60 |   2999   1 | 58.48-61.47 (127.81 @ 0.6) | 49 (51)
+[EVT] robot lifted or tipped over (tilt over 35 deg): motors off, START to go again
+[EVT] robot lifted or tipped over (tilt over 35 deg): motors off, START to go again
+[EVT] robot lifted or tipped over (tilt over 35 deg): motors off, START to go again
+
+[panel: the robot restarted]
+
+
+microT-Kernel Version 3.00
+
+
+=== micro T-Kernel on Raspberry Pi Pico W (spec 0x6300, product 0x0003) ===
+single-core build
+P5-IS34 mission image. Kernel tick 10 ms
+all subsystems started
+
+wifi: cyw43_utk_task starting (proc 1)
+wifi: cyw43_init() ...
+wifi: cyw43_init() returned, bringing interface up ...
+[IMU] LSM303D found at 0x1D
+wifi: joining "(hotspot)" ...
+wifi: link status -> joined AP, waiting for IP (1)
+wifi: link status -> FAILED (association failure) (-1)
+wifi: joining "(hotspot)" ...
+wifi: link status -> joined AP, waiting for IP (1)
+wifi: link status -> joined AP, no IP yet (2)
+wifi: link up, ip=10.67.161.102
+mqtt: connected to 10.67.161.225
+mqtt: subscribed to mtk3smp-pico/heartbeat
+mqtt: subscribed to mtk3smp-pico/heartbeat
+mqtt: TX [mtk3smp-pico/heartbeat] "hb 0" (heartbeat every 5 s, not printed)
+mqtt: RX [mtk3smp-pico/heartbeat] "hb 0"
+[EVT] robot lifted or tipped over (tilt over 35 deg): motors off, START to go again
+mqtt: RX [is34/cmd/start] ""
+[MQTT] start
+[EVT] start
+[S3] barcode: black from 1500, step 700
+[EVT] barcode READ_FAIL (27 elements)
+[S3] READ_FAIL widths (mm): 19.7 7.9 15.6 9.2 3.1 11.2 2.3 7.2 4.3 6.4 5.1 18.1 8.3 19.5 18.0 7.6 4.4 7.2 4.8 6.4 16.2 12.7 9.5 15.3 2.8 16.5 2.0
+[tmg] t=60136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |    600   0 | 52.22-147.86 (147.86 @ 0.6) | 246 (246)
+[tmg] motion     6  10 |   5989  11 | 2.61-127.45 (127.45 @ 0.6) | 212 (212)
+[tmg] line       8  20 |   2995   5 | 12.57-127.60 (127.60 @ 0.6) | 110 (110)
+[tmg] barcode   10  10 |   2995   0 | 12.40-137.69 (137.69 @ 0.6) | 1386 (1386)
+[tmg] safety     5  20 |   2995   5 | 12.78-127.38 (127.38 @ 0.6) | 75 (75)
+[tmg] imu        9  10 |   5989  11 | 2.39-127.65 (127.65 @ 0.6) | 1016 (1016)
+[tmg] mission    7 100 |    589   0 | 0.67-1148.68 (1148.68 @ 50.0) | 1038695 (1038695)
+[tmg] obstacle  11  60 |    999   1 | 52.24-127.81 (127.81 @ 0.6) | 51 (51)
+[EVT] junction 1 (crossing): FORWARD (barcode -)
+[EVT] ramp peak height 8.0 mm (L*sin(peak pitch) 6.1 mm, peak sin 77/1000)
+mqtt: RX [is34/cmd/map] ".FD."
+[MQTT] map: OK F=L,Q=R,D=F,C=U
+[EVT] barcode READ_FAIL (29 elements)
+[S3] READ_FAIL widths (mm): 2.8 8.8 20.7 7.9 15.1 8.5 4.0 12.8 1.8 6.9 14.2 20.8 14.1 15.2 3.4 8.3 3.3 8.4 3.2 8.8 3.0 9.2 19.4 8.8 13.8 8.0 4.0 13.6 2.3
+[EVT] STOP
+[EVT] robot lifted or tipped over (tilt over 35 deg): motors off, START to go again
+[EVT] robot lifted or tipped over (tilt over 35 deg): motors off, START to go again
+mqtt: RX [is34/cmd/start] ""
+[MQTT] start
+[EVT] start
+[S3] barcode: black from 1500, step 700
+[EVT] barcode READ_FAIL (27 elements)
+[S3] READ_FAIL widths (mm): 21.8 9.2 13.6 10.9 2.0 13.3 2.7 6.0 5.2 6.9 4.6 19.6 14.0 10.4 14.0 7.6 4.4 7.5 9.2 6.4 17.6 5.6 9.3 14.8 4.1 28.7 3.4
+[tmg] t=120136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |   1200   0 | 97.91-101.97 (147.86 @ 0.6) | 2700 (2700)
+[tmg] motion     6  10 |  11989  11 | 8.30-11.74 (127.45 @ 0.6) | 197 (212)
+[tmg] line       8  20 |   5995   5 | 18.12-21.85 (127.60 @ 0.6) | 144 (144)
+[tmg] barcode   10  10 |   5995   0 | 18.03-21.98 (137.69 @ 0.6) | 1336 (1386)
+[tmg] safety     5  20 |   5995   5 | 18.33-21.67 (127.38 @ 0.6) | 77 (77)
+[tmg] imu        9  10 |  11989  11 | 8.07-12.00 (127.65 @ 0.6) | 963 (1016)
+[tmg] mission    7 100 |   1173   0 | 0.68-1148.44 (1148.68 @ 50.0) | 1038441 (1038695)
+[tmg] obstacle  11  60 |   1999   1 | 57.97-61.90 (127.81 @ 0.6) | 44 (51)
+[EVT] junction 2 (crossing): FORWARD (barcode -)
+[EVT] barcode Q read backwards (a missing end bar put back) (narrow 6.3 mm, wide 16.3 mm) -> RIGHT at next junction
+mqtt: RX [is34/cmd/stop] ""
+[MQTT] stop
+[EVT] STOP
+mqtt: RX [is34/cmd/start] ""
+[MQTT] start
+[EVT] start
+[S3] barcode: black from 1500, step 700
+[EVT] junction 3 (crossing): FORWARD (barcode -)
+[EVT] obstacle ahead at 174 mm: scanning
+[SCAN] rays (deg:mm, -1 = open, -2 = no ECHO): -40:-1 -35:-1 -30:-1 -25:199 -20:177 -15:168 -10:161 -5:165 0:165 5:160 10:163 15:163 20:160 25:160 30:160 35:160 40:160
+[EVT] obstacle width 95 +/- 19 mm (scan 1: 95 +/- 19, scan 2: 95 +/- 19); edges L 42 R -53 mm; front 165 mm
+[EVT] bypass LEFT: planned width 150 mm, out 255 mm, past 615 mm
+[tmg] t=180136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |   1800   0 | 98.00-102.20 (147.86 @ 0.6) | 2713 (2713)
+[tmg] motion     6  10 |  17989  11 | 8.12-11.93 (127.45 @ 0.6) | 305 (305)
+[tmg] line       8  20 |   8995   5 | 17.80-22.23 (127.60 @ 0.6) | 540 (540)
+[tmg] barcode   10  10 |   8995   0 | 17.69-22.23 (137.69 @ 0.6) | 1016 (1386)
+[tmg] safety     5  20 |   8995   5 | 18.16-21.84 (127.38 @ 0.6) | 76 (77)
+[tmg] imu        9  10 |  17989  11 | 7.75-12.34 (127.65 @ 0.6) | 650 (1016)
+[tmg] mission    7 100 |   1660   0 | 10.66-1148.09 (1148.68 @ 50.0) | 1038096 (1038695)
+[tmg] obstacle  11  60 |   2999   1 | 57.80-62.15 (127.81 @ 0.6) | 91 (91)
+mqtt: RX [is34/cmd/stop] ""
+[MQTT] stop
+[EVT] stopped: bypass step did not finish (press START to go again)
+[EVT] robot lifted or tipped over (tilt over 35 deg): motors off, START to go again
+[EVT] robot lifted or tipped over (tilt over 35 deg): motors off, START to go again
+mqtt: RX [is34/cmd/map] ".FD."
+[MQTT] map: OK F=L,Q=R,D=F,C=U
+mqtt: RX [is34/cmd/start] ""
+[MQTT] start
+[EVT] start
+[S3] barcode: black from 1500, step 700
+[EVT] junction 4 (branch left): FORWARD (barcode -)
+[EVT] barcode F read backwards (a missing end bar put back) (narrow 6.4 mm, wide 15.8 mm) -> LEFT at next junction
+
+[panel: 1 log messages lost on the WiFi]
+[S3] short run dropped (7 elements), widths (mm): 6.1 6.7 4.4 18.4 4.3 6.8 4.4
+[tmg] t=240136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |   2400   0 | 98.43-101.55 (147.86 @ 0.6) | 2604 (2713)
+[tmg] motion     6  10 |  23989  11 | 8.61-11.43 (127.45 @ 0.6) | 220 (305)
+[tmg] line       8  20 |  11995   5 | 18.54-21.54 (127.60 @ 0.6) | 526 (540)
+[tmg] barcode   10  10 |  11995   0 | 18.39-21.66 (137.69 @ 0.6) | 1058 (1386)
+[tmg] safety     5  20 |  11995   5 | 18.67-21.34 (127.38 @ 0.6) | 74 (77)
+[tmg] imu        9  10 |  23989  11 | 8.39-11.66 (127.65 @ 0.6) | 863 (1016)
+[tmg] mission    7 100 |   2195   0 | 0.71-10529.69 (10529.69 @ 180.3) | 10529656 (10529656)
+[tmg] obstacle  11  60 |   3999   1 | 58.34-61.64 (127.81 @ 0.6) | 47 (91)
+[EVT] barcode READ_FAIL (23 elements)
+[S3] READ_FAIL widths (mm): 2.9 4.3 10.3 8.9 13.6 6.8 2.9 5.2 12.1 6.0 3.2 4.8 3.9 8.1 1.6 3.1 6.0 22.8 2.4 6.1 10.7 6.6 10.1
+[EVT] junction 6 (crossing): FORWARD (barcode -)
+[EVT] barcode READ_FAIL (27 elements)
+[S3] READ_FAIL widths (mm): 2.7 4.4 15.8 7.4 16.2 6.4 6.0 39.1 2.8 9.1 2.8 8.5 25.6 6.6 16.2 15.9 2.6 3.3 2.8 4.0 14.3 6.6 16.1 6.9 4.7 19.2 3.7
+mqtt: RX [is34/cmd/stop] ""
+[MQTT] stop
+[EVT] STOP
+[EVT] robot lifted or tipped over (tilt over 35 deg): motors off, START to go again
+[tmg] t=300136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |   3000   0 | 97.85-102.15 (147.86 @ 0.6) | 2703 (2713)
+[tmg] motion     6  10 |  29989  11 | 8.20-11.84 (127.45 @ 0.6) | 203 (305)
+[tmg] line       8  20 |  14995   5 | 18.09-21.94 (127.60 @ 0.6) | 537 (540)
+[tmg] barcode   10  10 |  14995   0 | 17.95-22.11 (137.69 @ 0.6) | 1473 (1473)
+[tmg] safety     5  20 |  14995   5 | 18.26-21.75 (127.38 @ 0.6) | 75 (77)
+[tmg] imu        9  10 |  29989  11 | 8.00-12.08 (127.65 @ 0.6) | 893 (1016)
+[tmg] mission    7 100 |   2795   0 | 10.64-111.25 (10529.69 @ 180.3) | 818 (10529656)
+[tmg] obstacle  11  60 |   4999   1 | 57.95-61.89 (127.81 @ 0.6) | 45 (91)
+
+---- panel run summary ----
+Run 1, before START, from 16:18:40   mapping: none
+  Barcodes:
+    none read
+  Junctions:
+    none
+  Obstacles:
+    none
+  Hump: 35.6 mm   (peak 35.6 mm)
+  Stops:
+    none
+
+Run 2, started 16:18:46   mapping: none
+  Barcodes:
+    none read
+  Junctions:
+    16:18:57  1 (crossing): FORWARD  (barcode -)
+  Obstacles:
+    none
+  Hump: none reported
+  Stops:
+    16:19:01  STOP
+
+Run 3, started 16:19:19   mapping: none
+  Barcodes:
+    1 failed read(s) (READ_FAIL)
+  Junctions:
+    16:19:28  2 (crossing): FORWARD  (barcode -)
+  Obstacles:
+    none
+  Hump: 11.6 mm   (peak 11.6 mm)
+  Stops:
+    16:19:29  STOP
+
+Run 4, started 16:19:58   mapping: none -> F=L,Q=R,D=F,C=U (at 16:21:08)
+  Barcodes:
+    1 failed read(s) (READ_FAIL)
+  Junctions:
+    none
+  Obstacles:
+    none
+  Hump: none reported
+  Stops:
+    16:20:08  STOP
+    16:21:02  robot lifted or tipped over (tilt over 35 deg): motors off, START to go again  (x6)
+
+Run 5, started 16:22:52   mapping: F=L,Q=R,D=F,C=U
+  Barcodes:
+    2 failed read(s) (READ_FAIL)
+  Junctions:
+    16:23:09  1 (crossing): FORWARD  (barcode -)
+  Obstacles:
+    none
+  Hump: 8.0 mm   (peak 8.0 mm)
+  Stops:
+    16:23:31  STOP
+    16:23:31  robot lifted or tipped over (tilt over 35 deg): motors off, START to go again  (x2)
+
+Run 6, started 16:23:56   mapping: F=L,Q=R,D=F,C=U
+  Barcodes:
+    16:24:18  Q -> RIGHT   (read backwards, a missing end bar put back, narrow 6.3 mm, wide 16.3 mm)
+    1 failed read(s) (READ_FAIL)
+  Junctions:
+    16:24:06  2 (crossing): FORWARD  (barcode -)
+  Obstacles:
+    none
+  Hump: none reported
+  Stops:
+    16:24:43  STOP
+
+Run 7, started 16:24:46   mapping: F=L,Q=R,D=F,C=U
+  Barcodes:
+    none read
+  Junctions:
+    16:24:53  3 (crossing): FORWARD  (barcode -)
+  Obstacles:
+    16:24:53  tripped at 174 mm, width 95 +/- 19 mm, front 165 mm at the scan, scan took 7 s
+      bypass LEFT out 255 mm, past 615 mm
+  Hump: none reported
+  Stops:
+    16:25:05  stopped: bypass step did not finish
+    16:25:06  robot lifted or tipped over (tilt over 35 deg): motors off, START to go again  (x2)
+
+Run 8, started 16:25:41   mapping: F=L,Q=R,D=F,C=U
+  Barcodes:
+    16:25:48  F -> LEFT   (read backwards, a missing end bar put back, narrow 6.4 mm, wide 15.8 mm)
+    2 failed read(s) (READ_FAIL)
+  Junctions:
+    16:25:44  4 (branch left): FORWARD  (barcode -)
+    16:26:32  6 (crossing): FORWARD  (barcode -)
+  Obstacles:
+    none
+  Hump: none reported
+  Stops:
+    16:26:51  STOP
+    16:26:58  robot lifted or tipped over (tilt over 35 deg): motors off, START to go again
+

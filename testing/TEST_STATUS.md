@@ -399,6 +399,15 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   and no READ_FAIL**: the pieces were under 5 elements; junction 1 went
   FORWARD with no barcode. WiFi-loss warning flickered (faults=64) about a
   dozen times for under 1 s; the robot kept running.
+- **Changed 20 Nov (team, after more track 4 runs: "it does not
+  reorient, it follows the wrong line"), not run yet:** after the bypass
+  the robot always turns back to its old direction, like a junction turn
+  (fast to 30 deg short of 90, then slowly until a sensor finds the tape
+  within 30 deg either side, then centred); before, it skipped the turn
+  when a sensor already saw black after the 115 mm onto the line, and
+  otherwise stopped at the first tape of a 170 deg spin. `bypass done`
+  now prints the heading from before the box, by the wheels (spins read
+  a few degrees under on the wheels: a guide, not a measurement).
 - **20 Nov, track 4, Mission run 3 (`subsystem5/logs/2026-11-20_track4_mission_3_robot.txt`, 3 pings):**
   tripped at 161 mm; the scan, width and bypass lines were lost on the
   WiFi; line found 120 mm after the last turn, `bypass done`, then ❌ the

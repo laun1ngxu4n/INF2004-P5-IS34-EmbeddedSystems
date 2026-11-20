@@ -236,12 +236,16 @@ How to run the tests: [TESTING_GUIDE.md](../../testing/TESTING_GUIDE.md).
      the box and the robot followed it away.
   4. otherwise turn 90 toward the line and drive until a line sensor sees
      black, anywhere (gives up 400 mm past where the line should be)
-  5. wheels onto the line (115 mm on); if a line sensor already sees the
-     tape (a curve met at a shallow angle) it just follows; otherwise it
-     **spins slowly toward the old direction until a line sensor finds the
-     tape** (at most 170 deg, black ignored for the first 20 deg), then
-     follows. So the line behind the box may curve either way, and a few
-     degrees of error in the earlier spins do not matter.
+  5. wheels onto the line (115 mm on), then **always turns back to the
+     old direction** like a junction turn (since 20 Nov): fast to 30 deg
+     short of 90, then slowly until a line sensor finds the tape within 30
+     deg either side of the old direction, then centred on it; tape crossed
+     before that is ignored, and with none found it stops at the old
+     direction and follows (the line task looks for it). The barcode
+     sensor is ignored for the first 200 mm. Until 20 Nov it skipped the
+     turn when a sensor already saw black and otherwise stopped at the
+     first tape of a 170 deg spin: on track 4 that followed other tape
+     beside its line, across it.
 - **How it was chosen (8 Nov):** `tools/sim/bypasssim.py` runs the whole
   manoeuvre (line following to the box, stop, scans with width errors,
   spins 0-6 % off, wheel size mismatch, the robot's footprint) on 486

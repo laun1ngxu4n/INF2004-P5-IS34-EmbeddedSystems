@@ -60,11 +60,9 @@
    track 4: read as bars, the steering was held straight, line lost) */
 #define REJOIN_BAR_MM 200
 /* back toward the line: give up this far past where it should be */
-#define REJOIN_FAR_MM   400
-#define SPIN_SEARCH_DEG 170 /* rejoin spin: at most this far ... */
-#define SPIN_IGNORE_DEG 20  /* ... and black only after this */
-#define STILL_TICKS     100 /* 1 s at 10 ms */
-#define IMU_CAL_TICKS   200 /* 2 s at 10 ms */
+#define REJOIN_FAR_MM 400
+#define STILL_TICKS   100 /* 1 s at 10 ms */
+#define IMU_CAL_TICKS 200 /* 2 s at 10 ms */
 /* each wheel, mm/s: slow, so it stops on the 20 mm tape */
 #define SPIN_SPEED 40
 
@@ -382,8 +380,7 @@ LOCAL bool turn_onto_line (int32_t deg)
         return mv(motion_turn(sgn * TURN_CENTRE_DEG));
     }
 
-    say(app_str("junction turn: no tape found, back to the planned "
-                "angle"));
+    say(app_str("turn: no tape found, back to the planned angle"));
     return mv(motion_turn(-sgn * TURN_SEARCH_DEG));
 }
 
@@ -878,12 +875,6 @@ LOCAL int32_t spin_line (int32_t deg, int32_t ignore)
     }
 }
 
-/** Spins slowly by up to deg until a line sensor finds the tape. */
-LOCAL int32_t spin_until_line (int32_t deg)
-{
-    return spin_line(deg, SPIN_IGNORE_DEG);
-}
-
 /* Before the leg back to the line (15 Nov): the box is assumed at most
    D_MAX_MM deep.  Once turned toward the line, the sonar faces the box's
    side square-on if the box is longer (a strong echo); then it turns
@@ -956,6 +947,20 @@ LOCAL bool turn_back_clear (int32_t sgn, int32_t y_off)
     }
 }
 
+/** Degrees turned since p_before (+ = left), from the wheel counts.
+   Spins read a few degrees under on the wheels (S2-M02), so this is a
+   guide for the log, not a measurement. */
+LOCAL int32_t heading_deg (const motion_status_t * p_before)
+{
+    motion_status_t now;
+
+    motion_get_status(&now);
+    /* a few thousand counts: exact as floats; the degrees fit int32_t */
+    return (int32_t)((float32_t)((now.count_r - p_before->count_r) -
+                                 (now.count_l - p_before->count_l)) *
+                     S2_UM_PER_COUNT / 1000.0f / S2_TURN_TRACK_MM * 57.2958f);
+}
+
 /** Handles an obstacle ahead: scans its width, drives round it, finds the
  * line. */
 LOCAL void on_obstacle (void)
@@ -973,9 +978,11 @@ LOCAL void on_obstacle (void)
     int32_t            x_pass;
     int32_t            found;
     int32_t            odo0;
+    motion_status_t    before; /* the wheel counts before the box */
 
     set_state(M_MANOEUVRE);
     motion_halt();
+    motion_get_status(&before);
     obstacle_watch(false);
     line_set_enabled(false);
     /* stopped in the middle of a barcode: the backing up would run B
@@ -1212,33 +1219,19 @@ LOCAL void on_obstacle (void)
                motion_counts_to_mm(motor_odometer() - odo0));
     say(msg);
 
-    /* leg 7: wheels onto the line, then spin toward the old direction
-       until a line sensor finds the tape (whatever way the line runs
-       now: straight, curved, or the turns were a few degrees off) */
+    /* leg 7: wheels onto the line, then always back to the old direction
+       (the bypass turned sgn 90, -sgn 90, -sgn 90; the "box still beside"
+       steps cancel), like a junction turn: fast to TURN_SEARCH_DEG short,
+       then slowly until a sensor finds the tape within TURN_SEARCH_DEG of
+       the old direction, then centred on it.  20 Nov, track 4: it used to
+       skip the turn when a sensor already saw black, and otherwise stop at
+       the first tape of a 170 deg spin, so it followed other tape beside
+       its line, across it. */
 
-    if (!mv(motion_drive(S5_FOLLOW_SPEED, S3_SENSOR_TO_AXLE_MM)))
+    if ((!mv(motion_drive(S5_FOLLOW_SPEED, S3_SENSOR_TO_AXLE_MM))) ||
+        (!turn_onto_line(sgn * 90)))
     {
         goto fail;
-    }
-
-    if (!line_any_black())
-    {
-        /* (already on the tape: a curve met at a shallow angle, so the
-           robot runs along it; spinning would turn it away) */
-        found = spin_until_line(sgn * SPIN_SEARCH_DEG);
-
-        if (found < 0)
-        {
-            goto fail;
-        }
-
-        if (!found)
-        {
-            /* not the other way: that found the line pointing back at
-               the box in tools/sim/bypasssim.py and drove into it */
-            halt("line not found after the bypass (spin)");
-            return;
-        }
     }
 
     barcode_ignore_mm(REJOIN_BAR_MM);
@@ -1248,7 +1241,11 @@ LOCAL void on_obstacle (void)
         goto fail;
     }
 
-    say(app_str("bypass done, following the line"));
+    tm_sprintf(msg,
+               app_str("bypass done, following the line (heading %d deg "
+                       "from before the box, by the wheels)"),
+               heading_deg(&before));
+    say(msg);
     set_state(M_RUN);
     return;
 fail:

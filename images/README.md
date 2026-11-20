@@ -19,7 +19,7 @@ Steps for each: `../testing/TESTING_GUIDE.md`.
 | `is34_test_stage3.uf2` | `TEST=1 TEST_STAGE=3` | then servo check, sonar view, 3 width scans, course (bypass) |
 | `is34_test_stage4.uf2` | `TEST=1 TEST_STAGE=4` | then IMU check, tilt view, 5 ramp runs |
 | `is34_test_stage6.uf2` | `TEST=1 TEST_STAGE=6` | then the whole course with the TEST mapping A=L, B=R, C=F, D=U |
-| `is34_normal_no_wifi.uf2` | (plain `make`) | the mission image without MQTT: START button runs it, but with no mapping it stops at the first junction after a barcode |
+| `is34_normal_no_wifi.uf2` | (plain `make`) | the mission image without MQTT: START button runs it; with no mapping it reports every barcode and goes straight at every junction |
 
 Not here: the **demo image with MQTT** (`make NET=lwip MQTT=1`) and the
 **test images over WiFi** (`make NET=lwip MQTT=1 TEST=1 TEST_STAGE=n`,

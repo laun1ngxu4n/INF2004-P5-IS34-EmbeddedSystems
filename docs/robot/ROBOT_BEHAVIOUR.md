@@ -143,7 +143,7 @@ How to run the tests: [TESTING_GUIDE.md](../../testing/TESTING_GUIDE.md).
   centre the tape between the sensors. The first U-turn on the robot came
   out about 190 deg with a plain 180 spin. No tape found in the search:
   back to the planned angle, "junction turn: no tape found".
-- Letter not in the mapping: stops, "no mapping for barcode E".
+- Letter not in the mapping: reported (`barcode E ... -> NO MAPPING, ignored`) and ignored; the robot carries on, and a mapped letter already waiting for its junction is kept (20 Nov; until then it stopped at the junction).
 - **Barcode close before a junction (8 Nov):** a code's letter only comes
   about 80 mm after the line sensors passed its last bar (B is 40 mm
   behind them, and a code ends after 40 mm with no bar). A junction

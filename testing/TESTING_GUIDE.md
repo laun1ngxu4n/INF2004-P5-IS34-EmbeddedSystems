@@ -82,7 +82,7 @@ you are testing.
 | Stage 1 | right directions and signs (lifted), STOP works (lifted, then 5/5 on the floor), real 0.5 m distance measured, real turn angles measured |
 | Stage 2A | at least 3 m of line following without loss; junction count = real count |
 | Stage 2B | the codes placed on the track, in order, decoded in both directions |
-| Stage 2C | the right move at each junction, U-turn, and the stop for an unmapped code (obstacle watch and IMU are OFF here) |
+| Stage 2C | the right move at each junction, U-turn, and an unmapped code reported and ignored (obstacle watch and IMU are OFF here) |
 | Stage 3 | servo direction, widths of known obstacles inside W +/- U, a clean bypass; a covered sonar must stop the run |
 | Stage 4 | measured ramp height, 5 runs within +/- 5 mm |
 | Stage 5 | mapping and telemetry with the robot STILL first, then START/STOP while it moves |
@@ -193,7 +193,8 @@ send the log (a motor or encoder wire differs from bring-up).
    the TEST mapping. START again: it follows the line, reads barcodes and
    does the move at the next junction (`[EVT] junction ...`). Check a
    U-turn barcode too. For S5-B02 use a code not in the mapping (e.g. E):
-   it must stop at the junction with "no mapping for barcode E".
+   it must report `barcode E ... -> NO MAPPING, ignored` and go straight
+   at the junction (since 20 Nov; it used to stop there).
 
 #### Barcode mapping (panel)
 
@@ -346,7 +347,7 @@ line found after every manoeuvre.
 `RUN`: follows the line at 120 mm/s (`S5_FOLLOW_SPEED`; 135 from 15 to 18 Nov, never run; 50 mm/s over bars).
 - Barcode -> stores the character, reports it and the planned move.
 - Junction -> stored character's move (L / R / F / U-turn); none stored
-  = straight; stored but not in the mapping = stop "no mapping".
+  = straight; a letter not in the mapping is reported and ignored (carries on, since 20 Nov).
 - Obstacle closer than 175 mm -> stop (about 160 mm away), scan (again 100 mm further back
   only if an edge was not seen),
   report width +/-, bypass on the clear side, find the line, carry on.
@@ -417,7 +418,7 @@ log after **every** run, and write down what you measured.
 (SYS-01) at 120 mm/s, trip at 175 mm (stops about 160 mm away). In them:
 - barcodes for Left, Right, Straight and U-turn (or change the mapping
   between runs) so every move is seen once; one run with a barcode
-  that has no mapping: the robot must stop (FR3, FR9);
+  that has no mapping: the robot reports it (`NO MAPPING, ignored`) and carries on straight (FR3; a stop until 20 Nov);
 - measure each barcode-to-junction distance (NFR4);
 - obstacle: ruler the stop distance (NFR6), the real box width (FR5),
   stopwatch the scan from stop to sensor centred again (NFR3);

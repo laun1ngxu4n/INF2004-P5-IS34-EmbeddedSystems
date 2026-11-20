@@ -6,10 +6,11 @@
  *    IDLE      START button (pressed and released) or MQTT start
  *    CAL       IMU level calibration, 1 s, robot still
  *    RUN       follow the line at the barcode speed; react to:
- *      barcode   store the latest character (FR11, TEAM.md 7.1 B5)
+ *      barcode   store the latest mapped character (FR11, TEAM.md 7.1
+ *                B5); one with no mapping is reported and ignored (20
+ *                Nov; was a stop at the junction, B7)
  *      junction  do the mapped move for the stored character, U-turn
- *                included (B6); no character = straight; a character
- *                with no mapping = stop and report (B7)
+ *                included (B6); no character = straight
  *      obstacle  stop, scan twice from two positions, report width +/-,
  *                bypass on the clear side, find the line again (7.2)
  *      line lost stop and report
@@ -316,8 +317,16 @@ LOCAL void on_barcode (void)
         return;
     }
 
-    g_mw.pending = result.letter;
-    move         = barcode_move_for(result.letter);
+    /* A letter with no mapping is reported and ignored (20 Nov, team:
+       carry on instead of stopping at the next junction; it does not
+       replace a mapped letter still waiting for its junction either) */
+    move = barcode_move_for(result.letter);
+
+    if (move != MOVE_NONE)
+    {
+        g_mw.pending = result.letter;
+    }
+
     /* a turn is coming: approach its junction slowly */
     motion_follow_limit(
         ((MOVE_LEFT == move) || (MOVE_RIGHT == move) || (MOVE_UTURN == move))
@@ -337,7 +346,7 @@ LOCAL void on_barcode (void)
                : (MOVE_RIGHT == move)   ? "RIGHT at next junction"
                : (MOVE_FORWARD == move) ? "FORWARD at next junction"
                : (MOVE_UTURN == move)   ? "U-TURN at next junction"
-                                        : "NO MAPPING");
+                                        : "NO MAPPING, ignored");
     say(msg);
 }
 
@@ -424,10 +433,10 @@ LOCAL void on_junction (void)
 
     if ((letter != 0) && (MOVE_NONE == move))
     {
-        tm_sprintf(msg, app_str("no mapping for barcode %c"), letter);
-        /* msg holds text: the same bytes as char */
-        halt((const char *)msg);
-        return;
+        /* mapped when it was read, but a new mapping came meanwhile
+           without it: straight on, as for no barcode (20 Nov: no longer a
+           stop) */
+        move = MOVE_FORWARD;
     }
 
     g_mw.pending = 0;

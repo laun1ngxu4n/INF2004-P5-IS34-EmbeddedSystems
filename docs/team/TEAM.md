@@ -253,7 +253,7 @@ PC over MQTT just before the demo and must not be hard-coded.
 | B4 | Drive slower while line following, at a speed chosen by test so the thinnest bar is still read reliably. | New. Week 6 had no barcode speed limit. | S2, S5 |
 | B5 | Store the decoded character. Keep the latest unconsumed one (FR11). | Same as Week 6. | S5 |
 | B6 | **All four moves, U-turn included, happen at the next cross-junction.** | Week 6 did the U-turn straight after the barcode: changed. | S5, S2 |
-| B7 | No mapping is hard-coded. Until a mapping arrives over MQTT, a decoded character only gets stored and reported; at the junction the robot stops and reports "no mapping". | Week 6 had default A-D: removed. | S3, S5 |
+| B7 | No mapping is hard-coded. Until a mapping arrives over MQTT, a decoded character is only reported. A character with no mapping is reported and ignored: the robot carries on (team, 20 Nov; until then it stopped at the junction with "no mapping"). | Week 6 had default A-D: removed. | S3, S5 |
 | B8 | The mapping arrives over MQTT at run time (no restart) and is acknowledged with what was stored. | FR2a kept, message format below is new. | S1, S3 |
 
 Mapping message, **draft (confirm the format with the instructor)**:

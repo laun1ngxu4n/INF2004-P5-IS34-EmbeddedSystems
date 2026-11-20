@@ -399,6 +399,14 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   and no READ_FAIL**: the pieces were under 5 elements; junction 1 went
   FORWARD with no barcode. WiFi-loss warning flickered (faults=64) about a
   dozen times for under 1 s; the robot kept running.
+- **20 Nov, track 4, Mission run 5 (`subsystem5/logs/2026-11-20_track4_mission_5_robot.txt`, no mapping):**
+  ✅ **barcode F decoded on track 4, read backwards** (narrow 6.0 mm, wide
+  15.8 mm: the track 4 print, larger than the 3.5 / 10 mm one), then the
+  stop at the junction `no mapping for barcode F` (as designed then).
+  **Changed 20 Nov, not run yet (team):** a letter with no mapping is
+  reported (`-> NO MAPPING, ignored`) and ignored: the robot carries on,
+  straight at the junction, and a mapped letter already waiting is kept.
+  The panel's Run summary (new) gives the run in a few lines.
 - **20 Nov, track 4, Mission run 4, two runs (`subsystem5/logs/2026-11-20_track4_mission_4_robot.txt`, rejoin turns back):**
   ✅ **rejoin: `bypass done ... heading 3 deg from before the box`**, then
   followed on (run B: 30 s until STOP, no line lost). ✅ Run B: 3.7 m of

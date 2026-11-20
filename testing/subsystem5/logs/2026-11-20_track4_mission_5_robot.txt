@@ -1,0 +1,177 @@
+P5-IS34 robot log, 20 Nov 2026, Mission WiFi image (commit caf6424), sample track 4, no mapping sent. Barcode F decoded read backwards (narrow 6.0 mm, wide 15.8 mm: the track 4 print), then stopped at the junction: no mapping for barcode F (the behaviour changed after this run: an unmapped letter is now reported and ignored). Panel run summary appended. Hotspot name blanked.
+
+
+microT-Kernel Version 3.00
+
+
+=== micro T-Kernel on Raspberry Pi Pico W (spec 0x6300, product 0x0003) ===
+single-core build
+P5-IS34 mission image. Kernel tick 10 ms
+all subsystems started
+
+wifi: cyw43_utk_task starting (proc 1)
+wifi: cyw43_init() ...
+wifi: cyw43_init() returned, bringing interface up ...
+[IMU] LSM303D found at 0x1D
+wifi: joining "(hotspot)" ...
+wifi: link status -> joined AP, waiting for IP (1)
+wifi: link status -> FAILED (association failure) (-1)
+wifi: joining "(hotspot)" ...
+wifi: link status -> joined AP, waiting for IP (1)
+[EVT] robot lifted or tipped over (tilt over 35 deg): motors off, START to go again
+[EVT] robot lifted or tipped over (tilt over 35 deg): motors off, START to go again
+wifi: link status -> joined AP, no IP yet (2)
+wifi: link up, ip=10.67.161.102
+mqtt: connected to 10.67.161.225
+mqtt: subscribed to mtk3smp-pico/heartbeat
+mqtt: subscribed to mtk3smp-pico/heartbeat
+mqtt: TX [mtk3smp-pico/heartbeat] "hb 0" (heartbeat every 5 s, not printed)
+mqtt: RX [mtk3smp-pico/heartbeat] "hb 0"
+[EVT] robot lifted or tipped over (tilt over 35 deg): motors off, START to go again
+[EVT] robot lifted or tipped over (tilt over 35 deg): motors off, START to go again
+[EVT] robot lifted or tipped over (tilt over 35 deg): motors off, START to go again
+[EVT] robot lifted or tipped over (tilt over 35 deg): motors off, START to go again
+[EVT] robot lifted or tipped over (tilt over 35 deg): motors off, START to go again
+[EVT] robot lifted or tipped over (tilt over 35 deg): motors off, START to go again
+[EVT] robot lifted or tipped over (tilt over 35 deg): motors off, START to go again
+[tmg] t=60136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |    600   0 | 51.88-148.19 (148.19 @ 0.6) | 217 (217)
+[tmg] motion     6  10 |   5989  11 | 2.27-127.79 (127.79 @ 0.6) | 113 (113)
+[tmg] line       8  20 |   2995   5 | 12.24-127.94 (127.94 @ 0.6) | 83 (83)
+[tmg] barcode   10  10 |   2995   0 | 12.08-138.03 (138.03 @ 0.6) | 37 (37)
+[tmg] safety     5  20 |   2995   5 | 12.43-127.73 (127.73 @ 0.6) | 56 (56)
+[tmg] imu        9  10 |   5989  11 | 2.04-127.98 (127.98 @ 0.6) | 895 (895)
+[tmg] mission    7 100 |    601   0 | 0.50-227.90 (227.90 @ 0.6) | 10 (10)
+[tmg] obstacle  11  60 |    999   1 | 51.91-128.15 (128.15 @ 0.6) | 55 (55)
+[S3] short run dropped (6 elements), widths (mm): 3.1 2.8 3.2 2.4 2.8 5243.9
+[S3] short run dropped (12 elements), widths (mm): 3.8 2.4 2.8 9.8 2.6 2.8 7.2 3.0 6.5 3.6 1.9 5242.4
+[S3] short run dropped (8 elements), widths (mm): 3.2 8.7 3.4 2.5 2.9 21.6 4.7 5240.1
+[EVT] robot lifted or tipped over (tilt over 35 deg): motors off, START to go again
+mqtt: RX [is34/cmd/start] ""
+[MQTT] start
+[EVT] start
+[S3] barcode: black from 1500, step 700
+[tmg] t=120136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |   1200   0 | 98.46-101.94 (148.19 @ 0.6) | 2602 (2602)
+[tmg] motion     6  10 |  11989  11 | 8.36-11.69 (127.79 @ 0.6) | 204 (204)
+[tmg] line       8  20 |   5995   5 | 18.02-22.03 (127.94 @ 0.6) | 96 (96)
+[tmg] barcode   10  10 |   5995   0 | 17.92-22.05 (138.03 @ 0.6) | 518 (518)
+[tmg] safety     5  20 |   5995   5 | 18.40-21.62 (127.73 @ 0.6) | 68 (68)
+[tmg] imu        9  10 |  11989  11 | 7.98-12.11 (127.98 @ 0.6) | 865 (895)
+[tmg] mission    7 100 |   1191   0 | 0.75-1148.34 (1148.34 @ 113.5) | 1039092 (1039092)
+[tmg] obstacle  11  60 |   1999   1 | 58.41-61.56 (128.15 @ 0.6) | 55 (55)
+[EVT] barcode F read backwards (narrow 6.0 mm, wide 15.8 mm) -> NO MAPPING
+[EVT] stopped: no mapping for barcode F (press START to go again)
+[EVT] robot lifted or tipped over (tilt over 35 deg): motors off, START to go again
+[tmg] t=180136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |   1800   0 | 98.56-101.29 (148.19 @ 0.6) | 2642 (2642)
+[tmg] motion     6  10 |  17989  11 | 8.69-11.36 (127.79 @ 0.6) | 189 (204)
+[tmg] line       8  20 |   8995   5 | 18.63-21.39 (127.94 @ 0.6) | 550 (550)
+[tmg] barcode   10  10 |   8995   0 | 18.49-21.53 (138.03 @ 0.6) | 726 (726)
+[tmg] safety     5  20 |   8995   5 | 18.72-21.29 (127.73 @ 0.6) | 78 (78)
+[tmg] imu        9  10 |  17989  11 | 8.58-11.47 (127.98 @ 0.6) | 882 (895)
+[tmg] mission    7 100 |   1791   0 | 10.60-111.13 (1148.34 @ 113.5) | 445 (1039092)
+[tmg] obstacle  11  60 |   2999   1 | 58.58-61.40 (128.15 @ 0.6) | 54 (55)
+
+[panel: the robot restarted]
+
+
+microT-Kernel Version 3.00
+
+
+=== micro T-Kernel on Raspberry Pi Pico W (spec 0x6300, product 0x0003) ===
+single-core build
+P5-IS34 mission image. Kernel tick 10 ms
+all subsystems started
+
+wifi: cyw43_utk_task starting (proc 1)
+wifi: cyw43_init() ...
+wifi: cyw43_init() returned, bringing interface up ...
+[IMU] LSM303D found at 0x1D
+wifi: joining "(hotspot)" ...
+wifi: link status -> joined AP, waiting for IP (1)
+wifi: link status -> joined AP, no IP yet (2)
+wifi: link up, ip=10.67.161.102
+mqtt: connected to 10.67.161.225
+mqtt: subscribed to mtk3smp-pico/heartbeat
+mqtt: subscribed to mtk3smp-pico/heartbeat
+mqtt: TX [mtk3smp-pico/heartbeat] "hb 0" (heartbeat every 5 s, not printed)
+mqtt: RX [mtk3smp-pico/heartbeat] "hb 0"
+[EVT] robot lifted or tipped over (tilt over 35 deg): motors off, START to go again
+[EVT] robot lifted or tipped over (tilt over 35 deg): motors off, START to go again
+[EVT] robot lifted or tipped over (tilt over 35 deg): motors off, START to go again
+[EVT] robot lifted or tipped over (tilt over 35 deg): motors off, START to go again
+[tmg] t=60136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |    600   0 | 51.86-148.25 (148.25 @ 0.6) | 212 (212)
+[tmg] motion     6  10 |   5989  11 | 2.23-127.83 (127.83 @ 0.6) | 111 (111)
+[tmg] line       8  20 |   2995   5 | 12.20-127.98 (127.98 @ 0.6) | 69 (69)
+[tmg] barcode   10  10 |   2995   0 | 12.03-138.08 (138.08 @ 0.6) | 75 (75)
+[tmg] safety     5  20 |   2995   5 | 12.40-127.77 (127.77 @ 0.6) | 58 (58)
+[tmg] imu        9  10 |   5989  11 | 2.02-128.02 (128.02 @ 0.6) | 920 (920)
+[tmg] mission    7 100 |    599   0 | 10.62-227.93 (227.93 @ 0.6) | 11 (11)
+[tmg] obstacle  11  60 |    999   1 | 51.87-128.18 (128.18 @ 0.6) | 55 (55)
+
+[panel: the robot restarted]
+
+
+microT-Kernel Version 3.00
+
+
+=== micro T-Kernel on Raspberry Pi Pico W (spec 0x6300, product 0x0003) ===
+single-core build
+P5-IS34 mission image. Kernel tick 10 ms
+all subsystems started
+
+wifi: cyw43_utk_task starting (proc 1)
+wifi: cyw43_init() ...
+wifi: cyw43_init() returned, bringing interface up ...
+[IMU] LSM303D found at 0x1D
+wifi: joining "(hotspot)" ...
+wifi: link status -> joined AP, waiting for IP (1)
+wifi: link status -> joined AP, no IP yet (2)
+wifi: link up, ip=10.67.161.102
+mqtt: connected to 10.67.161.225
+mqtt: subscribed to mtk3smp-pico/heartbeat
+mqtt: subscribed to mtk3smp-pico/heartbeat
+
+[panel: the robot restarted]
+
+
+microT-Kernel Version 3.00
+
+
+=== micro T-Kernel on Raspberry Pi Pico W (spec 0x6300, product 0x0003) ===
+single-core build
+P5-IS34 mission image. Kernel tick 10 ms
+all subsystems started
+
+wifi: cyw43_utk_task starting (proc 1)
+wifi: cyw43_init() ...
+wifi: cyw43_init() returned, bringing interface up ...
+[IMU] LSM303D found at 0x1D
+wifi: joining "(hotspot)" ...
+wifi: link status -> joined AP, waiting for IP (1)
+wifi: link status -> FAILED (association failure) (-1)
+wifi: joining "(hotspot)" ...
+wifi: link status -> joined AP, waiting for IP (1)
+wifi: link status -> joined AP, no IP yet (2)
+wifi: link up, ip=10.67.161.102
+mqtt: connected to 10.67.161.225
+mqtt: subscribed to mtk3smp-pico/heartbeat
+mqtt: subscribed to mtk3smp-pico/heartbeat
+mqtt: TX [mtk3smp-pico/heartbeat] "hb 0" (heartbeat every 5 s, not printed)
+mqtt: RX [mtk3smp-pico/heartbeat] "hb 0"
+
+---- panel run summary ----
+Run 1, started 15:18:39   mapping: none
+  Barcodes:
+    15:18:47  F -> no mapping   (read backwards, narrow 6.0 mm, wide 15.8 mm)
+  Junctions:
+    none
+  Obstacles:
+    none
+  Hump: none reported
+  Stops:
+    15:18:51  stopped: no mapping for barcode F
+    15:19:08  robot lifted or tipped over (tilt over 35 deg): motors off, START to go again  (x5)
+

@@ -26,7 +26,7 @@ DONE = re.compile(r"^bypass done.*?(?:heading (-?\d+) deg)?\S*$")
 HUMP = re.compile(r"^ramp peak height ([\d.]+) mm")
 MOVES = {"LEFT at next junction": "LEFT", "RIGHT at next junction": "RIGHT",
          "FORWARD at next junction": "STRAIGHT", "U-TURN at next junction": "U-TURN",
-         "NO MAPPING": "no mapping"}
+         "NO MAPPING": "no mapping", "NO MAPPING, ignored": "no mapping (ignored, carried on)"}
 STOP_WORDS = ("stopped:", "lifted or tipped", "Safety:", "something in the way",
               "not answering")
 
@@ -66,6 +66,8 @@ class Summary:
         if text == "start":
             self._new_run(t)
             return True
+        if (not self.runs or not self.runs[-1]["started"]) and "lifted or tipped" in text:
+            return False                # picked up while being placed: not a result
         run = self._run(t)
         obst = run["obstacles"][-1] if run["obstacles"] else None
         m = BARCODE.match(text)
@@ -126,7 +128,11 @@ class Summary:
             run["humps"].append(dict(t=t, mm=float(m.group(1))))
             return True
         if text == "STOP" or any(w in text for w in STOP_WORDS):
-            run["stops"].append(dict(t=t, why=text.replace(" (press START to go again)", "")))
+            why = text.replace(" (press START to go again)", "")
+            if run["stops"] and run["stops"][-1]["why"] == why:
+                run["stops"][-1]["n"] += 1      # the same again (lifted several times)
+            else:
+                run["stops"].append(dict(t=t, why=why, n=1))
             return True
         return False
 
@@ -139,9 +145,10 @@ class Summary:
             out.append(f"{head}{clock(run['t'])}   mapping: {run['mapping']}")
             out.append("  Barcodes:")
             for b in run["barcodes"]:
-                extra = f" {b['extra']}" if b["extra"] else ""
-                out.append(f"    {clock(b['t'])}  {b['letter']} -> {b['move']}{extra}"
-                           f"   (narrow {b['narrow']} mm, wide {b['wide']} mm)")
+                extra = b["extra"].strip(" ()")
+                extra = f"{extra}, " if extra else ""
+                out.append(f"    {clock(b['t'])}  {b['letter']} -> {b['move']}"
+                           f"   ({extra}narrow {b['narrow']} mm, wide {b['wide']} mm)")
             if run["fails"]:
                 out.append(f"    {run['fails']} failed read(s) (READ_FAIL)")
             if not run["barcodes"] and not run["fails"]:
@@ -166,7 +173,8 @@ class Summary:
                 out.append("  Hump: none reported")
             out.append("  Stops:")
             for s in run["stops"]:
-                out.append(f"    {clock(s['t'])}  {s['why']}")
+                times = f"  (x{s['n']})" if s["n"] > 1 else ""
+                out.append(f"    {clock(s['t'])}  {s['why']}{times}")
             if not run["stops"]:
                 out.append("    none")
             out.append("")

@@ -101,7 +101,7 @@ label(24.5, 111.0, "binary (CR1): status 15 B / s, sensors 8 B, ack 5 B, map 4 B
 task(22, 84.5, 56, 12.5, "Telemetry", "B1", "pri 12, 100 ms",
      "binary status every 1 s + live sensors; events from every task;\n"
      "commands in: START, STOP, mapping (checked; ack or refused + reason);\n"
-     "Wi-Fi loss = warning only; IF-01 1 s ping to Mission")
+     "Wi-Fi loss = warning only; 1 beep per event; IF-01 1 s ping")
 arrow((50, 99.5), (50, 97), both=True)
 box(81, 85.5, 17, 10.5, "Barcode mapping",
     "4 pairs: L, R, F, U;\nunder APP_LOCK;\nwritten only from MQTT", fill=SHARED_F,
@@ -115,7 +115,7 @@ box(2, 64, 15.5, 13, "flg_mission",
 task(21.5, 63, 40, 16.5, "Mission", "B5", "pri 7, event + 100 ms",
      "IDLE / CAL / RUN / MANOEUVRE state machine;\n"
      "barcode letter -> its move at the next junction\n"
-     "(none = straight; not mapped = stop);\n"
+     "(none or not mapped = straight);\n"
      "obstacle: stop, scan, width +/- U, bypass on the clear side,\n"
      "watch ahead on every leg, go further past a long box,\n"
      "back to its own line; halts with the reason")
@@ -200,7 +200,7 @@ label(94.7, 25.0, "edges", size=4.2)
 # ---- hardware -----------------------------------------------------------------
 hw = [("Motors, PWM\nGP8-11", 2, 11), ("Encoders\nGP4/5, 16/17", 14, 12), ("IR line\nGP0 / GP1", 27, 10),
       ("Barcode\nGP28 (ADC)", 38, 10.5), ("LSM303D I2C1\nGP26/27", 49.5, 12), ("HC-SR04 GP6/7\nservo GP14", 62.5, 13),
-      ("Buttons\nGP20 / GP21", 76.5, 10.5), ("CYW43\nWiFi", 88, 10)]
+      ("Buttons GP20/21\nbuzzer GP22", 76.5, 10.5), ("CYW43\nWiFi", 88, 10)]
 for name, x, w in hw:
     box(x, 2.5, w, 6.2, name, fill="#ececec", edge="#888888", tsize=4.8)
 

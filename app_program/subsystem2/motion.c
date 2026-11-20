@@ -41,7 +41,9 @@
    b_odometer), which steering does not change, so the robot keeps following
    its line over a code; the hold had let it run off the line.  Put back to
    1 if reads get worse with steering. */
+#ifndef HOLD_OVER_BARS /* a test image may set it (EXTRA_CFLAGS=-D...) */
 #define HOLD_OVER_BARS 0
+#endif
 /* Over bars, a LEFT steer is at most this share of the speed (20 Nov): B,
    85 mm left of the centre, moves at the speed less 2 x 85 / 123 = 1.38 x
    the steer, so 0.36 keeps B at half the robot's speed or more.  Track 4:

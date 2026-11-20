@@ -74,12 +74,19 @@ How to run the tests: [TESTING_GUIDE.md](../../testing/TESTING_GUIDE.md).
 ### Barcodes (Code 39, barcode sensor B)
 - Inside a barcode: 50 mm/s (it slows once B is on the first bar).
 - **One pass, no backing up** (the back-up-and-reread of 2-7 Nov was
-  removed on 7 Nov). It follows the line as usual but **holds the
-  steering straight while B is over bars** (an edge in the last 15 mm):
-  B is 85 mm off the robot's centre, so any turn changes its speed over
-  the bars against the odometer by 50 % or more and the widths come out
-  wrong. A code it misses is not read again: `READ_FAIL`, and Mission
-  goes on as if there was no barcode.
+  removed on 7 Nov). **It keeps following the line over a code (since 20
+  Nov)**: B is 85 mm left of the robot's centre, so a turn changes B's own
+  speed over the bars, and the bar widths are measured with B's own travel
+  worked out from the two wheels (`b_odometer`: the centre's travel less
+  the heading change x 85 / 123), which steering does not change. From 15
+  to 20 Nov it held the steering straight over bars instead (widths from
+  the centre's travel come out wrong when it turns), and on track 4 that
+  ran it off its line twice; `HOLD_OVER_BARS` in motion.c puts it back.
+  In a simulation of the robot weaving +-6 to 12 deg over a code (scratchpad
+  `steer_sim.py`, the robot's own decoder), B's travel read 279 of 300
+  passes and no wrong letter; the centre's 46, and 9 wrong letters. A code
+  it misses is not read again: `READ_FAIL`, and Mission goes on as if
+  there was no barcode.
 - A stray mark within 40 mm before or after a code (a tile join) does not
   spoil it: the decoder looks for `*X*` starting at any bar of the run.
 - **Forgiving decode (8 Nov)**, only when the clean decode fails and only

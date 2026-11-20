@@ -104,11 +104,31 @@ LOCAL barcode_result_t g_last;
 LOCAL bar_pair_t       g_map[BAR_MOVES]; /* under APP_LOCK */
 LOCAL bool             gb_map_set;
 
+/** B's own odometer (20 Nov), in counts.  B sits S3_B_LEFT_MM left of the
+   robot's centre, so while the robot turns it moves slower (turning left)
+   or faster (right) than the centre the odometer follows: every point of
+   the chassis moves forward at the centre's speed less the turn rate x its
+   offset to the left.  Bar widths measured with the centre's distance came
+   out wrong whenever the robot steered over a code (2 Nov, 20 Nov), which
+   is why the steering used to be held straight there.  Any context: it
+   reads the wheel counts under APP_LOCK. */
+LOCAL int32_t b_odometer (void)
+{
+    int32_t left;
+    int32_t right;
+
+    motor_encoders(&left, &right, NULL);
+    /* (right - left) is the heading in counts, tens of thousands at most:
+       x 85 stays far inside int32_t */
+    return ((left + right) / 2) -
+           (((right - left) * S3_B_LEFT_MM) / S2_TRACK_MM);
+}
+
 /** An edge's 16-bit odometer back to the full count (see bar_edge_t). */
 LOCAL int32_t odo_from16 (uint32_t odo16)
 {
-    uint32_t now  = (uint32_t)motor_odometer(); /* the same bits, mod 2^32 */
-    uint32_t back = (now - odo16) & 0xFFFFu;    /* how far back, mod 2^16 */
+    uint32_t now  = (uint32_t)b_odometer();  /* the same bits, mod 2^32 */
+    uint32_t back = (now - odo16) & 0xFFFFu; /* how far back, mod 2^16 */
 
     /* back < 32768 counts (see bar_edge_t): now - back is the edge's count,
        mod 2^32; as int32_t it is the odometer value again */
@@ -149,7 +169,7 @@ LOCAL void barcode_edge_isr (uint32_t pin, uint32_t events)
 
     (void)events;
     /* the low 16 bits of the count (see bar_edge_t) */
-    edge.odo16                    = (uint32_t)motor_odometer() & 0xFFFFu;
+    edge.odo16                    = (uint32_t)b_odometer() & 0xFFFFu;
     edge.level                    = app_gpio_get(pin); /* 0 or 1 */
     g_ring[ring_pos & (RING - 1)] = edge;
     g_ring_w                      = ring_pos + 1;
@@ -351,8 +371,8 @@ LOCAL void adc_sample (int32_t sample)
             bar_edge_t edge;
 
             /* the low 16 bits of the count (see bar_edge_t) */
-            edge.odo16 = (uint32_t)motor_odometer() & 0xFFFFu;
-            edge.level = lvl;
+            edge.odo16                    = (uint32_t)b_odometer() & 0xFFFFu;
+            edge.level                    = lvl;
             g_ring[ring_pos & (RING - 1)] = edge;
             g_ring_w                      = ring_pos + 1;
         }
@@ -454,9 +474,10 @@ EXPORT uint32_t barcode_edges (void)
 }
 
 /** B is over bars now: an edge in the last S3_IN_BARS_MM (the code's
-   end gap, S3_QUIET_MM).  Motion holds the steering straight then: B sits 85 mm
-   left of the robot's centre, so any turn changes B's own speed over the bars
-   by +-50 % or more against the odometer, and the widths come out wrong. */
+   end gap, S3_QUIET_MM).  Motion used to hold the steering straight then (see
+   motion.c HOLD_OVER_BARS): B sits 85 mm left of the robot's centre, so any
+   turn changes B's own speed over the bars by +-50 % or more against the
+   odometer, and the widths come out wrong. */
 EXPORT bool barcode_in_bars (void)
 {
     int32_t since;
@@ -466,7 +487,7 @@ EXPORT bool barcode_in_bars (void)
         return false;
     }
 
-    since = motor_odometer() - g_edge_pub;
+    since = b_odometer() - g_edge_pub;
 
     if (since < 0)
     {
@@ -539,7 +560,10 @@ LOCAL void mark_pub (int32_t end_odo, int32_t width)
     uint32_t irq_state;
 
     APP_LOCK(irq_state);
-    g_mark.odo = end_odo - (width / 2); /* driving forward: centre is behind */
+    /* driving forward: the centre is behind; back from B's odometer to
+       the robot's, which the line task uses (they differ by the heading
+       turned since boot) */
+    g_mark.odo    = end_odo - (width / 2) + (motor_odometer() - b_odometer());
     g_mark.w_mm10 = width_field(width * S2_UM_PER_COUNT / 100);
     g_mark_seq++;
     APP_UNLOCK(irq_state);
@@ -1519,7 +1543,7 @@ EXPORT void barcode_task (int32_t stacd, void * p_exinf)
         /* The latest level may have held long enough by now */
         if (b_raw_ok)
         {
-            int32_t delta = motor_odometer() - raw_odo;
+            int32_t delta = b_odometer() - raw_odo;
 
             if (delta < 0)
             {
@@ -1535,7 +1559,7 @@ EXPORT void barcode_task (int32_t stacd, void * p_exinf)
         /* End of a barcode: quiet for S3_QUIET_MM */
         if (read.b_in_code)
         {
-            int32_t gap = motor_odometer() - read.prev_odo;
+            int32_t gap = b_odometer() - read.prev_odo;
 
             if (gap < 0)
             {

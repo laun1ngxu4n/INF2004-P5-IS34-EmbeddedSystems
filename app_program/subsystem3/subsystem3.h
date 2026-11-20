@@ -65,7 +65,7 @@
    BACK to 700 the same day: driving over the code with 700 / 300 gave
    only 7-element pieces of even 6-7 mm blobs (neighbouring thin bars and
    spaces run together), against 23-25 of 29 elements with 1500 / 700. */
-#define S3_BAR_DELTA    700 /* white noise is +-20 */
+#define S3_BAR_DELTA 700 /* white noise is +-20 */
 /* never black below this (white up to 570). Raised from 500 / 900 on 7 Nov
  * at the team's request (fewer faint marks seen as bars); simulated "A
  * small" still 54/54, 800 / 1800 began to lose reads */
@@ -81,7 +81,9 @@
 /* Geometry, measured 6 Nov */
 /* line sensors in front of the wheel axle (was a guess of 60) */
 #define S3_SENSOR_TO_AXLE_MM 115
-#define S3_TAPE_MM           20 /* line tape width */
+/* the barcode sensor B, left of the robot's centre line (mm) */
+#define S3_B_LEFT_MM 85
+#define S3_TAPE_MM   20 /* line tape width */
 /* L to R, sensor head centre to centre, sideways.  Not used by the code:
    it is how the robot must be built.  A little wider than the tape, so
    both read white when centred, with a few mm to spare each side: about
@@ -120,4 +122,3 @@ IMPORT int32_t g_tmg_barcode;
 #endif /* SUBSYSTEM3_H */
 
 /*** end of file ***/
-

@@ -399,6 +399,18 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   and no READ_FAIL**: the pieces were under 5 elements; junction 1 went
   FORWARD with no barcode. WiFi-loss warning flickered (faults=64) about a
   dozen times for under 1 s; the robot kept running.
+- **Changed 20 Nov (after run 8, team: "it readjusts during the barcode
+  reading, which messes it up"), not run yet:** bar widths are measured
+  with the barcode sensor's own travel, from the two wheels
+  (`b_odometer` in barcode.c: centre travel less the heading change x
+  85 / 123), so steering over a code no longer distorts them, and the
+  steering is no longer held straight over bars (`HOLD_OVER_BARS` 0 in
+  motion.c, 1 puts it back). Simulated (robot weaving +-12 deg every
+  150 mm over a 4 / 11 mm print, the robot's own decoder, 300 passes):
+  centre travel 46 read, 9 wrong letters; B's travel 279 read, 0 wrong.
+  Left branches still use the robot's travel (`barcode_mark` converts).
+  Retest: barcodes on straight and gently curved track, the panel's
+  "steering held" should stay "no".
 - **20 Nov, track 4, Mission run 8 (`subsystem5/logs/2026-11-20_track4_mission_8_robot.txt`):**
   ✅ Q read (-> RIGHT) and F read (-> LEFT), both backwards; obstacle width
   **95 +/- 19** (real 100). ❌ 7 READ_FAILs (21-29 elements). Replayed on

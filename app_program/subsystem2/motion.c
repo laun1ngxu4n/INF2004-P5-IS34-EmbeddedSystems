@@ -36,6 +36,12 @@
    task's S3_CORR_PCT (line.c).  A short correction (one sensor on the tape,
    60 %) keeps it; a long one (40 % after 50 mm) or a search (20 %) ends it */
 #define HOLD_MIN_PCT 60
+/* 1 = hold the steering straight while B is over bars (15-20 Nov).  0 since
+   20 Nov: the bar widths are measured with B's own travel (barcode.c
+   b_odometer), which steering does not change, so the robot keeps following
+   its line over a code; the hold had let it run off the line.  Put back to
+   1 if reads get worse with steering. */
+#define HOLD_OVER_BARS 0
 
 /* Per wheel speed controller, duty in per mille.  Feed-forward from the
    bring-up runs (wheels lifted: about 1.25 per mille per mm/s, through 0)
@@ -397,7 +403,8 @@ EXPORT void motion_task (int32_t stacd, void * p_exinf)
                steering, and it ran off the line twice): a long correction
                or a search ends the hold, staying on the line comes first. */
 
-            gb_held = (barcode_in_bars()) && (pct >= HOLD_MIN_PCT);
+            gb_held = (HOLD_OVER_BARS != 0) && (barcode_in_bars()) &&
+                      (pct >= HOLD_MIN_PCT);
 
             if (gb_held)
             {

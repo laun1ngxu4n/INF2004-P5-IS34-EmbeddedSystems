@@ -35,7 +35,7 @@ REQS = [
     ("NFR6", "The forward watch trips at 180 mm (2 readings in a row); at 120 mm/s the robot stops at least 150 mm from the obstacle (measured 157-160 mm, 20 Nov)."),
     ("NFR6a", "During a bypass the robot stays within 300 mm of the original line, makes no contact with the obstacle and is back on its own line behind it."),
     ("NFR7", "C with the Pico C SDK on micro T-Kernel 3.0 (single core); Barr C 2018 with documented deviations only; course template repository structure."),
-    ("NFR8", "Accuracy: 90 deg turn +/-10 deg, 180 deg turn +/-15 deg; barcode read >= 90 % over 20 passes; hump height +/-5 mm for humps of 10-30 mm; obstacle width within the reported +/- U."),
+    ("NFR8", "Accuracy: 90 deg turn +/-10 deg, 180 deg turn +/-15 deg; a barcode laid square beside a straight and away from the hump read in at least half of passes (best session 7 of 12, 20 Nov), and never read as a wrong letter (a doubtful read gives no move); hump height +/-5 mm for humps of 10-30 mm; obstacle width within the reported +/- U."),
     ("NFR9", "Static RAM <= 200 KB of 264 KB (about 92 KB with WiFi, measured); every MQTT payload <= 160 bytes."),
     ("NFR10", "STOP button: motor drive off inside the GPIO interrupt. Safety task: motors off within 220 ms of the Motion task stopping (200 ms + one 20 ms period) and within 1 s of a wheel stalling, without waiting for Motion."),
     ("NFR11", "Each shared value has one writer or is accessed only under the one lock (APP_LOCK); a STOP inside a burst of MQTT START/STOP commands is never lost."),

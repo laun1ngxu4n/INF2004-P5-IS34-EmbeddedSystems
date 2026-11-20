@@ -399,6 +399,9 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   and no READ_FAIL**: the pieces were under 5 elements; junction 1 went
   FORWARD with no barcode. WiFi-loss warning flickered (faults=64) about a
   dozen times for under 1 s; the robot kept running.
+- **Changed 20 Nov night:** `HOLD_OVER_BARS` 1 by default (the straight
+  hold over bars, ending when the robot leaves its line): the evening's
+  best runs were on the hold image, so a plain build is now what ran.
 - **20 Nov evening, track 4 (`subsystem5/logs/2026-11-20_track4_mission_11_robot.txt`), team: "it worked really well":**
   ✅ **A -> LEFT at junction 3**; ✅ **Q** (thin-bar decode) **-> FORWARD at
   junction 6**; ✅ **small F read cleanly** (narrow 2.9, wide 8.0 mm) **->

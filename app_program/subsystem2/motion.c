@@ -36,13 +36,15 @@
    task's S3_CORR_PCT (line.c).  A short correction (one sensor on the tape,
    60 %) keeps it; a long one (40 % after 50 mm) or a search (20 %) ends it */
 #define HOLD_MIN_PCT 60
-/* 1 = hold the steering straight while B is over bars (15-20 Nov).  0 since
-   20 Nov: the bar widths are measured with B's own travel (barcode.c
-   b_odometer), which steering does not change, so the robot keeps following
-   its line over a code; the hold had let it run off the line.  Put back to
-   1 if reads get worse with steering. */
+/* 1 = hold the steering straight while B is over bars.  Widths are measured
+   with B's own travel anyway (barcode.c b_odometer); the hold keeps B
+   crossing the code in one straight line instead of weaving through it,
+   and ends when the robot leaves its line (HOLD_MIN_PCT).  Off from 20 Nov
+   afternoon (track 4: the robot weaving hard broke codes into pieces), on
+   again since the 20 Nov evening runs, the team's best: A, Q and the small
+   F read and obeyed. */
 #ifndef HOLD_OVER_BARS /* a test image may set it (EXTRA_CFLAGS=-D...) */
-#define HOLD_OVER_BARS 0
+#define HOLD_OVER_BARS 1
 #endif
 /* Over bars, a LEFT steer is at most this share of the speed (20 Nov): B,
    85 mm left of the centre, moves at the speed less 2 x 85 / 123 = 1.38 x

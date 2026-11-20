@@ -42,6 +42,13 @@
    its line over a code; the hold had let it run off the line.  Put back to
    1 if reads get worse with steering. */
 #define HOLD_OVER_BARS 0
+/* Over bars, a LEFT steer is at most this share of the speed (20 Nov): B,
+   85 mm left of the centre, moves at the speed less 2 x 85 / 123 = 1.38 x
+   the steer, so 0.36 keeps B at half the robot's speed or more.  Track 4:
+   a hard left correction at barcode speed (wheels -6 and 44 mm/s) ran B
+   backwards over the bars, which no width measurement untangles; it came
+   most after a START with the robot set down off the line's centre. */
+#define BAR_LEFT_STEER_MAX 0.36f
 
 /* Per wheel speed controller, duty in per mille.  Feed-forward from the
    bring-up runs (wheels lifted: about 1.25 per mille per mm/s, through 0)
@@ -436,6 +443,13 @@ EXPORT void motion_task (int32_t stacd, void * p_exinf)
             if (v_prof > cap)
             {
                 v_prof = cap;
+            }
+
+            /* over bars: a left steer limited, not when leaving the line */
+            if ((barcode_in_bars()) && (pct >= HOLD_MIN_PCT) &&
+                (steer > (BAR_LEFT_STEER_MAX * v_prof)))
+            {
+                steer = BAR_LEFT_STEER_MAX * v_prof;
             }
 
             t_l = v_prof - steer;

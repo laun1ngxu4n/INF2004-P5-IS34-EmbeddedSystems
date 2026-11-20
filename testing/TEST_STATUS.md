@@ -399,6 +399,19 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   and no READ_FAIL**: the pieces were under 5 elements; junction 1 went
   FORWARD with no barcode. WiFi-loss warning flickered (faults=64) about a
   dozen times for under 1 s; the robot kept running.
+- **20 Nov, Z session (`logs/robot/is34_20261120_171214_robot.txt`, normal
+  thresholds, team: "losing accuracy, pressing START makes it worse"):**
+  Q read, F read with the thin-bar decode (`bars read thin, widened`) and
+  turned RIGHT at junction 1 as mapped; many READ_FAILs and pieces. The
+  later passes were a smaller print (wide elements about 8 mm against
+  15-19 mm for Z), so part of the drop was a different barcode. But the
+  robot also steered hard over bars after START (wheels -6 and 44 mm/s at
+  50 mm/s): B, on the inside of a left turn, ran backwards over the bars.
+  **Changed, not run yet:** over bars a left steer is capped at 0.36 x
+  the speed (`BAR_LEFT_STEER_MAX`, motion.c), so B keeps at least half the
+  robot's speed; no cap in a long correction or a search (the line
+  first). Set the robot down centred and straight at least 10 cm before
+  a barcode.
 - **Changed 20 Nov (after the first threshold test, team: "it speeds up
   and slows down on the barcode"), not run yet:** (1) the code ends after
   60 mm with no bar (`S3_QUIET_MM`, was 40): two lost thin bars side by

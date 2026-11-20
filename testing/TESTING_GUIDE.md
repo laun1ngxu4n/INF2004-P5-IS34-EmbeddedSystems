@@ -345,6 +345,9 @@ line found after every manoeuvre.
 
 `IDLE` -> START (GP20 or `is34/cmd/start`) -> `CAL` (IMU level, 1 s) ->
 `RUN`: follows the line at 120 mm/s (`S5_FOLLOW_SPEED`; 135 from 15 to 18 Nov, never run; 50 mm/s over bars).
+- Every event (barcode read, junction move, obstacle, width, bypass,
+  hump, any stop) also gives **one short beep** (the board's buzzer on
+  GP22, since 20 Nov; silent = check the buzzer mute switch on the board).
 - Barcode -> stores the character, reports it and the planned move.
 - Junction -> stored character's move (L / R / F / U-turn); none stored
   = straight; a letter not in the mapping is reported and ignored (carries on, since 20 Nov).

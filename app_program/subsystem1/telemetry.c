@@ -4,7 +4,8 @@
  *  outbox and the MQTT command inbox.
  *
  *  Every 100 ms: IF-01 ping once a second, the status line once a second,
- *  the live sensor line twice a second, the timing table every 10 s.
+ *  the live sensor line twice a second, the timing table every 10 s (1 min
+ *  in the Mission and normal images), and one short beep for each event.
  *  Events from every subsystem go into a small outbox; the WiFi task
  *  pulls them with app_mqtt_tx() and hands
  *  commands to app_mqtt_rx().  Both hooks only copy under APP_LOCK and
@@ -38,6 +39,17 @@
 #define TOPIC_IDX_ACK       2u
 #define TOPIC_IDX_SENSORS   3u
 #define LINK_LOST_US        1000000u /* the glue asks every 100 ms */
+
+/* Buzzer (20 Nov, team): one short beep for every event, on the Robo
+   Pico's piezo (GP22, PWM slice 3 channel A; the board's mute switch
+   silences it).  telemetry_event() asks for it from any task; this task
+   plays it for one 100 ms period, so nothing waits for it.  Events in
+   the same 100 ms give one beep. */
+#define PIN_BUZZER   22
+#define BUZZER_SLICE 3
+#define BUZZER_WRAP  499u /* 1 MHz / 500 = 2 kHz */
+
+LOCAL volatile bool gb_beep_req; /* any task sets it, under APP_LOCK */
 
 /* One outgoing message: binary (wire.c) or event text, and its length */
 typedef struct
@@ -208,8 +220,52 @@ LOCAL void outbox_text (uint32_t topic, const uint8_t * p_text)
 
 EXPORT void telemetry_event (const uint8_t * p_text)
 {
+    uint32_t irq_state;
+
     tm_printf(app_str("[EVT] %s\n"), p_text);
     outbox_text(TOPIC_IDX_EVENT, p_text);
+    APP_LOCK(irq_state);
+    gb_beep_req = true;
+    APP_UNLOCK(irq_state);
+}
+
+/** The buzzer's PWM: 2 kHz, silent until a beep. */
+LOCAL void buzzer_init (void)
+{
+    app_gpio_hw_release(RESETS_RESET_PWM);
+    /* 125 MHz / 125 = 1 MHz (slice 3's B pin, GP7, is the sonar's ECHO
+       as a GPIO: the slice's divider does not touch it) */
+    out_w(PWM_BASE + (BUZZER_SLICE * 0x14) + PWM_CHx_DIV, 125u << 4);
+    pwm_set_wrap(PIN_BUZZER, BUZZER_WRAP);
+    pwm_set_cc(PIN_BUZZER, 0u);
+    pwm_set_pin(PIN_BUZZER);
+    pwm_set_enabled(PIN_BUZZER, true);
+}
+
+/** One 100 ms period of the buzzer: off after a beep, else on for a new
+   request.  Returns whether it is on now. */
+LOCAL bool buzzer_tick (bool b_on)
+{
+    uint32_t irq_state;
+    bool     b_req;
+
+    if (b_on)
+    {
+        pwm_set_cc(PIN_BUZZER, 0u);
+        return false;
+    }
+
+    APP_LOCK(irq_state);
+    b_req       = gb_beep_req;
+    gb_beep_req = false;
+    APP_UNLOCK(irq_state);
+
+    if (b_req)
+    {
+        pwm_set_cc(PIN_BUZZER, (BUZZER_WRAP + 1u) / 2u); /* half duty */
+    }
+
+    return b_req;
 }
 
 /* ---- MQTT hooks, called from the WiFi task (mqtt_utk.c) ------------- */
@@ -467,14 +523,17 @@ EXPORT void telemetry_task (int32_t stacd, void * p_exinf)
     uint32_t ping_tick   = 0;
     uint32_t status_tick = 0;
     uint32_t sensor_tick = 0;
+    bool     b_beeping   = false;
 
     (void)stacd;
     (void)p_exinf;
+    buzzer_init();
 
     for (;;)
     {
         tk_slp_tsk(TMO_FEVR); /* woken every 100 ms */
         app_timing_wake(g_tmg_telemetry, tk_can_wup(TSK_SELF));
+        b_beeping = buzzer_tick(b_beeping);
 
         ping_tick++;
 
@@ -516,4 +575,3 @@ EXPORT void telemetry_task (int32_t stacd, void * p_exinf)
 }
 
 /*** end of file ***/
-

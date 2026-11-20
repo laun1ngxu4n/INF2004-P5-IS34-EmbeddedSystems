@@ -399,6 +399,10 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   and no READ_FAIL**: the pieces were under 5 elements; junction 1 went
   FORWARD with no barcode. WiFi-loss warning flickered (faults=64) about a
   dozen times for under 1 s; the robot kept running.
+- **Added 20 Nov, not run yet (team):** one short beep (100 ms, 2 kHz) on
+  the board's buzzer (GP22) for every event, played by the Telemetry task
+  so nothing waits for it. Check: a beep at each barcode, junction,
+  obstacle, hump and stop; driving and timing unchanged.
 - **20 Nov, track 4, Mission run 5 (`subsystem5/logs/2026-11-20_track4_mission_5_robot.txt`, no mapping):**
   ✅ **barcode F decoded on track 4, read backwards** (narrow 6.0 mm, wide
   15.8 mm: the track 4 print, larger than the 3.5 / 10 mm one), then the

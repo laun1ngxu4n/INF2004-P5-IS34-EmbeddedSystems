@@ -90,7 +90,8 @@ speed 0 is now refused (it was undefined behaviour; nothing passes 0).
   left GP0, IR centre GP1, IR barcode GP2 (1 = black); encoders GP4/5
   (left) and GP16/17 (right); TRIG GP6, ECHO GP7; motors GP8-11
   (forward = A PWM, B low, after the 26 Oct M1 wire swap); servo GP14;
-  START GP20, STOP GP21 (active low); IMU I2C1 GP26/27; GP28 not used.
+  START GP20, STOP GP21 (active low); buzzer GP22 (the board's piezo, one
+  short beep per event since 20 Nov); IMU I2C1 GP26/27; GP28 not used.
 - Encoders about 2,540 counts/rev, 65 mm wheel, 0.080 mm/count; the left
   one counts down for forward (the code negates it).
 - Speeds, wheels lifted: 240 / 325 / 407 / 573 / 798 mm/s at 30 / 40 /

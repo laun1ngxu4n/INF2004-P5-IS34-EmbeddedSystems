@@ -13,6 +13,10 @@ How to run the tests: [TESTING_GUIDE.md](../../testing/TESTING_GUIDE.md).
 2. START: button GP20 or the panel.
 3. **CAL**, 1 s: the robot must stand still and level; the IMU learns "flat".
 4. **RUN**: line following starts.
+5. Every event (a barcode read, a junction move, an obstacle, its width,
+   the bypass, a hump, any stop) gives **one short beep** on the board's
+   buzzer (GP22, since 20 Nov; the board has a mute switch); the panel's
+   Run summary says which.
 
 ### Line following
 - 120 mm/s everywhere (the whole course runs at the slow barcode speed;

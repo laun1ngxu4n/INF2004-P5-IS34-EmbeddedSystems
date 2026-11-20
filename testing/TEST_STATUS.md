@@ -399,6 +399,15 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   and no READ_FAIL**: the pieces were under 5 elements; junction 1 went
   FORWARD with no barcode. WiFi-loss warning flickered (faults=64) about a
   dozen times for under 1 s; the robot kept running.
+- **20 Nov evening, track 4 (`subsystem5/logs/2026-11-20_track4_mission_11_robot.txt`), team: "it worked really well":**
+  ✅ **A -> LEFT at junction 3**; ✅ **Q** (thin-bar decode) **-> FORWARD at
+  junction 6**; ✅ **small F read cleanly** (narrow 2.9, wide 8.0 mm) **->
+  U-TURN** as mapped; ✅ A as a half code reported only when A was not in
+  the mapping (as designed); ✅ box 123 +/- 18 (front 157 mm) and 151 +/- 28,
+  bypasses back on the line (heading 4 deg); ✅ humps 8.0-11.7 mm. A barcode
+  right after the hump (F) broke into pieces: the robot still rocking.
+  Placement that worked: barcodes flat and square on straights, away from
+  the hump; robot started centred; mapping "OK" before START.
 - **20 Nov, 19:02 (`logs/robot/is34_20261120_190046_robot.txt`, mapping A F D C):**
   ❌ A and Z both READ_FAIL. A by hand: `*A*` with the opening star
   garbled and the last 2 elements of the closing star never seen (the code

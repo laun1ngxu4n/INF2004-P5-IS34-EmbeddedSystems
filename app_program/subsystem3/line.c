@@ -127,6 +127,11 @@ Inline int32_t mm_to_counts (int32_t dist_mm)
 #define S3_ARM_BEFORE_MM 40
 #define S3_ARM_SELF_MM   22 /* half a tape + the ~6 mm filter delay + margin */
 #define S3_ARM_AFTER_MM  20
+/* ... and once B is this far past the patch with nothing more after it
+   (20 Nov, track 4: the course print's wide bars read 12-17 mm, like the
+   tape's 11.5-15.9, and a read starting on one gave false left branches;
+   a bar has the next one within about 21 mm, an arm has white after it) */
+#define S3_ARM_CLEAR_MM 30
 
 #define PAT_L 2u
 #define PAT_R 1u
@@ -347,6 +352,7 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
     float32_t mem          = 0.0f;  /* steering memory, mm/s */
     int32_t   mem_odo      = 0;
     int32_t   bpend_c      = 0;
+    int32_t   bpend_ready  = 0; /* B this far: past the patch, nothing after */
     int32_t   pair_c       = 0; /* centre of the last both-black, for B */
     bool      b_pair_ok    = false;
     int32_t   mark_centre;
@@ -777,23 +783,33 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
                 {
                     b_bpend = true;
                     bpend_c = mark_centre + mm_to_counts(S3_BAR_AHEAD_MM);
+                    /* mark_width in 0.1 mm: / 20 = half of it in mm */
+                    bpend_ready = mark_centre + mm_to_counts((mark_width / 20) +
+                                                             S3_ARM_CLEAR_MM);
                 }
             }
         }
 
-        if (b_bpend && ((odo - bpend_c) >= mm_to_counts(S3_ARM_AFTER_MM)))
+        if (b_bpend && ((odo - bpend_c) >= mm_to_counts(S3_ARM_AFTER_MM)) &&
+            ((odo - bpend_ready) >= 0))
         {
             int32_t centre = bpend_c;
 
             b_bpend = false;
 
-            if (quiet_over(centre - mm_to_counts(S3_ARM_BEFORE_MM),
-                           centre - mm_to_counts(S3_ARM_SELF_MM), odo))
+            if (barcode_run_elements() >= 2)
+            {
+                /* more bars after it: a barcode, not an arm */
+            }
+            else if (quiet_over(centre - mm_to_counts(S3_ARM_BEFORE_MM),
+                                centre - mm_to_counts(S3_ARM_SELF_MM), odo))
             {
                 junction_at(centre, JUNC_SIDE_B);
             }
-
-            /* else on a curve or correcting there: not trusted */
+            else
+            {
+                /* on a curve or correcting there: not trusted */
+            }
         }
 
         app_timing_done(g_tmg_line);
@@ -801,4 +817,3 @@ EXPORT void line_task (int32_t stacd, void * p_exinf)
 }
 
 /*** end of file ***/
-

@@ -76,10 +76,11 @@ LOCAL bar_edge_t        g_ring[RING];
 LOCAL volatile uint32_t g_ring_w; /* written by the interrupt */
 LOCAL uint32_t          g_ring_r; /* read by the task */
 
-LOCAL volatile bool     gb_busy;    /* inside a barcode (in_code) */
-LOCAL volatile bool     gb_paused;  /* barcode_reset(): ignore edges */
-LOCAL volatile uint32_t g_seq_now;  /* results published so far */
-LOCAL volatile int32_t  g_edge_pub; /* odometer at the last clean edge */
+LOCAL volatile bool     gb_busy;     /* inside a barcode (in_code) */
+LOCAL volatile bool     gb_paused;   /* barcode_reset(): ignore edges */
+LOCAL volatile uint32_t g_seq_now;   /* results published so far */
+LOCAL volatile int32_t  g_edge_pub;  /* odometer at the last clean edge */
+LOCAL volatile int32_t  g_run_elems; /* elements of the run now: task only */
 /* barcode_ignore_mm(): from this odometer reading, for this many counts
    (0 = not ignoring).  Mission writes both under APP_LOCK, the task reads
    them under it. */
@@ -470,6 +471,12 @@ EXPORT bool barcode_adc (int32_t * p_raw, int32_t * p_white, int32_t * p_black)
 EXPORT bool barcode_busy (void)
 {
     return gb_busy;
+}
+/** Elements of the run B is in now: 0 none, 1 a lone patch so far (a
+   left arm), 2 or more a barcode (20 Nov: line.c tells them apart). */
+EXPORT int32_t barcode_run_elements (void)
+{
+    return g_run_elems;
 }
 /** Barcode sensor edges since boot. */
 EXPORT uint32_t barcode_edges (void)
@@ -1564,6 +1571,7 @@ EXPORT void barcode_task (int32_t stacd, void * p_exinf)
             read.b_in_code = false;
             read.count     = 0;
             gb_busy        = false;
+            g_run_elems    = 0;
             read.stable    = !IR_BLACK;
             b_raw_ok       = false;
             app_timing_done(g_tmg_barcode);
@@ -1652,7 +1660,8 @@ EXPORT void barcode_task (int32_t stacd, void * p_exinf)
             }
         }
 
-        gb_busy = read.b_in_code;
+        gb_busy     = read.b_in_code;
+        g_run_elems = read.count;
 
         app_timing_done(g_tmg_barcode);
     }

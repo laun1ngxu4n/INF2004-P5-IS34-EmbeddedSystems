@@ -399,6 +399,17 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   and no READ_FAIL**: the pieces were under 5 elements; junction 1 went
   FORWARD with no barcode. WiFi-loss warning flickered (faults=64) about a
   dozen times for under 1 s; the robot kept running.
+- **20 Nov, after the steering cap (`logs/robot/is34_20261120_172407_robot.txt`, team: "it detects most barcodes as junctions"):**
+  ✅ Z read; ✅ F read (`bars read thin, widened`) and LEFT at junction 1 as
+  mapped. ❌ Two `branch left` junctions 2 s apart while B was over a
+  barcode (`inbar=1`): a left arm is "B saw a patch about one tape wide",
+  and the course print's wide bars read 12-17 mm, the tape 11.5-15.9 mm,
+  so a read that started on a wide bar looked like an arm. **Changed, not
+  run yet:** an arm also needs nothing more after it: decided once B is
+  30 mm past the patch (`S3_ARM_CLEAR_MM`, line.c), and dropped if the
+  barcode reader's run has 2 or more elements by then
+  (`barcode_run_elements`). The line sensors are then about 80 mm past the
+  arm, still short of the 115 mm the turn starts from.
 - **20 Nov, Z session (`logs/robot/is34_20261120_171214_robot.txt`, normal
   thresholds, team: "losing accuracy, pressing START makes it worse"):**
   Q read, F read with the thin-bar decode (`bars read thin, widened`) and

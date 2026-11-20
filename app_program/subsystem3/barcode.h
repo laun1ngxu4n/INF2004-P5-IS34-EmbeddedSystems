@@ -38,7 +38,9 @@ typedef struct
 IMPORT void     barcode_last (barcode_result_t * r);
 IMPORT bool     barcode_busy (void);  /* inside a barcode now (Motion slows) */
 IMPORT uint32_t barcode_edges (void); /* barcode sensor edges since boot */
-IMPORT bool     barcode_black (void); /* sensor sees black now (either input) */
+/** Elements of the run B is in now (0 = none): a lone patch is 1. */
+IMPORT int32_t barcode_run_elements (void);
+IMPORT bool    barcode_black (void); /* sensor sees black now (either input) */
 /** Analogue input only (S3_BARCODE_ANALOG 1): last raw value and the learned
    white / black levels, 0..4095.  false in the digital build. */
 IMPORT bool barcode_adc (int32_t * raw, int32_t * white, int32_t * black);

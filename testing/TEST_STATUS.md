@@ -399,6 +399,17 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   and no READ_FAIL**: the pieces were under 5 elements; junction 1 went
   FORWARD with no barcode. WiFi-loss warning flickered (faults=64) about a
   dozen times for under 1 s; the robot kept running.
+- **20 Nov, track 4, Mission run 3 (`subsystem5/logs/2026-11-20_track4_mission_3_robot.txt`, 3 pings):**
+  tripped at 161 mm; the scan, width and bypass lines were lost on the
+  WiFi; line found 120 mm after the last turn, `bypass done`, then ❌ the
+  robot drove diagonally off the line (tester). Panel trace: right after
+  the rejoin `inbar=1 hold=1 steer=0` at 50 mm/s: the barcode sensor
+  (85 mm left of the centre) crossed the line's own tape while the robot
+  was still at an angle, read it as bars, and Motion held the steering
+  straight. **Changed 20 Nov, not run yet:** after a bypass the barcode
+  sensor is ignored for 200 mm (`barcode_ignore_mm`, `REJOIN_BAR_MM`):
+  no read, no slowing, no straight hold while the robot settles onto
+  its line. Junction turns unchanged.
 - **Changed 20 Nov (after run 2), not run yet (team: scan faster, go
   round a little tighter):** 3 pings per ray instead of 5 (a scan about
   4.5 s instead of about 6.5, so about 5.5 s from the stop to the width

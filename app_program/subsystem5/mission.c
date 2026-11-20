@@ -55,6 +55,10 @@
  * passed a 200 mm box 21 mm away at 70, 42 mm at 100 */
 #define MARGIN_MM        100
 #define REJOIN_ENABLE_MM 60 /* line events back on after this */
+/* after a bypass the barcode sensor is ignored this far: the robot is
+   still turning onto its line and B can cross the line's own tape (20 Nov,
+   track 4: read as bars, the steering was held straight, line lost) */
+#define REJOIN_BAR_MM 200
 /* back toward the line: give up this far past where it should be */
 #define REJOIN_FAR_MM   400
 #define SPIN_SEARCH_DEG 170 /* rejoin spin: at most this far ... */
@@ -1236,6 +1240,8 @@ LOCAL void on_obstacle (void)
             return;
         }
     }
+
+    barcode_ignore_mm(REJOIN_BAR_MM);
 
     if (!resume_follow())
     {

@@ -46,6 +46,9 @@ IMPORT bool barcode_in_bars (void);
 IMPORT uint32_t barcode_seq (void);
 /** Drop a half-read code (start of a run); blocks 30 ms. */
 IMPORT void barcode_reset (void);
+/** Ignore the barcode sensor for the next mm of driving: no read, no
+   slowing, no straight-steering hold (after a bypass, 20 Nov). */
+IMPORT void barcode_ignore_mm (int32_t mm);
 #define BARCODE_DBG_MAX 40 /* barcode_debug(): widths kept */
 /** The last code that ended, any length; returns a seq. */
 IMPORT uint32_t barcode_debug (int32_t * n, int32_t * w_mm10, int32_t max);
@@ -77,4 +80,3 @@ IMPORT ER   barcode_hw_init (void);
 #endif /* BARCODE_H */
 
 /*** end of file ***/
-

@@ -76,6 +76,11 @@ LOCAL volatile bool     gb_busy;    /* inside a barcode (in_code) */
 LOCAL volatile bool     gb_paused;  /* barcode_reset(): ignore edges */
 LOCAL volatile uint32_t g_seq_now;  /* results published so far */
 LOCAL volatile int32_t  g_edge_pub; /* odometer at the last clean edge */
+/* barcode_ignore_mm(): from this odometer reading, for this many counts
+   (0 = not ignoring).  Mission writes both under APP_LOCK, the task reads
+   them under it. */
+LOCAL int32_t g_ignore_odo;
+LOCAL int32_t g_ignore_counts;
 
 /* Edge this recent = B over bars: Motion holds the steering straight.
    Was 15 mm; 15 Nov course runs: one missed thin bar (they read 1.5-2.3
@@ -543,6 +548,43 @@ LOCAL void mark_pub (int32_t end_odo, int32_t width)
 EXPORT uint32_t barcode_seq (void)
 {
     return g_seq_now;
+}
+
+/** Ignore B for the next mm of driving.  20 Nov, track 4: just after a
+   bypass, with the robot still at an angle to its line, B (85 mm left of
+   the centre) crossed the line's own tape; that read as bars, so Motion
+   slowed to 50 mm/s and held the steering straight, and the robot drove
+   diagonally off the line ("line lost"). */
+EXPORT void barcode_ignore_mm (int32_t mm)
+{
+    uint32_t irq_state;
+
+    APP_LOCK(irq_state);
+    g_ignore_odo    = motor_odometer();
+    g_ignore_counts = mm * 1000 / S2_UM_PER_COUNT; /* a few thousand */
+    APP_UNLOCK(irq_state);
+}
+
+/** true while barcode_ignore_mm()'s distance has not been driven yet. */
+LOCAL bool ignoring (void)
+{
+    uint32_t irq_state;
+    int32_t  odo0;
+    int32_t  counts;
+    int32_t  driven;
+
+    APP_LOCK(irq_state);
+    odo0   = g_ignore_odo;
+    counts = g_ignore_counts;
+    APP_UNLOCK(irq_state);
+    driven = motor_odometer() - odo0;
+
+    if (driven < 0)
+    {
+        driven = -driven;
+    }
+
+    return driven < counts;
 }
 
 /** Forget any half-read code (start of a run, after a manoeuvre).  On 7 Nov
@@ -1411,10 +1453,10 @@ EXPORT void barcode_task (int32_t stacd, void * p_exinf)
         (void)tk_slp_tsk(TIMEOUT_BARCODE_MS);
         app_timing_wake(g_tmg_barcode, 0);
 
-        /* barcode_reset(): drop this read and every edge until it
-           ends, then start fresh */
+        /* barcode_reset() or barcode_ignore_mm(): drop this read and
+           every edge until it ends, then start fresh */
 
-        if (gb_paused)
+        if ((gb_paused) || (ignoring()))
         {
             g_ring_r       = g_ring_w;
             read.b_in_code = false;

@@ -1474,15 +1474,126 @@ LOCAL bool decode_thin (const int32_t * p_elem, int32_t count,
     return true;
 }
 
+/* Half a code (20 Nov, team): a letter and one '*' next to it, the other
+   '*' never seen (track 4: B clipped the start of A pass after pass and
+   read a clean "A*", 19 elements).  Reported, never acted on
+   (BAR_FIX_HALF: Mission does not store it), so a wrong guess costs no
+   move; only when exactly one letter fits.  All the logs' failed and
+   dropped pieces of 19 or more elements: A 3, F 3, two letters fit 3
+   (refused), B 1 (no B on the track: why it is never acted on); random
+   19-25 element patterns: a letter in 0.16-0.46 %. */
+#define HALF_ELEMS 19               /* a letter, the gap, a '*' */
+LOCAL int32_t g_half_rev[MAX_ELEM]; /* the barcode task only */
+
+/** A letter and a '*' side by side at p_elem (19 elements), the gap
+   between them narrow: the letter, else 0.  Adds to the width sums. */
+LOCAL uint8_t half_at (const int32_t * p_elem, int32_t * p_narrow_sum,
+                       int32_t * p_wide_sum)
+{
+    uint8_t first = decode_char(p_elem, p_narrow_sum, p_wide_sum);
+    uint8_t second =
+        decode_char(&p_elem[C39_CHAR_PITCH], p_narrow_sum, p_wide_sum);
+    uint8_t letter = 0;
+
+    /* the gap under the mean of a narrow (sum / 12) and a wide (sum / 6) */
+    if ((0 == first) || (0 == second) ||
+        ((p_elem[C39_CHAR_ELEMS] * 24) >= (*p_narrow_sum + (2 * *p_wide_sum))))
+    {
+        letter = 0;
+    }
+    else if (('*' == first) && (second != '*'))
+    {
+        letter = second;
+    }
+    else if (('*' == second) && (first != '*'))
+    {
+        letter = first;
+    }
+    else
+    {
+        letter = 0; /* two letters or two stars: not half a code */
+    }
+
+    return letter;
+}
+
+/** Half a code anywhere in the run, either way round.  true = exactly one
+   letter fits (BAR_FIX_HALF). */
+LOCAL bool decode_half (const int32_t * p_elem, int32_t count,
+                        barcode_result_t * p_result)
+{
+    int32_t pass;
+    int32_t off;
+    int32_t idx;
+    int32_t narrow_sum = 0;
+    int32_t wide_sum   = 0;
+    uint8_t found      = 0;
+    bool    b_reversed = false;
+
+    if ((count < HALF_ELEMS) || (count > MAX_ELEM))
+    {
+        return false;
+    }
+
+    for (idx = 0; idx < count; idx++)
+    {
+        g_half_rev[idx] = p_elem[count - 1 - idx];
+    }
+
+    for (pass = 0; pass < DECODE_PASSES; pass++)
+    {
+        const int32_t * p_seq = (0 == pass) ? p_elem : g_half_rev;
+        /* bars at even places: reversed, an even count starts on a space */
+        int32_t first_bar = ((1 == pass) && (0 == (count % 2))) ? 1 : 0;
+
+        for (off = first_bar; (off + HALF_ELEMS) <= count; off += 2)
+        {
+            int32_t nar    = 0;
+            int32_t wid    = 0;
+            uint8_t letter = half_at(&p_seq[off], &nar, &wid);
+
+            if ((letter != 0) && (found != 0) && (letter != found))
+            {
+                return false; /* two answers */
+            }
+
+            if (letter != 0)
+            {
+                found      = letter;
+                narrow_sum = nar;
+                wide_sum   = wid;
+                b_reversed = (1 == pass);
+            }
+        }
+    }
+
+    if (0 == found)
+    {
+        return false;
+    }
+
+    p_result->b_ok       = true;
+    p_result->letter     = found;
+    p_result->b_reversed = b_reversed;
+    p_result->fixed      = BAR_FIX_HALF;
+    /* 2 chars of 6 narrow + 3 wide */
+    p_result->narrow_mm10 =
+        width_field(narrow_sum * S2_UM_PER_COUNT / 100 / 12);
+    p_result->wide_mm10 = width_field(wide_sum * S2_UM_PER_COUNT / 100 / 6);
+    return true;
+}
+
 /** The end of a code (quiet for S3_QUIET_MM): its element widths are kept
    for the tests (barcode_debug); a code long enough is decoded (the
    forgiving decodes if the clean one fails) and published, and Mission is
    told.  Returns the number of results published so far. */
 LOCAL uint32_t code_ended (bar_read_t * p_read, uint32_t seq)
 {
-    int32_t  idx;
-    uint32_t irq_state;
-    uint32_t seq_now = seq;
+    int32_t          idx;
+    uint32_t         irq_state;
+    uint32_t         seq_now   = seq;
+    bool             b_publish = false;
+    barcode_result_t result    = {0};
 
     APP_LOCK(irq_state);
     g_dbg_n = (uint8_t)p_read->count; /* <= MAX_ELEM (99): fits uint8_t */
@@ -1499,14 +1610,27 @@ LOCAL uint32_t code_ended (bar_read_t * p_read, uint32_t seq)
 
     if (p_read->count >= MIN_ELEM_REPORT)
     {
-        barcode_result_t result = {0};
+        b_publish = true;
 
         if ((!p_read->b_too_long) &&
-            (!decode_chain(p_read->elem, p_read->count, &result)))
+            (!decode_chain(p_read->elem, p_read->count, &result)) &&
+            (!decode_thin(p_read->elem, p_read->count, &result)))
         {
-            (void)decode_thin(p_read->elem, p_read->count, &result);
+            (void)decode_half(p_read->elem, p_read->count, &result);
         }
+    }
+    else if (p_read->count >= HALF_ELEMS)
+    {
+        /* too short for a whole code: published only as half a code */
+        b_publish = decode_half(p_read->elem, p_read->count, &result);
+    }
+    else
+    {
+        /* fewer: never a code */
+    }
 
+    if (b_publish)
+    {
         seq_now++;
         result.seq      = seq_now;
         result.elements = p_read->count;

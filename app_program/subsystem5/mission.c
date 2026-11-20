@@ -323,6 +323,20 @@ LOCAL void on_barcode (void)
         return;
     }
 
+    if (BAR_FIX_HALF == result.fixed)
+    {
+        /* half a code, one '*' never seen (20 Nov, team): reported, never
+           stored, so it cannot turn the robot */
+        tm_sprintf(msg,
+                   app_str("barcode %c%s (half code: one * missing) (narrow "
+                           "%d.%d mm, wide %d.%d mm) -> NOT USED"),
+                   result.letter, result.b_reversed ? " read backwards" : "",
+                   result.narrow_mm10 / 10, result.narrow_mm10 % 10,
+                   result.wide_mm10 / 10, result.wide_mm10 % 10);
+        say(msg);
+        return;
+    }
+
     /* A letter with no mapping is reported and ignored (20 Nov, team:
        carry on instead of stopping at the next junction; it does not
        replace a mapped letter still waiting for its junction either) */

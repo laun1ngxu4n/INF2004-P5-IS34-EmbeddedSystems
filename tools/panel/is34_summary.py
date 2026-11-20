@@ -26,7 +26,8 @@ DONE = re.compile(r"^bypass done.*?(?:heading (-?\d+) deg)?\S*$")
 HUMP = re.compile(r"^ramp peak height ([\d.]+) mm")
 MOVES = {"LEFT at next junction": "LEFT", "RIGHT at next junction": "RIGHT",
          "FORWARD at next junction": "STRAIGHT", "U-TURN at next junction": "U-TURN",
-         "NO MAPPING": "no mapping", "NO MAPPING, ignored": "no mapping (ignored, carried on)"}
+         "NO MAPPING": "no mapping", "NO MAPPING, ignored": "no mapping (ignored, carried on)",
+         "NOT USED": "not used (half code: one * missing)"}
 STOP_WORDS = ("stopped:", "lifted or tipped", "Safety:", "something in the way",
               "not answering")
 

@@ -399,6 +399,19 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   and no READ_FAIL**: the pieces were under 5 elements; junction 1 went
   FORWARD with no barcode. WiFi-loss warning flickered (faults=64) about a
   dozen times for under 1 s; the robot kept running.
+- **Added 20 Nov (team: "read it as a letter but do not act on it"), not
+  run yet: half codes.** Track 4's last runs read a clean `A*` (19
+  elements, narrow 4 / wide 13 mm): A's far end reads, its start is
+  clipped pass after pass (placement). When every decode fails, a letter
+  with one `*` beside it (the other never seen) is reported as `barcode A
+  (half code: one * missing) ... -> NOT USED`, with a beep, and never
+  stored, so it cannot turn the robot; only when exactly one letter fits;
+  19-element runs (under the 20 needed for a whole code) get this one
+  chance. The robot's C code on the PC over every logged failed or
+  dropped piece of 19+ elements (35): A 3 and B 1 as half codes (no B on
+  the track: why half codes are never used), Z, F, F as before;
+  random 19-29 element patterns: a half-code letter 0.1-0.9 %, a
+  whole-code letter 1 in 20 000 (29 elements, as before).
 - **20 Nov, track 4 with a big A and a small F (`subsystem5/logs/2026-11-20_track4_mission_10_robot.txt`, lone-patch branch rule):**
   ✅ F read and LEFT at junction 2 as mapped; ✅ no false `branch left`;
   ✅ box 116 / 120 mm, bypass back on the line (heading 1 deg). ❌ The big

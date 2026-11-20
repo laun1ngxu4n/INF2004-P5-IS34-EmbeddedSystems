@@ -399,6 +399,17 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   and no READ_FAIL**: the pieces were under 5 elements; junction 1 went
   FORWARD with no barcode. WiFi-loss warning flickered (faults=64) about a
   dozen times for under 1 s; the robot kept running.
+- **Changed 20 Nov (team: A was read as a half code and ignored; "option
+  3"), not run yet:** a half code is **acted on** when its letter is in the
+  mapping and both characters are clean (every wide at least 1.6 x the
+  widest narrow, `HALF_RATIO_X10`; a whole code needs 1.3): `barcode A (half
+  code: one * missing) ... -> LEFT at next junction`. Otherwise reported
+  only (`-> NOT USED`). The robot's C code on the PC, mapping A F D C, over
+  every logged failed or dropped piece (38): today's clean `A*` (ratios
+  2.15 / 2.72) acted on; two blurrier A's (1.57 / 1.56 on 15 Nov, 1.84 /
+  1.42) and the B reported only; random 19-29 element patterns acted on
+  0-0.02 %. Also: START now clears a bypass's 200 mm barcode-ignore window
+  (a STOP within 200 mm of a bypass left it open after START).
 - **Added 20 Nov (team: "read it as a letter but do not act on it"), not
   run yet: half codes.** Track 4's last runs read a clean `A*` (19
   elements, narrow 4 / wide 13 mm): A's far end reads, its start is

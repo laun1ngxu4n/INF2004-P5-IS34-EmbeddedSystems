@@ -162,8 +162,10 @@ How to run the tests: [TESTING_GUIDE.md](../../testing/TESTING_GUIDE.md).
   out about 190 deg with a plain 180 spin. No tape found in the search:
   back to the planned angle, "junction turn: no tape found".
 - **Half a code** (20 Nov): a letter with one `*` beside it, the other
-  `*` never seen, is reported (`half code: one * missing ... -> NOT USED`)
-  and never acted on: the robot carries on as if there was no barcode.
+  `*` never seen. Acted on like a whole code when the letter is mapped and
+  both characters are clean (every wide at least 1.6 x the widest narrow);
+  otherwise only reported (`-> NOT USED`) and the robot carries on as if
+  there was no barcode.
 - Letter not in the mapping: reported (`barcode E ... -> NO MAPPING, ignored`) and ignored; the robot carries on, and a mapped letter already waiting for its junction is kept (20 Nov; until then it stopped at the junction).
 - **Barcode close before a junction (8 Nov):** a code's letter only comes
   about 100 mm after the line sensors passed its last bar (B is 40 mm

@@ -269,6 +269,7 @@ LOCAL void start_run (void)
     g_mw.pending = 0;
     motion_follow_limit(0);
     barcode_reset();            /* nothing left over from before START */
+    barcode_ignore_mm(0);       /* nor a bypass's ignore window (20 Nov) */
     g_bar_seen = barcode_seq(); /* ... nor its last result */
     tk_clr_flg(gh_flg_mission, 0);
 
@@ -359,6 +360,8 @@ LOCAL void on_barcode (void)
                (BAR_FIX_STAR == result.fixed)     ? " (one * damaged)"
                : (BAR_FIX_MERGED == result.fixed) ? " (a lost bar put back)"
                : (BAR_FIX_CUT == result.fixed) ? " (a missing end bar put back)"
+               : (BAR_FIX_HALF_USED == result.fixed)
+                   ? " (half code: one * missing)"
                : (BAR_FIX_THIN == result.fixed) ? " (bars read thin, widened)"
                                                 : "",
                result.narrow_mm10 / 10, result.narrow_mm10 % 10,

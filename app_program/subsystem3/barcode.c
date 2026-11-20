@@ -1476,14 +1476,38 @@ LOCAL bool decode_thin (const int32_t * p_elem, int32_t count,
 
 /* Half a code (20 Nov, team): a letter and one '*' next to it, the other
    '*' never seen (track 4: B clipped the start of A pass after pass and
-   read a clean "A*", 19 elements).  Reported, never acted on
-   (BAR_FIX_HALF: Mission does not store it), so a wrong guess costs no
-   move; only when exactly one letter fits.  All the logs' failed and
+   read a clean "A*", 19 elements); only when exactly one letter fits.
+   Used like a whole code (BAR_FIX_HALF_USED) when the letter is mapped and
+   both characters are clean (HALF_RATIO_X10); otherwise only reported
+   (BAR_FIX_HALF: Mission does not store it).  All the logs' failed and
    dropped pieces of 19 or more elements: A 3, F 3, two letters fit 3
-   (refused), B 1 (no B on the track: why it is never acted on); random
-   19-25 element patterns: a letter in 0.16-0.46 %. */
-#define HALF_ELEMS 19               /* a letter, the gap, a '*' */
+   (refused), B 1 (not mapped: reported only); random 19-25 element
+   patterns: a letter in 0.16-0.46 %, a mapped one far fewer. */
+#define HALF_ELEMS 19 /* a letter, the gap, a '*' */
+/* Used, not only reported (20 Nov, team), when the letter is mapped and
+   both characters are clean: every wide at least this / 10 x the widest
+   narrow (a whole code needs S3_WIDE_RATIO_X10, 13).  A damaged letter has
+   in-between widths; the clean "A*" of track 4 had about 3. */
+#define HALF_RATIO_X10 16
 LOCAL int32_t g_half_rev[MAX_ELEM]; /* the barcode task only */
+
+/** true if the 9 elements at p_elem are clean: the narrowest of the 3
+   widest is at least HALF_RATIO_X10 / 10 x the widest of the other 6. */
+LOCAL bool half_clean (const int32_t * p_elem)
+{
+    int32_t sorted[C39_CHAR_ELEMS];
+    int32_t idx;
+
+    for (idx = 0; idx < C39_CHAR_ELEMS; idx++)
+    {
+        sorted[idx] = p_elem[idx];
+    }
+
+    sort_w(sorted, C39_CHAR_ELEMS);
+    /* ascending: 6 narrow, then 3 wide */
+    return (sorted[C39_CHAR_ELEMS - C39_WIDE_ELEMS] * 10) >=
+           (sorted[C39_CHAR_ELEMS - C39_WIDE_ELEMS - 1] * HALF_RATIO_X10);
+}
 
 /** A letter and a '*' side by side at p_elem (19 elements), the gap
    between them narrow: the letter, else 0.  Adds to the width sums. */
@@ -1529,6 +1553,7 @@ LOCAL bool decode_half (const int32_t * p_elem, int32_t count,
     int32_t wide_sum   = 0;
     uint8_t found      = 0;
     bool    b_reversed = false;
+    bool    b_clean    = false;
 
     if ((count < HALF_ELEMS) || (count > MAX_ELEM))
     {
@@ -1563,6 +1588,8 @@ LOCAL bool decode_half (const int32_t * p_elem, int32_t count,
                 narrow_sum = nar;
                 wide_sum   = wid;
                 b_reversed = (1 == pass);
+                b_clean    = (half_clean(&p_seq[off])) &&
+                             (half_clean(&p_seq[off + C39_CHAR_PITCH]));
             }
         }
     }
@@ -1575,7 +1602,10 @@ LOCAL bool decode_half (const int32_t * p_elem, int32_t count,
     p_result->b_ok       = true;
     p_result->letter     = found;
     p_result->b_reversed = b_reversed;
-    p_result->fixed      = BAR_FIX_HALF;
+    /* mapped and clean: used; otherwise reported only */
+    p_result->fixed = ((b_clean) && (barcode_move_for(found) != MOVE_NONE))
+                          ? BAR_FIX_HALF_USED
+                          : BAR_FIX_HALF;
     /* 2 chars of 6 narrow + 3 wide */
     p_result->narrow_mm10 =
         width_field(narrow_sum * S2_UM_PER_COUNT / 100 / 12);

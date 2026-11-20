@@ -1,0 +1,311 @@
+P5-IS34 robot log, 20 Nov 2026, Mission WiFi image (commit 8fe1b49: widths from B's own travel, steering free over bars), sample track 4. Z read (5.8 / 17.0 mm); the A barcode never read: 5 READ_FAILs with narrow bars 1.5-3.5 mm and lost bars (a lost-bar repair with no width check gives B, A, 1 or 8: ambiguous). Run 5 stopped 'both line sensors black for 15 cm': all three sensors black with the robot tilting (a dark object under the sensors). Panel run summary appended. Hotspot name blanked.
+
+
+microT-Kernel Version 3.00
+
+
+=== micro T-Kernel on Raspberry Pi Pico W (spec 0x6300, product 0x0003) ===
+single-core build
+P5-IS34 mission image. Kernel tick 10 ms
+all subsystems started
+
+wifi: cyw43_utk_task starting (proc 1)
+wifi: cyw43_init() ...
+wifi: cyw43_init() returned, bringing interface up ...
+[IMU] LSM303D found at 0x1D
+wifi: joining "(hotspot)" ...
+wifi: link status -> joined AP, waiting for IP (1)
+wifi: link status -> joined AP, no IP yet (2)
+wifi: link up, ip=10.67.161.102
+mqtt: no answer from 10.67.161.225 in 15s, trying again
+mqtt: connected to 10.67.161.225
+mqtt: subscribed to mtk3smp-pico/heartbeat
+mqtt: subscribed to mtk3smp-pico/heartbeat
+mqtt: TX [mtk3smp-pico/heartbeat] "hb 0" (heartbeat every 5 s, not printed)
+mqtt: RX [mtk3smp-pico/heartbeat] "hb 0"
+mqtt: RX [is34/cmd/map] ".F@."
+[MQTT] map: OK F=L,A=R,D=F,C=U
+mqtt: RX [is34/cmd/start] ""
+[MQTT] start
+[EVT] start
+[S3] barcode: black from 1500, step 700
+[tmg] t=60136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |    600   0 | 52.15-147.93 (147.93 @ 0.6) | 219 (219)
+[tmg] motion     6  10 |   5989  11 | 2.54-127.53 (127.53 @ 0.6) | 193 (193)
+[tmg] line       8  20 |   2995   5 | 12.51-127.67 (127.67 @ 0.6) | 99 (99)
+[tmg] barcode   10  10 |   2995   0 | 12.32-137.75 (137.75 @ 0.6) | 14 (14)
+[tmg] safety     5  20 |   2995   5 | 12.70-127.47 (127.47 @ 0.6) | 67 (67)
+[tmg] imu        9  10 |   5989  11 | 2.32-127.73 (127.73 @ 0.6) | 699 (699)
+[tmg] mission    7 100 |    588   0 | 10.63-1148.89 (1148.89 @ 46.3) | 1038899 (1038899)
+[tmg] obstacle  11  60 |    999   1 | 52.16-127.89 (127.89 @ 0.6) | 51 (51)
+[EVT] barcode READ_FAIL (27 elements)
+[S3] READ_FAIL widths (mm): 3.2 11.0 6.9 4.3 13.1 5.4 11.7 6.0 4.1 4.0 13.0 2.9 1.5 12.0 3.3 4.9 11.8 4.4 3.6 13.3 3.8 4.9 12.2 4.9 11.1 6.4 2.7
+[EVT] junction 1 (crossing): FORWARD (barcode -)
+mqtt: RX [is34/cmd/stop] ""
+[MQTT] stop
+[EVT] STOP
+[tmg] t=120136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |   1200   0 | 98.48-101.47 (147.93 @ 0.6) | 2621 (2621)
+[tmg] motion     6  10 |  11989  11 | 8.52-11.51 (127.53 @ 0.6) | 198 (198)
+[tmg] line       8  20 |   5995   5 | 18.40-21.60 (127.67 @ 0.6) | 527 (527)
+[tmg] barcode   10  10 |   5995   0 | 18.25-21.79 (137.75 @ 0.6) | 1570 (1570)
+[tmg] safety     5  20 |   5995   5 | 18.56-21.43 (127.47 @ 0.6) | 63 (67)
+[tmg] imu        9  10 |  11989  11 | 8.33-11.74 (127.73 @ 0.6) | 650 (699)
+[tmg] mission    7 100 |   1188   0 | 10.61-111.57 (1148.89 @ 46.3) | 822 (1038899)
+[tmg] obstacle  11  60 |   1999   1 | 58.28-61.69 (127.89 @ 0.6) | 47 (51)
+[tmg] t=180136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |   1800   0 | 98.71-101.33 (147.93 @ 0.6) | 2647 (2647)
+[tmg] motion     6  10 |  17989  11 | 8.54-11.49 (127.53 @ 0.6) | 78 (198)
+[tmg] line       8  20 |   8995   5 | 18.48-21.53 (127.67 @ 0.6) | 56 (527)
+[tmg] barcode   10  10 |   8995   0 | 18.32-21.70 (137.75 @ 0.6) | 16 (1570)
+[tmg] safety     5  20 |   8995   5 | 18.58-21.42 (127.47 @ 0.6) | 67 (67)
+[tmg] imu        9  10 |  17989  11 | 8.42-11.62 (127.73 @ 0.6) | 663 (699)
+[tmg] mission    7 100 |   1788   0 | 10.64-111.53 (1148.89 @ 46.3) | 11 (1038899)
+[tmg] obstacle  11  60 |   2999   1 | 58.42-61.50 (127.89 @ 0.6) | 48 (51)
+mqtt: RX [is34/cmd/map] "..A."
+[MQTT] map: OK G=L,F=R,D=F,C=U
+[S3] short run dropped (7 elements), widths (mm): 5.2 5.6 17.1 5.1 15.2 8.3 5254.4
+mqtt: RX [is34/cmd/start] ""
+[MQTT] start
+[EVT] start
+[S3] barcode: black from 1500, step 700
+[EVT] barcode READ_FAIL (25 elements)
+[S3] READ_FAIL widths (mm): 1.7 8.6 13.8 9.6 13.6 10.8 1.8 20.4 3.2 8.5 3.1 8.6 3.0 21.2 12.6 10.4 13.7 20.4 2.8 9.0 13.9 9.6 13.3 32.8 3.2
+[EVT] junction 2 (crossing): FORWARD (barcode -)
+[EVT] barcode READ_FAIL (25 elements)
+[S3] READ_FAIL widths (mm): 13.0 10.3 12.8 39.6 1.7 9.1 10.7 16.9 12.9 9.9 1.9 10.0 1.4 10.0 1.8 15.2 1.6 10.0 12.8 10.9 12.7 16.6 1.5 21.2 1.9
+[tmg] t=240136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |   2400   0 | 97.48-102.28 (147.93 @ 0.6) | 2603 (2647)
+[tmg] motion     6  10 |  23989  11 | 7.55-12.50 (127.53 @ 0.6) | 209 (209)
+[tmg] line       8  20 |  11995   5 | 17.47-22.53 (127.67 @ 0.6) | 132 (527)
+[tmg] barcode   10  10 |  11995   0 | 17.27-22.76 (137.75 @ 0.6) | 1080 (1570)
+[tmg] safety     5  20 |  11995   5 | 17.58-22.42 (127.47 @ 0.6) | 72 (72)
+[tmg] imu        9  10 |  23989  11 | 7.47-12.63 (127.73 @ 0.6) | 672 (699)
+[tmg] mission    7 100 |   2369   0 | 10.65-1147.95 (1148.89 @ 46.3) | 1037956 (1038899)
+[tmg] obstacle  11  60 |   3999   1 | 58.31-61.62 (127.89 @ 0.6) | 44 (51)
+[EVT] junction 3 (crossing): FORWARD (barcode -)
+[EVT] obstacle ahead at 169 mm: scanning
+[SCAN] rays (deg:mm, -1 = open, -2 = no ECHO): -40:2172 -35:2172 -30:178 -25:161 -20:156 -15:154 -10:150 -5:155 0:150 5:150 10:150 15:158 20:154 25:155 30:154 35:154 40:154
+[EVT] obstacle width 115 +/- 17 mm (scan 1: 115 +/- 17, scan 2: 115 +/- 17); edges L 53 R -62 mm; front 150 mm
+[EVT] bypass LEFT: planned width 150 mm, out 256 mm, past 600 mm
+[EVT] line found 99 mm after the last turn
+mqtt: RX [is34/cmd/stop] ""
+[MQTT] stop
+[EVT] stopped: bypass step did not finish (press START to go again)
+[tmg] t=300136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |   3000   0 | 98.45-101.71 (147.93 @ 0.6) | 2686 (2686)
+[tmg] motion     6  10 |  29989  11 | 7.97-12.07 (127.53 @ 0.6) | 311 (311)
+[tmg] line       8  20 |  14995   5 | 17.85-22.21 (127.67 @ 0.6) | 546 (546)
+[tmg] barcode   10  10 |  14995   0 | 17.68-22.36 (137.75 @ 0.6) | 23 (1570)
+[tmg] safety     5  20 |  14995   5 | 18.02-22.00 (127.47 @ 0.6) | 71 (72)
+[tmg] imu        9  10 |  29989  11 | 7.83-12.28 (127.73 @ 0.6) | 648 (699)
+[tmg] mission    7 100 |   2739   0 | 0.69-23269.71 (23269.71 @ 278.4) | 23269672 (23269672)
+[tmg] obstacle  11  60 |   4999   1 | 57.62-62.34 (127.89 @ 0.6) | 85 (85)
+[tmg] t=360136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |   3600   0 | 98.78-101.21 (147.93 @ 0.6) | 2617 (2686)
+[tmg] motion     6  10 |  35989  11 | 8.51-11.53 (127.53 @ 0.6) | 67 (311)
+[tmg] line       8  20 |  17995   5 | 18.47-21.54 (127.67 @ 0.6) | 64 (546)
+[tmg] barcode   10  10 |  17995   0 | 18.30-21.72 (137.75 @ 0.6) | 6 (1570)
+[tmg] safety     5  20 |  17995   5 | 18.55-21.46 (127.47 @ 0.6) | 48 (72)
+[tmg] imu        9  10 |  35989  11 | 8.42-11.63 (127.73 @ 0.6) | 652 (699)
+[tmg] mission    7 100 |   3339   0 | 10.64-111.29 (23269.71 @ 278.4) | 12 (23269672)
+[tmg] obstacle  11  60 |   5999   1 | 58.41-61.53 (127.89 @ 0.6) | 44 (85)
+[tmg] t=420136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |   4200   0 | 98.79-101.25 (147.93 @ 0.6) | 2609 (2686)
+[tmg] motion     6  10 |  41989  11 | 8.60-11.43 (127.53 @ 0.6) | 59 (311)
+[tmg] line       8  20 |  20995   5 | 18.68-21.42 (127.67 @ 0.6) | 66 (546)
+[tmg] barcode   10  10 |  20995   0 | 18.49-21.58 (137.75 @ 0.6) | 5 (1570)
+[tmg] safety     5  20 |  20995   5 | 18.75-21.36 (127.47 @ 0.6) | 60 (72)
+[tmg] imu        9  10 |  41989  11 | 8.50-11.54 (127.73 @ 0.6) | 649 (699)
+[tmg] mission    7 100 |   3939   0 | 10.64-111.09 (23269.71 @ 278.4) | 12 (23269672)
+[tmg] obstacle  11  60 |   6999   1 | 58.47-61.51 (127.89 @ 0.6) | 44 (85)
+
+[panel: the robot restarted]
+
+
+microT-Kernel Version 3.00
+
+
+=== micro T-Kernel on Raspberry Pi Pico W (spec 0x6300, product 0x0003) ===
+single-core build
+P5-IS34 mission image. Kernel tick 10 ms
+all subsystems started
+
+wifi: cyw43_utk_task starting (proc 1)
+wifi: cyw43_init() ...
+wifi: cyw43_init() returned, bringing interface up ...
+[IMU] LSM303D found at 0x1D
+wifi: joining "(hotspot)" ...
+wifi: link status -> joined AP, waiting for IP (1)
+wifi: link status -> joined AP, no IP yet (2)
+wifi: link up, ip=10.67.161.102
+mqtt: connected to 10.67.161.225
+mqtt: subscribed to mtk3smp-pico/heartbeat
+mqtt: subscribed to mtk3smp-pico/heartbeat
+
+[panel: the robot restarted]
+
+
+microT-Kernel Version 3.00
+
+
+=== micro T-Kernel on Raspberry Pi Pico W (spec 0x6300, product 0x0003) ===
+single-core build
+P5-IS34 mission image. Kernel tick 10 ms
+all subsystems started
+
+wifi: cyw43_utk_task starting (proc 1)
+wifi: cyw43_init() ...
+wifi: cyw43_init() returned, bringing interface up ...
+[IMU] LSM303D found at 0x1D
+wifi: joining "(hotspot)" ...
+wifi: link status -> joined AP, waiting for IP (1)
+wifi: link status -> FAILED (association failure) (-1)
+wifi: joining "(hotspot)" ...
+wifi: link status -> joined AP, waiting for IP (1)
+wifi: link status -> joined AP, no IP yet (2)
+wifi: link up, ip=10.67.161.102
+mqtt: connected to 10.67.161.225
+mqtt: subscribed to mtk3smp-pico/heartbeat
+mqtt: subscribed to mtk3smp-pico/heartbeat
+mqtt: RX [is34/cmd/map] "..A."
+[MQTT] map: OK A=L,F=R,D=F,C=U
+mqtt: TX [mtk3smp-pico/heartbeat] "hb 0" (heartbeat every 5 s, not printed)
+mqtt: RX [mtk3smp-pico/heartbeat] "hb 0"
+[S3] short run dropped (17 elements), widths (mm): 1.7 13.7 4.0 4.4 12.0 5.2 11.7 5.0 3.6 4.4 6.8 33.2 1.9 13.2 3.4 4.7 5236.4
+mqtt: RX [is34/cmd/start] ""
+[MQTT] start
+[EVT] start
+[S3] barcode: black from 1500, step 700
+[EVT] barcode READ_FAIL (21 elements)
+[S3] READ_FAIL widths (mm): 2.7 4.5 6.4 11.6 10.4 7.6 1.8 7.2 10.2 6.0 2.4 6.1 2.7 14.3 2.8 6.0 11.1 34.5 9.0 8.8 8.0
+mqtt: RX [is34/cmd/stop] ""
+[MQTT] stop
+[EVT] STOP
+mqtt: RX [is34/cmd/stop] ""
+[MQTT] stop
+[tmg] t=60136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |    600   0 | 52.18-147.92 (147.92 @ 0.6) | 250 (250)
+[tmg] motion     6  10 |   5989  11 | 2.57-127.51 (127.51 @ 0.6) | 213 (213)
+[tmg] line       8  20 |   2995   5 | 12.54-127.66 (127.66 @ 0.6) | 144 (144)
+[tmg] barcode   10  10 |   2995   0 | 12.37-137.72 (137.72 @ 0.6) | 866 (866)
+[tmg] safety     5  20 |   2995   5 | 12.73-127.44 (127.44 @ 0.6) | 71 (71)
+[tmg] imu        9  10 |   5989  11 | 2.35-127.71 (127.71 @ 0.6) | 688 (688)
+[tmg] mission    7 100 |    586   0 | 10.61-1039.80 (1039.80 @ 48.1) | 1039067 (1039067)
+[tmg] obstacle  11  60 |    999   1 | 52.19-127.87 (127.87 @ 0.6) | 52 (52)
+[EVT] ramp peak height 33.5 mm (one wheel: side tilt sin 433/1000 x T x 0.63; from the nose-down tilt 33.8 mm)
+mqtt: RX [is34/cmd/start] ""
+[MQTT] start
+[EVT] start
+[S3] barcode: black from 1500, step 700
+[EVT] barcode READ_FAIL (27 elements)
+[S3] READ_FAIL widths (mm): 3.0 13.0 4.1 4.0 11.4 6.0 9.6 8.6 2.5 5.6 11.9 5.8 3.2 23.5 2.4 6.0 10.8 6.2 1.9 15.1 2.2 5.4 11.6 5.3 11.5 6.2 2.8
+[EVT] junction 2 (crossing): FORWARD (barcode -)
+[EVT] ramp peak height 8.2 mm (one wheel: side tilt sin 106/1000 x T x 0.63; from the nose-down tilt 28.6 mm)
+[EVT] barcode Z read backwards (narrow 5.8 mm, wide 17.0 mm) -> NO MAPPING, ignored
+
+[panel: 1 log messages lost on the WiFi]
+[tmg] t=120136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |   1200   0 | 98.60-101.40 (147.92 @ 0.6) | 2614 (2614)
+[tmg] motion     6  10 |  11989  11 | 8.00-12.04 (127.51 @ 0.6) | 215 (215)
+[tmg] line       8  20 |   5995   5 | 17.72-22.32 (127.66 @ 0.6) | 560 (560)
+[tmg] barcode   10  10 |   5995   0 | 17.59-22.34 (137.72 @ 0.6) | 1319 (1319)
+[tmg] safety     5  20 |   5995   5 | 18.06-21.97 (127.44 @ 0.6) | 84 (84)
+[tmg] imu        9  10 |  11989  11 | 7.63-12.45 (127.71 @ 0.6) | 1028 (1028)
+[tmg] mission    7 100 |   1175   0 | 10.61-1147.98 (1147.98 @ 76.8) | 1037972 (1039067)
+[tmg] obstacle  11  60 |   1999   1 | 57.51-62.35 (127.87 @ 0.6) | 49 (52)
+mqtt: RX [is34/cmd/map] "..A."
+[MQTT] map: OK A=L,F=R,D=F,C=U
+mqtt: RX [is34/cmd/start] ""
+[MQTT] start
+[EVT] start
+[S3] barcode: black from 1500, step 700
+[EVT] junction 3 (crossing): FORWARD (barcode -)
+[EVT] stopped: both line sensors black for 15 cm (stuck, or a wide black area) (press START to go again)
+[tmg] t=180136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |   1800   0 | 98.69-101.30 (147.92 @ 0.6) | 2705 (2705)
+[tmg] motion     6  10 |  17989  11 | 8.49-11.55 (127.51 @ 0.6) | 203 (215)
+[tmg] line       8  20 |   8995   5 | 18.40-21.61 (127.66 @ 0.6) | 579 (579)
+[tmg] barcode   10  10 |   8995   0 | 18.25-21.77 (137.72 @ 0.6) | 58 (1319)
+[tmg] safety     5  20 |   8995   5 | 18.52-21.48 (127.44 @ 0.6) | 86 (86)
+[tmg] imu        9  10 |  17989  11 | 8.29-11.75 (127.71 @ 0.6) | 650 (1028)
+[tmg] mission    7 100 |   1755   0 | 10.62-1148.95 (1148.95 @ 144.0) | 1079918 (1079918)
+[tmg] obstacle  11  60 |   2999   1 | 58.20-61.76 (127.87 @ 0.6) | 55 (55)
+[tmg] t=240136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |   2400   0 | 98.81-101.20 (147.92 @ 0.6) | 2625 (2705)
+[tmg] motion     6  10 |  23989  11 | 8.77-11.28 (127.51 @ 0.6) | 78 (215)
+[tmg] line       8  20 |  11995   5 | 18.74-21.28 (127.66 @ 0.6) | 68 (579)
+[tmg] barcode   10  10 |  11995   0 | 18.59-21.44 (137.72 @ 0.6) | 21 (1319)
+[tmg] safety     5  20 |  11995   5 | 18.83-21.21 (127.44 @ 0.6) | 55 (86)
+[tmg] imu        9  10 |  23989  11 | 8.65-11.40 (127.71 @ 0.6) | 649 (1028)
+[tmg] mission    7 100 |   2355   0 | 10.64-111.19 (1148.95 @ 144.0) | 10 (1079918)
+[tmg] obstacle  11  60 |   3999   1 | 58.54-61.49 (127.87 @ 0.6) | 49 (55)
+[tmg] t=300136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |   3000   0 | 98.84-101.17 (147.92 @ 0.6) | 2610 (2705)
+[tmg] motion     6  10 |  29989  11 | 8.52-11.52 (127.51 @ 0.6) | 81 (215)
+[tmg] line       8  20 |  14995   5 | 18.47-21.52 (127.66 @ 0.6) | 69 (579)
+[tmg] barcode   10  10 |  14995   0 | 18.30-21.69 (137.72 @ 0.6) | 21 (1319)
+[tmg] safety     5  20 |  14995   5 | 18.55-21.45 (127.44 @ 0.6) | 54 (86)
+[tmg] imu        9  10 |  29989  11 | 8.41-11.65 (127.71 @ 0.6) | 659 (1028)
+[tmg] mission    7 100 |   2955   0 | 10.66-111.02 (1148.95 @ 144.0) | 10 (1079918)
+[tmg] obstacle  11  60 |   4999   1 | 58.26-61.74 (127.87 @ 0.6) | 49 (55)
+
+---- panel run summary ----
+Run 1, started 16:34:21   mapping: F=L,A=R,D=F,C=U -> G=L,F=R,D=F,C=U (at 16:36:39)
+  Barcodes:
+    1 failed read(s) (READ_FAIL)
+  Junctions:
+    16:34:47  1 (crossing): FORWARD  (barcode -)
+  Obstacles:
+    none
+  Hump: none reported
+  Stops:
+    16:34:52  STOP
+
+Run 2, started 16:36:55   mapping: G=L,F=R,D=F,C=U -> A=L,F=R,D=F,C=U (at 16:46:48)
+  Barcodes:
+    1 failed read(s) (READ_FAIL)
+  Junctions:
+    16:37:09  2 (crossing): FORWARD  (barcode -)
+    16:37:50  3 (crossing): FORWARD  (barcode -)
+  Obstacles:
+    16:37:51  tripped at 169 mm, width 115 +/- 17 mm, front 150 mm at the scan, scan took 6 s
+      bypass LEFT out 256 mm, past 600 mm, line found 99 mm after the last turn
+  Hump: none reported
+  Stops:
+    16:38:12  stopped: bypass step did not finish
+
+Run 3, started 16:47:16   mapping: A=L,F=R,D=F,C=U
+  Barcodes:
+    1 failed read(s) (READ_FAIL)
+  Junctions:
+    none
+  Obstacles:
+    none
+  Hump: 33.5 mm   (peak 33.5 mm)
+  Stops:
+    16:47:26  STOP
+
+Run 4, started 16:47:45   mapping: A=L,F=R,D=F,C=U
+  Barcodes:
+    16:48:21  Z -> no mapping (ignored, carried on)   (read backwards, narrow 5.8 mm, wide 17.0 mm)
+    1 failed read(s) (READ_FAIL)
+  Junctions:
+    16:47:55  2 (crossing): FORWARD  (barcode -)
+  Obstacles:
+    none
+  Hump: 8.2 mm   (peak 8.2 mm)
+  Stops:
+    none
+
+Run 5, started 16:48:56   mapping: A=L,F=R,D=F,C=U
+  Barcodes:
+    none read
+  Junctions:
+    16:49:01  3 (crossing): FORWARD  (barcode -)
+  Obstacles:
+    none
+  Hump: none reported
+  Stops:
+    16:49:13  stopped: both line sensors black for 15 cm (stuck, or a wide black area)
+

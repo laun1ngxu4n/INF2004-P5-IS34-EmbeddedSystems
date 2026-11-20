@@ -399,6 +399,17 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   and no READ_FAIL**: the pieces were under 5 elements; junction 1 went
   FORWARD with no barcode. WiFi-loss warning flickered (faults=64) about a
   dozen times for under 1 s; the robot kept running.
+- **20 Nov, track 4, Mission run 9 (`subsystem5/logs/2026-11-20_track4_mission_9_robot.txt`, steering free over bars):**
+  ✅ Z read (narrow 5.8, wide 17.0 mm). ❌ **The A barcode never read**:
+  5 READ_FAILs, its narrow bars 1.5-3.5 mm (Z's 5.8) with bars lost; one
+  27-element read is `*A*` with one thin bar lost, but the gap it left is
+  12 mm, not the ~20 the lost-bar repair expects; with no width check,
+  putting a bar back anywhere gives B, A, 1 or 8 (another read Z or 0):
+  ambiguous, so it must not be guessed. Same thin-bar loss as before the
+  change (run 8): the A print's bars are thinner or fainter. ❌ Run 5
+  stopped `both line sensors black for 15 cm`: L, R and B all black for
+  about 4 s with the robot tilting (a dark object under the sensors, e.g.
+  the black hump on the line rather than beside it).
 - **Changed 20 Nov (after run 8, team: "it readjusts during the barcode
   reading, which messes it up"), not run yet:** bar widths are measured
   with the barcode sensor's own travel, from the two wheels

@@ -17,7 +17,7 @@ checked that the board allows it.
 |---|---|---|
 | Stages 1-4 tests (they print the results) | **Laptop USB only**, long cable, laptop follows the robot | the log is on USB. The motors run on USB 5 V (bring-up motor and STOP tests ran on laptop USB); slower, but the speed controller makes up for it |
 | Stage 5-6 / demo (results over WiFi) | **Power bank on VIN only**, no USB | results arrive on the PC over MQTT |
-| **Any stage over WiFi** (`images/wifi/is34_test_stageN_wifi.uf2`, since 7 Nov) | **Power bank on VIN only**, no USB | the whole log arrives in the panel's **Robot log** tab; "Save log..." writes it to a file. START / STOP on the panel answer the test prompts too |
+| **Any stage over WiFi** (`images/wifi/is34_test_stageN_wifi.uf2`, since 7 Nov) | **Power bank on VIN only**, no USB | the whole log arrives in the panel's **Robot log** tab; "Save log + summary" writes it and the **Run summary** to files in `logs/robot/`. START / STOP on the panel answer the test prompts too |
 
 If the robot is too weak on USB for a test, run that test on the power
 bank and read the result from the robot's behaviour, or move on to the
@@ -376,9 +376,13 @@ line found after every manoeuvre.
    panel's **Robot log** tab shows the same text as the USB console, from
    boot on (the robot keeps 8 KB until the WiFi is up). Prompts that say
    "press START" also take START on the panel; the Stage 2 "run it / skip
-   it" questions take START / STOP on the panel. **Save log...** writes
-   everything since the last **Clear** to a text file: send that file. It
-   is also saved as it arrives to `tools/is34_<date>_<time>_robot.txt`.
+   it" questions take START / STOP on the panel. **Save log + summary**
+   writes everything since the last **Clear** to
+   `logs/robot/robot_log_<date>_<time>.txt`, and the **Run summary** tab
+   (since 20 Nov: per START, the barcodes read, junction moves, each
+   obstacle's width, scan time and bypass, hump heights, stops) to
+   `robot_summary_<date>_<time>.txt` next to it: send both. The log is
+   also saved as it arrives to `logs/robot/is34_<date>_<time>_robot.txt`.
    Lines `[panel: N log messages lost on the WiFi]` or `[panel: the
    robot dropped N bytes]` mark gaps (WiFi drop-outs, or a burst bigger
    than the robot's buffer). Stage 2C and 6 over WiFi wait for a mapping
@@ -394,7 +398,8 @@ On the laptop first: `python tools/panel/test_wire.py` (needs gcc) must
 print PASS. Then on the robot, the extra tests in
 [CHANGE_REQ1.md](../docs/team/CHANGE_REQ1.md) section 7.2:
 
-- timing tables of a full run with the normal image and with an
+- timing tables of a full run (at least 1 min: the normal and Mission
+  images print the table once a minute since 20 Nov) with the normal image and with an
   `APP_PACKED=0` image;
 - the WiFi switched off during line following (keeps going);
 - STOP at the end of a quick START/STOP burst (stays stopped);

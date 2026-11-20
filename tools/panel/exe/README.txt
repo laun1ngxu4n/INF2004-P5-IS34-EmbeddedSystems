@@ -11,8 +11,9 @@ On a laptop that has never run it:
 3. Double-click is34_panel.exe. It starts the broker on port 1884. When
    Windows asks, ALLOW mosquitto.exe through the firewall (private
    network), or the robot cannot reach it.
-4. Logs it saves go to logs\ next to the .exe; the last mapping to
-   is34_panel_mapping.txt next to it.
+4. Logs it saves go to logs\ next to the .exe ("Save log + summary":
+   the robot's log and the Run summary tab, one file each); the last
+   mapping to is34_panel_mapping.txt next to it.
 
 IMPORTANT: the robot's WiFi image has the broker's IP address built in
 (config/wifi_secrets.h, MQTT_BROKER_IP: the laptop it was built for).

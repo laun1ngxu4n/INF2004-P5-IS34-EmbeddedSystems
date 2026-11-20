@@ -24,10 +24,16 @@
 
 #include "../app.h"
 
-/* timing table every 100 x 100 ms = 10 s. Printing it every 1 s delayed
- * every task by ~12 ms now and then (26 Oct): keep USB output small, see
- * TEAM.md section 4 */
+/* timing table every 100 x 100 ms = 10 s in the test images (the timing
+ * evidence). Printing it every 1 s delayed every task by ~12 ms now and then
+ * (26 Oct): keep USB output small, see TEAM.md section 4.  Mission and
+ * normal images: every 600 x 100 ms = 1 min (20 Nov, team: its ~10 lines
+ * every 10 s drowned the events in the robot log). */
+#if APP_TEST
 #define S1_REPORT_TICKS 100
+#else
+#define S1_REPORT_TICKS 600
+#endif
 #define S1_PING_TICKS   10 /* IF-01 ping every 10 x 100 ms = 1 s */
 #define S1_STATUS_TICKS 10 /* is34/telemetry every 1 s */
 #define S1_SENSOR_TICKS 5  /* is34/sensors every 0.5 s (laptop panel) */

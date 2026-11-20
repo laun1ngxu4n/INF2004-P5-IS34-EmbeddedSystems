@@ -47,6 +47,7 @@ from tkinter import ttk
 import paho.mqtt.client as mqtt
 
 import is34_wire as wire
+import is34_summary as summ
 
 if getattr(sys, "frozen", False):
     # The packaged is34_panel.exe (tools/panel/build_exe.bat): its files are
@@ -188,6 +189,7 @@ class Panel:
         self.robot_dropped = 0
         self.robot_lost = 0             # messages lost on the WiFi
         self.robot_lines = 0
+        self.summary = summ.Summary()   # the results that matter, per run
 
         root.title("P5-IS34 robot panel")
         root.minsize(620, 520)
@@ -305,6 +307,24 @@ class Panel:
 
         nb = ttk.Notebook(self.root)
         nb.pack(fill="both", expand=True, padx=8, pady=(0, 8))
+        # Run summary (20 Nov): the barcodes, junctions, obstacles, bypasses,
+        # humps and stops of each run, picked out of the events, which the
+        # robot's timing lines and scraps of bars otherwise drown
+        rs = ttk.Frame(nb, padding=4)
+        nb.add(rs, text="Run summary")
+        bar0 = ttk.Frame(rs)
+        bar0.pack(fill="x", pady=(0, 4))
+        ttk.Button(bar0, text="Save log + summary", command=self.save_robot_log).pack(side="left")
+        ttk.Button(bar0, text="Clear", command=self.clear_summary).pack(side="left", padx=4)
+        ttk.Label(bar0, text="each START begins a new block").pack(side="left", padx=8)
+        self.sum_text = tk.Text(rs, height=12, state="disabled", font=("Consolas", 10),
+                                wrap="none")
+        sb0 = ttk.Scrollbar(rs, command=self.sum_text.yview)
+        self.sum_text.configure(yscrollcommand=sb0.set)
+        sb0.pack(side="right", fill="y")
+        self.sum_text.pack(fill="both", expand=True)
+        self._show_summary()
+
         ev = ttk.Frame(nb, padding=4)
         nb.add(ev, text="Events")
         self.events = tk.Text(ev, height=12, state="disabled", font=("Consolas", 10))
@@ -317,7 +337,7 @@ class Panel:
         nb.add(rl, text="Robot log")
         bar = ttk.Frame(rl)
         bar.pack(fill="x", pady=(0, 4))
-        ttk.Button(bar, text="Save log", command=self.save_robot_log).pack(side="left")
+        ttk.Button(bar, text="Save log + summary", command=self.save_robot_log).pack(side="left")
         ttk.Button(bar, text="Clear", command=self.clear_robot_log).pack(side="left", padx=4)
         self.follow_var = tk.BooleanVar(value=True)
         ttk.Checkbutton(bar, text="follow", variable=self.follow_var).pack(side="left", padx=4)
@@ -449,20 +469,42 @@ class Panel:
         self.publish("is34/cmd/map", payload, shown=f"{text} = {payload.hex(' ')}")
 
     def save_robot_log(self):
-        if not self.robot_text:
-            self.add_event("panel", "robot log is empty, nothing saved")
-            return
         # Saved straight away, no file dialog (15 Nov: the dialog did not
-        # appear and nothing was saved). One file per press, in logs/robot.
+        # appear and nothing was saved). One pair of files per press, in
+        # logs/robot: the robot's log and the run summary (20 Nov).
+        stamp = time.strftime("%Y%m%d_%H%M%S")
+        saved = []
         try:
             os.makedirs(ROBOT_DIR, exist_ok=True)
-            path = os.path.join(ROBOT_DIR, time.strftime("robot_log_%Y%m%d_%H%M%S.txt"))
-            with open(path, "w", encoding="utf-8") as f:
-                f.write("".join(self.robot_text))
+            if self.robot_text:
+                path = os.path.join(ROBOT_DIR, f"robot_log_{stamp}.txt")
+                with open(path, "w", encoding="utf-8") as f:
+                    f.write("".join(self.robot_text))
+                saved.append(path)
+            if self.summary.runs:
+                path = os.path.join(ROBOT_DIR, f"robot_summary_{stamp}.txt")
+                with open(path, "w", encoding="utf-8") as f:
+                    f.write(self.summary.text())
+                saved.append(path)
         except OSError as err:
-            self.add_event("panel", f"robot log NOT saved: {err}")
+            self.add_event("panel", f"log NOT saved: {err}")
             return
-        self.add_event("panel", f"robot log saved: {path}")
+        if not saved:
+            self.add_event("panel", "robot log and summary are empty, nothing saved")
+            return
+        for path in saved:
+            self.add_event("panel", f"saved: {path}")
+
+    def clear_summary(self):
+        self.summary.clear()
+        self._show_summary()
+
+    def _show_summary(self):
+        self.sum_text.configure(state="normal")
+        self.sum_text.delete("1.0", "end")
+        self.sum_text.insert("end", self.summary.text())
+        self.sum_text.see("end")
+        self.sum_text.configure(state="disabled")
 
     def clear_robot_log(self):
         self.robot_text = []
@@ -592,8 +634,13 @@ class Panel:
                 good = text.startswith("OK")
             self.ack_lbl.configure(text=text, foreground="#2a9d3a" if good else "#b00020")
             self.add_event("robot", f"mapping: {text}")
+            if good:
+                self.summary.set_mapping(text[len("OK "):] if text.startswith("OK ") else text)
+                self._show_summary()
         elif topic == "is34/event":
             self.add_event("robot", text)
+            if self.summary.feed(text):
+                self._show_summary()
         elif topic == "is34/log":
             self._robot_log(text)
         elif not topic.startswith("is34/cmd/"):     # our own commands are echoed back

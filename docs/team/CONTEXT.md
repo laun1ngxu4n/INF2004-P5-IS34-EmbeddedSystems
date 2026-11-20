@@ -123,7 +123,7 @@ speed 0 is now refused (it was undefined behaviour; nothing passes 0).
 | imu_task (S4) | 9 | 10 ms | LSM303D over I2C1, pitch, ramp height |
 | barcode_task (S3) | 10 | 10 ms timeout | edge ring -> Code 39 decode, mapping |
 | obstacle_task (S5) | 11 | 60 ms | forward ping watch; the profiling scan runs in Mission's call |
-| telemetry_task (S1) | 12 | 100 ms | status line 1 s, IF-01 ping, timing table every 10 s |
+| telemetry_task (S1) | 12 | 100 ms | status line 1 s, IF-01 ping, timing table every 10 s (test images; Mission and normal images every 1 min since 20 Nov) |
 
 - Shared helpers (whole team): `app_lock.h` (the one lock),
   `app_timing.[ch]` (per-task timing table), `app_gpio.[ch]` (the one GPIO

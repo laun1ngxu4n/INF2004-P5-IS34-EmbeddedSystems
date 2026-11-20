@@ -65,7 +65,9 @@
    BACK to 700 the same day: driving over the code with 700 / 300 gave
    only 7-element pieces of even 6-7 mm blobs (neighbouring thin bars and
    spaces run together), against 23-25 of 29 elements with 1500 / 700. */
+#ifndef S3_BAR_DELTA /* a test image may set it (make EXTRA_CFLAGS=-D...) */
 #define S3_BAR_DELTA 700 /* white noise is +-20 */
+#endif
 /* never black below this (white up to 570). Raised from 500 / 900 on 7 Nov
  * at the team's request (fewer faint marks seen as bars); simulated "A
  * small" still 54/54, 800 / 1800 began to lose reads */
@@ -74,7 +76,9 @@
  * A faint mark (grout) seen as a bar makes a short run the decoder drops,
  * or a stray mark beside a code, which it skips. */
 /* BACK to 1500 the same day (see S3_BAR_DELTA). */
+#ifndef S3_BAR_BLACK_MIN /* a test image may set it, as S3_BAR_DELTA */
 #define S3_BAR_BLACK_MIN 1500
+#endif
 /* learned: black-white gap needed before anything counts as black */
 #define S3_BAR_MIN_SPAN 400
 

@@ -380,6 +380,25 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   Lifted at the end: motors off ✅. No barcode or junction in this run
   (one panel message lost on the WiFi). Team: real box width **10 cm**
   (read 156 +/- 20: too wide); hump height looked right (not measured).
+- **20 Nov, track 4, Mission run 2, two laps (`subsystem5/logs/2026-11-20_track4_mission_2_robot.txt`,
+  trip 175, beam 12):** 8.0 m driven. ✅ **3.65 m of following without a
+  line lost** (from the first bypass to the second box, through junction 1:
+  first run past 3 m, NFR1a). **Box 1:** tripped at 171, scan front **152
+  mm** (NFR6 >= 150: only 2 mm to spare), width **97 +/- 17 mm (real 100)
+  ✅**, one scan, about 9 s from the stop to the result (NFR3 says 7 s);
+  bypass RIGHT out 280 past 602, line met 238 mm after the last turn
+  (expected about 165), ✅ rejoined and carried on (16 s). **Box 2 (same
+  box):** tripped at 171, scan 1 at 157 mm heard echoes across the whole
+  sweep (143 +/- 52), backed up, scan 2 at 260 mm (196 +/- 30): reported
+  **142 +/- 29 ❌ (real 100)**, about 17 s for both scans; bypass LEFT out
+  255 past 710, line met 152 mm after the last turn (expected about 140),
+  `bypass done`, then ❌ **`line lost` about 300 mm (5 s) later**, as in run
+  1 (also a LEFT bypass). Ramp 12.6 and 11.2 mm, both reported during a
+  bypass (where the hump is: to be told). ❌ **Barcode: bars seen** (panel
+  `inbar=1` for about 7 s before junction 1, steering held) **but no letter
+  and no READ_FAIL**: the pieces were under 5 elements; junction 1 went
+  FORWARD with no barcode. WiFi-loss warning flickered (faults=64) about a
+  dozen times for under 1 s; the robot kept running.
 - **Changed 20 Nov, not run yet:** stop distance `S5_TRIP_MM` 190 -> 175
   (team: a little closer; the robot stops about 15 mm inside the trip, so
   about 160 mm, minimum 150); sonar beam correction `S5_BEAM_HALF_DEG` 6 ->

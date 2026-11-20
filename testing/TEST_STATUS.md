@@ -399,6 +399,21 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   and no READ_FAIL**: the pieces were under 5 elements; junction 1 went
   FORWARD with no barcode. WiFi-loss warning flickered (faults=64) about a
   dozen times for under 1 s; the robot kept running.
+- **20 Nov, track 4, Mission run 4, two runs (`subsystem5/logs/2026-11-20_track4_mission_4_robot.txt`, rejoin turns back):**
+  ✅ **rejoin: `bypass done ... heading 3 deg from before the box`**, then
+  followed on (run B: 30 s until STOP, no line lost). ✅ Run B: 3.7 m of
+  following from junction 1 to the box. Boxes: front **160** and **150 mm**
+  (150 = the minimum: no margin), width **118 +/- 18** and **119 +/- 17**
+  (real 100), one scan each, bypass LEFT out 260 / 255. Hump: **12.6 mm**
+  (pitch form; real height not measured), reported during the bypass as
+  every time so far: the stop's braking tilt restarts the 100 mm level
+  stretch, and standing still adds none, so the report waits for the
+  bypass legs (run A started after the hump: no report). Two false
+  obstacle stops in run A (75 and 164 mm; the scans found nothing, `going
+  on` ✅). ❌ **Barcode: nothing decoded**, pieces of 5-7 elements
+  dropped (one element 18.4-18.8 mm in most), as on 15 Nov when the code
+  was crossed at an angle or near its ends. WiFi: one association
+  failure, then joined. Lift stop ✅.
 - **Changed 20 Nov (team, after more track 4 runs: "it does not
   reorient, it follows the wrong line"), not run yet:** after the bypass
   the robot always turns back to its old direction, like a junction turn

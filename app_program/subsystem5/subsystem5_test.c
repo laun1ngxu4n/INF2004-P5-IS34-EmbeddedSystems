@@ -118,7 +118,7 @@ EXPORT void subsystem5_test_stage (void)
                     "each time, 10-20 cm wide; STOP ends early)\n"),
             kdx);
         app_test_wait_start(
-            "Box about 190 mm straight ahead of the sensor (where "
+            "Box about 160 mm straight ahead of the sensor (where "
             "the forward watch stops and the bypass scans first), "
             "flat face to it, nothing else within 60 cm. Write down "
             "its real width (ruler).");

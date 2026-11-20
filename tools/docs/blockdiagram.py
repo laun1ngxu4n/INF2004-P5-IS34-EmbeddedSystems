@@ -120,7 +120,7 @@ task(21.5, 63, 40, 16.5, "Mission", "B5", "pri 7, event + 100 ms",
      "watch ahead on every leg, go further past a long box,\n"
      "back to its own line; halts with the reason")
 task(65, 63, 22, 16.5, "Obstacle", "B5", "pri 11, 60 ms",
-     "forward watch: 2 pings\n< 190 mm -> OBSTACLE;\n+/-40 deg scan, 5 pings\nper ray (servo, sonar);\nno ECHO = fault,\nnever 'clear'",
+     "forward watch: 2 pings\n< 175 mm -> OBSTACLE;\n+/-40 deg scan, 5 pings\nper ray (servo, sonar);\nno ECHO = fault,\nnever 'clear'",
      bsize=4.7)
 arrow((22, 92), (12, 77))                 # START / STOP into the flag
 label(16.4, 85.6, "START,\nSTOP", size=4.4)

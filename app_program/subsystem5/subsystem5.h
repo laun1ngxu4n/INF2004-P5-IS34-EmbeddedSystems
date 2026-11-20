@@ -48,14 +48,14 @@ Inline bool button_is_down (uint32_t pin)
 /* ---- Obstacle Scanner ---------------------------------------------- */
 
 /* Stop for an obstacle closer than this.  15 Nov: 250 -> 185 -> 190 (team:
-   it stopped too far away; 175 was asked first but would stop too close to
-   the 150 mm minimum below).  At 120 mm/s it stopped at 168 with 185, so
-   190 at the Mission's 120 mm/s (back from 135 on 18 Nov) should stop at
-   about 170-175 mm.
+   it stopped too far away); 20 Nov 190 -> 175 (team: a little closer).  At
+   120 mm/s the scan front read 168 with 185 (15 Nov) and 175 with 190 (20
+   Nov): the robot stops about 15 mm inside the trip, so 175 should stop at
+   about 160 mm.
    Tribunal 1: stop at least 150 mm away at up to 250 mm/s; the scan still sees
-   both edges of the course box (about 13 cm) from here, and a wider box that
+   both edges of the course box (10 cm) from here, and a wider box that
    fills the sweep gets the second scan from 100 mm further back. */
-#define S5_TRIP_MM 190
+#define S5_TRIP_MM 175
 /* largest expected obstacle (O7): the bypass always plans for at least this */
 #define S5_MAX_WIDTH_MM 200
 /* ... and never for more: a scan that says 500 mm is wrong (instructor:
@@ -90,8 +90,13 @@ Inline bool button_is_down (uint32_t pin)
 /* sonar in front of the wheel axle (NOT MEASURED: measure and fix) */
 #define S5_SONAR_TO_AXLE_MM 120
 /* Sonar beam: each edge is seen this many degrees early (the cone),
-   so edges are pulled in by it.  Tune with S5-O01 known widths. */
-#define S5_BEAM_HALF_DEG 6
+   so edges are pulled in by it.  Tune with S5-O01 known widths.  20 Nov
+   6 -> 12: the course box (10 cm; run 7's guessed 13 cm, taken as the
+   same box) read 116 (15 Nov, run 7) and 156 (20 Nov, track 4) from
+   150-175 mm; the same two scans give 83 and 118 with 12, inside their
+   +/- 17 and +/- 20 (fitted on two scans: confirm with S5-O01).
+   The bypass is unchanged: it plans for at least S5_MAX_WIDTH_MM. */
+#define S5_BEAM_HALF_DEG 12
 
 /* Private to subsystem 5, shared between its own .c files */
 IMPORT ID       gh_tid_mission;

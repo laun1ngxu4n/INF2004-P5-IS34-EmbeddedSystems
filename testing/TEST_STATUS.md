@@ -371,11 +371,21 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   width not yet written down), one scan only (both edges seen), bypass
   LEFT out 272 mm, past 625 mm. `ramp peak height 10.0 mm` reported during
   the bypass (real height and the hump's place not yet written down).
-  ❌ **On the way back the robot took a line 133 mm after its last turn,
-  about 140 mm short of where its own line should be (272 mm)**, then
-  `bypass done, following the line` and soon `line lost`. Lifted at the
-  end: motors off ✅. No barcode or junction in this run (one panel
-  message lost on the WiFi).
+  On the way back it met a line 133 mm after its last turn: its own line
+  was expected at about 157 mm (272 out, less the 115 mm the line sensors
+  sit ahead of the wheels), so most likely its own line, about 24 mm early
+  (a few degrees of heading over the bypass). Then `bypass done, following
+  the line` and ❌ soon **`line lost`**: cause not known yet (where the
+  box was, and what the robot did after rejoining, still to be told).
+  Lifted at the end: motors off ✅. No barcode or junction in this run
+  (one panel message lost on the WiFi). Team: real box width **10 cm**
+  (read 156 +/- 20: too wide); hump height looked right (not measured).
+- **Changed 20 Nov, not run yet:** stop distance `S5_TRIP_MM` 190 -> 175
+  (team: a little closer; the robot stops about 15 mm inside the trip, so
+  about 160 mm, minimum 150); sonar beam correction `S5_BEAM_HALF_DEG` 6 ->
+  12 (the two course-box scans read 116 and 156 for 10 cm; the same scans
+  give 83 and 118 with 12, checked by recomputing them). The bypass path
+  does not change (it plans for at least 200 mm).
 - [ ] 🟡 **S5-B01 / S5-B02** (2C): right move at each junction, U-turn, stop on
   an unmapped code
 

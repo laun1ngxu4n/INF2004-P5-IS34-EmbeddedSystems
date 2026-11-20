@@ -38,7 +38,7 @@
  * the junction is not overrun */
 #define S5_APPROACH_SPEED 100
 /* Scan positions (O5).  First scan where the forward watch stopped (about
-   16.5-17.5 cm from the obstacle since 15 Nov, S5_TRIP_MM 190; backs up only
+   16 cm from the obstacle since 20 Nov, S5_TRIP_MM 175; backs up only
    if nearer than SCAN_NEAR_MM), then,
    only if that scan missed an edge (15 Nov), back REVERSE_MM and scan
    again.  Until 8 Nov it first backed up to 350
@@ -48,7 +48,7 @@
    read 138-240 mm for 14.5-23 cm boxes, 340-380 mm away 206-293, 450+
    away 225-346; every pair of scans read narrower from nearer.  And it
    backs up 100 mm instead of about 210. */
-#define SCAN_NEAR_MM 160 /* 15 Nov: 220 -> 160 with S5_TRIP_MM 190 */
+#define SCAN_NEAR_MM 160 /* 15 Nov: 220 -> 160 (S5_TRIP_MM then 190) */
 #define REVERSE_MM   100 /* second scan position */
 #define D_MAX_MM     150 /* deepest expected obstacle (A9) */
 /* 50 until 7 Nov, then 70: tools/sim/bypasssim.py with +-5 % spin error

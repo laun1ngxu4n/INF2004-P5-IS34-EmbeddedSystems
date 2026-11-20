@@ -44,7 +44,7 @@ describe; **Drop** = remove, or report as "not done / not tested".
 | NFR3 | Coarse 1.2 s / fine 2.0 s no longer applies: one scan of 21 rays (40-140 deg, 5 deg steps), settle wait, **5 pings per ray**, done **twice** from two positions. Re-set the limit from the measured scan time (S5-O01 notes) |
 | NFR4 | Not measured (drop or "not tested") |
 | NFR5 / NFR5a / NFR5b | Reconnect trials, snapshot and 1 s heartbeat: **not tested / not built** (`testing/PLAN.md` dropped list) |
-| NFR6 | Week 6 says trip distance **at least 300 mm**. **Decided 15 Nov: change NFR6 to 190 mm** (`S5_TRIP_MM`; was 250 until then): the team found the robot stopped too far away; Tribunal 1 set "stop at least 150 mm away at up to 250 mm/s", and it stopped at 168 mm with 185 at 120 mm/s, so about 170-175 mm with 190 at the Mission speed of 120 mm/s (135 was tried 15-18 Nov, never run; do not raise the speed without re-measuring), from where the scan still sees both edges of the course box | Team, 15 Nov; Tribunal 1 |
+| NFR6 | Week 6 says trip distance **at least 300 mm**. **Decided 15 Nov: change NFR6 to 190 mm, 20 Nov to 175 mm** (`S5_TRIP_MM`; was 250 until 15 Nov): the team found the robot stopped too far away; Tribunal 1 set "stop at least 150 mm away at up to 250 mm/s". At the Mission speed of 120 mm/s it stopped at 168 mm with 185 and 175 mm with 190, so about 160 mm with 175 (do not raise the speed without re-measuring), from where the scan still sees both edges of the course box | Team, 15 Nov; Tribunal 1 |
 | NFR8 | Turns: **tested** (Stage 1, 1 Nov: 90 deg about right, 180 about 5 deg over, track width tuned to 123 mm). Straight 1 m: **dropped**. Barcode at 150 mm/s and ramp +/- 5 mm: to be tested (S3-B, S4-R01) |
 | NFR9 | RAM: images about 80 KB static (bss) with MQTT; stack/CPU measurements **not done** |
 | NFR10 | STOP calls `motor_safe_off()` inside the button interrupt (no task involved). A separate Safety path for a hung Motion: **not built** |
@@ -163,7 +163,7 @@ and mark each requirement built / tested / not built / not tested.
   and `bringup/docs/logs`.
 
 ## Still to decide (team / instructor)
-- NFR6 trip distance: 190 mm in the code since 15 Nov (was 250) vs at least 300 mm in Week 6: change NFR6 to 190 mm (Tribunal 1 minimum: 150 mm).
+- NFR6 trip distance: 175 mm in the code since 20 Nov (250 until 15 Nov, then 190) vs at least 300 mm in Week 6: change NFR6 to 175 mm (Tribunal 1 minimum: 150 mm).
 - FR10 / NFR5b heartbeat: change to 1 s, or count the 1 s telemetry.
 - Whether changing the template's `mqtt_utk.c` / `lwipopts.h` is allowed.
 - The mapping message format and "all moves at the junction" (instructor).

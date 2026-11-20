@@ -399,6 +399,14 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   and no READ_FAIL**: the pieces were under 5 elements; junction 1 went
   FORWARD with no barcode. WiFi-loss warning flickered (faults=64) about a
   dozen times for under 1 s; the robot kept running.
+- **20 Nov, track 4 with a big A and a small F (`subsystem5/logs/2026-11-20_track4_mission_10_robot.txt`, lone-patch branch rule):**
+  ✅ F read and LEFT at junction 2 as mapped; ✅ no false `branch left`;
+  ✅ box 116 / 120 mm, bypass back on the line (heading 1 deg). ❌ The big
+  A came in pieces of 7-13 elements with 36-47 mm white gaps: whole bars
+  of a LARGE print missing, which blur cannot do; with the small A never
+  read either, A's ink looks faint to B's infrared (to check: B over A's
+  wide bars in the panel's live view). Small F: a 19-element piece, thin
+  bars 2-3 mm. Last stop: something 47 mm ahead, scan found no clear side.
 - **20 Nov, after the steering cap (`logs/robot/is34_20261120_172407_robot.txt`, team: "it detects most barcodes as junctions"):**
   ✅ Z read; ✅ F read (`bars read thin, widened`) and LEFT at junction 1 as
   mapped. ❌ Two `branch left` junctions 2 s apart while B was over a

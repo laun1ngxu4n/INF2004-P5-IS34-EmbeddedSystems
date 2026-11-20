@@ -399,6 +399,16 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   and no READ_FAIL**: the pieces were under 5 elements; junction 1 went
   FORWARD with no barcode. WiFi-loss warning flickered (faults=64) about a
   dozen times for under 1 s; the robot kept running.
+- **20 Nov night, Z (`subsystem5/logs/2026-11-20_track4_mission_12_robot.txt`):**
+  Z read as a half code, not used (not clean), its other star a separate
+  9-element run right after: the code was split. The robot started 5 cm
+  before Z and made a long hard left correction over the bars (hold let
+  go, speed cut to 40 / 20 %), which ran the barcode sensor backwards for
+  about 2 s; the reader counted that as 60 mm without a bar. Box 108 +/-
+  18, humps 12.4 / 11.1 mm. **Changed, not run yet:** over bars a long
+  correction keeps the barcode speed (50 mm/s) and a left steer is capped
+  at 0.65 x the speed (`BAR_LEFT_STEER_LONG`), so the sensor always keeps
+  moving forward while full steering (30 mm/s) is still allowed.
 - **Changed 20 Nov night:** `HOLD_OVER_BARS` 1 by default (the straight
   hold over bars, ending when the robot leaves its line): the evening's
   best runs were on the hold image, so a plain build is now what ran.

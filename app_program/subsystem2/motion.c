@@ -53,6 +53,14 @@
    backwards over the bars, which no width measurement untangles; it came
    most after a START with the robot set down off the line's centre. */
 #define BAR_LEFT_STEER_MAX 0.36f
+/* ... and in a long correction or a search over bars (the hold let go):
+   0.65 keeps B moving forward (at 10 % of the speed or more), and over bars
+   such a correction keeps the barcode speed instead of slowing to 40 % or
+   20 %, so full steering (30 mm/s at 50 mm/s) is still allowed.  20 Nov
+   evening, track 4: a long left correction over Z at 20 % ran B backwards
+   for 2 s; the reader took that as 60 mm without a bar, ended the code
+   mid-way and split it into "Z*" and "*". */
+#define BAR_LEFT_STEER_LONG 0.65f
 
 /* Per wheel speed controller, duty in per mille.  Feed-forward from the
    bring-up runs (wheels lifted: about 1.25 per mille per mm/s, through 0)
@@ -392,8 +400,9 @@ EXPORT void motion_task (int32_t stacd, void * p_exinf)
             float32_t t_l;
             float32_t t_r;
             /* speeds are mm/s, |v| <= 1000: exact as floats (here and below) */
-            float32_t cap   = absf((float32_t)cur.speed);
-            int32_t   pct   = line_speed_pct(); /* 100 = on track */
+            float32_t cap = absf((float32_t)cur.speed);
+            int32_t   pct = line_speed_pct(); /* 100 = on track */
+            float32_t bar_share;              /* B's steer limit over bars */
             bool      b_off = (pct < 100);
 
             if ((g_follow_limit > 0) &&
@@ -431,7 +440,7 @@ EXPORT void motion_task (int32_t stacd, void * p_exinf)
                slipped out past the sensor on tight left curves).  Over a
                barcode: slow. */
 
-            if (b_off)
+            if ((b_off) && (!barcode_in_bars()))
             {
                 cap = cap * (float32_t)pct / 100.0f; /* 0..100: exact */
             }
@@ -449,11 +458,14 @@ EXPORT void motion_task (int32_t stacd, void * p_exinf)
                 v_prof = cap;
             }
 
-            /* over bars: a left steer limited, not when leaving the line */
-            if ((barcode_in_bars()) && (pct >= HOLD_MIN_PCT) &&
-                (steer > (BAR_LEFT_STEER_MAX * v_prof)))
+            /* over bars: a left steer limited so B keeps moving forward
+               (more allowed when the robot is leaving its line) */
+            bar_share = (pct >= HOLD_MIN_PCT) ? BAR_LEFT_STEER_MAX
+                                              : BAR_LEFT_STEER_LONG;
+
+            if ((barcode_in_bars()) && (steer > (bar_share * v_prof)))
             {
-                steer = BAR_LEFT_STEER_MAX * v_prof;
+                steer = bar_share * v_prof;
             }
 
             t_l = v_prof - steer;

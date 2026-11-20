@@ -399,6 +399,16 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   and no READ_FAIL**: the pieces were under 5 elements; junction 1 went
   FORWARD with no barcode. WiFi-loss warning flickered (faults=64) about a
   dozen times for under 1 s; the robot kept running.
+- **20 Nov, track 4, Mission run 6 (`subsystem5/logs/2026-11-20_track4_mission_6_robot.txt`, beeps):**
+  ✅ 4 m of following from junction 1 to the box, box front 162 mm, width
+  **125 +/- 19** (real 100), bypass LEFT, back on the line (heading 3 deg),
+  2.8 m more to junction 2 (FORWARD). Hump: **two reports for one hump**
+  (tester): 14.0 mm during the bypass (side tilt sin 0.181, 7 s into it,
+  500 mm of driving after the stop) and 12.7 mm 2.8 m later while following,
+  3 s before junction 2: one of them is not the hump (where it is: to be
+  told). Tester: no beep heard at the hump; the hump's beep comes when it
+  is reported, after 100 mm of level driving past it (about 1 s), not
+  while on it. Barcode not decoded (pieces; placement).
 - **Added 20 Nov, not run yet (team):** one short beep (100 ms, 2 kHz) on
   the board's buzzer (GP22) for every event, played by the Telemetry task
   so nothing waits for it. Check: a beep at each barcode, junction,

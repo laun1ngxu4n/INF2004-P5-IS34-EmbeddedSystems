@@ -365,6 +365,17 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   (team: 135 never ran on the course; 120 is the speed of the 7 course
   runs without a line lost and of run 7's whole sequence). With the 190
   mm trip expect "obstacle ahead at about 170-175 mm".
+- **20 Nov, track 4, Mission run 1 (`subsystem5/logs/2026-11-20_track4_mission_1_robot.txt`, 120 mm/s, 190 mm):**
+  ✅ WiFi + MQTT on the new hotspot address; ✅ `obstacle ahead at 180
+  mm` (scan front 175 mm: NFR6 >= 150), width **156 +/- 20 mm** (real box
+  width not yet written down), one scan only (both edges seen), bypass
+  LEFT out 272 mm, past 625 mm. `ramp peak height 10.0 mm` reported during
+  the bypass (real height and the hump's place not yet written down).
+  ❌ **On the way back the robot took a line 133 mm after its last turn,
+  about 140 mm short of where its own line should be (272 mm)**, then
+  `bypass done, following the line` and soon `line lost`. Lifted at the
+  end: motors off ✅. No barcode or junction in this run (one panel
+  message lost on the WiFi).
 - [ ] 🟡 **S5-B01 / S5-B02** (2C): right move at each junction, U-turn, stop on
   an unmapped code
 

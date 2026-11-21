@@ -1,5 +1,12 @@
 # P5-IS34 robot: what it does, its limits, what is not done
 
+> **Note (21 Nov):** parts of this page date from 2-8 Nov. Some numbers
+> have changed since: the obstacle trip is 180 mm, not 250; half codes
+> are used from 1.4 x, not 1.6; the straight hold over bars is on. Some
+> "not run yet" items have run since. The current behaviour, numbers and
+> results, subsystem by subsystem, are in
+> [`docs/subsystems/`](../subsystems/README.md).
+
 Plain-language overview of the mission image (`make NET=lwip MQTT=1`), with
 the numbers the code uses on 2 Nov 2026. Test results: [TEST_STATUS.md](../../testing/TEST_STATUS.md).
 How to run the tests: [TESTING_GUIDE.md](../../testing/TESTING_GUIDE.md).

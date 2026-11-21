@@ -399,6 +399,15 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   and no READ_FAIL**: the pieces were under 5 elements; junction 1 went
   FORWARD with no barcode. WiFi-loss warning flickered (faults=64) about a
   dozen times for under 1 s; the robot kept running.
+- **20 Nov night, mapping Q Z T A (`subsystem5/logs/2026-11-20_track4_mission_13_robot.txt`):**
+  ✅ Z read whole -> RIGHT; ✅ box 109 +/- 19, bypass back on the line; ✅
+  small F read (not mapped: ignored); A only as a half code, refused (not
+  clean) -> at junction 1 the robot did Z's older RIGHT (team expected A's
+  U-turn). **Changed, not run yet (team chose this one; cancelling an
+  older move on any newer barcode was rejected because of decoys):** half
+  codes used from 1.4 x (`HALF_RATIO_X10` 16 -> 14): the logs' A half codes
+  all used (4, was 2), B still only reported (not mapped), random junk
+  used 0.037 % (was 0.010 %). A refused half code now prints its widths.
 - **20 Nov night, Z (`subsystem5/logs/2026-11-20_track4_mission_12_robot.txt`):**
   Z read as a half code, not used (not clean), its other star a separate
   9-element run right after: the code was split. The robot started 5 cm

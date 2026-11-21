@@ -1597,8 +1597,11 @@ LOCAL bool decode_kinds (int32_t * p_elem, int32_t count,
 /* Used, not only reported (20 Nov, team), when the letter is mapped and
    both characters are clean: every wide at least this / 10 x the widest
    narrow (a whole code needs S3_WIDE_RATIO_X10, 13).  A damaged letter has
-   in-between widths; the clean "A*" of track 4 had about 3. */
-#define HALF_RATIO_X10 16
+   in-between widths; the clean "A*" of track 4 had about 3.  21 Nov 16 ->
+   14 (team: an A at 1.4-1.6 was refused and an older barcode's move used at
+   the junction): the logs' A half codes all used (4, was 2), the B still
+   only reported (not mapped); random junk used 0.037 % (was 0.010 %). */
+#define HALF_RATIO_X10 14
 LOCAL int32_t g_half_rev[MAX_ELEM]; /* the barcode task only */
 
 /** true if the 9 elements at p_elem are clean: the narrowest of the 3

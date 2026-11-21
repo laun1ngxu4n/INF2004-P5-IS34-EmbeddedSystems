@@ -284,6 +284,26 @@ LOCAL void start_run (void)
     set_state(M_RUN);
 }
 
+/** The last read's element widths to the log (a failed or refused read
+   can be looked at afterwards). */
+LOCAL void print_read_widths (const char * p_what)
+{
+    int32_t dbg_count;
+    int32_t dbg_widths[BARCODE_DBG_MAX];
+    int32_t kdx;
+
+    (void)barcode_debug(&dbg_count, dbg_widths, BARCODE_DBG_MAX);
+    tm_printf(app_str("[S3] %s widths (mm):"), p_what);
+
+    for (kdx = 0; (kdx < dbg_count) && (kdx < BARCODE_DBG_MAX); kdx++)
+    {
+        tm_printf(app_str(" %d.%d"), dbg_widths[kdx] / 10,
+                  dbg_widths[kdx] % 10);
+    }
+
+    tm_printf(app_str("\n"));
+}
+
 /** Handles a new barcode result: stores its letter, reports the move. */
 LOCAL void on_barcode (void)
 {
@@ -302,25 +322,12 @@ LOCAL void on_barcode (void)
 
     if (!result.b_ok)
     {
-        int32_t dbg_count;
-        int32_t dbg_widths[BARCODE_DBG_MAX];
-        int32_t kdx;
-
         tm_sprintf(msg, app_str("barcode READ_FAIL (%d elements)"),
                    result.elements);
         say(msg);
         /* the widths to the log, so a failed read can be looked at
            (8 Nov: a 27-element failure had nothing to go on) */
-        (void)barcode_debug(&dbg_count, dbg_widths, BARCODE_DBG_MAX);
-        tm_printf(app_str("[S3] READ_FAIL widths (mm):"));
-
-        for (kdx = 0; (kdx < dbg_count) && (kdx < BARCODE_DBG_MAX); kdx++)
-        {
-            tm_printf(app_str(" %d.%d"), dbg_widths[kdx] / 10,
-                      dbg_widths[kdx] % 10);
-        }
-
-        tm_printf(app_str("\n"));
+        print_read_widths("READ_FAIL");
         return;
     }
 
@@ -335,6 +342,7 @@ LOCAL void on_barcode (void)
                    result.narrow_mm10 / 10, result.narrow_mm10 % 10,
                    result.wide_mm10 / 10, result.wide_mm10 % 10);
         say(msg);
+        print_read_widths("half code not used"); /* why it was refused */
         return;
     }
 

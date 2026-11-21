@@ -133,8 +133,10 @@ other with shared "golden" test messages (`python tools/panel/test_wire.py`):
 
 ### 5.6 The laptop panel
 
-[`tools/panel/is34_panel.py`](../../tools/panel/is34_panel.py) (or
-`tools/panel/exe/is34_panel.exe`):
+The full description is in [PANEL.md](PANEL.md): every part of the window,
+where each value comes from, and what to do when something is wrong.
+In short, [`tools/panel/is34_panel.py`](../../tools/panel/is34_panel.py)
+(or `tools/panel/exe/is34_panel.exe`) has:
 - START and STOP (the Space bar is STOP);
 - the mapping box;
 - live status and sensors;

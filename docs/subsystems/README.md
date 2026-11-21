@@ -75,6 +75,11 @@ at once from any task or interrupt."
 | 4 | IMU and Safety | B4 | hump height; stop when lifted or tipped over; stall and Motion-hung stop | `imu_task`, `safety_task` | [S4_IMU_AND_SAFETY.md](S4_IMU_AND_SAFETY.md) |
 | 5 | Mission and obstacle | B5 | the course state machine; START / STOP buttons; junction moves; ultrasonic scan and bypass | `mission_task`, `obstacle_task` | [S5_MISSION_AND_OBSTACLE.md](S5_MISSION_AND_OBSTACLE.md) |
 
+**The laptop panel**, where every subsystem's results show up and which
+drives the demo: [PANEL.md](PANEL.md). It explains each part of the
+window, which subsystem each value comes from, what each button does in
+the robot, and what to do when something is wrong.
+
 The code is in `app_program/subsystemN/`, the tests in `testing/subsystemN/`.
 Only a subsystem's owner edits its folder; shared files change by team
 agreement ([TEAM.md](../team/TEAM.md)).
@@ -322,7 +327,7 @@ Results, run by run: [TEST_STATUS.md](../../testing/TEST_STATUS.md).
 
 | Tool | What it is for |
 |---|---|
-| `tools/panel/is34_panel.py` (or `tools/panel/exe/is34_panel.exe`) | The control panel: START / STOP, the mapping, live status and sensors, the robot's log over WiFi, Save log, the Run summary |
+| `tools/panel/is34_panel.py` (or `tools/panel/exe/is34_panel.exe`) | The control panel: START / STOP, the mapping, live status and sensors, the robot's log over WiFi, Save log, the Run summary ([PANEL.md](PANEL.md)) |
 | `tools/sim/linesim.py`, `tools/sim/bypasssim.py` | The line-following and bypass simulators |
 | `tools/logcheck/barcodecheck.py`, `tools/logcheck/sonarcheck.py` | Re-run the decoder or the width rule on a saved robot log |
 | `tools/websim/` | The real firmware compiled to run in a browser on a simulated robot |

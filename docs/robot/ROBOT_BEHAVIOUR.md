@@ -225,8 +225,9 @@ How to run the tests: [TESTING_GUIDE.md](../../testing/TESTING_GUIDE.md).
   2. out: half of max(width + U, 200 mm) + half the robot width + 100 mm
      (about 285 mm for a 150 mm box)
   3. turn back and drive past the box: at least distance to the box +
-     150 mm (a box up to 150 mm deep, team assumption A9) + robot length
-     + 100 mm (about 800 mm from the 350 mm scan position).
+     120 mm (a box up to 120 mm deep, team assumption A9; 150 until 21 Nov,
+     the robot went further past the box than needed) + robot length
+     + 100 mm (about 575 mm from the stop, 21 Nov; was about 605).
      **Side look: built but OFF** (`S5_SERVO_SIDE_DEG 0`, 8 Nov): on the
      robot it did not hear the box's side at 40 deg (bench check mostly
      no echo; in a bypass only the front corner while approaching), and
@@ -251,7 +252,7 @@ How to run the tests: [TESTING_GUIDE.md](../../testing/TESTING_GUIDE.md).
      mm (fixed distance alone: 16 of 36 boxes 250 mm deep hit, all 350
      mm deep); still 53/54 with half the side echoes missed. Sonar 120 mm
      in front of the axle assumed (`S5_SONAR_TO_AXLE_MM`, not measured).
-     **The line sensors watch on this leg** once past a 150 mm deep box
+     **The line sensors watch on this leg** once past a 120 mm deep box
      and not while the box is still heard beside: a line that curves
      toward this side behind the box is met here (`line met behind the
      box`), and the robot goes straight to step 5. Not before: 8 Nov the
@@ -365,7 +366,7 @@ How to run the tests: [TESTING_GUIDE.md](../../testing/TESTING_GUIDE.md).
   115 mm) is less accurate. **Not tried on the robot yet.**
 - Line lost = stop, after about 400 mm of white and a probe both ways (it cannot tell centred from
   lost sooner) or a failed search.
-- The bypass is planned for boxes up to 200 mm wide and 150 mm deep; it
+- The bypass is planned for boxes up to 200 mm wide and 120 mm deep; it
   assumes nothing else is next to the obstacle. A line that turns 90 deg
   away right behind the box is not found (the robot stops). On the tiled
   floor, grout seen on the leg past the box or on the way back is taken

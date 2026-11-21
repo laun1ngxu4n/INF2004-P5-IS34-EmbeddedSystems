@@ -51,7 +51,7 @@
    backs up 100 mm instead of about 210. */
 #define SCAN_NEAR_MM 160 /* 15 Nov: 220 -> 160 (S5_TRIP_MM then 190) */
 #define REVERSE_MM   100 /* second scan position */
-#define D_MAX_MM     150 /* deepest expected obstacle (A9) */
+#define D_MAX_MM     120 /* deepest expected obstacle (A9; 150 until 21 Nov) */
 /* 50 until 7 Nov, then 70: tools/sim/bypasssim.py with +-5 % spin error
  * passed a 200 mm box 21 mm away at 70, 42 mm at 100 */
 #define MARGIN_MM        100
@@ -683,7 +683,7 @@ LOCAL void side_report (side_look_t * p_look, int32_t done, int32_t x_pass)
         if (!p_look->b_seen)
         {
             say(app_str("side look heard nothing: assuming "
-                        "the box is at most 150 mm deep"));
+                        "the box is at most 120 mm deep"));
         }
         else if (p_look->stop_at > x_pass)
         {
@@ -707,13 +707,13 @@ LOCAL void side_report (side_look_t * p_look, int32_t done, int32_t x_pass)
 
    Each such echo pushes the end of the leg to at least where the axle is
    half the robot's width + MARGIN_MM past the point where it was heard;
-   never earlier than the fixed distance for a box up to 150 mm deep
+   never earlier than the fixed distance for a box up to 120 mm deep
    (x_pass, D_MAX_MM, team assumption A9).  So the side look can only make
    the leg longer: a stray echo makes it longer, a missed one changes
    nothing, a side look that hears nothing is the fixed distance.  (Asking
    "still beside it at x_pass?" was wrong: the sonar is 120 mm ahead of
    the axle and had just passed a 350 mm deep box's back there.)  The line
-   sensors count from past a 150 mm deep box and not while the box is
+   sensors count from past a 120 mm deep box and not while the box is
    beside (an echo in the last SIDE_MISS_PINGS): a junction's side line
    beside the box is not the line (8 Nov run).  A sonar fault counts as an
    echo.  tools/sim/bypasssim.py S: box depths 60-350 mm all 36/36, closest 56

@@ -135,7 +135,7 @@ INIT self-test: only "IMU found"; no power check (GP28 removed).
 - **A5**: bench result: works at 3.3 V; width error target "<= 20 mm"
   becomes "report width +/- U; the real width must be inside it" (S5-O01).
 - **A8**: humps 10-30 mm -> lower practice ramp, measured height.
-- **A9**: D_max 150 mm kept (bypass "past" leg).
+- **A9**: D_max 150 mm kept (bypass "past" leg); lowered to 120 mm on 21 Nov (the robot went further past the box than needed).
 - **A12**: drop the GP28 scaling and V_warn / V_crit; keep "approved
   power": power bank on VIN, tested (bringup_results.md).
 - **A13**: sensor-to-axle distance and robot size are still guesses in the

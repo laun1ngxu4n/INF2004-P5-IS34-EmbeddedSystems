@@ -83,10 +83,10 @@ Inline bool button_is_down (uint32_t pin)
 #define S5_SERVO_DEG_STEP 2 /* = 100 deg/s */
 /* Side look (8 Nov): on the leg past the box the sonar turns this far
    toward the box and listens for its side face, so the robot knows when
-   it is really past (any depth) instead of assuming a 150 mm deep box.
+   it is really past (any depth) instead of assuming a 120 mm deep box.
    40 = the cables' limit (90, square to the face, has no clearance); the
    side of the beam still hears the face (mission.c pass_box).
-   0 = no side look (the fixed 150 mm).
+   0 = no side look (the fixed 120 mm).
    OFF since 8 Nov: on the robot the side face was not heard at 40 deg
    (bench check mostly -1; in a bypass only the box's front corner while
    approaching), and the obstacle is 9 x 13 cm (at most 130 mm deep,

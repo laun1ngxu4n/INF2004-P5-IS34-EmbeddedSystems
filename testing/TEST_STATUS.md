@@ -399,6 +399,14 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   and no READ_FAIL**: the pieces were under 5 elements; junction 1 went
   FORWARD with no barcode. WiFi-loss warning flickered (faults=64) about a
   dozen times for under 1 s; the robot kept running.
+- **Changed 21 Nov, not run yet (team: "it goes a bit too far back"):**
+  assumed box depth `D_MAX_MM` 150 -> 120 mm, so the leg past the box is
+  30 mm shorter (past about 575 mm instead of 605 for a 156 mm front).
+  `tools/sim/bypasssim.py J` (turn errors +/-5 %): boxes 60-120 mm deep
+  36/36 each (closest 60 / 34 / 16 mm); 150 mm deep 33/36 (3 touch), 180
+  mm 28/36 (the sim has no "still beside?" check after the turn back, so
+  it is the worst case). Check: one bypass, the gap behind the box when
+  it turns back, `past` about 575 mm in the event.
 - **20 Nov night, mapping Q Z T A (`subsystem5/logs/2026-11-20_track4_mission_13_robot.txt`):**
   ✅ Z read whole -> RIGHT; ✅ box 109 +/- 19, bypass back on the line; ✅
   small F read (not mapped: ignored); A only as a half code, refused (not

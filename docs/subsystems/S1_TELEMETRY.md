@@ -140,8 +140,13 @@ other with shared "golden" test messages (`python tools/panel/test_wire.py`):
 - live status and sensors;
 - `robot: OFFLINE` after 3 s without a status message;
 - the robot's log, and "Save log + summary";
-- the **Run summary** (since 20 Nov): the letters read, junction moves,
-  obstacles with their widths, humps and stops, in a few lines.
+- the **Run summary** (since 20 Nov), one block per START:
+  - **totals** (since 21 Nov): barcodes read and failed, junctions,
+    obstacles (bypassed, false stops), humps and their peak;
+  - then the letters read, junction moves, obstacles with their widths,
+    humps and stops;
+  - each obstacle says **"depth not measured"**: the robot measures the
+    width only, and the bypass assumes a box up to 120 mm deep.
 
 ### 5.7 Set-up
 

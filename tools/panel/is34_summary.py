@@ -2,9 +2,12 @@
 robot's events (is34/event), one block per run (a run starts with the
 robot's "start" event).
 
-    barcodes read (letter, move, bar widths), junction moves, each obstacle
-    (trip and stop distance, width, scan time, bypass side and size, line
-    found, heading after it, bypass time), hump heights, and every stop.
+    a totals line (barcodes read and failed, junctions, obstacles bypassed
+    and false stops, humps and their peak), then barcodes read (letter,
+    move, bar widths), junction moves, each obstacle (trip and stop
+    distance, width, scan time, bypass side and size, line found, heading
+    after it, bypass time), hump heights, and every stop.  An obstacle's
+    depth is not measured by the robot: the summary says so.
 
 Used by is34_panel.py ("Run summary" tab, and a summary file with each
 "Save log").  Test it on a saved panel log without the window:
@@ -30,6 +33,10 @@ MOVES = {"LEFT at next junction": "LEFT", "RIGHT at next junction": "RIGHT",
          "NOT USED": "not used (half code: one * missing)"}
 STOP_WORDS = ("stopped:", "lifted or tipped", "Safety:", "something in the way",
               "not answering")
+# The robot measures an obstacle's width, not its depth: the bypass assumes a
+# box up to this deep (D_MAX_MM in app_program/subsystem5/mission.c; keep the
+# two in step) and checks the box is not still beside it before turning back.
+ASSUMED_DEPTH_MM = 120
 
 
 def clock(t):
@@ -144,6 +151,7 @@ class Summary:
         for i, run in enumerate(self.runs, 1):
             head = f"Run {i}, " + ("started " if run["started"] else "before START, from ")
             out.append(f"{head}{clock(run['t'])}   mapping: {run['mapping']}")
+            out.extend(self._totals(run))
             out.append("  Barcodes:")
             for b in run["barcodes"]:
                 # " read backwards (a lost bar put back)" -> "read backwards, a lost bar put back"
@@ -183,6 +191,35 @@ class Summary:
         return "\n".join(out) + "\n"
 
     @staticmethod
+    def _totals(run):
+        """two short lines of counts for a run: barcodes and junctions, then
+        obstacles and humps (the summary box is about 80 characters wide)"""
+        bars = run["barcodes"]
+        half = sum(1 for b in bars if b["move"].startswith("not used"))
+        first = f"  Totals: barcodes {len(bars)} read"
+        if half:
+            first += f" ({half} half code{'s' if half > 1 else ''} not used)"
+        if run["fails"]:
+            first += f" + {run['fails']} failed"
+        first += f" | junctions {len(run['junctions'])}"
+        obstacles = run["obstacles"]
+        false_stops = sum(1 for o in obstacles if o.get("nothing"))
+        bypassed = sum(1 for o in obstacles if o.get("done"))
+        # no "bypass done" (yet): stopped part-way, or that event lost on the WiFi
+        unfinished = len(obstacles) - false_stops - bypassed
+        detail = [f"{bypassed} bypassed"] if bypassed else []
+        if unfinished:
+            detail.append(f"{unfinished} not finished")
+        if false_stops:
+            detail.append(f"{false_stops} false stop{'s' if false_stops > 1 else ''}")
+        second = f"          obstacles {len(obstacles)}" + (f" ({', '.join(detail)})" if detail else "")
+        humps = run["humps"]
+        second += f" | humps {len(humps)}"
+        if humps:
+            second += f" (peak {max(h['mm'] for h in humps):.1f} mm)"
+        return [first, second]
+
+    @staticmethod
     def _obstacle(o):
         trip = f"tripped at {o['trip']} mm" if o["trip"] is not None else "(trip lost on the WiFi)"
         parts = [f"{clock(o['t'])}  {trip}"]
@@ -194,6 +231,8 @@ class Summary:
             if o.get("scan_s") is not None:
                 parts.append(f"scan took {o['scan_s']:.0f} s")
         line = ", ".join(parts)
+        if "width" in o:
+            line += f"\n      depth not measured (the bypass assumes up to {ASSUMED_DEPTH_MM} mm)"
         if "side" in o:
             line += (f"\n      bypass {o['side']} out {o['out']} mm, past {o['past']} mm")
             if o.get("extended"):

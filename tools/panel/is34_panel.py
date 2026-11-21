@@ -317,8 +317,9 @@ class Panel:
         ttk.Button(bar0, text="Save log + summary", command=self.save_robot_log).pack(side="left")
         ttk.Button(bar0, text="Clear", command=self.clear_summary).pack(side="left", padx=4)
         ttk.Label(bar0, text="each START begins a new block").pack(side="left", padx=8)
+        # wrap: on a narrow window a long line wraps instead of being cut off
         self.sum_text = tk.Text(rs, height=12, state="disabled", font=("Consolas", 10),
-                                wrap="none")
+                                wrap="word")
         sb0 = ttk.Scrollbar(rs, command=self.sum_text.yview)
         self.sum_text.configure(yscrollcommand=sb0.set)
         sb0.pack(side="right", fill="y")

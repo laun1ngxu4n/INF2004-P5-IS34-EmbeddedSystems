@@ -383,8 +383,11 @@ line found after every manoeuvre.
    it" questions take START / STOP on the panel. **Save log + summary**
    writes everything since the last **Clear** to
    `logs/robot/robot_log_<date>_<time>.txt`, and the **Run summary** tab
-   (since 20 Nov: per START, the barcodes read, junction moves, each
-   obstacle's width, scan time and bypass, hump heights, stops) to
+   (since 20 Nov: per START, a totals line, then the barcodes read,
+   junction moves, each obstacle's width, scan time and bypass, hump
+   heights, stops; since 21 Nov the totals count barcodes read and failed,
+   junctions, obstacles bypassed and false stops, humps and their peak,
+   and each obstacle notes that its depth is not measured) to
    `robot_summary_<date>_<time>.txt` next to it: send both. The log is
    also saved as it arrives to `logs/robot/is34_<date>_<time>_robot.txt`.
    Lines `[panel: N log messages lost on the WiFi]` or `[panel: the

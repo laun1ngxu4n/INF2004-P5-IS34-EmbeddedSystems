@@ -42,11 +42,14 @@ images/wifi/
 
 # Last barcode mapping picked in the panel
 tools/panel/is34_panel_mapping.txt
+# ... and the panel's light/dark choice
+tools/panel/is34_panel_theme.txt
 
 # The packaged panel (tools/panel/exe/is34_panel.exe is committed):
 # what it writes next to itself stays local
 tools/panel/exe/logs/
 tools/panel/exe/is34_panel_mapping.txt
+tools/panel/exe/is34_panel_theme.txt
 
 # Course documents (they carry names and student IDs: the course .docx
 # files, the Tribunal 2 template and filled submission) and the Barr

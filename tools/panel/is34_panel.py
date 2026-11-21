@@ -28,6 +28,9 @@ or run it yourself:
 
 Keys: Space = STOP, Ctrl+G = START.
 
+Look: a dark and a light theme ("Light" / "Dark" button, top right); the
+choice is kept in is34_panel_theme.txt next to the mapping file.
+
 Change Requirement 1: the status, sensor and mapping-acknowledgement
 messages are binary (is34_wire.py, docs/team/MQTT_WIRE_FORMAT.md); the
 panel sends the mapping binary and START / STOP with an empty payload.
@@ -75,13 +78,39 @@ FIELDS = [                      # (telemetry key, label)
     ("map", "Mapping"), ("ramp_peak", "Ramp peak (mm)"), ("stop", "Stop reason"),
     ("faults", "Faults / warnings"),
 ]
-STATE_COLOURS = {"IDLE": "#888888", "CAL": "#d9a400", "RUN": "#2a9d3a"}
+STATE_TONES = {"IDLE": "idle", "CAL": "warn", "RUN": "ok"}   # anything else: bad
+
+FONT = "Segoe UI"
+MONO = "Consolas"
+# Colours by role; every widget is painted from the current theme, so the
+# theme can be switched while running.
+THEMES = {
+    "dark": dict(bg="#0e1318", card="#161c23", tile="#1d252e", line="#29333e",
+                 text="#e6edf3", muted="#8b98a5", accent="#3b82f6", accent_hi="#5b9bff",
+                 ok="#22c55e", warn="#f5b301", bad="#f05252", idle="#8b98a5",
+                 start="#16a34a", start_hi="#22c55e", stop="#dc2626", stop_hi="#ef4444",
+                 field="#0e1318", log="#0b0f13", btn="#26303b", btn_hi="#323e4b",
+                 dot_off="#33404d", sel="#264f78", white="#ffffff"),
+    "light": dict(bg="#eef2f6", card="#ffffff", tile="#f4f6f9", line="#dde3ea",
+                  text="#0f172a", muted="#64748b", accent="#2563eb", accent_hi="#3b82f6",
+                  ok="#15803d", warn="#b45309", bad="#dc2626", idle="#64748b",
+                  start="#16a34a", start_hi="#22c55e", stop="#dc2626", stop_hi="#ef4444",
+                  field="#ffffff", log="#fafbfc", btn="#e8edf3", btn_hi="#dbe2ea",
+                  dot_off="#d3dbe4", sel="#bfdbfe", white="#ffffff"),
+}
+BUTTON_KINDS = {                # kind -> (background, hover, text) roles
+    "start": ("start", "start_hi", "white"), "stop": ("stop", "stop_hi", "white"),
+    "accent": ("accent", "accent_hi", "white"), "plain": ("btn", "btn_hi", "text"),
+}
 
 
 MOVES = [("L", "↰ Turn LEFT"), ("R", "↱ Turn RIGHT"), ("F", "↑ Go STRAIGHT"),
          ("U", "↶ U-TURN")]
 CODE_CHARS = [chr(c) for c in range(ord("A"), ord("Z") + 1)] + [str(d) for d in range(10)]
+MOVE_UI = {"L": ("↰", "Turn LEFT"), "R": ("↱", "Turn RIGHT"), "F": ("↑", "Go STRAIGHT"),
+           "U": ("↶", "U-TURN")}
 MAP_FILE = os.path.join(WRITE, "is34_panel_mapping.txt")   # the last one picked
+THEME_FILE = os.path.join(WRITE, "is34_panel_theme.txt")   # "dark" or "light"
 MOVE_WORDS = {"L": "L", "LEFT": "L", "R": "R", "RIGHT": "R", "F": "F", "S": "F",
               "STRAIGHT": "F", "FORWARD": "F", "U": "U", "UTURN": "U", "U-TURN": "U",
               "UTURNS": "U", "BACK": "U"}
@@ -192,8 +221,22 @@ class Panel:
         self.summary = summ.Summary()   # the results that matter, per run
 
         root.title("P5-IS34 robot panel")
-        root.minsize(620, 520)
+        # Sizes below are for a 100 % screen; scale them to this one
+        # (fonts in points scale by themselves), and never past the screen.
+        self.s = s = max(1.0, root.winfo_fpixels("1i") / 96.0)
+        sw, sh = root.winfo_screenwidth(), root.winfo_screenheight()
+        w, h = min(int(1000 * s), sw - 40), min(int(820 * s), sh - 90)
+        root.geometry(f"{w}x{h}")
+        root.minsize(min(int(900 * s), w), min(int(680 * s), h))
+        self.theme = self._load_theme()
+        self.pal = THEMES[self.theme]
+        self._paint = []                # (widget, {option: colour role})
+        self._tones = {}                # widget -> colour role of its text
+        self.ir = {"L": False, "R": False, "B": False}   # True = sees black
+        self.style = ttk.Style(root)
+        self.style.theme_use("clam")    # the one ttk theme that takes colours
         self._build()
+        self._apply_theme()
 
         # A name of its own: the broker drops a client when another one logs
         # in with the same name, so two panels with one name kept kicking
@@ -213,142 +256,345 @@ class Panel:
         root.protocol("WM_DELETE_WINDOW", self.close)
         root.after(100, self._poll)
 
+    # ---- theme -------------------------------------------------------------
+    def _load_theme(self):
+        try:
+            with open(THEME_FILE, encoding="utf-8") as f:
+                name = f.read().strip()
+            if name in THEMES:
+                return name
+        except OSError:
+            pass
+        return "dark"
+
+    def toggle_theme(self):
+        self.theme = "light" if self.theme == "dark" else "dark"
+        try:
+            with open(THEME_FILE, "w", encoding="utf-8") as f:
+                f.write(self.theme + "\n")
+        except OSError:
+            pass
+        self._apply_theme()
+
+    def _reg(self, w, **roles):
+        """paint w from the theme now and on every switch: option=role"""
+        self._paint.append((w, roles))
+        w.configure(**{k: self.pal[v] for k, v in roles.items()})
+        return w
+
+    def _tone(self, w, tone, text=None):
+        """set a label's text colour by role (kept across theme switches)"""
+        self._tones[w] = tone
+        kw = {"fg": self.pal[tone]}
+        if text is not None:
+            kw["text"] = text
+        w.configure(**kw)
+
+    def _apply_theme(self):
+        p = self.pal = THEMES[self.theme]
+        self.root.configure(bg=p["bg"])
+        for w, roles in self._paint:
+            w.configure(**{k: p[v] for k, v in roles.items()})
+        for w, tone in self._tones.items():
+            w.configure(fg=p[tone])
+        st = self.style
+        st.configure(".", background=p["card"], foreground=p["text"], fieldbackground=p["field"],
+                     bordercolor=p["line"], lightcolor=p["line"], darkcolor=p["line"],
+                     troughcolor=p["card"], selectbackground=p["sel"],
+                     selectforeground=p["text"], insertcolor=p["text"], arrowcolor=p["muted"],
+                     font=(FONT, 10))
+        st.configure("TFrame", background=p["card"])
+        st.configure("TEntry", fieldbackground=p["field"], foreground=p["text"], padding=4)
+        st.map("TEntry", bordercolor=[("focus", p["accent"])], lightcolor=[("focus", p["accent"])])
+        st.configure("TCombobox", fieldbackground=p["field"], background=p["btn"],
+                     foreground=p["text"], arrowcolor=p["text"], padding=3)
+        st.map("TCombobox",
+               fieldbackground=[("readonly", p["field"])], foreground=[("readonly", p["text"])],
+               selectbackground=[("readonly", p["field"])],
+               selectforeground=[("readonly", p["text"])],
+               background=[("active", p["btn_hi"]), ("readonly", p["btn"])],
+               bordercolor=[("focus", p["accent"])], lightcolor=[("focus", p["accent"])])
+        st.configure("TNotebook", background=p["bg"], borderwidth=0, tabmargins=(0, 0, 0, 0))
+        st.configure("TNotebook.Tab", background=p["tile"], foreground=p["muted"],
+                     padding=(16, 6), borderwidth=0, font=(FONT, 10, "bold"))
+        st.map("TNotebook.Tab", background=[("selected", p["card"])],
+               foreground=[("selected", p["text"])], lightcolor=[("selected", p["card"])],
+               bordercolor=[("selected", p["line"])])
+        st.configure("Vertical.TScrollbar", background=p["btn"], troughcolor=p["log"],
+                     bordercolor=p["log"], arrowcolor=p["muted"], lightcolor=p["btn"],
+                     darkcolor=p["btn"])
+        st.map("Vertical.TScrollbar", background=[("active", p["btn_hi"])])
+        st.configure("TCheckbutton", background=p["card"], foreground=p["text"],
+                     indicatorbackground=p["field"], indicatorforeground=p["white"])
+        st.map("TCheckbutton", background=[("active", p["card"])],
+               indicatorbackground=[("selected", p["accent"])])
+        for t in (self.sum_text, self.events, self.rlog):
+            t.configure(bg=p["log"], fg=p["text"], insertbackground=p["text"],
+                        selectbackground=p["sel"], selectforeground=p["text"],
+                        highlightbackground=p["line"], highlightcolor=p["line"])
+        for tag, role in (("time", "muted"), ("robot", "accent"), ("sent", "ok"),
+                          ("panel", "warn")):
+            self.events.tag_configure(tag, foreground=p[role])
+        for cb in self.map_combo.values():      # the drop-down list itself
+            try:
+                cb.tk.eval(f"[ttk::combobox::PopdownWindow {cb}].f.l configure "
+                           f"-background {p['field']} -foreground {p['text']} "
+                           f"-selectbackground {p['accent']} -selectforeground white")
+            except tk.TclError:
+                pass
+        self.theme_btn.configure(text="☀  Light" if self.theme == "dark" else "☾  Dark")
+        self._draw_dots()
+
+    # ---- layout helpers ----------------------------------------------------
+    def _frame(self, parent, bg="card"):
+        return self._reg(tk.Frame(parent), bg=bg)
+
+    def _lbl(self, parent, text="", bg="card", fg="text", font=(FONT, 10), **kw):
+        w = tk.Label(parent, text=text, font=font, **kw)
+        self._reg(w, bg=bg)
+        self._tone(w, fg)
+        return w
+
+    def _button(self, parent, text, command, kind="plain", font=(FONT, 10, "bold"), **kw):
+        bg, hi, fg = BUTTON_KINDS[kind]
+        kw.setdefault("padx", 12)
+        kw.setdefault("pady", 5)
+        b = tk.Button(parent, text=text, command=command, relief="flat", bd=0,
+                      cursor="hand2", font=font, **kw)
+        self._reg(b, bg=bg, fg=fg, activebackground=hi, activeforeground=fg)
+        b.bind("<Enter>", lambda e: b.configure(bg=self.pal[hi]))
+        b.bind("<Leave>", lambda e: b.configure(bg=self.pal[bg]))
+        return b
+
+    def _card(self, parent, title, sub="", big=False):
+        """a bordered card with a small caps title (big: a heading);
+        returns (card, body)"""
+        card = self._reg(tk.Frame(parent, highlightthickness=1), bg="card",
+                         highlightbackground="line", highlightcolor="line")
+        head = self._frame(card)
+        head.pack(fill="x", padx=14, pady=(10, 6))
+        if big:
+            self._lbl(head, title, font=(FONT, 15, "bold")).pack(side="left")
+        else:
+            self._lbl(head, title.upper(), fg="muted", font=(FONT, 9, "bold")).pack(side="left")
+        if sub:
+            self._lbl(head, sub, fg="muted", font=(FONT, 9)).pack(side="left", padx=8)
+        body = self._frame(card)
+        body.pack(fill="both", expand=True, padx=14, pady=(0, 12))
+        return card, body
+
     # ---- layout ----------------------------------------------------------
     def _build(self):
-        top = ttk.Frame(self.root, padding=8)
-        top.pack(fill="x")
-        ttk.Label(top, text="Broker").pack(side="left")
+        outer = self._frame(self.root, bg="bg")
+        outer.pack(fill="both", expand=True, padx=12, pady=12)
+
+        # Header: name, broker and robot badges, theme switch; broker address
+        head, hb = self._card(outer, "P5-IS34", "robot control panel", big=True)
+        head.pack(fill="x")
+        row = self._frame(hb)
+        row.pack(fill="x")
+        self._lbl(row, "Broker", fg="muted").pack(side="left")
         self.host_var = tk.StringVar(value=self.host)
         self.port_var = tk.StringVar(value=str(self.port))
-        ttk.Entry(top, textvariable=self.host_var, width=15).pack(side="left", padx=4)
-        ttk.Entry(top, textvariable=self.port_var, width=6).pack(side="left")
-        ttk.Button(top, text="Connect", command=self.connect).pack(side="left", padx=4)
-        ttk.Button(top, text="Start broker", command=self.start_broker).pack(side="left")
-        self.conn_lbl = tk.Label(top, text="not connected", fg="#b00020")
-        self.conn_lbl.pack(side="left", padx=8)
-        self.robot_lbl = tk.Label(top, text="robot: no data", fg="#b00020")
-        self.robot_lbl.pack(side="right")
+        ttk.Entry(row, textvariable=self.host_var, width=15).pack(side="left", padx=(6, 4))
+        ttk.Entry(row, textvariable=self.port_var, width=6).pack(side="left")
+        self._button(row, "Connect", self.connect).pack(side="left", padx=(8, 4))
+        self._button(row, "Start broker", self.start_broker).pack(side="left")
+        self.theme_btn = self._button(row, "", self.toggle_theme)
+        self.theme_btn.pack(side="right")
+        self.robot_lbl = self._lbl(row, "●  robot: no data", bg="tile", fg="bad",
+                                   font=(FONT, 10, "bold"), padx=10, pady=4)
+        self.robot_lbl.pack(side="right", padx=8)
+        self.conn_lbl = self._lbl(row, "●  not connected", bg="tile", fg="bad",
+                                  font=(FONT, 10, "bold"), padx=10, pady=4)
+        self.conn_lbl.pack(side="right")
 
-        btns = ttk.Frame(self.root, padding=(8, 0))
-        btns.pack(fill="x")
-        tk.Button(btns, text="START", bg="#2a9d3a", fg="white", font=("Segoe UI", 16, "bold"),
-                  width=10, command=self.start).pack(side="left", pady=6)
-        tk.Button(btns, text="STOP  (Space)", bg="#c62828", fg="white",
-                  font=("Segoe UI", 16, "bold"), width=14,
-                  command=self.stop).pack(side="left", padx=8, pady=6)
+        # START / STOP
+        btns = self._frame(outer, bg="bg")
+        btns.pack(fill="x", pady=10)
+        btns.columnconfigure(0, weight=1, uniform="go")
+        btns.columnconfigure(1, weight=1, uniform="go")
+        self._button(btns, "▶   START", self.start, "start", font=(FONT, 18, "bold"),
+                     pady=12).grid(row=0, column=0, sticky="ew", padx=(0, 5))
+        self._button(btns, "■   STOP   (Space)", self.stop, "stop", font=(FONT, 18, "bold"),
+                     pady=12).grid(row=0, column=1, sticky="ew", padx=(5, 0))
 
         # Barcode mapping: pick which barcode means which move, send it.
         # The robot stores the latest barcode it reads and does its move at
         # the NEXT junction (U-turn too: instructor brief, TEAM.md 7.1 B6).
-        mp = ttk.LabelFrame(self.root, padding=6, text=(
-            "Barcode mapping: after reading a barcode, the robot does this at the NEXT junction"))
-        mp.pack(fill="x", padx=8)
+        mpc, mp = self._card(outer, "Barcode mapping",
+                             "after reading a barcode, the robot does this at the NEXT junction")
+        mpc.pack(fill="x")
         saved = self._load_mapping()
         self.map_combo = {}
-        for col, (mv, label) in enumerate(MOVES):
-            f = ttk.Frame(mp)
-            f.grid(row=0, column=col, padx=(0, 18), sticky="w")
-            ttk.Label(f, text=label, font=("Segoe UI", 10, "bold")).pack(anchor="w")
-            r = ttk.Frame(f)
+        tiles = self._frame(mp)
+        tiles.pack(fill="x")
+        for col, (mv, _) in enumerate(MOVES):
+            arrow, name = MOVE_UI[mv]
+            t = self._frame(tiles, bg="tile")
+            t.grid(row=0, column=col, sticky="nsew", padx=(0 if col == 0 else 4, 0))
+            tiles.columnconfigure(col, weight=1, uniform="map")
+            self._lbl(t, arrow, bg="tile", fg="accent", font=(FONT, 20, "bold")).pack(
+                side="left", padx=(12, 8), pady=8)
+            f = self._frame(t, bg="tile")
+            f.pack(side="left", pady=8)
+            self._lbl(f, name, bg="tile", font=(FONT, 10, "bold")).pack(anchor="w")
+            r = self._frame(f, bg="tile")
             r.pack(anchor="w")
-            ttk.Label(r, text="barcode").pack(side="left")
+            self._lbl(r, "barcode", bg="tile", fg="muted").pack(side="left")
             cb = ttk.Combobox(r, values=CODE_CHARS, width=3, state="readonly",
-                              font=("Segoe UI", 12, "bold"))
+                              font=(FONT, 12, "bold"))
             cb.set(saved[mv])
-            cb.pack(side="left", padx=4)
+            cb.pack(side="left", padx=6)
             cb.bind("<<ComboboxSelected>>", lambda e: self._map_changed())
             self.map_combo[mv] = cb
-        r2 = ttk.Frame(mp)
-        r2.grid(row=1, column=0, columnspan=4, sticky="w", pady=(6, 0))
-        tk.Button(r2, text="Send mapping to robot", bg="#1565c0", fg="white",
-                  font=("Segoe UI", 10, "bold"), command=self.send_map).pack(side="left")
-        ttk.Button(r2, text="Test set: A B C D",
-                   command=lambda: self._set_map(dict(L="A", R="B", F="C", U="D"))
-                   ).pack(side="left", padx=6)
-        ttk.Label(r2, text="or paste one (e.g. K=L,Q=R,X=F,M=U):").pack(side="left", padx=(10, 2))
+        r2 = self._frame(mp)
+        r2.pack(fill="x", pady=(10, 0))
+        self._button(r2, "Send mapping to robot", self.send_map, "accent").pack(side="left")
+        self._button(r2, "Test set: A B C D",
+                     lambda: self._set_map(dict(L="A", R="B", F="C", U="D"))).pack(
+                         side="left", padx=6)
+        self._lbl(r2, "or paste one (e.g. K=L,Q=R,X=F,M=U):", fg="muted").pack(
+            side="left", padx=(10, 4))
         self.map_var = tk.StringVar()
         ent = ttk.Entry(r2, textvariable=self.map_var, width=20)
         ent.pack(side="left")
         ent.bind("<Return>", lambda e: self._paste_map())
-        ttk.Button(r2, text="Use", command=self._paste_map).pack(side="left", padx=2)
-        r3 = ttk.Frame(mp)
-        r3.grid(row=2, column=0, columnspan=4, sticky="w", pady=(4, 0))
-        self.map_msg = tk.Label(r3, text="", anchor="w")
+        self._button(r2, "Use", self._paste_map).pack(side="left", padx=4)
+        r3 = self._frame(mp)
+        r3.pack(fill="x", pady=(8, 0))
+        self.map_msg = self._lbl(r3, anchor="w", fg="muted")
         self.map_msg.pack(side="left")
-        self.robot_map_lbl = tk.Label(r3, text="robot: no mapping yet", fg="#b00020")
-        self.robot_map_lbl.pack(side="left", padx=12)
-        self.ack_lbl = ttk.Label(r3, text="")
+        self.robot_map_lbl = self._lbl(r3, "robot: no mapping yet", fg="bad",
+                                       font=(FONT, 10, "bold"))
+        self.robot_map_lbl.pack(side="left", padx=14)
+        self.ack_lbl = self._lbl(r3, fg="muted")
         self.ack_lbl.pack(side="left", padx=8)
         self.robot_map = ""
         self._map_changed()
 
-        st = ttk.LabelFrame(self.root, text="Status (every 1 s)", padding=8)
-        st.pack(fill="x", padx=8, pady=6)
+        # Status (left) and live sensors (right), side by side
+        mid = self._frame(outer, bg="bg")
+        mid.pack(fill="x", pady=10)
+        mid.columnconfigure(0, weight=3)
+        mid.columnconfigure(1, weight=2)
+
+        stc, st = self._card(mid, "Status", "every 1 s")
+        stc.grid(row=0, column=0, sticky="nsew", padx=(0, 5))
         self.vals = {}
         for i, (key, label) in enumerate(FIELDS):
-            ttk.Label(st, text=label).grid(row=i // 3 * 2, column=i % 3, sticky="w", padx=6)
-            v = tk.Label(st, text="-", font=("Segoe UI", 13, "bold"), anchor="w")
-            v.grid(row=i // 3 * 2 + 1, column=i % 3, sticky="w", padx=6, pady=(0, 6))
+            t = self._frame(st, bg="tile")
+            span = 3 if key == "faults" else 1
+            t.grid(row=i // 3, column=i % 3, columnspan=span, sticky="nsew", padx=3, pady=3)
+            self._lbl(t, label, bg="tile", fg="muted", font=(FONT, 9)).pack(
+                anchor="w", padx=10, pady=(7, 0))
+            v = self._lbl(t, "-", bg="tile", font=(FONT, 14, "bold"), anchor="w",
+                          justify="left",
+                          wraplength=int((520 if span == 3 else 170) * self.s))
+            v.pack(anchor="w", padx=10, pady=(0, 7))
             self.vals[key] = v
         for c in range(3):
-            st.columnconfigure(c, weight=1)
+            st.columnconfigure(c, weight=1, uniform="status")
 
-        sn = ttk.LabelFrame(self.root, text="Live sensors (every 0.5 s)", padding=8)
-        sn.pack(fill="x", padx=8, pady=(0, 6))
-        self.sens = {}
-        for col, (key, label) in enumerate([("line", "Line + barcode"),
-                                            ("obst", "Obstacle (sonar)"),
-                                            ("imu", "IMU")]):
-            ttk.Label(sn, text=label).grid(row=0, column=col, sticky="w", padx=6)
-            v = tk.Label(sn, text="-", font=("Consolas", 11), anchor="w", justify="left")
-            v.grid(row=1, column=col, sticky="nw", padx=6)
-            self.sens[key] = v
-            sn.columnconfigure(col, weight=1)
+        snc, sn = self._card(mid, "Live sensors", "every 0.5 s")
+        snc.grid(row=0, column=1, sticky="nsew", padx=(5, 0))
+        sn.columnconfigure(0, weight=1)
+        # line + barcode: one dot per sensor, filled = it sees black
+        t = self._frame(sn, bg="tile")
+        t.grid(row=0, column=0, sticky="nsew", pady=(0, 6))
+        self._lbl(t, "Line + barcode", bg="tile", fg="muted", font=(FONT, 9)).pack(
+            anchor="w", padx=10, pady=(7, 2))
+        dots = self._frame(t, bg="tile")
+        dots.pack(anchor="w", padx=8)
+        self.dots = {}
+        for name in "LRB":
+            size = int(34 * self.s)
+            c = tk.Canvas(dots, width=size, height=size, highlightthickness=0)
+            self._reg(c, bg="tile")
+            c.pack(side="left", padx=2)
+            self.dots[name] = c
+        self.sens_line = self._lbl(t, "-", bg="tile", fg="muted", font=(MONO, 9),
+                                   justify="left", anchor="w")
+        self.sens_line.pack(anchor="w", padx=10, pady=(4, 8))
+        # obstacle and IMU next to each other
+        two = self._frame(sn)
+        two.grid(row=1, column=0, sticky="nsew")
+        two.columnconfigure(0, weight=1, uniform="sens")
+        two.columnconfigure(1, weight=1, uniform="sens")
+        t = self._frame(two, bg="tile")
+        t.grid(row=0, column=0, sticky="nsew", padx=(0, 3))
+        self._lbl(t, "Obstacle (front)", bg="tile", fg="muted", font=(FONT, 9)).pack(
+            anchor="w", padx=10, pady=(7, 0))
+        self.sens_obst = self._lbl(t, "-", bg="tile", font=(FONT, 14, "bold"), anchor="w")
+        self.sens_obst.pack(anchor="w", padx=10, pady=(0, 8))
+        t = self._frame(two, bg="tile")
+        t.grid(row=0, column=1, sticky="nsew", padx=(3, 0))
+        self._lbl(t, "IMU tilt", bg="tile", fg="muted", font=(FONT, 9)).pack(
+            anchor="w", padx=10, pady=(7, 0))
+        self.sens_tilt = self._lbl(t, "-", bg="tile", font=(FONT, 14, "bold"), anchor="w")
+        self.sens_tilt.pack(anchor="w", padx=10)
+        self.sens_imu = self._lbl(t, "", bg="tile", fg="muted", font=(FONT, 9),
+                                  justify="left", anchor="w")
+        self.sens_imu.pack(anchor="w", padx=10, pady=(0, 8))
 
-        nb = ttk.Notebook(self.root)
-        nb.pack(fill="both", expand=True, padx=8, pady=(0, 8))
+        # Run summary / events / robot log
+        nb = ttk.Notebook(outer)
+        nb.pack(fill="both", expand=True)
         # Run summary (20 Nov): the barcodes, junctions, obstacles, bypasses,
         # humps and stops of each run, picked out of the events, which the
         # robot's timing lines and scraps of bars otherwise drown
-        rs = ttk.Frame(nb, padding=4)
+        rs = ttk.Frame(nb, padding=6)
         nb.add(rs, text="Run summary")
-        bar0 = ttk.Frame(rs)
-        bar0.pack(fill="x", pady=(0, 4))
-        ttk.Button(bar0, text="Save log + summary", command=self.save_robot_log).pack(side="left")
-        ttk.Button(bar0, text="Clear", command=self.clear_summary).pack(side="left", padx=4)
-        ttk.Label(bar0, text="each START begins a new block").pack(side="left", padx=8)
+        bar0 = self._frame(rs)
+        bar0.pack(fill="x", pady=(0, 6))
+        self._button(bar0, "Save log + summary", self.save_robot_log).pack(side="left")
+        self._button(bar0, "Clear", self.clear_summary).pack(side="left", padx=6)
+        self._lbl(bar0, "each START begins a new block", fg="muted").pack(side="left", padx=8)
         # wrap: on a narrow window a long line wraps instead of being cut off
-        self.sum_text = tk.Text(rs, height=12, state="disabled", font=("Consolas", 10),
-                                wrap="word")
+        self.sum_text = tk.Text(rs, height=12, state="disabled", font=(MONO, 10), wrap="word",
+                                relief="flat", bd=0, highlightthickness=1, padx=8, pady=6)
         sb0 = ttk.Scrollbar(rs, command=self.sum_text.yview)
         self.sum_text.configure(yscrollcommand=sb0.set)
         sb0.pack(side="right", fill="y")
         self.sum_text.pack(fill="both", expand=True)
         self._show_summary()
 
-        ev = ttk.Frame(nb, padding=4)
+        ev = ttk.Frame(nb, padding=6)
         nb.add(ev, text="Events")
-        self.events = tk.Text(ev, height=12, state="disabled", font=("Consolas", 10))
+        self.events = tk.Text(ev, height=8, state="disabled", font=(MONO, 10), relief="flat",
+                              bd=0, highlightthickness=1, padx=8, pady=6)
         sb = ttk.Scrollbar(ev, command=self.events.yview)
         self.events.configure(yscrollcommand=sb.set)
         sb.pack(side="right", fill="y")
         self.events.pack(fill="both", expand=True)
 
-        rl = ttk.Frame(nb, padding=4)
+        rl = ttk.Frame(nb, padding=6)
         nb.add(rl, text="Robot log")
-        bar = ttk.Frame(rl)
-        bar.pack(fill="x", pady=(0, 4))
-        ttk.Button(bar, text="Save log + summary", command=self.save_robot_log).pack(side="left")
-        ttk.Button(bar, text="Clear", command=self.clear_robot_log).pack(side="left", padx=4)
+        bar = self._frame(rl)
+        bar.pack(fill="x", pady=(0, 6))
+        self._button(bar, "Save log + summary", self.save_robot_log).pack(side="left")
+        self._button(bar, "Clear", self.clear_robot_log).pack(side="left", padx=6)
         self.follow_var = tk.BooleanVar(value=True)
         ttk.Checkbutton(bar, text="follow", variable=self.follow_var).pack(side="left", padx=4)
-        self.robot_lbl2 = ttk.Label(bar, text="nothing yet (needs an MQTT image)")
+        self.robot_lbl2 = self._lbl(bar, "nothing yet (needs an MQTT image)", fg="muted")
         self.robot_lbl2.pack(side="left", padx=8)
-        self.rlog = tk.Text(rl, height=12, state="disabled", font=("Consolas", 9), wrap="none")
+        self.rlog = tk.Text(rl, height=8, state="disabled", font=(MONO, 9), wrap="none",
+                            relief="flat", bd=0, highlightthickness=1, padx=8, pady=6)
         sb2 = ttk.Scrollbar(rl, command=self.rlog.yview)
         self.rlog.configure(yscrollcommand=sb2.set)
         sb2.pack(side="right", fill="y")
         self.rlog.pack(fill="both", expand=True)
+
+    def _draw_dots(self):
+        p = self.pal
+        size = int(34 * self.s)
+        for name, c in self.dots.items():
+            on = self.ir[name]
+            c.delete("all")
+            c.create_oval(3, 3, size - 3, size - 3, fill=p["accent"] if on else p["dot_off"],
+                          outline="")
+            c.create_text(size // 2, size // 2, text=name, font=(FONT, 10, "bold"),
+                          fill=p["white"] if on else p["muted"])
 
     # ---- actions -----------------------------------------------------------
     def connect(self):
@@ -410,9 +656,9 @@ class Panel:
     def _map_changed(self):
         text = self._map_text()
         if text is None:
-            self.map_msg.configure(text="each move needs a different barcode", fg="#b00020")
+            self._tone(self.map_msg, "bad", "each move needs a different barcode")
         else:
-            self.map_msg.configure(text=f"will send: {text}", fg="#444444")
+            self._tone(self.map_msg, "muted", f"will send: {text}")
             self._save_mapping()
         self._show_robot_map()
 
@@ -424,7 +670,7 @@ class Panel:
     def _paste_map(self):
         choice = parse_mapping(self.map_var.get())
         if isinstance(choice, str):
-            self.map_msg.configure(text=f"could not read that: {choice}", fg="#b00020")
+            self._tone(self.map_msg, "bad", f"could not read that: {choice}")
             return
         self._set_map(choice)
 
@@ -432,13 +678,12 @@ class Panel:
         """what the robot has (its status line), against what is picked here"""
         have = self.robot_map
         if not have or have == "none":
-            self.robot_map_lbl.configure(text="robot: no mapping yet (press Send)", fg="#b00020")
+            self._tone(self.robot_map_lbl, "bad", "robot: no mapping yet (press Send)")
             return
         want = self._map_text()
         same = want is not None and set(want.split(",")) == set(have.split(","))
-        self.robot_map_lbl.configure(
-            text=f"robot has: {have}" + ("  (same)" if same else "  (different: press Send)"),
-            fg="#2a9d3a" if same else "#d9a400")
+        self._tone(self.robot_map_lbl, "ok" if same else "warn",
+                   f"robot has: {have}" + ("  (same)" if same else "  (different: press Send)"))
 
     def _load_mapping(self):
         try:
@@ -462,10 +707,9 @@ class Panel:
     def send_map(self):
         text = self._map_text()
         if text is None:
-            self.map_msg.configure(text="not sent: each move needs a different barcode",
-                                   fg="#b00020")
+            self._tone(self.map_msg, "bad", "not sent: each move needs a different barcode")
             return
-        self.ack_lbl.configure(text="waiting for the robot ...", foreground="#666666")
+        self._tone(self.ack_lbl, "muted", "waiting for the robot ...")
         payload = wire.pack_map(self._map_choice())
         self.publish("is34/cmd/map", payload, shown=f"{text} = {payload.hex(' ')}")
 
@@ -522,8 +766,8 @@ class Panel:
             warn.append(f"{self.robot_lost} messages lost on the WiFi")
         if self.robot_dropped:
             warn.append(f"{self.robot_dropped} bytes dropped on the robot")
-        self.robot_lbl2.configure(text=f"{n} lines" + (" - " + ", ".join(warn) if warn else ""),
-                                  foreground="#b00020" if warn else "")
+        self._tone(self.robot_lbl2, "bad" if warn else "muted",
+                   f"{n} lines" + (" - " + ", ".join(warn) if warn else ""))
 
     def _robot_log(self, text):
         # "L<seq> <dropped>|<text>"
@@ -587,18 +831,18 @@ class Panel:
             item = self.q.get()
             if item[0] == "conn":
                 up = item[1]
-                self.conn_lbl.configure(text=f"broker {self.host}:{self.port}" if up
-                                        else "not connected", fg="#2a9d3a" if up else "#b00020")
+                self._tone(self.conn_lbl, "ok" if up else "bad",
+                           f"●  broker {self.host}:{self.port}" if up else "●  not connected")
                 self.add_event("panel", "connected to the broker" if up else "broker disconnected")
             else:
                 self._message(item[1], item[2])
         age = time.time() - self.last_status
         if self.last_status == 0.0:
-            self.robot_lbl.configure(text="robot: no data", fg="#b00020")
+            self._tone(self.robot_lbl, "bad", "●  robot: no data")
         elif age > OFFLINE_S:
-            self.robot_lbl.configure(text=f"robot: OFFLINE ({age:.0f} s)", fg="#b00020")
+            self._tone(self.robot_lbl, "bad", f"●  robot: OFFLINE ({age:.0f} s)")
         else:
-            self.robot_lbl.configure(text="robot: online", fg="#2a9d3a")
+            self._tone(self.robot_lbl, "ok", "●  robot: online")
         self.root.after(100, self._poll)
 
     def _message(self, topic, payload):
@@ -613,7 +857,11 @@ class Panel:
                 if key in self.vals:
                     self.vals[key].configure(text=pretty(key, val))
             state = fields.get("state", "")
-            self.vals["state"].configure(fg=STATE_COLOURS.get(state, "#b00020"))
+            self._tone(self.vals["state"], STATE_TONES.get(state, "bad"))
+            self._tone(self.vals["stop"],
+                       "text" if self.vals["stop"].cget("text") == "none" else "warn")
+            self._tone(self.vals["faults"],
+                       "text" if self.vals["faults"].cget("text") == "none" else "bad")
             robot_map = fields.get("map", "")
             if robot_map != self.robot_map:
                 self.robot_map = robot_map
@@ -633,7 +881,7 @@ class Panel:
                         f"REJECTED (the robot keeps {have}; why: see Events)")
             else:
                 good = text.startswith("OK")
-            self.ack_lbl.configure(text=text, foreground="#2a9d3a" if good else "#b00020")
+            self._tone(self.ack_lbl, "ok" if good else "bad", text)
             self.add_event("robot", f"mapping: {text}")
             if good:
                 self.summary.set_mapping(text[len("OK "):] if text.startswith("OK ") else text)
@@ -656,29 +904,34 @@ class Panel:
                 return None
 
         ir = d.get("ir", "???")
-        dot = lambda c: "●" if c == "1" else "○"      # filled = black
-        self.sens["line"].configure(text=(
-            f"L {dot(ir[0:1])}  R {dot(ir[1:2])}  B {dot(ir[2:3])}\n"
+        for i, name in enumerate("LRB"):              # lit = that sensor sees black
+            self.ir[name] = ir[i:i + 1] == "1"
+        self._draw_dots()
+        self.sens_line.configure(text=(
             f"steer {num('steer')} mm/s\n"
             f"in barcode: {'yes' if d.get('inbar') == '1' else 'no'}\n"
             f"steering held (B on bars): {'yes' if d.get('hold') == '1' else 'no'}"))
         front = num("front")
         front_txt = {None: "?", -1: "nothing in range", -2: "NO ECHO (fault)"}.get(
             front, f"{front} mm")
-        self.sens["obst"].configure(text=f"front {front_txt}")
+        self._tone(self.sens_obst, "bad" if front == -2 else "text", front_txt)
         tilt, h10 = num("tilt"), num("h10")
         if tilt is not None and h10 is not None:
             deg = math.degrees(math.asin(max(-1.0, min(1.0, tilt / 1000.0))))
-            self.sens["imu"].configure(text=(
-                f"tilt {deg:+.1f} deg\nclimbed {h10 / 10:.1f} mm\n"
-                f"{'OK' if d.get('imu') == '1' else 'NOT ANSWERING'}"))
+            ok = d.get("imu") == "1"
+            self.sens_tilt.configure(text=f"{deg:+.1f}°")
+            self._tone(self.sens_imu, "muted" if ok else "bad",
+                       f"climbed {h10 / 10:.1f} mm\n"
+                       f"{'IMU OK' if ok else 'IMU NOT ANSWERING'}")
 
     def add_event(self, who, text):
         line = time.strftime("%H:%M:%S ") + f"[{who}] {text}"
         self.log.write(line + "\n")
         self.log.flush()
         self.events.configure(state="normal")
-        self.events.insert("end", line + "\n")
+        self.events.insert("end", time.strftime("%H:%M:%S "), "time")
+        self.events.insert("end", f"[{who}]", who)        # coloured by who
+        self.events.insert("end", f" {text}\n")
         self.events.see("end")
         self.events.configure(state="disabled")
 
@@ -688,6 +941,11 @@ def main():
     ap.add_argument("--host", default="127.0.0.1", help="broker address (default this laptop)")
     ap.add_argument("--port", type=int, default=1884, help="broker port (default 1884)")
     a = ap.parse_args()
+    try:    # crisp text on a scaled Windows screen (otherwise Windows blurs it)
+        import ctypes
+        ctypes.windll.shcore.SetProcessDpiAwareness(1)
+    except (AttributeError, OSError):
+        pass
     root = tk.Tk()
     Panel(root, a.host, a.port)
     root.mainloop()

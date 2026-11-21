@@ -75,6 +75,7 @@ other with shared test messages (`python tools/panel/test_wire.py`).
 | Broker address and port, **Connect**, **Start broker** | which broker the panel uses (default this laptop, port 1884) |
 | `broker 127.0.0.1:1884` / `not connected` | the panel's own link to the broker |
 | `robot: online` / `robot: OFFLINE (N s)` / `robot: no data` | the robot's status message arrived in the last 3 s / none for N seconds / none since the panel started. The status is the robot's heartbeat (FR10) |
+| **Light** / **Dark** | switches the panel between a dark and a light look; the choice is kept in `is34_panel_theme.txt` next to the mapping file |
 
 ### 4.2 START and STOP
 
@@ -140,9 +141,9 @@ If the robot is not online when you press one, the Events tab says
 
 | Part | What it shows | From |
 |---|---|---|
-| Line + barcode | the three IR sensors L, R, B (● = black); the steering in mm/s; `in barcode`; `steering held (B on bars)` | S3, and S2 for "held" |
-| Obstacle (sonar) | the distance straight ahead, `nothing in range`, or `NO ECHO (fault)`. Live even while IDLE | S5 Obstacle |
-| IMU | tilt in degrees, height climbed, `OK` / `NOT ANSWERING` | S4 IMU |
+| Line + barcode | the three IR sensors L, R, B (a lit circle = black); the steering in mm/s; `in barcode`; `steering held (B on bars)` | S3, and S2 for "held" |
+| Obstacle (front) | the sonar's distance straight ahead, `nothing in range`, or `NO ECHO (fault)`. Live even while IDLE | S5 Obstacle |
+| IMU tilt | tilt in degrees, height climbed, `OK` / `NOT ANSWERING` | S4 IMU |
 
 ### 4.6 The tabs
 

@@ -76,7 +76,7 @@ SIDE_EXTRA_MM = 300          # S: drive on at most this past x_pass while beside
 SCAN_NEAR_MM = 220           # J: first scan where it stopped, at least this far
 REVERSE_MM = 100
 D_MAX_MM = 120
-MARGIN_MM = 100              # mission.c (70 until 8 Nov)
+MARGIN_MM = 80               # mission.c (70 until 8 Nov, 100 until 23 Nov)
 SKIP_IF_ON = True            # on the tape after the 115 mm: no spin
 SPIN_BACK = False            # spin back the other way if nothing found
                              # (True: 2 runs found the line pointing back
@@ -484,7 +484,7 @@ def main():
     global MARGIN_MM
     only = sys.argv[1:] or ['OLD', 'NEW', 'J', 'S']
     for method in only:
-        MARGIN_MM = 70 if method == 'OLD' else 100
+        MARGIN_MM = 70 if method == 'OLD' else 80
         tot = ok = hits = 0
         per = {}
         clear = []

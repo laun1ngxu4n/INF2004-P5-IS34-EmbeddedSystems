@@ -229,12 +229,12 @@ How to run the tests: [TESTING_GUIDE.md](../../testing/TESTING_GUIDE.md).
   stops, "no clear side".
 - Drives round, pinging before each long leg:
   1. turn 90 to the clear side
-  2. out: half of max(width + U, 200 mm) + half the robot width + 100 mm
-     (about 285 mm for a 150 mm box)
+  2. out: half of max(width + U, 200 mm) + half the robot width + 80 mm
+     (about 265 mm for a 150 mm box; margin 100 until 23 Nov)
   3. turn back and drive past the box: at least distance to the box +
      120 mm (a box up to 120 mm deep, team assumption A9; 150 until 21 Nov,
      the robot went further past the box than needed) + robot length
-     + 100 mm (about 575 mm from the stop, 21 Nov; was about 605).
+     + 80 mm (about 555 mm from the stop, 23 Nov; 575 on 21 Nov, 605 before).
      **Side look: built but OFF** (`S5_SERVO_SIDE_DEG 0`, 8 Nov): on the
      robot it did not hear the box's side at 40 deg (bench check mostly
      no echo; in a bypass only the front corner while approaching), and
@@ -246,7 +246,7 @@ How to run the tests: [TESTING_GUIDE.md](../../testing/TESTING_GUIDE.md).
      beam hears the face at its square-on distance while the sonar is
      beside it; an echo near the sideways distance the scan predicts
      (-120 / +80 mm) counts as the box. **Every such echo pushes the end
-     of the leg** to where the axle is half the robot's width + 100 mm
+     of the leg** to where the axle is half the robot's width + 80 mm
      past the point it was heard, so a box deeper than 150 mm is driven
      past properly. It never makes the leg shorter: a missed echo changes
      nothing, a stray one only makes it longer, and a side look that

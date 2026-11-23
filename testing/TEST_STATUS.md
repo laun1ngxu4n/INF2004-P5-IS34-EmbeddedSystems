@@ -407,6 +407,16 @@ Legend: ✅ passed on the robot · 🟡 works, but not to the pass mark yet ·
   mm 28/36 (the sim has no "still beside?" check after the turn back, so
   it is the worst case). Check: one bypass, the gap behind the box when
   it turns back, `past` about 575 mm in the event.
+- **Changed 23 Nov, not run yet (team: still too far; branch `hump-4mm`):**
+  bypass margin `MARGIN_MM` 100 -> 80 mm, both ways: out about 2 cm less
+  (23-24 cm for the 10 cm box) and past about 555 mm instead of 575.
+  `bypasssim.py J`, 486 runs: no contact at 80 (none at 100 either), but
+  the closest pass is 1 mm instead of 14; 60 and 150 mm deep boxes the
+  same as at 100 (36/36, 30/36). Smaller was worse: 70 touched once, 60
+  seven times; only shortening the leg past the box touched from 80.
+  Check: one or two bypasses of the 10 cm box, `out` about 235 and
+  `past` about 555 in the event, and the gap to the box when it turns
+  back.
 - **20 Nov night, mapping Q Z T A (`subsystem5/logs/2026-11-20_track4_mission_13_robot.txt`):**
   ✅ Z read whole -> RIGHT; ✅ box 109 +/- 19, bypass back on the line; ✅
   small F read (not mapped: ignored); A only as a half code, refused (not

@@ -53,8 +53,12 @@
 #define REVERSE_MM   100 /* second scan position */
 #define D_MAX_MM     120 /* deepest expected obstacle (A9; 150 until 21 Nov) */
 /* 50 until 7 Nov, then 70: tools/sim/bypasssim.py with +-5 % spin error
- * passed a 200 mm box 21 mm away at 70, 42 mm at 100 */
-#define MARGIN_MM        100
+ * passed a 200 mm box 21 mm away at 70, 42 mm at 100.  100 -> 80 on
+ * 23 Nov (team: the bypass went further out and past than needed);
+ * bypasssim J, 486 runs: no contact at 80, closest pass 1 mm (14 at 100);
+ * at 70 one contact, at 60 seven; shrinking only the leg past the box
+ * touched from 80, so both stay one margin. */
+#define MARGIN_MM        80
 #define REJOIN_ENABLE_MM 60 /* line events back on after this */
 /* after a bypass the barcode sensor is ignored this far: the robot is
    still turning onto its line and B can cross the line's own tape (20 Nov,
@@ -922,7 +926,7 @@ LOCAL int32_t spin_line (int32_t deg, int32_t ignore)
    side square-on if the box is longer (a strong echo); then it turns
    back, goes EXTEND_MM further along the box and looks again, at most
    EXTEND_TRIES times.  Turning on the spot beside the box is safe: the
-   robot's centre is y_off - edge >= half its width + MARGIN_MM (185 mm)
+   robot's centre is y_off - edge >= half its width + MARGIN_MM (165 mm)
    from the box's side, its corners swing at most about 155 mm. */
 #define EXTEND_MM    100
 #define EXTEND_TRIES 4

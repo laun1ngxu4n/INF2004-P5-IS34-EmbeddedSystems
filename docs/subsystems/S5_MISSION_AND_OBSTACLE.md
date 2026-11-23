@@ -154,10 +154,10 @@ IDLE --START--> CAL (1 s, IMU learns level) --> RUN --junction turn / obstacle--
      `S5_PLAN_MAX_MM`);
    - the planned edge is never more than 200 mm out from the line;
    - **out** = that edge + half the robot's width (85) + the margin
-     (100): about 25-26 cm for the 10 cm box;
+     (80; 100 until 23 Nov): about 23-24 cm for the 10 cm box;
    - **past** = the distance to the box + the assumed depth (120) + the
-     robot's length (200) + the margin (100): about 575 mm from where it
-     stopped.
+     robot's length (200) + the margin (80): about 555 mm from where it
+     stopped (575 until 23 Nov).
 8. **The legs**, each with the forward watch on (2 pings under 150 mm
    stop the robot, `something in the way during the bypass`):
 
@@ -236,7 +236,7 @@ IDLE --START--> CAL (1 s, IMU learns level) --> RUN --junction turn / obstacle--
 | Scan | ±40°, 5° steps, 17 rays, 3 pings each, settle at least 60 ms |
 | Scan from | where it stopped; backs up if nearer than 160 mm (`SCAN_NEAR_MM`); scan 2 after 100 mm back (`REVERSE_MM`) |
 | Beam pull-in | 12° (`S5_BEAM_HALF_DEG`) |
-| Plan | width + uncertainty, between 150 and 300 mm; margin 100 mm (`MARGIN_MM`); assumed depth 120 mm (`D_MAX_MM`, 150 until 21 Nov) |
+| Plan | width + uncertainty, between 150 and 300 mm; margin 80 mm (`MARGIN_MM`; 100 until 23 Nov: bypasssim, no contact at 80, closest pass 1 mm); assumed depth 120 mm (`D_MAX_MM`, 150 until 21 Nov) |
 | Watch on the legs | 2 pings under 150 mm (`WATCH_STOP_MM`) |
 | Box still beside | 100 mm further, up to 4 times (`EXTEND_MM`, `EXTEND_TRIES`) |
 | Back to the line | gives up 400 mm past (`REJOIN_FAR_MM`); barcode ignored 200 mm after (`REJOIN_BAR_MM`) |

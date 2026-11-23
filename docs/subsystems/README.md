@@ -80,6 +80,10 @@ drives the demo: [PANEL.md](PANEL.md). It explains each part of the
 window, which subsystem each value comes from, what each button does in
 the robot, and what to do when something is wrong.
 
+**Presenting:** [PRESENTER_NOTES.md](PRESENTER_NOTES.md) has one page per
+buddy: what to say, what to show, which numbers to quote, what not to
+claim, and the running order for the demo.
+
 The code is in `app_program/subsystemN/`, the tests in `testing/subsystemN/`.
 Only a subsystem's owner edits its folder; shared files change by team
 agreement ([TEAM.md](../team/TEAM.md)).

@@ -7,7 +7,8 @@
 - the laptop panel ([`tools/panel/`](../../tools/panel/)).
 
 **Tests:** Stage 5 (the demo image over WiFi). The state on 21 Nov 2026.
-The whole robot: [README.md](README.md).
+The whole robot: [README.md](README.md). The code, function by function:
+[S1_CODE_WALKTHROUGH.md](S1_CODE_WALKTHROUGH.md).
 
 ## 1. In one minute (what to say)
 

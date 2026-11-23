@@ -69,7 +69,7 @@ at once from any task or interrupt."
 
 | # | Subsystem | Owner | What it does | Its tasks | Details |
 |---|---|---|---|---|---|
-| 1 | Telemetry, WiFi / MQTT, notification | B1 | status, sensors and events to the laptop; mapping, START and STOP from it; the buzzer | `telemetry_task` | [S1_TELEMETRY.md](S1_TELEMETRY.md) |
+| 1 | Telemetry, WiFi / MQTT, notification | B1 | status, sensors and events to the laptop; mapping, START and STOP from it; the buzzer | `telemetry_task` | [S1_TELEMETRY.md](S1_TELEMETRY.md), code walk-through [S1_CODE_WALKTHROUGH.md](S1_CODE_WALKTHROUGH.md) |
 | 2 | Motion | B2 | motors, encoders, wheel speed control; drive, spin and line-follow commands | `motion_task` | [S2_MOTION.md](S2_MOTION.md) |
 | 3 | Line following and barcodes | B3 | line sensors to steering; junctions; Code 39 decoder; keeps the mapping | `line_task`, `barcode_task` | [S3_LINE_AND_BARCODE.md](S3_LINE_AND_BARCODE.md) |
 | 4 | IMU and Safety | B4 | hump height; stop when lifted or tipped over; stall and Motion-hung stop | `imu_task`, `safety_task` | [S4_IMU_AND_SAFETY.md](S4_IMU_AND_SAFETY.md) |

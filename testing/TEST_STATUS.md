@@ -954,6 +954,27 @@ than the robot, so the robot tips over it instead of driving up a slope.
   prints every bump's scaled height (`x 0.63 for driving = X mm`), even
   under the limit: put the limit between the largest flat reading and the
   smallest hump reading.
+  - **23 Nov evening, mission image (4 mm), over the ~5 mm hump: no
+    report, but the runs could not show one**
+    (`testing/subsystem4/logs/2026-11-23_hump5mm_mission_{robot,panel}.txt`).
+    - 3 runs of 417, 495 and about 230 mm, each stopped from the laptop
+      3-5 s after START.
+    - A hump is reported only after 100 mm of level driving past it, or at
+      the next junction turn or obstacle stop. Each STOP came before that,
+      and the next START's calibration clears the measurement.
+    - No mapping was sent in these runs (`map=none`).
+    - The panel's tilt read -25 to -40 (/1000) while driving, with single
+      readings to -84 and -174. Two causes: the chassis leans nose-down
+      when driving, and speeding up or slowing down reads as tilt
+      (400 mm/s² = 0.04).
+    - The panel's tilt and climbed height are the nose-up tilt only. The
+      hump under one wheel is measured from the side tilt, which the panel
+      does not show. A negative tilt does not stop the hump being
+      measured; it only delays the report while |tilt| stays over 30
+      (FLAT_SIN).
+    - Still to run: the Stage 4 test (S4-R01, it prints every bump's
+      height), or mission runs that drive at least 50 cm past the hump
+      before STOP.
 - [ ] ⬜ **S4-L01 lift stop (lecturer, 13 Nov; replaces IMU collision
   detection): built 13 Nov, not run yet.** Gravity more than 35 deg from
   the calibrated level for 100 ms = motors off as STOP, Mission told,

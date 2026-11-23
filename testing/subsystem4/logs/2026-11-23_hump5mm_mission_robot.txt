@@ -1,0 +1,76 @@
+
+
+microT-Kernel Version 3.00
+
+
+=== micro T-Kernel on Raspberry Pi Pico W (spec 0x6300, product 0x0003) ===
+single-core build
+P5-IS34 mission image. Kernel tick 10 ms
+all subsystems started
+
+wifi: cyw43_utk_task starting (proc 1)
+wifi: cyw43_init() ...
+wifi: cyw43_init() returned, bringing interface up ...
+[IMU] LSM303D found at 0x1D
+wifi: joining "(hotspot)" ...
+wifi: link status -> joined AP, waiting for IP (1)
+wifi: link status -> FAILED (association failure) (-1)
+wifi: joining "(hotspot)" ...
+wifi: link status -> joined AP, waiting for IP (1)
+wifi: link status -> joined AP, no IP yet (2)
+wifi: link up, ip=10.139.56.102
+mqtt: connected to 10.139.56.225
+mqtt: subscribed to mtk3smp-pico/heartbeat
+mqtt: subscribed to mtk3smp-pico/heartbeat
+mqtt: TX [mtk3smp-pico/heartbeat] "hb 0" (heartbeat every 5 s, not printed)
+mqtt: RX [mtk3smp-pico/heartbeat] "hb 0"
+mqtt: RX [is34/cmd/start] ""
+[MQTT] start
+[EVT] start
+[S3] barcode: black from 1500, step 700
+mqtt: RX [is34/cmd/stop] ""
+[MQTT] stop
+[EVT] STOP
+mqtt: RX [is34/cmd/stop] ""
+[MQTT] stop
+mqtt: RX [is34/cmd/start] ""
+[MQTT] start
+[EVT] start
+[S3] barcode: black from 1500, step 700
+mqtt: RX [is34/cmd/stop] ""
+[MQTT] stop
+[EVT] STOP
+[tmg] t=60136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |    600   0 | 52.07-147.99 (147.99 @ 0.6) | 224 (224)
+[tmg] motion     6  10 |   5989  11 | 2.47-127.61 (127.61 @ 0.6) | 300 (300)
+[tmg] line       8  20 |   2995   5 | 12.44-127.76 (127.76 @ 0.6) | 101 (101)
+[tmg] barcode   10  10 |   2995   0 | 12.28-137.82 (137.82 @ 0.6) | 45 (45)
+[tmg] safety     5  20 |   2995   5 | 12.63-127.54 (127.54 @ 0.6) | 62 (62)
+[tmg] imu        9  10 |   5989  11 | 2.25-127.81 (127.81 @ 0.6) | 735 (735)
+[tmg] mission    7 100 |    581   0 | 0.13-1148.93 (1148.93 @ 48.9) | 1038940 (1038940)
+[tmg] obstacle  11  60 |    999   1 | 52.09-127.96 (127.96 @ 0.6) | 40 (40)
+mqtt: RX [is34/cmd/start] ""
+[MQTT] start
+[EVT] start
+[S3] barcode: black from 1500, step 700
+mqtt: RX [is34/cmd/stop] ""
+[MQTT] stop
+[EVT] STOP
+[tmg] t=120136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |   1200   0 | 98.20-101.80 (147.99 @ 0.6) | 2548 (2548)
+[tmg] motion     6  10 |  11989  11 | 8.41-11.63 (127.61 @ 0.6) | 239 (300)
+[tmg] line       8  20 |   5995   5 | 18.37-21.65 (127.76 @ 0.6) | 99 (101)
+[tmg] barcode   10  10 |   5995   0 | 18.17-21.86 (137.82 @ 0.6) | 30 (45)
+[tmg] safety     5  20 |   5995   5 | 18.46-21.56 (127.54 @ 0.6) | 69 (69)
+[tmg] imu        9  10 |  11989  11 | 8.30-11.74 (127.81 @ 0.6) | 734 (735)
+[tmg] mission    7 100 |   1171   0 | 10.70-1149.08 (1149.08 @ 114.6) | 1039063 (1039063)
+[tmg] obstacle  11  60 |   1999   1 | 58.39-61.62 (127.96 @ 0.6) | 37 (40)
+[tmg] t=180136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |   1800   0 | 98.52-101.47 (147.99 @ 0.6) | 2540 (2548)
+[tmg] motion     6  10 |  17989  11 | 8.74-11.30 (127.61 @ 0.6) | 71 (300)
+[tmg] line       8  20 |   8995   5 | 18.73-21.32 (127.76 @ 0.6) | 66 (101)
+[tmg] barcode   10  10 |   8995   0 | 18.53-21.53 (137.82 @ 0.6) | 34 (45)
+[tmg] safety     5  20 |   8995   5 | 18.81-21.23 (127.54 @ 0.6) | 50 (69)
+[tmg] imu        9  10 |  17989  11 | 8.65-11.42 (127.81 @ 0.6) | 724 (735)
+[tmg] mission    7 100 |   1771   0 | 10.71-111.14 (1149.08 @ 114.6) | 10 (1039063)
+[tmg] obstacle  11  60 |   2999   1 | 58.49-61.52 (127.96 @ 0.6) | 35 (40)

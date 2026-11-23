@@ -1,0 +1,421 @@
+18:16:04 [panel] cannot reach broker 127.0.0.1:1884: [WinError 10061] No connection could be made because the target machine actively refused it
+18:16:04 [panel] broker started (port 1884, c:\mhdikhwan\kwanxkwan\tools\panel\mosquitto_robot.conf)
+18:16:05 [panel] connected to the broker
+18:16:09 is34/telemetry state=IDLE speed=0,0 dist=0 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=0 faults=64
+18:16:09 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=985 tilt=1 h10=0 imu=1
+18:16:09 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=986 tilt=1 h10=0 imu=1
+18:16:09 is34/telemetry state=IDLE speed=0,0 dist=0 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=0 faults=64
+18:16:09 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=3457 tilt=1 h10=0 imu=1
+18:16:09 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=1518 tilt=1 h10=0 imu=1
+18:16:10 is34/telemetry state=IDLE speed=0,0 dist=0 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=0 faults=64
+18:16:10 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=2848 tilt=1 h10=0 imu=1
+18:16:10 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=2995 tilt=0 h10=0 imu=1
+18:16:10 is34/telemetry state=IDLE speed=0,0 dist=0 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=0 faults=0
+18:16:10 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=1092 tilt=0 h10=0 imu=1
+18:16:10 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=-1 tilt=0 h10=0 imu=1
+18:16:11 is34/telemetry state=IDLE speed=0,0 dist=0 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=0 faults=0
+18:16:11 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=-1 tilt=0 h10=0 imu=1
+18:16:11 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=-1 tilt=1 h10=0 imu=1
+18:16:12 is34/telemetry state=IDLE speed=0,0 dist=0 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=0 faults=0
+18:16:12 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=-1 tilt=1 h10=0 imu=1
+18:16:12 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=-1 tilt=0 h10=0 imu=1
+18:16:13 is34/telemetry state=IDLE speed=-12,0 dist=-1 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=0 faults=0
+18:16:13 is34/sensors ir=101 steer=30 hold=0 inbar=0 front=-1 tilt=-22 h10=0 imu=1
+18:16:13 is34/sensors ir=111 steer=0 hold=0 inbar=1 front=-1 tilt=62 h10=1 imu=1
+18:16:14 is34/telemetry state=IDLE speed=0,0 dist=-4 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=0 faults=0
+18:16:14 is34/sensors ir=111 steer=0 hold=0 inbar=1 front=-1 tilt=158 h10=1 imu=1
+18:16:14 is34/sensors ir=111 steer=0 hold=0 inbar=1 front=800 tilt=94 h10=1 imu=1
+18:16:15 is34/telemetry state=IDLE speed=0,0 dist=-4 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=0 faults=0
+18:16:15 is34/sensors ir=111 steer=0 hold=0 inbar=1 front=-1 tilt=335 h10=1 imu=1
+18:16:15 is34/sensors ir=111 steer=0 hold=0 inbar=1 front=845 tilt=-6 h10=1 imu=1
+18:16:16 is34/telemetry state=IDLE speed=0,0 dist=-4 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=0 faults=0
+18:16:16 is34/sensors ir=100 steer=30 hold=0 inbar=1 front=731 tilt=-9 h10=1 imu=1
+18:16:16 is34/sensors ir=110 steer=0 hold=0 inbar=1 front=697 tilt=-35 h10=1 imu=1
+18:16:17 is34/telemetry state=IDLE speed=0,0 dist=-3 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=0 faults=0
+18:16:17 is34/sensors ir=000 steer=0 hold=0 inbar=1 front=687 tilt=-22 h10=1 imu=1
+18:16:17 is34/sensors ir=000 steer=0 hold=0 inbar=1 front=687 tilt=-3 h10=1 imu=1
+18:16:18 is34/telemetry state=IDLE speed=0,0 dist=-3 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=0 faults=0
+18:16:18 is34/sensors ir=000 steer=0 hold=0 inbar=1 front=683 tilt=-3 h10=1 imu=1
+18:16:18 is34/sensors ir=000 steer=0 hold=0 inbar=1 front=682 tilt=-3 h10=1 imu=1
+18:16:19 is34/telemetry state=IDLE speed=0,0 dist=-3 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=0 faults=0
+18:16:19 is34/sensors ir=000 steer=0 hold=0 inbar=1 front=687 tilt=-3 h10=1 imu=1
+18:16:19 [sent] is34/cmd/start (the topic is the command)
+18:16:19 [robot] start
+18:16:19 is34/sensors ir=000 steer=0 hold=0 inbar=1 front=690 tilt=-1 h10=1 imu=1
+18:16:20 is34/telemetry state=CAL speed=0,0 dist=-3 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=0 faults=0
+18:16:20 is34/sensors ir=000 steer=0 hold=0 inbar=1 front=690 tilt=-1 h10=1 imu=1
+18:16:20 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=690 tilt=0 h10=0 imu=1
+18:16:21 is34/telemetry state=RUN speed=130,134 dist=50 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=0 faults=0
+18:16:21 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=631 tilt=5 h10=15 imu=1
+18:16:21 is34/sensors ir=000 steer=-1 hold=0 inbar=0 front=585 tilt=7 h10=14 imu=1
+18:16:22 is34/telemetry state=RUN speed=0,66 dist=144 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=0 faults=0
+18:16:22 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=557 tilt=-84 h10=12 imu=1
+18:16:22 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=-1 tilt=12 h10=7 imu=1
+18:16:23 is34/telemetry state=RUN speed=122,126 dist=246 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=0 faults=0
+18:16:23 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=458 tilt=-28 h10=-5 imu=1
+18:16:23 is34/sensors ir=010 steer=-30 hold=0 inbar=0 front=866 tilt=-14 h10=-18 imu=1
+18:16:24 is34/telemetry state=RUN speed=128,130 dist=331 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=0 faults=0
+18:16:24 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=360 tilt=-40 h10=-26 imu=1
+18:16:24 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=591 tilt=-25 h10=-43 imu=1
+18:16:24 [sent] is34/cmd/stop (the topic is the command)
+18:16:25 [robot] STOP
+18:16:25 is34/telemetry state=IDLE speed=2,0 dist=417 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:16:25 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=259 tilt=-98 h10=-41 imu=1
+18:16:25 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=266 tilt=-2 h10=-41 imu=1
+18:16:26 is34/telemetry state=IDLE speed=0,0 dist=417 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:16:26 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=288 tilt=-1 h10=-41 imu=1
+18:16:26 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=438 tilt=-1 h10=-41 imu=1
+18:16:27 is34/telemetry state=IDLE speed=0,0 dist=417 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:16:27 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=370 tilt=-1 h10=-41 imu=1
+18:16:27 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=429 tilt=-1 h10=-41 imu=1
+18:16:28 is34/telemetry state=IDLE speed=0,0 dist=417 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:16:28 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=479 tilt=-1 h10=-41 imu=1
+18:16:28 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=499 tilt=-1 h10=-41 imu=1
+18:16:29 is34/telemetry state=IDLE speed=0,0 dist=417 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:16:29 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=502 tilt=0 h10=-41 imu=1
+18:16:29 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=525 tilt=-1 h10=-41 imu=1
+18:16:30 is34/telemetry state=IDLE speed=0,0 dist=417 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:16:30 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=567 tilt=-1 h10=-41 imu=1
+18:16:30 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=613 tilt=0 h10=-41 imu=1
+18:16:31 is34/telemetry state=IDLE speed=0,0 dist=417 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:16:31 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=647 tilt=0 h10=-41 imu=1
+18:16:31 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=694 tilt=0 h10=-41 imu=1
+18:16:32 is34/telemetry state=IDLE speed=0,0 dist=417 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:16:32 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=613 tilt=0 h10=-41 imu=1
+18:16:32 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=764 tilt=0 h10=-41 imu=1
+18:16:33 is34/telemetry state=IDLE speed=0,0 dist=417 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:16:33 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=804 tilt=0 h10=-41 imu=1
+18:16:33 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=2097 tilt=-1 h10=-41 imu=1
+18:16:34 is34/telemetry state=IDLE speed=0,0 dist=417 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:16:34 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=782 tilt=0 h10=-41 imu=1
+18:16:34 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=-1 tilt=0 h10=-41 imu=1
+18:16:35 is34/telemetry state=IDLE speed=0,0 dist=417 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:16:35 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=-1 tilt=0 h10=-41 imu=1
+18:16:35 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=-2 tilt=0 h10=-41 imu=1
+18:16:36 is34/telemetry state=IDLE speed=0,0 dist=417 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:16:36 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=387 tilt=-1 h10=-41 imu=1
+18:16:36 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=388 tilt=0 h10=-41 imu=1
+18:16:37 [sent] is34/cmd/stop (the topic is the command)
+18:16:37 is34/telemetry state=IDLE speed=0,0 dist=417 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:16:37 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=392 tilt=0 h10=-41 imu=1
+18:16:37 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=482 tilt=0 h10=-41 imu=1
+18:16:38 is34/telemetry state=IDLE speed=0,0 dist=417 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:16:38 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=536 tilt=0 h10=-41 imu=1
+18:16:38 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=762 tilt=0 h10=-41 imu=1
+18:16:39 is34/telemetry state=IDLE speed=0,0 dist=417 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:16:39 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=451 tilt=-44 h10=-41 imu=1
+18:16:42 is34/sensors ir=111 steer=0 hold=0 inbar=0 front=-1 tilt=-217 h10=-41 imu=1
+18:16:42 is34/telemetry state=IDLE speed=0,0 dist=417 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:16:42 is34/sensors ir=111 steer=0 hold=0 inbar=0 front=789 tilt=-24 h10=-41 imu=1
+18:16:42 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=801 tilt=-67 h10=-41 imu=1
+18:16:42 is34/telemetry state=IDLE speed=0,0 dist=417 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:16:42 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=804 tilt=-8 h10=-41 imu=1
+18:16:43 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=784 tilt=-11 h10=-41 imu=1
+18:16:43 is34/telemetry state=IDLE speed=0,0 dist=418 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:16:43 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=783 tilt=3 h10=-42 imu=1
+18:16:43 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=775 tilt=7 h10=-42 imu=1
+18:16:43 is34/telemetry state=IDLE speed=0,0 dist=418 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:16:43 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=773 tilt=7 h10=-42 imu=1
+18:16:43 [sent] is34/cmd/start (the topic is the command)
+18:16:43 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=778 tilt=5 h10=-42 imu=1
+18:16:43 [robot] start
+18:16:44 is34/telemetry state=CAL speed=0,0 dist=418 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=0 faults=0
+18:16:44 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=787 tilt=6 h10=-42 imu=1
+18:16:44 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=787 tilt=6 h10=-42 imu=1
+18:16:45 is34/telemetry state=RUN speed=114,118 dist=435 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=0 faults=0
+18:16:45 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=783 tilt=61 h10=7 imu=1
+18:16:45 is34/sensors ir=010 steer=-30 hold=0 inbar=0 front=724 tilt=-9 h10=13 imu=1
+18:16:46 is34/telemetry state=RUN speed=124,120 dist=547 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=0 faults=0
+18:16:46 is34/sensors ir=000 steer=-1 hold=0 inbar=0 front=677 tilt=8 h10=19 imu=1
+18:16:46 is34/sensors ir=000 steer=-1 hold=0 inbar=0 front=632 tilt=15 h10=17 imu=1
+18:16:47 is34/telemetry state=RUN speed=110,124 dist=634 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=0 faults=0
+18:16:47 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=580 tilt=1 h10=5 imu=1
+18:16:47 is34/sensors ir=000 steer=30 hold=0 inbar=0 front=-1 tilt=-174 h10=-14 imu=1
+18:16:48 is34/telemetry state=RUN speed=132,132 dist=722 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=0 faults=0
+18:16:48 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=518 tilt=-25 h10=-22 imu=1
+18:16:48 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=657 tilt=-38 h10=-40 imu=1
+18:16:49 is34/telemetry state=RUN speed=126,118 dist=824 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=0 faults=0
+18:16:49 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=470 tilt=-5 h10=-38 imu=1
+18:16:49 is34/sensors ir=010 steer=-30 hold=0 inbar=0 front=854 tilt=33 h10=-40 imu=1
+18:16:49 [sent] is34/cmd/stop (the topic is the command)
+18:16:50 is34/telemetry state=RUN speed=130,126 dist=899 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=0 faults=0
+18:16:50 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=463 tilt=6 h10=-30 imu=1
+18:16:50 [robot] STOP
+18:16:50 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=479 tilt=2 h10=-31 imu=1
+18:16:51 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:16:51 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=514 tilt=6 h10=-31 imu=1
+18:16:52 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=559 tilt=6 h10=-31 imu=1
+18:16:52 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:16:52 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=529 tilt=5 h10=-31 imu=1
+18:16:52 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=633 tilt=5 h10=-31 imu=1
+18:16:53 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:16:53 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=686 tilt=4 h10=-31 imu=1
+18:16:53 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=824 tilt=4 h10=-31 imu=1
+18:16:54 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:16:54 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=2006 tilt=3 h10=-31 imu=1
+18:16:54 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=802 tilt=3 h10=-31 imu=1
+18:16:55 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:16:55 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=749 tilt=3 h10=-31 imu=1
+18:16:55 [panel] saved: c:\mhdikhwan\kwanxkwan\logs\robot\robot_log_20261123_181655.txt
+18:16:55 [panel] saved: c:\mhdikhwan\kwanxkwan\logs\robot\robot_summary_20261123_181655.txt
+18:16:55 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=582 tilt=2 h10=-31 imu=1
+18:16:56 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:16:56 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=438 tilt=3 h10=-31 imu=1
+18:16:57 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=413 tilt=2 h10=-31 imu=1
+18:16:57 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:16:57 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=374 tilt=1 h10=-31 imu=1
+18:16:57 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=427 tilt=3 h10=-31 imu=1
+18:16:58 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:16:58 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=335 tilt=2 h10=-31 imu=1
+18:16:58 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=325 tilt=2 h10=-31 imu=1
+18:16:59 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:16:59 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=318 tilt=2 h10=-31 imu=1
+18:16:59 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=318 tilt=1 h10=-31 imu=1
+18:17:01 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:01 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=318 tilt=1 h10=-31 imu=1
+18:17:01 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=318 tilt=1 h10=-31 imu=1
+18:17:01 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:02 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=318 tilt=1 h10=-31 imu=1
+18:17:02 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=318 tilt=1 h10=-31 imu=1
+18:17:02 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:02 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=317 tilt=1 h10=-31 imu=1
+18:17:02 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=318 tilt=1 h10=-31 imu=1
+18:17:03 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:03 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=318 tilt=0 h10=-31 imu=1
+18:17:03 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=318 tilt=0 h10=-31 imu=1
+18:17:04 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:04 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=317 tilt=0 h10=-31 imu=1
+18:17:04 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=318 tilt=0 h10=-31 imu=1
+18:17:05 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:05 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=318 tilt=0 h10=-31 imu=1
+18:17:05 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=318 tilt=0 h10=-31 imu=1
+18:17:06 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:06 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=318 tilt=0 h10=-31 imu=1
+18:17:06 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=318 tilt=0 h10=-31 imu=1
+18:17:07 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:07 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=318 tilt=1 h10=-31 imu=1
+18:17:07 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=318 tilt=0 h10=-31 imu=1
+18:17:08 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:08 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=317 tilt=0 h10=-31 imu=1
+18:17:08 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=318 tilt=0 h10=-31 imu=1
+18:17:09 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:09 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=317 tilt=0 h10=-31 imu=1
+18:17:09 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=318 tilt=0 h10=-31 imu=1
+18:17:10 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:10 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=318 tilt=0 h10=-31 imu=1
+18:17:10 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=318 tilt=0 h10=-31 imu=1
+18:17:11 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:11 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=318 tilt=0 h10=-31 imu=1
+18:17:11 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=318 tilt=0 h10=-31 imu=1
+18:17:12 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:12 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=368 tilt=0 h10=-31 imu=1
+18:17:12 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=414 tilt=0 h10=-31 imu=1
+18:17:13 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:13 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=-1 tilt=0 h10=-31 imu=1
+18:17:13 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=472 tilt=0 h10=-31 imu=1
+18:17:14 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:14 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=526 tilt=0 h10=-31 imu=1
+18:17:14 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=563 tilt=0 h10=-31 imu=1
+18:17:15 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:15 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=558 tilt=0 h10=-31 imu=1
+18:17:15 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=579 tilt=0 h10=-31 imu=1
+18:17:16 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:16 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=603 tilt=0 h10=-31 imu=1
+18:17:16 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=705 tilt=0 h10=-31 imu=1
+18:17:17 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:17 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=899 tilt=0 h10=-31 imu=1
+18:17:17 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=834 tilt=0 h10=-31 imu=1
+18:17:18 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:18 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=697 tilt=0 h10=-31 imu=1
+18:17:18 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=-1 tilt=0 h10=-31 imu=1
+18:17:19 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:19 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=323 tilt=0 h10=-31 imu=1
+18:17:21 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=276 tilt=0 h10=-31 imu=1
+18:17:21 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:21 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=283 tilt=0 h10=-31 imu=1
+18:17:21 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=306 tilt=0 h10=-31 imu=1
+18:17:21 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:21 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=345 tilt=0 h10=-31 imu=1
+18:17:21 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=554 tilt=0 h10=-31 imu=1
+18:17:22 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:22 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=466 tilt=0 h10=-31 imu=1
+18:17:23 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=962 tilt=0 h10=-31 imu=1
+18:17:23 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:23 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=-1 tilt=0 h10=-31 imu=1
+18:17:23 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=-1 tilt=0 h10=-31 imu=1
+18:17:24 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:24 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=-1 tilt=0 h10=-31 imu=1
+18:17:24 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=-1 tilt=0 h10=-31 imu=1
+18:17:25 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:25 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=-1 tilt=0 h10=-31 imu=1
+18:17:25 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=-1 tilt=0 h10=-31 imu=1
+18:17:26 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:27 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=-1 tilt=0 h10=-31 imu=1
+18:17:27 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=-1 tilt=0 h10=-31 imu=1
+18:17:27 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:29 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=-1 tilt=0 h10=-31 imu=1
+18:17:29 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=-1 tilt=0 h10=-31 imu=1
+18:17:29 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:29 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=339 tilt=0 h10=-31 imu=1
+18:17:30 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=-1 tilt=0 h10=-31 imu=1
+18:17:30 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:30 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=-1 tilt=0 h10=-31 imu=1
+18:17:30 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=-1 tilt=0 h10=-31 imu=1
+18:17:30 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=64
+18:17:30 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=2720 tilt=0 h10=-31 imu=1
+18:17:30 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=3601 tilt=0 h10=-31 imu=1
+18:17:31 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:31 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=-1 tilt=0 h10=-31 imu=1
+18:17:31 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=1098 tilt=0 h10=-31 imu=1
+18:17:32 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:32 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=1098 tilt=0 h10=-31 imu=1
+18:17:32 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=274 tilt=0 h10=-31 imu=1
+18:17:33 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:33 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=588 tilt=0 h10=-31 imu=1
+18:17:33 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=337 tilt=1 h10=-31 imu=1
+18:17:34 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:34 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=392 tilt=0 h10=-31 imu=1
+18:17:34 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=415 tilt=0 h10=-31 imu=1
+18:17:35 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:35 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=451 tilt=0 h10=-31 imu=1
+18:17:35 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=504 tilt=0 h10=-31 imu=1
+18:17:36 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:36 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=530 tilt=0 h10=-31 imu=1
+18:17:36 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=535 tilt=0 h10=-31 imu=1
+18:17:37 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:37 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=602 tilt=0 h10=-31 imu=1
+18:17:37 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=640 tilt=0 h10=-31 imu=1
+18:17:38 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:38 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=683 tilt=0 h10=-31 imu=1
+18:17:38 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=2018 tilt=0 h10=-31 imu=1
+18:17:39 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:39 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=-1 tilt=0 h10=-31 imu=1
+18:17:39 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=443 tilt=0 h10=-31 imu=1
+18:17:40 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:40 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=-1 tilt=0 h10=-31 imu=1
+18:17:40 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=2005 tilt=0 h10=-31 imu=1
+18:17:41 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:41 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=-1 tilt=0 h10=-31 imu=1
+18:17:41 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=-1 tilt=0 h10=-31 imu=1
+18:17:42 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:43 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=-1 tilt=0 h10=-31 imu=1
+18:17:44 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=1801 tilt=-1 h10=-31 imu=1
+18:17:44 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:44 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=-1 tilt=0 h10=-31 imu=1
+18:17:44 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=-1 tilt=0 h10=-31 imu=1
+18:17:44 is34/telemetry state=IDLE speed=0,0 dist=913 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:44 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=-1 tilt=0 h10=-31 imu=1
+18:17:44 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=-1 tilt=0 h10=-31 imu=1
+18:17:45 is34/telemetry state=IDLE speed=0,-36 dist=917 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:45 is34/sensors ir=100 steer=30 hold=0 inbar=0 front=-1 tilt=8 h10=-33 imu=1
+18:17:45 is34/sensors ir=110 steer=0 hold=0 inbar=0 front=4284 tilt=-21 h10=-33 imu=1
+18:17:46 is34/telemetry state=IDLE speed=0,0 dist=914 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:46 is34/sensors ir=111 steer=0 hold=0 inbar=0 front=-1 tilt=-14 h10=-33 imu=1
+18:17:46 is34/sensors ir=010 steer=-30 hold=0 inbar=0 front=912 tilt=71 h10=-33 imu=1
+18:17:47 is34/telemetry state=IDLE speed=0,0 dist=914 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:47 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=891 tilt=2 h10=-33 imu=1
+18:17:47 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=-1 tilt=-7 h10=-33 imu=1
+18:17:48 is34/telemetry state=IDLE speed=0,0 dist=915 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:48 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=854 tilt=-1 h10=-33 imu=1
+18:17:48 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=849 tilt=-1 h10=-33 imu=1
+18:17:49 is34/telemetry state=IDLE speed=0,0 dist=915 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:49 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=1041 tilt=-1 h10=-33 imu=1
+18:17:49 [sent] is34/cmd/start (the topic is the command)
+18:17:49 [robot] start
+18:17:49 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=940 tilt=-2 h10=-33 imu=1
+18:17:50 is34/telemetry state=CAL speed=0,0 dist=915 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=0 faults=0
+18:17:50 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=940 tilt=-2 h10=-33 imu=1
+18:17:50 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=887 tilt=7 h10=0 imu=1
+18:17:51 is34/telemetry state=RUN speed=100,24 dist=969 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=0 faults=0
+18:17:51 is34/sensors ir=010 steer=-30 hold=0 inbar=0 front=2146 tilt=-39 h10=8 imu=1
+18:17:51 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=805 tilt=-7 h10=1 imu=1
+18:17:52 is34/telemetry state=RUN speed=84,4 dist=1058 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=0 faults=0
+18:17:52 is34/sensors ir=010 steer=-30 hold=0 inbar=0 front=768 tilt=-77 h10=-14 imu=1
+18:17:52 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=-1 tilt=-23 h10=-27 imu=1
+18:17:53 is34/telemetry state=RUN speed=54,92 dist=1143 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=0 faults=0
+18:17:53 [sent] is34/cmd/stop (the topic is the command)
+18:17:53 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=-1 tilt=-51 h10=-45 imu=1
+18:17:53 [robot] STOP
+18:17:53 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=2091 tilt=-1 h10=-47 imu=1
+18:17:54 is34/telemetry state=IDLE speed=0,0 dist=1176 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:54 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=2096 tilt=10 h10=-47 imu=1
+18:17:54 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=2088 tilt=9 h10=-47 imu=1
+18:17:55 is34/telemetry state=IDLE speed=0,0 dist=1176 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:55 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=2091 tilt=8 h10=-47 imu=1
+18:17:55 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=2093 tilt=7 h10=-47 imu=1
+18:17:56 is34/telemetry state=IDLE speed=0,0 dist=1176 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:56 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=2092 tilt=6 h10=-47 imu=1
+18:17:56 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=2092 tilt=7 h10=-47 imu=1
+18:17:57 is34/telemetry state=IDLE speed=0,0 dist=1176 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:57 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=2105 tilt=5 h10=-47 imu=1
+18:17:57 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=2109 tilt=5 h10=-47 imu=1
+18:17:58 is34/telemetry state=IDLE speed=0,0 dist=1176 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:58 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=2131 tilt=5 h10=-47 imu=1
+18:17:58 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=2101 tilt=4 h10=-47 imu=1
+18:17:59 is34/telemetry state=IDLE speed=0,0 dist=1176 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:17:59 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=2130 tilt=3 h10=-47 imu=1
+18:17:59 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=2122 tilt=3 h10=-47 imu=1
+18:18:00 is34/telemetry state=IDLE speed=0,0 dist=1176 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:18:00 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=2092 tilt=3 h10=-47 imu=1
+18:18:00 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=-1 tilt=2 h10=-47 imu=1
+18:18:01 is34/telemetry state=IDLE speed=0,0 dist=1176 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:18:01 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=2105 tilt=2 h10=-47 imu=1
+18:18:01 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=2104 tilt=2 h10=-47 imu=1
+18:18:02 is34/telemetry state=IDLE speed=0,0 dist=1176 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:18:02 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=-1 tilt=2 h10=-47 imu=1
+18:18:02 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=-1 tilt=1 h10=-47 imu=1
+18:18:03 is34/telemetry state=IDLE speed=0,0 dist=1176 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:18:03 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=2100 tilt=2 h10=-47 imu=1
+18:18:03 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=2092 tilt=1 h10=-47 imu=1
+18:18:04 is34/telemetry state=IDLE speed=0,0 dist=1176 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:18:04 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=2116 tilt=1 h10=-47 imu=1
+18:18:04 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=2130 tilt=0 h10=-47 imu=1
+18:18:05 is34/telemetry state=IDLE speed=0,0 dist=1176 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:18:05 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=2104 tilt=0 h10=-47 imu=1
+18:18:05 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=2118 tilt=0 h10=-47 imu=1
+18:18:06 is34/telemetry state=IDLE speed=0,0 dist=1176 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:18:06 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=2104 tilt=0 h10=-47 imu=1
+18:18:06 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=2105 tilt=0 h10=-47 imu=1
+18:18:07 is34/telemetry state=IDLE speed=0,0 dist=1176 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:18:07 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=2096 tilt=0 h10=-47 imu=1
+18:18:07 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=2096 tilt=0 h10=-47 imu=1
+18:18:08 is34/telemetry state=IDLE speed=0,0 dist=1176 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:18:08 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=2105 tilt=0 h10=-47 imu=1
+18:18:08 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=2101 tilt=0 h10=-47 imu=1
+18:18:09 is34/telemetry state=IDLE speed=0,0 dist=1176 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:18:09 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=2118 tilt=0 h10=-47 imu=1
+18:18:09 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=2101 tilt=0 h10=-47 imu=1
+18:18:11 is34/telemetry state=IDLE speed=0,-2 dist=1177 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:18:11 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=2107 tilt=-13 h10=-47 imu=1
+18:18:11 is34/sensors ir=010 steer=-30 hold=0 inbar=0 front=696 tilt=-174 h10=-48 imu=1
+18:18:12 is34/telemetry state=IDLE speed=0,0 dist=1179 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:18:12 is34/sensors ir=111 steer=0 hold=0 inbar=0 front=2149 tilt=0 h10=-48 imu=1
+18:18:12 is34/sensors ir=111 steer=0 hold=0 inbar=0 front=-1 tilt=296 h10=-48 imu=1
+18:18:12 is34/telemetry state=IDLE speed=0,0 dist=1179 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:18:12 is34/sensors ir=111 steer=0 hold=0 inbar=0 front=-1 tilt=123 h10=-48 imu=1
+18:18:12 is34/sensors ir=111 steer=0 hold=0 inbar=0 front=-1 tilt=119 h10=-48 imu=1
+18:18:13 is34/telemetry state=IDLE speed=0,0 dist=1179 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:18:13 is34/sensors ir=111 steer=0 hold=0 inbar=0 front=-1 tilt=-7 h10=-48 imu=1
+18:18:13 is34/sensors ir=110 steer=0 hold=0 inbar=0 front=1250 tilt=-127 h10=-48 imu=1
+18:18:14 is34/telemetry state=IDLE speed=0,0 dist=1178 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:18:14 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=1601 tilt=12 h10=-47 imu=1
+18:18:14 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=1567 tilt=15 h10=-47 imu=1
+18:18:15 is34/telemetry state=IDLE speed=0,0 dist=1178 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:18:15 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=1563 tilt=13 h10=-47 imu=1
+18:18:15 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=-1 tilt=12 h10=-47 imu=1
+18:18:16 is34/telemetry state=IDLE speed=0,0 dist=1178 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:18:16 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=1575 tilt=12 h10=-47 imu=1
+18:18:16 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=1593 tilt=10 h10=-47 imu=1
+18:18:17 is34/telemetry state=IDLE speed=0,0 dist=1178 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:18:17 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=1567 tilt=10 h10=-47 imu=1
+18:18:17 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=1568 tilt=8 h10=-47 imu=1
+18:18:18 is34/telemetry state=IDLE speed=0,0 dist=1178 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:18:18 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=1567 tilt=7 h10=-47 imu=1
+18:18:18 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=1563 tilt=7 h10=-47 imu=1
+18:18:19 is34/telemetry state=IDLE speed=0,0 dist=1178 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:18:19 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=1579 tilt=5 h10=-47 imu=1
+18:18:19 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=1567 tilt=5 h10=-47 imu=1
+18:18:20 is34/telemetry state=IDLE speed=0,0 dist=1178 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0
+18:18:20 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=1579 tilt=4 h10=-47 imu=1
+18:18:20 is34/sensors ir=000 steer=0 hold=0 inbar=0 front=1567 tilt=4 h10=-47 imu=1
+18:18:21 is34/telemetry state=IDLE speed=0,0 dist=1178 line=0 junctions=0 barcode=- map=none ramp_peak=0.0 stop=2 faults=0

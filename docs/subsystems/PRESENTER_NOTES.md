@@ -340,8 +340,8 @@ the tape."
   that Motion is still running. If not, it turns the motors off itself."
 
 **Show:**
-- after the hump, about 1 s later: the event `ramp peak height H mm` and
-  a beep;
+- after the hump, about 0.5 s later: the event `ramp peak height H mm`
+  and a beep (let the robot drive on about 30 cm before lifting it);
 - `IMU tilt` on the panel while it climbs;
 - lift the robot to end the run: the motors stop, with the event
   `robot lifted or tipped over`.
@@ -379,9 +379,9 @@ the tape."
 - the robot still and level for the 1 s calibration after START;
 - the IMU cable seated firmly at both ends.
 
-**If it goes wrong live:** no hump report yet? It comes after 100 mm of
-level driving past the hump (about 1 s), and nothing is measured during a
-turn or a bypass.
+**If it goes wrong live:** no hump report yet? It comes 50 mm past the
+hump's top, once the side tilt is level (about 0.5 s); a STOP or a lift
+before that loses it, and nothing is measured during a turn or a bypass.
 
 ---
 

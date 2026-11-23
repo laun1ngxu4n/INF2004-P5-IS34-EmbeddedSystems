@@ -102,11 +102,21 @@ gravity.
   driven x sin(pitch))**, all the time while driving.
 
 **Reporting:**
-- after a climb of 4 mm or more (8 mm until 23 Nov), once the robot is level again (pitch
-  under about 1.7° and the slower side-tilt copy level too) for 100 mm,
-  it reports `ramp peak height H mm (one wheel: side tilt ...; from the
-  nose-down tilt ...)` once;
-- then no second report for the next 600 mm (the way down).
+- **one wheel (the course's hump), since 23 Nov:** 50 mm after the
+  highest point (`PEAK_PAST_MM`), once the slower side-tilt copy is level
+  again (under about 1.7°), whatever the nose tilt. That is about 0.5 s
+  after the top at 120 mm/s;
+  - it reports `ramp peak height H mm (one wheel: side tilt ...; from
+    the nose-down tilt ...)` once, if H is 4 mm or more (8 mm until
+    23 Nov);
+  - why: driving lean and speed changes kept the nose tilt over 1.7°, so
+    waiting for the nose to be level too reported seconds late, or not
+    at all when the run was stopped first (23 Nov runs);
+- **both wheels (a ramp):** once the robot is level again (nose and side
+  under about 1.7°) for 100 mm, a climb of 4 mm or more is reported;
+- then no second report for the next 600 mm (the way down);
+- a STOP or a lift within about 0.5 s of the hump loses the report: let
+  the robot drive on about 30 cm after the hump.
 
 **During manoeuvres** (20 Nov):
 - when a junction turn or an obstacle stop starts, a hump being measured
@@ -212,8 +222,9 @@ the same word.
 - **Hump accuracy (±5 mm) has not been shown against ruler-measured
   humps.** The 0.63 gain was fitted on 5 runs whose humps were estimated,
   not measured. Measure the hump, run S4-R01 5 times, and compare.
-- **A hump is reported after 100 mm of level driving past it**, so its
-  event and beep come about 1 s after the hump.
+- **A hump is reported 50 mm past its top** (one wheel; since 23 Nov,
+  100 mm of level driving before), so its event and beep come about
+  0.5 s after the hump. A STOP or a lift before that loses it.
 - **No gyroscope:** any push (a bump, braking) looks like tilt. The jolt
   filter helps but cannot remove it all, and a hard STOP while moving can
   give a false hump report.

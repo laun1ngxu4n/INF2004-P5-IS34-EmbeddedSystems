@@ -38,6 +38,12 @@
    on the flat seen so far is about 3.0 mm, at the start of a run (9 Nov
    S4-R01 run 2: side tilt 38/1000); driving on the flat, about 2.5 mm
    (side tilt 31-34/1000).  4 mm sits between them. */
+/* One wheel up (the course's hump): reported this far after its highest
+   point, once the side tilt is level again, whatever the nose tilt (23
+   Nov: driving lean and speed changes kept the nose tilt over FLAT_SIN,
+   so waiting for both to be level reported seconds late, or never when
+   the run was stopped first) */
+#define PEAK_PAST_MM 50
 /* Tilt alone keeps |a| at 1 g; a bump or a speed change adds to it.  A
    sample more than this far from the calibrated |a| is a jolt, not tilt:
    keep the last pitch (Stage 4 run, 2 Nov: hitting a 10 mm hump read as
@@ -315,6 +321,27 @@ LOCAL void lift_check (lift_state_t * p_lift, float32_t unit_x,
     }
 }
 
+/** Reports a one-wheel hump: o10 its height (0.1 mm, scaled for driving),
+   the side tilt at its peak and the nose-down cross-check in mm. */
+LOCAL void report_one_wheel (int32_t o10, float32_t roll_peak,
+                             float32_t pitch_peak_mm)
+{
+    uint8_t msg[TELE_TEXT_MAX];
+    /* a height in mm, small: fits int32_t in 0.1 mm */
+    int32_t c10 = (int32_t)(pitch_peak_mm * 10.0f);
+
+    g_out.ramp_peak_mm10 = app_clamp(o10, 0, 4095);
+    g_ramp_reports++;
+    /* sin x 1000, |sin| <= 1: fits %d */
+    tm_sprintf(msg,
+               app_str("ramp peak height %d.%d mm (one wheel: side tilt "
+                       "sin %d/1000 x T x 0.%d; from the nose-down tilt "
+                       "%d.%d mm)"),
+               o10 / 10, o10 % 10, (int32_t)(roll_peak * 1000.0f),
+               S4_ONE_WHEEL_GAIN_PCT, c10 / 10, c10 % 10);
+    telemetry_event(msg);
+}
+
 /** The IMU task: reads the accelerometer, tracks tilt and ramp height,
  * reports ramps. */
 EXPORT void imu_task (int32_t stacd, void * p_exinf)
@@ -346,6 +373,7 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
     int32_t      odo_prev;
     int32_t      flat_mm10  = 0;
     int32_t      quiet_mm10 = 0;     /* distance left before another report */
+    int32_t      past_mm10  = 0;     /* driven since one_peak last rose */
     bool         b_manoeuv  = false; /* Mission manoeuvring last period */
     lift_state_t lift       = {
         {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, 0, false, false};
@@ -426,6 +454,7 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
                        never reported) */
                     flat_mm10  = 0;
                     quiet_mm10 = 0;
+                    past_mm10  = 0;
                     height = peak = peak_sin = 0.0f;
                     sin_f = base = tilt = 0.0f;
                     roll_f = base_r = roll = roll_slow = 0.0f;
@@ -524,6 +553,12 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
                 {
                     one_peak  = height_roll;
                     roll_peak = roll_abs;
+                    past_mm10 = 0;
+                }
+                else
+                {
+                    /* one period's mm, small: fits int32_t in 0.1 mm */
+                    past_mm10 += (int32_t)(app_absf(step_mm) * 10.0f);
                 }
 
                 if (tilt < 0.0f)
@@ -554,6 +589,30 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
                 flat_mm10 = 0;
             }
 
+            /* One wheel: PEAK_PAST_MM past its highest point and the side
+               tilt level again (or a manoeuvre starts) */
+
+            if (((past_mm10 > (PEAK_PAST_MM * 10)) &&
+                 (app_absf(roll_slow) < FLAT_SIN)) ||
+                b_flush)
+            {
+                /* scaled for driving (S4_ONE_WHEEL_GAIN_PCT), 0.1 mm */
+                int32_t o10 =
+                    (int32_t)(one_peak * 10.0f *
+                              (float32_t)S4_ONE_WHEEL_GAIN_PCT / 100.0f);
+
+                if ((o10 >= REPORT_MIN_MM10) && (quiet_mm10 <= 0))
+                {
+                    report_one_wheel(o10, roll_peak, one_pitch_peak);
+                    quiet_mm10 = QUIET_AFTER_MM * 10;
+                    height = peak = peak_sin = 0.0f;
+                    flat_mm10                = 0;
+                }
+
+                one_peak = one_pitch_peak = roll_peak = 0.0f;
+                past_mm10                             = 0;
+            }
+
             if ((flat_mm10 > (FLAT_MM * 10)) || b_flush)
             {
                 /* heights in mm, small: fit int32_t in 0.1 mm */
@@ -567,23 +626,7 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
                     (quiet_mm10 <= 0))
                 {
                     /* one wheel went over it (the course's hump) */
-                    uint8_t msg[TELE_TEXT_MAX];
-                    /* a height in mm, small: fits int32_t in 0.1 mm; sin x
-                       1000 fits %d */
-                    int32_t c10 = (int32_t)(one_pitch_peak * 10.0f);
-
-                    g_out.ramp_peak_mm10 = app_clamp(o10, 0, 4095);
-                    g_ramp_reports++;
-                    /* sin x 1000, |sin| <= 1: fits %d */
-                    tm_sprintf(msg,
-                               app_str("ramp peak height %d.%d mm (one "
-                                       "wheel: side tilt "
-                                       "sin %d/1000 x T x 0.%d; from the "
-                                       "nose-down tilt %d.%d mm)"),
-                               o10 / 10, o10 % 10,
-                               (int32_t)(roll_peak * 1000.0f),
-                               S4_ONE_WHEEL_GAIN_PCT, c10 / 10, c10 % 10);
-                    telemetry_event(msg);
+                    report_one_wheel(o10, roll_peak, one_pitch_peak);
                     quiet_mm10 = QUIET_AFTER_MM * 10;
                 }
                 else if ((p10 >= REPORT_MIN_MM10) && (quiet_mm10 <= 0))
@@ -613,6 +656,7 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
                 height = peak = peak_sin = 0.0f; /* back on the floor */
                 one_peak = one_pitch_peak = roll_peak = 0.0f;
                 flat_mm10                             = 0;
+                past_mm10                             = 0;
             }
 
             if (b_now)
@@ -621,6 +665,7 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
                 height = peak = peak_sin = 0.0f;
                 one_peak = one_pitch_peak = roll_peak = 0.0f;
                 flat_mm10                             = 0;
+                past_mm10                             = 0;
             }
         }
     done:

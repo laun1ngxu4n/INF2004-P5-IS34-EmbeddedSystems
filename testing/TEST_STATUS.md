@@ -975,6 +975,15 @@ than the robot, so the robot tips over it instead of driving up a slope.
     - Still to run: the Stage 4 test (S4-R01, it prints every bump's
       height), or mission runs that drive at least 50 cm past the hump
       before STOP.
+  - **Changed the same evening (team: report faster), not run yet:** a
+    one-wheel hump is now reported 50 mm after its highest point once the
+    side tilt is level again, whatever the nose tilt (`PEAK_PAST_MM`):
+    about 0.5 s after the top instead of 1-4 s. A laptop model
+    (`humpsim`, assumed jitter and the 1.6 x driving factor, not robot
+    data): a 5 mm hump reported 10/10, reading 4.3-5.1 mm, about 50 mm
+    after the top; 400 m of flat floor gave no false report. To check on
+    the robot: the hump reported (event within about 0.5 s), and no
+    `ramp peak` on flat runs.
 - [ ] ⬜ **S4-L01 lift stop (lecturer, 13 Nov; replaces IMU collision
   detection): built 13 Nov, not run yet.** Gravity more than 35 deg from
   the calibrated level for 100 ms = motors off as STOP, Mission told,

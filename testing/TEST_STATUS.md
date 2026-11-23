@@ -1006,6 +1006,15 @@ than the robot, so the robot tips over it instead of driving up a slope.
     hump (a sharp correction jerks the chassis sideways by about 0.06 g,
     as much as a 5 mm hump). Check: the same runs, one report each, on
     the hump.
+  - **18:52, that image, 1 run started about 15 cm before the hump (same
+    log files): still 2 reports.** 4.0 mm about 12 cm in (the hump, team)
+    and 4.9 mm about 70 cm in (false). So with the 18:41 runs: the hump
+    read 4.2, 5.4, 5.6, 4.0 mm (the first report each time), the false
+    ones 4.3, 4.1, 7.2, 4.9 mm. Same size: no limit separates them.
+  - **Changed 23 Nov 19:00, not run yet: one hump per stretch.** After a
+    report, none until the next START, junction turn or bypass. Check:
+    the same run gives only the hump; and one whole-course run, where the
+    hump comes after the bypass.
 - [ ] ⬜ **S4-L01 lift stop (lecturer, 13 Nov; replaces IMU collision
   detection): built 13 Nov, not run yet.** Gravity more than 35 deg from
   the calibrated level for 100 ms = motors off as STOP, Mission told,

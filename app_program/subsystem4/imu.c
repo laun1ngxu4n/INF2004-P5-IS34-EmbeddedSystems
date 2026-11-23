@@ -54,6 +54,11 @@
    5 mm hump.  So the
    one-wheel peak is not taken for STEER_HOLD_TICKS after the steering
    changes by STEER_STEP_MM_S or more; the hump lasts about 0.4 s. */
+/* One hump per stretch: the course has one hump, so after a report no
+   other is reported until the next START, junction turn or bypass
+   (23 Nov, 4 runs started about 15 cm before the hump: each reported the
+   hump, 4.0-5.6 mm, and then a false one 4.1-7.2 mm further on; the
+   false ones are as big as the hump, so no limit separates them). */
 #define STEER_STEP_MM_S  15
 #define STEER_HOLD_TICKS 20 /* 200 ms at 10 ms */
 /* Tilt alone keeps |a| at 1 g; a bump or a speed change adds to it.  A
@@ -388,6 +393,7 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
     int32_t      past_mm10  = 0;     /* driven since one_peak last rose */
     int32_t      steer_prev = 0;     /* line steering last period, mm/s */
     int32_t      steer_hold = 0;     /* periods left: no one-wheel peak */
+    bool         b_reported = false; /* hump reported since START / manoeuvre */
     bool         b_manoeuv  = false; /* Mission manoeuvring last period */
     lift_state_t lift       = {
         {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, 0, false, false};
@@ -468,6 +474,7 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
                        never reported) */
                     flat_mm10  = 0;
                     quiet_mm10 = 0;
+                    b_reported = false;
                     past_mm10  = 0;
                     height = peak = peak_sin = 0.0f;
                     sin_f = base = tilt = 0.0f;
@@ -632,9 +639,11 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
                     (int32_t)(one_peak * 10.0f *
                               (float32_t)S4_ONE_WHEEL_GAIN_PCT / 100.0f);
 
-                if ((o10 >= REPORT_MIN_MM10) && (quiet_mm10 <= 0))
+                if ((o10 >= REPORT_MIN_MM10) && (quiet_mm10 <= 0) &&
+                    (!b_reported))
                 {
                     report_one_wheel(o10, roll_peak, one_pitch_peak);
+                    b_reported = true;
                     quiet_mm10 = QUIET_AFTER_MM * 10;
                     height = peak = peak_sin = 0.0f;
                     flat_mm10                = 0;
@@ -654,13 +663,15 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
                               (float32_t)S4_ONE_WHEEL_GAIN_PCT / 100.0f);
 
                 if ((o10 >= REPORT_MIN_MM10) && (o10 >= p10) &&
-                    (quiet_mm10 <= 0))
+                    (quiet_mm10 <= 0) && (!b_reported))
                 {
                     /* one wheel went over it (the course's hump) */
                     report_one_wheel(o10, roll_peak, one_pitch_peak);
+                    b_reported = true;
                     quiet_mm10 = QUIET_AFTER_MM * 10;
                 }
-                else if ((p10 >= REPORT_MIN_MM10) && (quiet_mm10 <= 0))
+                else if ((p10 >= REPORT_MIN_MM10) && (quiet_mm10 <= 0) &&
+                         (!b_reported))
                 {
                     uint8_t msg[TELE_TEXT_MAX];
                     /* |sin| <= 1: L x sin in 0.1 mm and sin x 1000 fit
@@ -677,6 +688,7 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
                                p10 / 10, p10 % 10, l10 / 10, l10 % 10,
                                (int32_t)(peak_sin * 1000.0f));
                     telemetry_event(msg);
+                    b_reported = true;
                     quiet_mm10 = QUIET_AFTER_MM * 10;
                 }
                 else
@@ -692,7 +704,9 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
 
             if (b_now)
             {
-                /* manoeuvring: nothing measured, a fresh start after */
+                /* manoeuvring: nothing measured, a fresh start after,
+                   and the next hump may be reported */
+                b_reported = false;
                 height = peak = peak_sin = 0.0f;
                 one_peak = one_pitch_peak = roll_peak = 0.0f;
                 flat_mm10                             = 0;

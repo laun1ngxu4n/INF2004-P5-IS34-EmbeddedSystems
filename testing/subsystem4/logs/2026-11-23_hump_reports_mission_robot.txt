@@ -117,3 +117,96 @@ mqtt: RX [is34/cmd/stop] ""
 [tmg] imu        9  10 |  23989  11 | 8.53-11.51 (127.71 @ 0.6) | 750 (1128)
 [tmg] mission    7 100 |   2380   0 | 10.75-111.06 (1148.07 @ 18.6) | 37 (1038477)
 [tmg] obstacle  11  60 |   3999   1 | 58.50-61.53 (127.83 @ 0.6) | 40 (46)
+
+[panel: the robot restarted]
+
+
+microT-Kernel Version 3.00
+
+
+=== micro T-Kernel on Raspberry Pi Pico W (spec 0x6300, product 0x0003) ===
+single-core build
+P5-IS34 mission image. Kernel tick 10 ms
+all subsystems started
+
+wifi: cyw43_utk_task starting (proc 1)
+wifi: cyw43_init() ...
+wifi: cyw43_init() returned, bringing interface up ...
+[IMU] LSM303D found at 0x1D
+wifi: joining "(hotspot)" ...
+wifi: link status -> joined AP, waiting for IP (1)
+wifi: link status -> joined AP, no IP yet (2)
+wifi: link up, ip=10.139.56.102
+mqtt: connected to 10.139.56.225
+mqtt: subscribed to mtk3smp-pico/heartbeat
+mqtt: subscribed to mtk3smp-pico/heartbeat
+
+[panel: the robot restarted]
+
+
+microT-Kernel Version 3.00
+
+
+=== micro T-Kernel on Raspberry Pi Pico W (spec 0x6300, product 0x0003) ===
+single-core build
+P5-IS34 mission image. Kernel tick 10 ms
+all subsystems started
+
+wifi: cyw43_utk_task starting (proc 1)
+wifi: cyw43_init() ...
+wifi: cyw43_init() returned, bringing interface up ...
+[IMU] LSM303D found at 0x1D
+wifi: joining "(hotspot)" ...
+wifi: link status -> joined AP, waiting for IP (1)
+wifi: link status -> FAILED (association failure) (-1)
+wifi: joining "(hotspot)" ...
+wifi: link status -> joined AP, waiting for IP (1)
+wifi: link status -> joined AP, no IP yet (2)
+wifi: link up, ip=10.139.56.102
+mqtt: connected to 10.139.56.225
+mqtt: subscribed to mtk3smp-pico/heartbeat
+mqtt: subscribed to mtk3smp-pico/heartbeat
+mqtt: RX [is34/cmd/start] ""
+[MQTT] start
+[EVT] start
+[S3] barcode: black from 1500, step 700
+[EVT] ramp peak height 4.0 mm (one wheel: side tilt sin 52/1000 x T x 0.63; from the nose-down tilt 8.9 mm)
+mqtt: TX [mtk3smp-pico/heartbeat] "hb 0" (heartbeat every 5 s, not printed)
+mqtt: RX [mtk3smp-pico/heartbeat] "hb 0"
+[EVT] ramp peak height 4.9 mm (one wheel: side tilt sin 63/1000 x T x 0.63; from the nose-down tilt 29.9 mm)
+mqtt: RX [is34/cmd/stop] ""
+[MQTT] stop
+[EVT] STOP
+[tmg] t=60136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |    600   0 | 52.15-147.93 (147.93 @ 0.6) | 231 (231)
+[tmg] motion     6  10 |   5989  11 | 2.53-127.53 (127.53 @ 0.6) | 301 (301)
+[tmg] line       8  20 |   2995   5 | 12.52-127.67 (127.67 @ 0.6) | 124 (124)
+[tmg] barcode   10  10 |   2995   0 | 12.37-137.70 (137.70 @ 0.6) | 34 (34)
+[tmg] safety     5  20 |   2995   5 | 12.71-127.47 (127.47 @ 0.6) | 60 (60)
+[tmg] imu        9  10 |   5989  11 | 2.31-127.73 (127.73 @ 0.6) | 1123 (1123)
+[tmg] mission    7 100 |    589   0 | 10.64-1148.31 (1148.31 @ 16.5) | 1038286 (1038286)
+[tmg] obstacle  11  60 |    999   1 | 52.17-127.88 (127.88 @ 0.6) | 52 (52)
+[tmg] t=120136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |   1200   0 | 98.70-101.31 (147.93 @ 0.6) | 2556 (2556)
+[tmg] motion     6  10 |  11989  11 | 8.73-11.31 (127.53 @ 0.6) | 74 (301)
+[tmg] line       8  20 |   5995   5 | 18.72-21.31 (127.67 @ 0.6) | 78 (124)
+[tmg] barcode   10  10 |   5995   0 | 18.53-21.52 (137.70 @ 0.6) | 19 (34)
+[tmg] safety     5  20 |   5995   5 | 18.79-21.23 (127.47 @ 0.6) | 41 (60)
+[tmg] imu        9  10 |  11989  11 | 8.60-11.45 (127.73 @ 0.6) | 716 (1123)
+[tmg] mission    7 100 |   1189   0 | 10.70-111.11 (1148.31 @ 16.5) | 11 (1038286)
+[tmg] obstacle  11  60 |   1999   1 | 58.73-61.34 (127.88 @ 0.6) | 42 (52)
+[tmg] t=180136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |   1800   0 | 98.69-101.33 (147.93 @ 0.6) | 2526 (2556)
+[tmg] motion     6  10 |  17989  11 | 8.64-11.39 (127.53 @ 0.6) | 89 (301)
+[tmg] line       8  20 |   8995   5 | 18.55-21.45 (127.67 @ 0.6) | 90 (124)
+[tmg] barcode   10  10 |   8995   0 | 18.34-21.68 (137.70 @ 0.6) | 32 (34)
+[tmg] safety     5  20 |   8995   5 | 18.69-21.31 (127.47 @ 0.6) | 45 (60)
+[tmg] imu        9  10 |  17989  11 | 8.47-11.57 (127.73 @ 0.6) | 738 (1123)
+[tmg] mission    7 100 |   1789   0 | 10.71-111.47 (1148.31 @ 16.5) | 16 (1038286)
+[tmg] obstacle  11  60 |   2999   1 | 58.52-61.49 (127.88 @ 0.6) | 45 (52)
+[EVT] IMU read failed, retrying
+[IMU] LSM303D found at 0x1D
+[EVT] IMU read failed, retrying
+[IMU] LSM303D found at 0x1D
+[EVT] IMU read failed, retrying
+[IMU] LSM303D found at 0x1D

@@ -112,6 +112,10 @@ gravity.
   - why: driving lean and speed changes kept the nose tilt over 1.7°, so
     waiting for the nose to be level too reported seconds late, or not
     at all when the run was stopped first (23 Nov runs);
+  - for 200 ms after the line steering jumps by 15 mm/s or more, the side
+    tilt is not taken for the peak (`STEER_HOLD_TICKS`,
+    `STEER_STEP_MM_S`): the jerk of a sharp correction read as 4-6 mm
+    humps in sharp turns (23 Nov).
 - **both wheels (a ramp):** once the robot is level again (nose and side
   under about 1.7°) for 100 mm, a climb of 4 mm or more is reported;
 - then no second report for the next 600 mm (the way down);

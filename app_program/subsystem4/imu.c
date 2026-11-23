@@ -15,6 +15,7 @@
 #include "subsystem4.h"
 #include "../subsystem1/subsystem1.h"
 #include "../subsystem2/subsystem2.h"
+#include "../subsystem3/subsystem3.h" /* line_steer_mm_s() */
 #include "../subsystem5/subsystem5.h" /* gh_flg_mission, MSN_FLG_STOP */
 #include "../app_math.h"
 #include "imu_i2c.h"
@@ -44,6 +45,17 @@
    so waiting for both to be level reported seconds late, or never when
    the run was stopped first) */
 #define PEAK_PAST_MM 50
+/* A sudden steering change jerks the chassis sideways, which reads as
+   side tilt: 23 Nov, 3 runs, 6 reports of 4.1-7.2 mm; the three on a
+   straight (status 130/130 mm/s) look like the hump, the other three
+   (4.1, 4.3, 5.6) came in sharp turns (40/-28, 74/16, 62/20).  A
+   +-30 mm/s steering step is about 0.5 rad/s more turn in some 40 ms:
+   about 0.06 g sideways a few cm from the turning centre, as big as a
+   5 mm hump.  So the
+   one-wheel peak is not taken for STEER_HOLD_TICKS after the steering
+   changes by STEER_STEP_MM_S or more; the hump lasts about 0.4 s. */
+#define STEER_STEP_MM_S  15
+#define STEER_HOLD_TICKS 20 /* 200 ms at 10 ms */
 /* Tilt alone keeps |a| at 1 g; a bump or a speed change adds to it.  A
    sample more than this far from the calibrated |a| is a jolt, not tilt:
    keep the last pitch (Stage 4 run, 2 Nov: hitting a 10 mm hump read as
@@ -374,6 +386,8 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
     int32_t      flat_mm10  = 0;
     int32_t      quiet_mm10 = 0;     /* distance left before another report */
     int32_t      past_mm10  = 0;     /* driven since one_peak last rose */
+    int32_t      steer_prev = 0;     /* line steering last period, mm/s */
+    int32_t      steer_hold = 0;     /* periods left: no one-wheel peak */
     bool         b_manoeuv  = false; /* Mission manoeuvring last period */
     lift_state_t lift       = {
         {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, 0, false, false};
@@ -544,12 +558,29 @@ EXPORT void imu_task (int32_t stacd, void * p_exinf)
                 float32_t roll_abs = app_absf(roll);
                 /* mm, small: exact as a float, back to 0.1 mm in int32_t */
                 float32_t height_roll = (float32_t)S2_TRACK_MM * roll_abs;
+                int32_t   steer       = line_steer_mm_s(); /* mm/s */
 
                 /* 0.1 mm: fits int32_t */
                 g_out.one_h_mm10 =
                     app_clamp((int32_t)(height_roll * 10.0f), 0, 2047);
 
-                if (height_roll > one_peak)
+                if (((steer - steer_prev) >= STEER_STEP_MM_S) ||
+                    ((steer_prev - steer) >= STEER_STEP_MM_S))
+                {
+                    steer_hold = STEER_HOLD_TICKS;
+                }
+                else if (steer_hold > 0)
+                {
+                    steer_hold--;
+                }
+                else
+                {
+                    /* steering steady: the side tilt counts */
+                }
+
+                steer_prev = steer;
+
+                if ((height_roll > one_peak) && (0 == steer_hold))
                 {
                     one_peak  = height_roll;
                     roll_peak = roll_abs;

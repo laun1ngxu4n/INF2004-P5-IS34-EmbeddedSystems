@@ -1,0 +1,119 @@
+
+
+microT-Kernel Version 3.00
+
+
+=== micro T-Kernel on Raspberry Pi Pico W (spec 0x6300, product 0x0003) ===
+single-core build
+P5-IS34 mission image. Kernel tick 10 ms
+all subsystems started
+
+wifi: cyw43_utk_task starting (proc 1)
+wifi: cyw43_init() ...
+wifi: cyw43_init() returned, bringing interface up ...
+[IMU] LSM303D found at 0x1D
+wifi: joining "(hotspot)" ...
+wifi: link status -> joined AP, waiting for IP (1)
+wifi: link status -> FAILED (association failure) (-1)
+wifi: joining "(hotspot)" ...
+wifi: link status -> joined AP, waiting for IP (1)
+wifi: link status -> joined AP, no IP yet (2)
+wifi: link up, ip=10.139.56.102
+mqtt: connected to 10.139.56.225
+mqtt: subscribed to mtk3smp-pico/heartbeat
+mqtt: subscribed to mtk3smp-pico/heartbeat
+mqtt: TX [mtk3smp-pico/heartbeat] "hb 0" (heartbeat every 5 s, not printed)
+mqtt: RX [mtk3smp-pico/heartbeat] "hb 0"
+mqtt: RX [is34/cmd/start] ""
+[MQTT] start
+[EVT] start
+[S3] barcode: black from 1500, step 700
+[EVT] ramp peak height 4.2 mm (one wheel: side tilt sin 55/1000 x T x 0.63; from the nose-down tilt 18.2 mm)
+[EVT] ramp peak height 4.3 mm (one wheel: side tilt sin 55/1000 x T x 0.63; from the nose-down tilt 26.8 mm)
+mqtt: RX [is34/cmd/stop] ""
+[MQTT] stop
+[EVT] STOP
+mqtt: RX [is34/cmd/stop] ""
+[MQTT] stop
+
+[panel: the robot restarted]
+
+
+microT-Kernel Version 3.00
+
+
+=== micro T-Kernel on Raspberry Pi Pico W (spec 0x6300, product 0x0003) ===
+single-core build
+P5-IS34 mission image. Kernel tick 10 ms
+all subsystems started
+
+wifi: cyw43_utk_task starting (proc 1)
+wifi: cyw43_init() ...
+wifi: cyw43_init() returned, bringing interface up ...
+[IMU] LSM303D found at 0x1D
+wifi: joining "(hotspot)" ...
+wifi: link status -> joined AP, waiting for IP (1)
+wifi: link status -> FAILED (association failure) (-1)
+wifi: joining "(hotspot)" ...
+wifi: link status -> joined AP, waiting for IP (1)
+wifi: link status -> joined AP, no IP yet (2)
+wifi: link up, ip=10.139.56.102
+mqtt: connected to 10.139.56.225
+mqtt: subscribed to mtk3smp-pico/heartbeat
+mqtt: subscribed to mtk3smp-pico/heartbeat
+mqtt: RX [is34/cmd/start] ""
+[MQTT] start
+[EVT] start
+[S3] barcode: black from 1500, step 700
+mqtt: TX [mtk3smp-pico/heartbeat] "hb 0" (heartbeat every 5 s, not printed)
+mqtt: RX [mtk3smp-pico/heartbeat] "hb 0"
+[EVT] ramp peak height 5.4 mm (one wheel: side tilt sin 69/1000 x T x 0.63; from the nose-down tilt 21.1 mm)
+[EVT] ramp peak height 4.1 mm (one wheel: side tilt sin 53/1000 x T x 0.63; from the nose-down tilt 7.0 mm)
+mqtt: RX [is34/cmd/stop] ""
+[MQTT] stop
+[EVT] STOP
+mqtt: RX [is34/cmd/start] ""
+[MQTT] start
+[EVT] start
+[S3] barcode: black from 1500, step 700
+[EVT] ramp peak height 5.6 mm (one wheel: side tilt sin 72/1000 x T x 0.63; from the nose-down tilt 12.5 mm)
+[tmg] t=60136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |    600   0 | 52.19-147.89 (147.89 @ 0.6) | 221 (221)
+[tmg] motion     6  10 |   5989  11 | 2.56-127.50 (127.50 @ 0.6) | 287 (287)
+[tmg] line       8  20 |   2995   5 | 12.56-127.66 (127.66 @ 0.6) | 125 (125)
+[tmg] barcode   10  10 |   2995   0 | 12.43-137.67 (137.67 @ 0.6) | 111 (111)
+[tmg] safety     5  20 |   2995   5 | 12.74-127.45 (127.45 @ 0.6) | 65 (65)
+[tmg] imu        9  10 |   5989  11 | 2.33-127.71 (127.71 @ 0.6) | 1119 (1119)
+[tmg] mission    7 100 |    579   0 | 10.72-1148.07 (1148.07 @ 18.6) | 1038477 (1038477)
+[tmg] obstacle  11  60 |    999   1 | 52.21-127.83 (127.83 @ 0.6) | 46 (46)
+[EVT] ramp peak height 7.2 mm (one wheel: side tilt sin 93/1000 x T x 0.63; from the nose-down tilt 26.1 mm)
+mqtt: RX [is34/cmd/stop] ""
+[MQTT] stop
+[EVT] STOP
+[tmg] t=120136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |   1200   0 | 98.52-101.68 (147.89 @ 0.6) | 2580 (2580)
+[tmg] motion     6  10 |  11989  11 | 8.42-11.61 (127.50 @ 0.6) | 274 (287)
+[tmg] line       8  20 |   5995   5 | 18.26-21.76 (127.66 @ 0.6) | 120 (125)
+[tmg] barcode   10  10 |   5995   0 | 18.09-21.91 (137.67 @ 0.6) | 42 (111)
+[tmg] safety     5  20 |   5995   5 | 18.48-21.53 (127.45 @ 0.6) | 63 (65)
+[tmg] imu        9  10 |  11989  11 | 8.17-11.87 (127.71 @ 0.6) | 1128 (1128)
+[tmg] mission    7 100 |   1180   0 | 0.70-111.18 (1148.07 @ 18.6) | 128 (1038477)
+[tmg] obstacle  11  60 |   1999   1 | 58.09-61.81 (127.83 @ 0.6) | 40 (46)
+[tmg] t=180136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |   1800   0 | 98.45-101.56 (147.89 @ 0.6) | 2561 (2580)
+[tmg] motion     6  10 |  17989  11 | 8.75-11.29 (127.50 @ 0.6) | 97 (287)
+[tmg] line       8  20 |   8995   5 | 18.71-21.31 (127.66 @ 0.6) | 95 (125)
+[tmg] barcode   10  10 |   8995   0 | 18.46-21.55 (137.67 @ 0.6) | 53 (111)
+[tmg] safety     5  20 |   8995   5 | 18.78-21.23 (127.45 @ 0.6) | 54 (65)
+[tmg] imu        9  10 |  17989  11 | 8.60-11.44 (127.71 @ 0.6) | 750 (1128)
+[tmg] mission    7 100 |   1780   0 | 10.75-111.25 (1148.07 @ 18.6) | 21 (1038477)
+[tmg] obstacle  11  60 |   2999   1 | 58.47-61.53 (127.83 @ 0.6) | 42 (46)
+[tmg] t=240136 ms | task pri period | wakes overruns | interval min-max ms (boot max @ s) | run max us (boot max)
+[tmg] telemetry 12 100 |   2400   0 | 98.45-101.52 (147.89 @ 0.6) | 2549 (2580)
+[tmg] motion     6  10 |  23989  11 | 8.68-11.36 (127.50 @ 0.6) | 93 (287)
+[tmg] line       8  20 |  11995   5 | 18.67-21.40 (127.66 @ 0.6) | 94 (125)
+[tmg] barcode   10  10 |  11995   0 | 18.45-21.62 (137.67 @ 0.6) | 52 (111)
+[tmg] safety     5  20 |  11995   5 | 18.75-21.30 (127.45 @ 0.6) | 57 (65)
+[tmg] imu        9  10 |  23989  11 | 8.53-11.51 (127.71 @ 0.6) | 750 (1128)
+[tmg] mission    7 100 |   2380   0 | 10.75-111.06 (1148.07 @ 18.6) | 37 (1038477)
+[tmg] obstacle  11  60 |   3999   1 | 58.50-61.53 (127.83 @ 0.6) | 40 (46)

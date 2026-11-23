@@ -994,6 +994,18 @@ than the robot, so the robot tips over it instead of driving up a slope.
     after the top; 400 m of flat floor gave no false report. To check on
     the robot: the hump reported (event within about 0.5 s), and no
     `ramp peak` on flat runs.
+  - **23 Nov 18:41, 3 mission runs with that image
+    (`testing/subsystem4/logs/2026-11-23_hump_reports_mission_{robot,panel}.txt`):
+    reported, but 2 per run (team: too sensitive).** 4.2, 5.4 and 7.2 mm
+    came on a straight (status 130/130, 120/118, 128/126 mm/s): probably
+    the hump. 4.3, 4.1 and 5.6 came in sharp turns (40/-28, 74/16, 62/20):
+    false. A higher limit would not separate them (5 mm drops the 4.2,
+    keeps the false 5.6). No mapping sent (`map=none`).
+  - **Changed the same evening, not run yet:** for 200 ms after the line
+    steering jumps by 15 mm/s or more, the side tilt is not used for the
+    hump (a sharp correction jerks the chassis sideways by about 0.06 g,
+    as much as a 5 mm hump). Check: the same runs, one report each, on
+    the hump.
 - [ ] ⬜ **S4-L01 lift stop (lecturer, 13 Nov; replaces IMU collision
   detection): built 13 Nov, not run yet.** Gravity more than 35 deg from
   the calibrated level for 100 ms = motors off as STOP, Mission told,

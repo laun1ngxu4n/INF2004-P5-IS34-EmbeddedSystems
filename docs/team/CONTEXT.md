@@ -173,7 +173,7 @@ speed 0 is now refused (it was undefined behaviour; nothing passes 0).
   without libm: sin(pitch - level pitch) from the accelerometer, low-pass
   about 100 ms. Height = sum of (distance driven x sin(pitch)), so it works
   for a long ramp and a short hump. When level again for 100 mm, a peak of
-  8 mm or more is reported (`[EVT] ramp peak height ...`, plus L x
+  4 mm or more (8 mm until 23 Nov) is reported (`[EVT] ramp peak height ...`, plus L x
   sin(peak pitch)), then no second report for 600 mm (the way down).
 - **Stage 5 (S1)**: `telemetry_event()` prints `[EVT] ...` and queues it for
   MQTT `is34/event`; status line on `is34/telemetry` every 1 s;

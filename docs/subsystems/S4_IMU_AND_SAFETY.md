@@ -102,7 +102,7 @@ gravity.
   driven x sin(pitch))**, all the time while driving.
 
 **Reporting:**
-- after a climb of 8 mm or more, once the robot is level again (pitch
+- after a climb of 4 mm or more (8 mm until 23 Nov), once the robot is level again (pitch
   under about 1.7° and the slower side-tilt copy level too) for 100 mm,
   it reports `ramp peak height H mm (one wheel: side tilt ...; from the
   nose-down tilt ...)` once;
@@ -156,7 +156,7 @@ the same word.
 | Pitch filter | about 100 ms (`LPF_K`); side tilt about 30 ms (`ROLL_LPF_K`) |
 | Jolt | 10 % away from 1 g (`JOLT_FRAC`) |
 | Level | under about 1.7° (`FLAT_SIN`) for 100 mm (`FLAT_MM`) |
-| Smallest report | 8 mm (`REPORT_MIN_MM10`); then quiet for 600 mm (`QUIET_AFTER_MM`) |
+| Smallest report | 4 mm (`REPORT_MIN_MM10`; 8 mm until 23 Nov, the course's hump is about 5 mm); then quiet for 600 mm (`QUIET_AFTER_MM`) |
 | One-wheel height | 123 mm x sin(side tilt) x 0.63 (`S4_ONE_WHEEL_GAIN_PCT`) |
 | Axle to front support | 80 mm (`S4_L_MM`, measured) |
 | Lift stop | over 35° for 100 ms; re-armed under 20° (`LIFT_COS`, `LIFT_TICKS`, `LIFT_CLEAR_COS`) |

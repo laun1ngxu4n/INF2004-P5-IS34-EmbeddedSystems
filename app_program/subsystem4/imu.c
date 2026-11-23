@@ -29,8 +29,15 @@
 #define LPF_K           0.1f   /* about 100 ms */
 #define FLAT_SIN        0.030f /* |pitch| < about 1.7 deg = level */
 #define FLAT_MM         100    /* level for this far = back on the floor */
-#define REPORT_MIN_MM10 80     /* peaks under 8 mm are not ramps */
+#define REPORT_MIN_MM10 40     /* peaks under 4 mm are not ramps */
 #define QUIET_AFTER_MM  600    /* no 2nd report for the way down */
+/* REPORT_MIN_MM10: 8 mm until 23 Nov.  The course's hump is only about
+   5 mm (team, 23 Nov), which should read about 5 mm (x 0.63,
+   S4_ONE_WHEEL_GAIN_PCT, fitted on 10 and 25 mm humps, not checked at
+   5 mm): under 8 mm it would not be reported.  The largest false reading
+   on the flat seen so far is about 3.0 mm, at the start of a run (9 Nov
+   S4-R01 run 2: side tilt 38/1000); driving on the flat, about 2.5 mm
+   (side tilt 31-34/1000).  4 mm sits between them. */
 /* Tilt alone keeps |a| at 1 g; a bump or a speed change adds to it.  A
    sample more than this far from the calibrated |a| is a jolt, not tilt:
    keep the last pitch (Stage 4 run, 2 Nov: hitting a 10 mm hump read as

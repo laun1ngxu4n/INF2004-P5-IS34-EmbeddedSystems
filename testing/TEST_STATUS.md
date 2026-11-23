@@ -944,6 +944,16 @@ than the robot, so the robot tips over it instead of driving up a slope.
   - Runs 2 and 4 came right after a reported run: the "no second report
     for 600 mm" distance carried over into the next run. Calibrating at
     the start of a run now resets it.
+- [ ] ⬜ **Smallest hump reported: 8 -> 4 mm (23 Nov, branch `hump-4mm`,
+  not run yet).** The course's hump is only about 5 mm (team), which
+  should read about 5 mm and was under the old 8 mm limit. The largest
+  false reading on the flat in the logs is about 3.0 mm (9 Nov S4-R01
+  run 2, at the start). To run: Stage 4 image, S4-R01 with something
+  about 5 mm under the right wheel (2-3 runs: each must be reported), and
+  2-3 runs on a flat floor (no `IMU task reported a ramp`). The test
+  prints every bump's scaled height (`x 0.63 for driving = X mm`), even
+  under the limit: put the limit between the largest flat reading and the
+  smallest hump reading.
 - [ ] ⬜ **S4-L01 lift stop (lecturer, 13 Nov; replaces IMU collision
   detection): built 13 Nov, not run yet.** Gravity more than 35 deg from
   the calibrated level for 100 ms = motors off as STOP, Mission told,

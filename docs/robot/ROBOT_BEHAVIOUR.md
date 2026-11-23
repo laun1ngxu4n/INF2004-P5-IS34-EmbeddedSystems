@@ -315,7 +315,7 @@ How to run the tests: [TESTING_GUIDE.md](../../testing/TESTING_GUIDE.md).
   while driving does not count as a climb.
 - The IMU's own 50 Hz filter cuts motor vibration; readings during jolts
   are skipped (|acceleration| more than 10 % off 1 g).
-- Climbed 8 mm or more (climbs only: nose-down dips are ignored) and then
+- Climbed 4 mm or more (8 mm until 23 Nov; climbs only: nose-down dips are ignored) and then
   level (under about 1.7 deg) for 100 mm: reports `ramp peak height H mm`
   plus L x peak nose-up tilt; no second report for the next 600 mm.
 

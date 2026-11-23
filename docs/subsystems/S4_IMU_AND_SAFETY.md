@@ -116,11 +116,11 @@ gravity.
     tilt is not taken for the peak (`STEER_HOLD_TICKS`,
     `STEER_STEP_MM_S`): the jerk of a sharp correction read as 4-6 mm
     humps in sharp turns (23 Nov);
-  - **one hump per stretch** (23 Nov): after a report, no other until the
-    next START, junction turn or bypass. The course has one hump, and the
-    false readings (4.1-7.2 mm) were as big as the hump (4.0-5.6 mm). In
-    the demo, a false reading between the last bypass and the hump would
-    still come first.
+  - **10 s cooldown** (23 Nov): after a hump report, no other hump is
+    reported for 10 s (`COOLDOWN_TICKS`; other events are not affected).
+    The false readings (4.1-7.2 mm) were as big as the hump (4.0-5.6 mm)
+    and came 55-90 cm after it. A false reading less than 10 s before the
+    hump would still hide it.
 - **both wheels (a ramp):** once the robot is level again (nose and side
   under about 1.7°) for 100 mm, a climb of 4 mm or more is reported;
 - then no second report for the next 600 mm (the way down);

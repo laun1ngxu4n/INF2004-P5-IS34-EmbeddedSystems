@@ -1015,6 +1015,11 @@ than the robot, so the robot tips over it instead of driving up a slope.
     report, none until the next START, junction turn or bypass. Check:
     the same run gives only the hump; and one whole-course run, where the
     hump comes after the bypass.
+  - **Replaced 23 Nov 19:05 before any run (team): a 10 s cooldown.** Every
+    hump is reported again, but no other hump within 10 s of the last
+    report (other events are not affected). Only the mission WiFi image
+    was rebuilt; the committed images still have one hump per stretch.
+    Check: the same run gives only the hump.
 - [ ] ⬜ **S4-L01 lift stop (lecturer, 13 Nov; replaces IMU collision
   detection): built 13 Nov, not run yet.** Gravity more than 35 deg from
   the calibrated level for 100 ms = motors off as STOP, Mission told,

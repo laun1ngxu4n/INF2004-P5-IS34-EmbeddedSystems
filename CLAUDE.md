@@ -3,8 +3,8 @@
 Line-following robot on a Pico W (Cytron Robo Pico), micro T-Kernel 3.0,
 code in `app_program/`. Read before doing anything:
 
-1. [`docs/team/CONTEXT.md`](docs/team/CONTEXT.md): the handover. What exists,
-   what is proven, **section 3 = current status and the next steps in order**.
+1. [`docs/subsystems/README.md`](docs/subsystems/README.md): the whole
+   robot, and a page per subsystem (what exists, why, what is proven).
 2. [`testing/TEST_STATUS.md`](testing/TEST_STATUS.md): what passed on the robot.
 3. Change Requirement 1 (implemented 8 Nov, robot retest pending):
    [`docs/team/CHANGE_REQ1.md`](docs/team/CHANGE_REQ1.md) (what was done, the
